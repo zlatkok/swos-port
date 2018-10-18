@@ -1,0 +1,32 @@
+//
+// Controls menu
+//
+
+#include "optionsCommon.mh"
+
+Menu Controls
+{
+    Entry header {
+        x: kBaseX
+        y: 0
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: "CONTROLS MENU"
+        color: kHeaderColor
+    }
+
+    Entry exit {
+        x: kBaseX
+        y: kExitY
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: aExit
+        color: kExitColor
+
+        onSelect: ~SetExitMenuFlag
+
+        //upEntry: <
+    }
+}

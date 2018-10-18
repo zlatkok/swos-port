@@ -1,0 +1,96 @@
+#1 get asm output from IDA to assemble
+#2 decide which libraries to use, and setup the project
+#3 rewrite unportable parts of assembly
+#4 possibly write additional routines
+#5 integrate all, compile, win :)
+
+
+goal #1:
+- IDA output itself isn't assemble-able, we will have to write converter
+- assembler of choice - NASM
+- write Python script to convert IDA output to NASM syntax
+- it is possible that we will also use the script to partition IDA output into
+  more units (will be more manageable and lower assembly time, separation could
+  be done by addresses - put certain ranges to certain files)
+
+goal #2:
+- SDL2 library has been selected for this honorable job
+- now conquering introductory tutorials and making hello world app
+- find or create object-oriented wrappers
+
+
+07.09.2015.
+- 3 whole weeks have gone by, and the parser is at about 75%.
+
+15.09.2015.
+- Parser is finished! Phase #1 completed, in a bit more than 4 weeks. On to
+  deciding on libraries (most likely SDL) and setting up Visual Studio project.
+
+03.11.2015.
+- Resuming work after finishing with ESET stuff (or so I thought).
+
+20.02.2016.
+- SDL2 hello world set up, with SDL2pp.
+
+03.05.2016.
+- Switched to new NASM - assembling is way faster + it revealed a bug in the
+  parser - variables of struct type were incorrectly outputted as db <size>
+  instead of times <size> db 0.
+- Fixed some out of range constants in IDA (IDA seems to make out of range
+  negative numbers).
+
+15.07.2016.
+- work is taking up lot of time, but finally got around to do some improvements; some parser errors fixed,
+  VC project fixed, now making a parser for input symbol list
+- parser mostly written; having problems with debug symbols -- NASM might be generating them incorrectly,
+  and SDL libs might only be missing PDB's
+- what's also left is to need to generate SWOS header from symbols file
+
+24.10.2016.
+- ran into big problem, linker was reporting that debug symbols were corrupt... nothing I did helped, so I'm
+  recreating the project, test project seems to work fine
+
+03.12.2017.
+- change of plan: I couldn't bring myself to fix debug symbols problem all this time... (by writing C++ version of
+  alink), however I am now trying to write a parser converter for MASM, but in C++, since Python version was painfully
+  slow (about 2 minutes to convert)... let's see how this goes!
+
+03.01.2018.
+- working on rewriting IDA ASM parser in C++, and making it super-fast
+- learning CMake to rewrite the project in it
+
+17.03.2018.
+- CMake is dropped, replaced by Meson build
+- trying to create fastest possible browser in C++, creating code generator in Python
+- it's hard to get motivation
+
+08.04.2018.
+- actually managed to do a lot and regain focus and motivation (no idea how :P)
+
+09.04.2018.
+- had to do [commercial] work, so a small break shall we say
+
+14.06.2018.
+- finally got the working parser v2 :) it's *extremely* fast (about 30-40ms :D), and uses MASM for assembling,
+  which does it really fast as well (seems NASM implementation is garbage) + parser v2 breaks input into multiple
+  files allowing parallel assembly to go on
+- now I will start putting the project together in terms of building, Meson leaves a lot to be desired,
+  but in essence does the job
+- next milestone will be combining everything together in a compilable project, and running a hello world ;)
+
+20.06.2018.
+- it's all linked, and invoking SWOS code in win32 for the first time :)
+- my patience with Meson is done, as well as build systems in general, switch to plain simple VS project
+
+01.07.2018.
+- game finally started working a little bit :) (sadly it crashes randomly); but menus are mostly working
+  no fixed plan currently, will just chip away at it, and work on it bit by bit
+
+16.09.2018.
+- game play is perfect ;) now I'm writing menu compiler in Python, I want to recreate options menu, and later start
+  adding SWOS++ features
+
+02.10.2018.
+- menu compiler works awesome, I'm writing menu scripts and adding new functionality; once the menus are fairly
+  complete I can dedicate to fixing career bugs (perhaps in parallel to adding SWOS++ functionality, we'll see
+  how things work out)

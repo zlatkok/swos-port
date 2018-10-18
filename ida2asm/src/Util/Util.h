@@ -1,0 +1,99 @@
+#pragma once
+
+namespace Util {
+    using hash_t = uint32_t;
+    constexpr hash_t kInitialHashValue = 1021;
+
+    namespace Private {
+        // unfortunately by using this function only we receive a performance hit (from recursion)
+        // so there will have to be two versions... keep in sync!
+        // and keep it here in private namespace to avoid accidentally calling it non-compile time
+        inline constexpr hash_t constHash(const char *p, size_t length, size_t i = 0, hash_t h = kInitialHashValue)
+        {
+            return i >= length ? h : constHash(p + 1, length, i + 1, _rotl(h + i + *p, 1) ^ (i + *p));
+        }
+    }
+
+    static inline hash_t hash(const char *p, size_t length)
+    {
+        hash_t hash = kInitialHashValue;
+
+        for (size_t i = 0; i < length; i++, p++) {
+            hash += i + *p;
+            hash = _rotl(hash, 1);
+            hash ^= i + *p;
+        }
+
+        return hash;
+    }
+    template <size_t N>
+    inline constexpr hash_t constHash(const char(&p)[N])
+    {
+        return Private::constHash(p, N - 1, 0, kInitialHashValue);
+    }
+
+    template<typename T, typename U>
+    inline void assertSize(T sizeHolder, U sizeBringer)
+    {
+        assert(sizeBringer >= std::numeric_limits<T>::min() && sizeBringer <= std::numeric_limits<T>::max());
+    }
+
+    template<typename T, typename U>
+    inline void assignSize(T& sizeHolder, U sizeBringer)
+    {
+        assertSize(sizeHolder, sizeBringer);
+        sizeHolder = static_cast<T>(sizeBringer);
+    }
+
+    // incredible but this is about 10x faster than std lib implementation
+    static inline bool isSpace(char c)
+    {
+        // we will skip '\f' and '\v' since they don't show up in the input anyway and it's a bit faster without
+        return c == ' ' || c == '\n' || c == '\r' || c == '\t';
+    }
+
+    void exit(const char *format, int exitCode = EXIT_FAILURE, ...);
+    const char *getFilename(const char *path);
+    std::string getBasePath(const char *path);
+    std::pair<const char *, long> loadFile(const char *path, bool forceLastNewLine = false);
+
+    bool endsWith(const std::string& base, const std::string& suffix);
+    template <size_t N>
+    bool endsWith(const std::string& base, const std::array<char, N>& arr)
+    {
+        if (base.size() >= N)
+            for (size_t i = 0; i < N; i++)
+                if (base[base.size() - N + i] != arr[i])
+                    return false;
+
+        return true;
+    }
+
+    std::string formatNumberWithCommas(int64_t num);
+
+    constexpr std::array<char, 2> kNewLine = { '\r', '\n' };
+    inline const std::string kNewLineString() { return { kNewLine.begin(), kNewLine.end() }; }
+
+    constexpr char kOnEnterSuffix[] = "_OnEnter";
+}
+
+// enable enumeration members to be used as flags
+#define ENABLE_FLAGS(ENUM) \
+inline ENUM operator|(ENUM a, ENUM b) \
+{ \
+    return static_cast<ENUM>(static_cast<int>(a) | static_cast<int>(b)); \
+} \
+inline ENUM operator|=(ENUM& a, ENUM b) \
+{ \
+    return a = a | b; \
+} \
+inline ENUM operator|=(ENUM& a, int b) \
+{ \
+    return a = a | static_cast<ENUM>(b); \
+} \
+inline ENUM operator&(ENUM a, int b) \
+{ \
+    return static_cast<ENUM>(static_cast<int>(a) & b); \
+}
+
+#define UNUSED(x) ((void)(x))

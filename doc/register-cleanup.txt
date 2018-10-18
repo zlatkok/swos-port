@@ -1,0 +1,23 @@
+In ASM routines called from C++:
+must preserve: EBX, ESI, EDI, EBP
+can trash: EAX, ECX, EDX
+
+Relevant docs:
+[Wikipedia]
+The compiler generates prolog and epilog code to save and restore the
+ESI, EDI, EBX, and EBP registers, if they are used in the function.
+
+Caller-saved (volatile) registers
+According to the Intel ABI to which the vast majority of compilers conform,
+the EAX, EDX, and ECX are to be free for use within a procedure or function,
+and need not be preserved.
+
+[MSDN]
+When using __asm to write assembly language in C/C++ functions, you don't need
+to preserve the EAX, EBX, ECX, EDX, ESI, or EDI registers. For example, in the
+POWER2.C example in Writing Functions with Inline Assembly, the power2 function
+doesn't preserve the value in the EAX register. However, using these registers
+will affect code quality because the register allocator cannot use them to
+store values across __asm blocks. In addition, by using EBX, ESI or EDI in
+inline assembly code, you force the compiler to save and restore those
+registers in the function prologue and epilogue.

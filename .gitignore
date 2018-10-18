@@ -1,0 +1,13 @@
+bin
+dll
+/vc-proj/*.opendb
+/vc-proj/*.db
+/vc-proj/*.user
+/vc-proj/.vs
+/vc-proj/Debug
+/vc-proj/ida2asm
+/vc-proj/ipch
+/vc-proj/Release
+/vc-proj/swos-asm
+/vc-proj/token-lookup-tester
+/doc/TODO.txt

@@ -1,0 +1,24 @@
+//
+// commonly used menu constants
+//
+
+kBaseX = 92
+kBigButtonWidth = 125
+kBigButtonHeight = 15
+
+kHeaderColor = @kGray | @kGrayFrame
+
+kExitY = @kScreenHeight - kBigButtonHeight
+kExitColor = @kLightBrownWithOrangeFrame
+
+kOptionWidth = 140
+kOptionHeight = 11
+
+kColumn1X = 10
+kColumn2X = 154
+kStartY = 60
+
+kRowDistance = 1
+
+kColumn1Color = @kGray
+kColumn2Color = @kLightBlue

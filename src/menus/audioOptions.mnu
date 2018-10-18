@@ -1,0 +1,171 @@
+//
+// Audio options menu
+//
+
+#include "optionsCommon.mh"
+
+Menu audioOptionsMenu
+{
+    defaultWidth: kOptionWidth
+    defaultHeight: kOptionHeight
+    initialEntry: exit
+
+    Entry header {
+        x: kBaseX
+        y: 0
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: "AUDIO OPTIONS"
+        color: kHeaderColor
+    }
+
+    defaultX: kColumn1X
+
+    TemplateEntry {
+        color: kColumn1Color
+    }
+
+    // column 1
+
+    Entry {
+        y: kStartY
+        text: "GAME VOLUME"
+    }
+
+    defaultY: @prevEndY + kRowDistance + 1
+
+    Entry { text: "MUSIC VOLUME" }
+    Entry { text: "SOUND" }
+    Entry { text: aMenuMusic }
+    Entry { text: aCommentary }
+
+    // column 2
+
+    defaultX: kColumn2X
+
+    TemplateEntry {
+        color: kColumn2Color
+    }
+
+    kChangerWidth = 16
+    kChangerColor = @kPurple
+    kChangerOptionWidth = kOptionWidth - 2 * kChangerWidth - 2
+
+    Entry increaseVolume {
+        y: kStartY
+        width: kChangerWidth
+
+        color: kChangerColor
+        text: aPlus
+
+        onSelect: increaseVolume
+
+        downEntry: increaseMusicVolume
+        rightEntry: decreaseVolume
+    }
+
+    Entry {
+        x: @prevEndX + 1
+        y: @prevY
+        width: kChangerOptionWidth
+
+        number: 0
+
+        beforeDraw: volumeBeforeDraw
+    }
+
+    Entry decreaseVolume {
+        x: @prevEndX + 1
+        y: @prevY
+        width: kChangerWidth
+
+        color: kChangerColor
+        text: aMinus
+
+        onSelect: decreaseVolume
+
+        leftEntry: increaseVolume
+        downEntry: decreaseMusicVolume
+    }
+
+
+    Entry increaseMusicVolume {
+        width: kChangerWidth
+
+        color: kChangerColor
+        text: aPlus
+
+        onSelect: increaseMusicVolume
+
+        upEntry: increaseVolume
+        downEntry: toggleMasterSound
+        rightEntry: decreaseMusicVolume
+    }
+
+    Entry {
+        x: @prevEndX + 1
+        y: @prevY
+        width: kChangerOptionWidth
+
+        number: 0
+
+        beforeDraw: musicVolumeBeforeDraw
+    }
+
+    Entry decreaseMusicVolume {
+        x: @prevEndX + 1
+        y: @prevY
+        width: kChangerWidth
+
+        color: kChangerColor
+        text: aMinus
+
+        onSelect: decreaseMusicVolume
+
+        upEntry: decreaseVolume
+        leftEntry: increaseMusicVolume
+        downEntry: toggleMasterSound
+    }
+
+    Entry toggleMasterSound {
+        stringTable: [ g_soundOff, aOn, aOff ]
+
+        onSelect: toggleMasterSound
+
+        upEntry: increaseMusicVolume
+        downEntry: >
+    }
+
+    Entry menuMusic {
+        stringTable: ~menuMusicStrTable
+
+        onSelect: toggleMenuMusic
+
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry commentary {
+        stringTable: ~commentaryStrTable
+
+        onSelect: ~ChangeCommentary
+
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry exit {
+        x: kBaseX
+        y: kExitY
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: aExit
+        color: kExitColor
+
+        onSelect: ~SetExitMenuFlag
+
+        upEntry: <
+    }
+}

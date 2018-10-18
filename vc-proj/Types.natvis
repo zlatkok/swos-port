@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Register">
+    <DisplayString>{data}</DisplayString>
+    <Expand>
+      <Item Name="value">data</Item>
+      <Item Name="ptr">(char *)data</Item>
+      <Item Name="hex">data,h</Item>
+      <Item Name="char">(char)data,c</Item>
+      <Item Name="hiWord">(word)(data >> 16)</Item>
+      <Item Name="loWord">(word)data</Item>
+    </Expand>
+  </Type>
+  <Type Name="Token">
+    <DisplayString Condition="textLength != 0">{(char *)(this + 1),[textLength]}</DisplayString>
+    <DisplayString Condition="textLength == 0">{type}</DisplayString>
+    <Expand>
+      <Item Name="type">type</Item>
+      <Item Name="text" Condition="textLength > 0">(char *)(this + 1),[textLength]</Item>
+      <Item Name="length">textLength</Item>
+      <Item Name="hash" Condition="type == T_ID">hash,h</Item>
+      <Item Name="category">category</Item>
+      <Item Name="instructionType" Condition="category == Instruction">instructionType</Item>
+      <Item Name="registerType" Condition="category == Register">registerType</Item>
+      <Item Name="registerSize" Condition="category == Register">registerSize</Item>
+      <Item Name="keywordType" Condition="category == Keyword">keywordType</Item>
+      <Item Name="next">(Token *)((char *)(this + 1) + textLength)</Item>
+    </Expand>
+  </Type>
+  <Type Name="String">
+    <DisplayString Condition="m_length == 0">(Empty string)</DisplayString>
+    <DisplayString Condition="m_length != 0">{m_str,[m_length]}</DisplayString>
+    <Expand>
+      <Item Name="string">m_str,[m_length]</Item>
+      <Item Name="length">m_length</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

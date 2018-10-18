@@ -1,0 +1,688 @@
+18.03.2018.
+- finished custom step of Meson build
+- refactored script a little
+- working on enabling test of TookenLookup.cpp
+19.03.2018.
+- fixed invalid token lookup test generator dependency
+- trying to get generated token lookup to compile with the tester
+20.03.2018.
+- managed to compile null tester
+- had to change TokenLookup into header instead of cpp file so Meson would stop compiling it
+- trying to create actual tester implementation
+21.03.2018.
+/
+22.03.2018.
+/
+23.03.2018.
+/
+24.03.2018.
+/
+25.03.2018.
+/
+26.03.2018.
+/
+27.03.2018.
+/
+28.03.2018.
+/
+29.03.2018.
+/
+30.03.2018.
+- added T_EOF handling
+- working on tester implementation
+01.04.2018.
+/
+02.04.2018.
+- improved tester a bit
+03.04.2018.
+- implemented test string output (print string split into lines)
+04.04.2018.
+/
+05.04.2018.
+/
+06.04.2018.
+- properly implemented output of test string and test tokens
+- got to a point where actual tester function needs to be written
+07.04.2018.
+- fixed a bug in test tokens output
+- tester dummy compiled correctly!
+- continuing with tester implementation, switched to raw multi-line strings where applicable
+- tester basic function compiled for the first time!
+08.04.2018.
+- fixed tester crashing :)
+- passed tests?!?! IMPOSSIBRU!!
+- finished std lib lookup function, setting up performance test
+09.04.2018.
+- implemented custom hash function
+- lookup generator + performance tests FINITO!!! RAWR!
+- Meson is retarded, doesn't allow access to output from the tests >< (there's a not a very good workaround)
+- found out about gperf & the other tool
+- successfully added gperf to build, and verified that it is slower (albeit only slightly)
+- other tool is a bit slower than gperf so skipping it (only advantage is it's 100% in C++)
+- now creating Meson build for ida2asm, in order to have fully functional Visual Studio project
+10.04.2018.
+- had to modify Python script to accommodate retarded Meson's hard-coded expectancy about output file locations
+- got up to the rest of the parser now, trying to get it compiled
+11.04.2018.
+- Meson build done, even though it's buggy for VS (doesn't rebuild when Python script changes)
+- ida2asm successfully compiled!
+- and it's not crashing anymore! :)
+12,13.04.2018.
+- working on parser, solid progress, hope to finish struct parsing soon
+- enable tokenizer to recognize and report numbers
+14.04.2018.
+- switched build to x86 (was x64), it can only be done when running Meson from x86 set up VS command prompt
+- did some testing, and IFs turn out to be slightly faster than SWITCH (tables probably mess up the cache)
+- switched to custom isspace that's 10x faster than the one from std lib (wtf)
+- added support for parsing numbers, and debugged it
+- in the light of recent changes gperf seems to slightly overperform the state machine
+15.04.2018.
+- after some changes state machine is beating gperf again :)
+- improved custom hash by using binary search, now it's outperforming std::unordered_map in release too
+- implemented state machine using ifs instead of switches, but it's just slightly slower
+- fixed some bugs in parsing
+16.04.2018.
+- debugging parser and struct assembling code, getting more quirks resolved
+17.04.2018.
+- re-consolidated struct handling code
+- fixed test (broken with new changes and optimizations)
+18.04.2018.
+- tested tokens with alignment, almost no difference, it even feels negligibly slower
+- made lookupToken return hash for id's as well, performance hit is small
+- implemented HashMap to store defines
+19.04.2018.
+- moved hash function to util and turned it into constexpr; however it came with a big performance hit due to
+  recursion, so I made constexpr a second version to use for static strings
+- made a template so I can just call constHash("some str") and everything is handled perfectly :)
+- fixed includes, Meson already includes directories of generated files automatically
+- code to catch custom hash collisions was buggy :) but I don't wanna bother finding collision-free function
+- moved parseInt() to Token, it was much more natural fit
+- now parsing dot directives
+- started work on labels
+20.04.2018.
+/ (lot to do on my real job :P)
+21.04.2018.
+/
+22.04.2018.
+/
+23.04.2018.
+/
+24.04.2018.
+/
+25.04.2018.
+/
+26.04.2018.
+/
+27.04.2018.
+/
+28.04.2018.
+/
+29.04.2018.
+/
+30.04.2018.
+/
+01.05.2018.
+/
+02.05.2018.
+- planned on adding instructions and 'output lines' in general
+03.05.2018.
+- worked on expanding parser with [,],comma,+,-,* (will need it for parsing instructions)
+04.05.2018.
+- finally passed tests with parser extensions
+- trying to create some sort of instruction parsing/storing skeleton
+05.05.2018.
+- worked on instruction storage implementation
+06.05.2018.
+- working on instruction parsing & related stuff
+- added register size field
+07.05.2018.
+- continuing work on instructions, came up with an idea to use placement new
+08.05.2018.
+- refactored instructions, used placement new (sooo much better now!), continuing work on parsing
+09.05.2018.
+/
+10.05.2018.
+/
+11.05.2018.
+- attempt to change Token into full fledged class failed miserably
+12.05.2018.
+- added single-quoted string to tokenizer
+13.05.2018.
+- a bit of work on data item parsing
+14.05.2018.
+/
+15.05.2018.
+- close to finishing data item parsing (for now)
+16.05.2018.
+- worked on adding dup() support to tokenizer (sheesh)
+17.05.2018.
+- changed the way number parsing works
+- refactored lot of code, it's shorter and more clear now
+- finally passed all test with parser dup() extension
+- after all the changes it's 25% faster!!! (and I wasn't optimizing at all) :)
+- initial collecting of data items seems to work fine
+18.05.2018.
+- added some cool templates to OutputItem ;)
+- eliminated size inside output items themselves, only keeping it at outer output item container
+- it occurred to me to run static analysis, it uncovered couple of interesting things
+- parsed function local variables and arguments
+19.05.2018.
+- instructions can have THREE operands... gah, fixing that
+- save the comments from ignored entities
+- parsing passed for the first time!!
+- changed struct parsing code to use placement new as well (ended up with more compact and clear code)
+- turned size_t to explicit size type where mattered
+- starting work on output machinesZ, for now verbatim (copy input as is) to verify parsing
+20.05.2018.
+- added measurement of the time whole program took to execute
+- made output hierarchy, went into details, file opening, reading into buffer etc.
+- added #pragma pack where needed, we were using sizeof() which was returning the size with padding
+  (and I later assumed no padding when copying data)
+21.05.2018.
+- fixed a bug in calculating struct size, a bit of progress in verbatim output
+22.05.2018.
+- struct output is done & correct!! :)
+23.05.2018.
+- added support for precompiled headers
+- defines outputted correctly!! :)
+- filtered original swos.asm in the same way as ida2asm, I can diff like a boss now ;)
+24.05.2018.
+- set up skeleton for instructions output and outputted some basic elements
+- replaced all that ugly duplicated code for size assertion with a cool template
+- restructured instruction handling code but now it's crashing... ugh... too late to continue
+25.05.2018.
+- improved instruction processing a bit, but it's still not working properly
+26.05.2018.
+- improved instruction processing, it's almost there :) just a few more glitches, I hope :)
+27.05.2018.
+- turned + into strictly binary operator (numbers can't start with it), since IDA uses it ambiguously (& fixed tests)
+- missed that variable after "offset" part can also have its offset ;)
+- implemented stack variables output
+- implemented data items output
+- discovered junk chars in strings... sigh... handled those and added tests as well
+- they have a char constant: '\'... >_<
+- verbatim output is now close enough! :)
+28.05.2018.
+- tried assembling with TASM but _no chance_
+- set up output class hierarchy to share output code efficiently
+- haha MASM swallowed up structs :)
+- as well as defines! took some friendly persuasion (ie. editing names in IDA), MASM is picky about keywords
+29.05.2018.
+- implemented mechanism for removing unneeded procs via a text file (this will be expanded later)
+- fixed instruction parameter spacing in output
+- fixed a bug when some new lines ended up being non-Windows (\r got eaten)
+- gah... found out that stupid MASM needs a command line argument to be case-insensitive
+- worked around MASM bug (or *extremely* undocumented area), whereas it seems impossible to initialize an array of
+  structures containing array of other structures
+30.05.2018.
+- MASM regards any label inside proc as local, while IDA doesn't and calls them liberally, so worked around that by
+  turning each non-anonymous label inside proc into an empty proc (nested proc's are OK)
+- included "assume" into output (since MASM needs it)
+- started working on parallelized parser (which should break input file to many separate files too)
+31.05.2018.
+- worked on breaking parsing into threads... unsuccessfully
+01.06.2018.
+- implemented parsing units
+- implemented error reporting system for parsing units
+02.06.2018.
+- fixed comments being left out when determining chunk borders (as well as segments)
+- set up output system for parsing units
+03.06.2018.
+- fixed invalid output file forming if only a path without filename is given
+- now workers only output disassembly and structs & defines go separately
+- wrote a Perl script for creating a cleaned up version of swos.asm for testing if everything's in order
+- fixed errors in determining limits of input file chunks
+- fixed error in parsing directives with comments
+- fixed empty lines at starts of output files
+- fixed invalid line numbers when reporting parsing errors
+04.06.2018.
+- set up string set class to hold references
+- decided to go with generic map
+- learned that externs require type for MASM, need to redesign solution
+05.06.2018.
+- implemented generic StringMap template, and wired it to defines (seems to work! :))
+- redesigned a bit StringMap and StringSet, added range for loop support, it's cleaner now with less code repetitions
+- they can also change size and reallocate now (although we don't want them to do that)
+- did some refactoring on asm converter worker, it's much nicer now
+- finished reference resolving, but it's untested :)
+06.06.2018.
+- resolved all externs and publics, sent it to output... but it's not working :)
+07.06.2018.
+- debugging externs resolving
+08.06.2018.
+- more debugging of externs resolving
+- did a bit of refactoring, const Token is used in sooo many places, so aliased it with CToken
+09.06.2018.
+- did some research on SWOS palettes (unrelated to this project ;))
+- finally output is done without triggering any assertions :P
+- got the script for assembling all output files going, fixing all the errors
+- everything assembled without an error???
+- researched on raylib vs SDL, will go with SDL after all
+10.06.2018.
+- reverted StringMap<T>::Node to private, now iterator returns special struct type with all the necessary data
+- removed duplicate references, seems like it slightly improved performance
+- implemented move constructor for StringView
+- it's not assembling anything... object files are 230 bytes long...
+- I was happy too soon :) include had "end" in it so the assembly stopped before any real output
+11.06.2018.
+- move segments to labels before resolving references to help cache
+- finally fixed bugs in extern matching, now line numbers in MASM errors work again! :)
+- however, we're back to fixing assembling errors due to MASM idiosyncrasies
+12.06.2018.
+- fixed redefined Amiga registers
+- fixed broken reference duplicate removal
+- switched to MASM 8.0; some errors disappeared :D
+- fixed invalid prefix error
+13.06.2018.
+- removed char * and void * operators from String class, it's safer and more efficient now
+- added workaround for weird IDA behaviour of not marking initialized structs with data as struct variables
+- added guaranteed EOF token to the end of each unit
+- added support for deleting range of functions from the assembly
+- so far pieces 2, 3, 4, 7 & 8 are assembling fully!
+14.06.2018.
+- fixed quoted string parsing, I assumed it would work same as in C, but I was completely wrong
+- piece 6 and 1 assembling correctly!
+- turns out "assume" directives were causing MASM to freak out and add cs: prefix to almost every instruction :P
+  (this made some short jumps fall out of range and cause errors)
+- it all REALLY assembled correctly this time!!!
+- it's linking _without a single_ warning, whew!
+15.06.2018.
+- plotted out plan for building the whole thing
+- went and manually built SDL2 and belonging libraries
+16.06.2018.
+- will compile libs manually and just use the resulting lib files (with debug versions as well)
+- fixed couple of bugs in ida2asm
+- fighting with Meson again
+17.06.2018.
+- build systems are shit, gonna write my own script
+18.06.2018.
+/
+19.06.2018.
+/
+20.06.2018.
+- gave up on writing script, making Visual Studio project and that's it
+- great day, it's all linked together and actually correctly invoking SWOS code!!! :)))
+21.06.2018.
+- added capability to replace asm functions with imports from C++ to ida2asm
+- making ida2asm generate swos.h, better to keep it all in one place
+22.06.2018.
+- finished symbol file parsing code
+- added possibility to remove variables from assembly too (not just procs)
+- removed bunch of useless crap and rerouted SWOS() into C++ :)
+23.06.2018.
+- fixed export needed by C++ not turning up in publics list if it wasn't needed as public in asm
+- implemented a nice templatized class to deal with nasty conversions involved with 68k registers ;)
+- advancing toward initial image scrolling
+24.06.2018.
+- collapsed consecutive anonymous data items to 'x dup(y)' form (shaved of ~300kb and should speed up assembling)
+- fixed some invalid code, refactored source a little, made it a bit nicer
+  (learned that fread() has max read count that it accepts, 1mb = OK, 10mb = FAIL)
+- worked on initial image scrolling, will need palette settings & flipping for this
+- SDL is so under-documented, will need to figure out a reliable way to do 70FPS precise enough, as well as
+  fast way to scale up to at least 640x480
+25.06.2018.
+- reading docs, trying to figure out how to get 320x200x8 buffer to the screen (efficiently)
+26.06.2018.
+- managed to draw intro scrolling images, but palette for two.256 comes out wrong :(
+27.06.2018.
+- ida2asm now reports if any symbol from symbols.txt wasn't found in the asm file
+- allowed data items to spawn ranges too
+- drew a menu :) but still can't move cursor
+28.06.2018.
+- added code for keyboard handling (but it's not working)
+- enabled ShowMenu
+- had crashes in menu drawing functions, turned out to be caused by some SWOS functions destroying registers
+  VC++ expects not to change across function calls; modified ida2asm, added generation of push/pop instructions
+  to save and restore those registers and that set it straight
+- seems like MASM uses nops (0x90) for alignment instead of zeros in data segment, had a string lose ending zero
+  terminator because of it, will need to be more careful since retarded MASM can't be instructed which value to use
+- implemented natvis file (debugger instructions) for my custom classes, it works great now
+29.06.2018.
+- added support for hooking functions (inject call to our function on entry)
+- placed replaced symbols into SWOS namespace
+- some small refactoring
+- discovered that the crash outside IDE was due to joypad controls which weren't patched
+- implemented directory listing
+- implemented log file
+- added macro for invoking SWOS procs with relevant registers preserved (esi is especially problem, since it's used
+  in so many places), release version used some registers that got clobbered and crashed
+- integrated crash reporter
+- finished Bash script for creating backups
+30.06.2018.
+- fixed palette problem, I'm the retard :D only copied 256 bytes instead of 768
+- fixed bug in ida2asm where a data belonging to a menu that landed between the chunks got lost (will detect and
+  report it if it ever happens again)
+- fixed initial cross fade from images to menu
+- added 68k register values to crash report
+- implemented text input and made hooks bit more elegant and general
+- figured out why it's crashing on Playa's machine: MASM is treating variables as pointers within procs in data
+  segment... on my machine it works randomly but overwrites memory all over the place
+  fixed it by temporarily switching to cseg if proc isn't inside it
+01.07.2018.
+- fixed highlights not loading in release mode (LoadFile needs to set zero flag even though it's the only outcome)
+- removed int 3 at start from DIYLeagueTournamentMatch (bah)
+- fixed a bug in ida2asm's collapsing of contiguous anonymous data items... was only comparing their value but
+  not the size... yikes!
+- fixed not being able to close program while fading (process events on each palette change)
+- added synchronization, not perfect but seems OK for now
+- fixed lost leading comments on data items
+- fixed errors in stdlib fopen(), seems it didn't like unaligned stack, SWOS was pushing a word, made it push
+  dword always
+- fixed crash before the game, LoadFile() wasn't returning size in D1 per specification, so a low number was inside,
+  causing sprite fixup to be done only partially
+02.07.2018.
+- fixed a bug in log functions (it was choosing va_list variant over ... for 1 argument, had to rename to logv)
+- did some timing experiments (unsuccessfully, it's still too slow/fast, but I'll check swpe it had good sync)
+03.07.2018.
+- fixed fade out to black from stadium menu when starting the game
+04.07.2018.
+- debugged in-game crash, I thought pitch memory is maybe getting overwritten, tested it with OllyDbg memory range
+  breakpoints, but it turned out to be dead-end; memory isn't overwritten, pointer from pitch dat buffer is read
+  beyond end of array, and turns out null (so need to check if fixup routine should fix up that area too or somehow
+  it's getting the wrong coordinate (D2 is 57 and I think it shouldn't be over 55))
+05.07.2018.
+- debugged scrolling routines... I understand them much better now, this is very sloppily written, and the code is
+  accessing indices outside the array bounds
+06.07.2018.
+- fixed in-game crashes, game wasn't clipping pattern drawing, and was reading patterns from nullptr
+  and writing them to virtual screen area that was never shown
+07.07.2018.
+- fixed big S sprite not spinning, and crowd not cheering (now calling equivalent of TimerProc each frame)
+- fixed generating weird construct "dword ptr [word ptr ..."
+- fixed messed up sprites during the game, thank you OllyDbg! :) animation tables were overwritten by
+  ResetResultSprites, since the sizes of ScorerInfo arrays were wrong (wrote wrong MASM expression :/)
+- program now utilizes ~0% CPU when paused :)
+08.07.2018.
+- tried to solve damn goalkeeper position problem, unsuccessfully
+09.07.2018.
+- solved goalkeeper positions :) IDA was misinterpreting some data in positions array as offsets
+- fixed CPU player always shooting too high when near goal
+- seems edit tactics menu got fixed along the way :)
+10.07.2018.
+- setup.dat wasn't loaded if game was ran out of directory
+- replaced "QUIT TO DOS" with "QUIT TO WINDOWS" :) & added facility to replace contents of data variables
+  with given text in @replace section of symbols.txt
+- added assert at startup to check if strings offsets are OK, so it will break if they get messed up again
+- fixed darkened colors for result overlay appearing greenish
+11.07.2018.
+/
+12.07.2018.
+/
+13.07.2018.
+- decided to use SDL Mixer library for sound, now need to set it up
+14.07.2018.
+- SDL Mixer set up, added menu music
+15.07.2018.
+/
+16.07.2018.
+/
+17.07.2018.
+/
+18.07.2018.
+- fixed nasty crackle at sound init
+- fixed too fast sound reproduction (played at invalid frequency)
+- fixed slowed down replay of menu music when returning from game
+- sound's kinda decent now, but there are still some problems (chants go quiet sometimes, some samples seem not to
+  play or get muted sometimes)
+19.07.2018.
+- sound seems quite all right now, except small weird sound in one of the chants, like a quiet whistle
+- got XMI support through ADLMIDI, but it sounds awful, will try compiling it with mingw later
+20.07.2018.
+- trying to fix choppy XMI music... unsuccessfully...
+21.07.2018.
+- faded MIDI menu music before the game
+- finally found a way to play XMI MIDI properly, it was just a shitty example code :) we'll need advanced buffering
+22.07.2018.
+- implemented advanced buffering and XMI MIDI is finally playing great :)
+- implemented MIDI music loop & fade
+23.07.2018.
+- fixed MIDI menu music messing up the Windows volume when fading out
+- fixed OGG pop when starting music again after the game
+24.07.2018.
+- removed "short" from branch instructions if they want to jump to external symbol
+- preparing for intro, at least got it to stop crashing via stubs :P
+25.07.2018.
+- added one-time play of title.* song if present as in SWOS CD version
+- got the intro to play... psychedelic shapes :P
+26.07.2018.
+- sound on/off option from command line overrides setup.dat
+- added sound to intro (at least it seems so :))
+- at least intro now shows a picture that it should before it crashes (albeit quite darkened)
+27.07.2018.
+/
+28.07.
+- fixed some stuff in intro, but it's still crashing
+- fixed title music playing at game frequency if intro was played
+29.07.2018.
+- intro is showing proper graphics now, but it's still not working correctly
+- added command line options to skip intro and image reels
+30.07.2018.
+/
+31.07.2018.
+/
+01.07.2018.
+- speeded up to 15ms per frame, and implemented dynamic slack calculation
+02.07.2018.
+/
+03.07.2018.
+/
+04.07.2018.
+/
+05-06.08.2018.
+- banging my head about implementing multi-song ADL player, and keep it super efficient
+07.08.2018.
+- finally had some success with implementing title XMI song, although it's far from over
+08.08.2018.
+- XMI seems fine playing multiple songs now :)
+- added command line parameter for switching midi bank
+09.08.2018.
+- fixed fade bug introduced with adding intro (it was so simple... d'oh!)
+- ReadFile() is literate now, will write "1 byte" and not "1 bytes" :D
+10.08.2018.
+- fixed Windows volume for the game going to the max after selecting replay after a friendly match
+- fixed title song repeating after going back to menu after a match
+- fixed players disappearing on fade-out when aborting match in highlights
+- fixed pressing 'R' during replay freezing the game
+11.08.2018.
+- fixed ida2asm to allow combining on-enter and save-regs actions on a single proc
+- fixed invalid leading comment getting assigned to generated instructions from on-enter and save-regs
+- trying to fix players disappearing during replay fade (when 'R' is pressed)
+12.08.2018.
+- finally all fades seem to be fixed, hope nothing else was broken in the process :)
+- fixed menu song not playing after game is finished normally (not aborted)
+13.08.2018.
+/
+14.08.2018.
+/
+15.08.2018.
+/
+16.08.2018.
+- implemented joysticks
+17.08.2018.
+- intro & image reel can be aborted with joypad buttons too
+18.08.2018.
+- implemented loading and saving options via ini file
+- fixed freeze before the game if there is no menu music
+- fixed trying to load menu music indefinitely if there music files are missing
+19.08.2018.
+- added auto-detection of joypad adding/removal
+- JoyKeyOrCtrlPressed detects mouse clicks too
+20.08.2018.
+- added dead zone options for joypads
+21.08.2018.
+/
+22.08.2018.
+/
+23.08.2018.
+/
+24.08.2018.
+/
+25.08.2018.
+- fixed a small bug in ida2asm, when collapsing same db's first one would be skipped if it had leading comments
+  (also now collapsing consecutive uninitialized values (? - question marks))
+- fixed memory overwrite (was actually allocating a bit less DOS memory than is required)
+  ha! seems to have fixed career crash ;) (at least one)
+26.08.2018.
+- studied why goalkeepers are shit... checked their skill values, and that's fine
+27.08.2018.
+/
+28.08.2018.
+/
+29.08.2018.
+/
+30.08.2018.
+/
+31.08.2018.
+/
+01.09.2018.
+/
+02.09.2018.
+/
+03.09.2018.
+- debugging goalkeepers... and they're... fixed?!?!
+04.09.2018.
+- painstaking analysis of diff files reveals the problem... bloody IDA syntax such as:
+    mov ax, [esi+(TeamGeneralInfo+6Ch)]
+  makes MASM generate some garbage code (no idea how that even worked without crashing)
+  does it interpret it as a struct size? who knows...
+- hopefully fixed all occurrences (there were like 5-6-7)
+- anyway... fucking goalkeepers work!!! :)
+- seems passing is also good now, but will be listening for news
+- fixed crash when pausing in highlights
+05.09.2018.
+- [ida2asm] fixed unnecessary space in front of the label that has "short" removed
+- [ida2asm] fixed a small glitch, it wasn't picking up \n at the end of the line in @replace section
+06.09.2018.
+/
+07.09.2018.
+- worked on fixing ida2asm invalid file limit determination
+08.09.2018.
+- worked on rewriting file chunk limit determination routine... until the morning but still failed to
+  debug it properly
+09.09.2018.
+- finally, limit determination routine is much better now! I hope :)
+- implemented no-break tags: anything between $no-break{ & $no-break} comments must not be split into different files
+- optimized ida2asm a little bit ;) sorted if's in lookupToken() by frequency and tightened OutputWriter::outputTab()
+- made sure that function leading comment remains in tact if file chunk limit falls in the middle of it
+- trailing comment at the end of the file chunk gets outputted properly instead of disappearing
+- moved simpleini.h to include root, all the single *.h files are now there
+10.09.2018.
+- [ida2asm] implemented check for closing no break tag without matching the opening one (across the files)
+- started implementing interface to SWOS menu system
+11.09.2018.
+/
+12.09.2018.
+/
+13.09.2018.
+- worked a bit on menu parser
+14.09.2018.
+- almost finished initial syntax analysis of menu parser (then what's left are semantics, and output generation)
+15.09.2018.
+- first part of first part is done ;) will be focusing on finishing just enough of menu parser to get the current
+  menu stuff to compile (right now that would be the options menu)
+16.09.2018.
+/
+17.09.2018.
+/
+18.09.2018.
+/
+19.09.2018.
+/
+20.09.2018.
+/
+21.09.2018.
+/
+22.09.2018.
+/
+23.09.2018.
+- working on implementing first menu (options), the C++ code output
+24.09.2018.
+/
+25.09.2018.
+/
+26.09.2018.
+/
+27.09.2018.
+- introduced simple variables and expressions (so we can calculate coordinates)
+28.09.2018.
+- debugging expressions
+29.09.2018.
+- began implementing output
+- integrated options menu in the project for the first time... and it actually works! :)
+30.09.2018.
+- templates tested and working
+- implemented default entry dimensions (not even template entries could do that)
+- entries in options menu are now of proper dimensions
+- added assert if entry width or height is zero (makes the game crash)
+- implemented entry label forward reference system (the thing that even YASM was lacking)
+- implemented entry colors
+- expanded built-in variables
+01.10.2018.
+- implemented callback function syntax
+- passed entry symbolic names to C++
+- implemented a secret in options menu ;)
+- started implementing gameplay options menu
+02.10.2018.
+- menu variables holding defaults entry coordinates and dimensions are now calculated dynamically -- so now each
+  entry gets its own values, enabling easy stacking of entries in regards to their predecessors
+- built-in variables contained in user variables are now expanded correctly
+- values of properties can now be full expressions
+- added support for string tables
+- implemented complete gameplay options UI
+03.10.2018.
+- [ida2asm] separated replace variables into their own namespace (there was a variable both in replace and import)
+- implemented range check for variable values loaded from ini file
+- added support for STDMENUTEXT (text pointers with value -1, and alias @kAlloc)
+- added do not edit warning to the top of the .ini file
+- added support for entries that are numbers
+- implemented complete audio options UI
+04.10.2018.
+/
+05.10.2018.
+- fixed the game crashing if ran from outside the SWOS dir
+- contemplated about how to implement video options, that menu should go to render module, now have to
+  expand menu parser with includes to implement that nicely
+06.10.2018.
+- refactored parser to be a class without global variables (in order to implement include easier)
+- implemented include directive (but haven't tested it :))
+07.10.2018.
+- debugged include directive and made it work
+- working on implementing video options men, got some kind of outline
+- implemented default text flags
+08.10.2018.
+- implemented function and variable that return text width/height in pixels
+- I'm finally satisfied with the look of the video options menu (without resolution list)
+09.10.2018.
+- implemented display resolution gathering and filtering
+10.10.2018.
+- implemented #repeat <num.repeats> [, <loop variable] preprocessor directive
+- implemented nested repeats
+- implemented join directive (for concatenating tokens)
+- implemented entry dot property syntax (for amending entry properties later on)
+- set up non-dynamic entry order
+11.10.2018.
+- fixed text width calculation bug
+- implemented export keyword to export variables to C++
+- implemented resolution list scrolling
+- implemented video options variables and their save/load to/from ini file
+12.10.2018.
+- created variables for video options and implemented loading/saving
+- implemented whole video options except custom width/height input
+- alt-enter switches to/from fake full screen mode (or real back to window)
+13.10.2018.
+- implemented custom window width/height input, as well as clamping it to the desktop size
+- video options menu fully finished (I think ;))
+14.10.2018.
+/
+15.10.2018.
+- connected audio options variables, but it's all untested
+16.10.2018.
+- debugged audio options variables, made it _mostly_ work
+- added "please wait" line while enumerating video modes
+- fixed a bug in video options when an entry that becomes hidden was still selected when moving window to other
+  monitor (when resolution list was recreated)
+17.10.2018.
+- added volume control for ADL as well
+- implemented mouse selection in menus
+- fixed ADL fade out (regression)
+- increased the size of pitch patterns buffer (and placed it in a separate array of its own)

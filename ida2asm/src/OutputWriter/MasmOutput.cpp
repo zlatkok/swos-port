@@ -1,0 +1,620 @@
+#include "MasmOutput.h"
+#include "StringList.h"
+#include "AmigaRegs.h"
+
+constexpr int kExpectedPrefixSize = 300;
+
+MasmOutput::MasmOutput(const char *path, const SymbolFileParser& symFilePareser, const StructStream& structs, const DefinesMap& defines,
+    const References& references, const OutputItemStream& outputItems)
+:
+    OutputWriter(path), m_symFileParser(symFilePareser), m_structs(structs), m_defines(defines),
+    m_references(references), m_outputItems(outputItems)
+{
+    m_outputPrefix.reserve(kExpectedPrefixSize);
+
+    // this is probably an overstatement, but the real size should surely be less (I hope!)
+    auto size = m_structs.size() + m_defines.size() + m_outputItems.size();
+    openOutputFile(size);
+}
+
+void MasmOutput::setOutputPrefix(const std::string& prefix)
+{
+    m_outputPrefix = prefix;
+    ensureNewLineEnd(m_outputPrefix);
+}
+
+void MasmOutput::setCImportSymbols(const StringList *syms)
+{
+    m_cImportSymbols = syms;
+}
+
+void MasmOutput::setCExportSymbols(const StringList *syms)
+{
+    m_cExportSymbols = syms;
+}
+
+void MasmOutput::setDisassemblyPrefix(const std::string& prefix)
+{
+    m_disassemblyPrefix = prefix;
+    ensureNewLineEnd(m_disassemblyPrefix);
+}
+
+bool MasmOutput::output(OutputFlags flags, CToken *openingSegment /* = nullptr */)
+{
+    if (!isOutputFileOpen()) {
+        m_error = "output file not open";
+        return false;
+    }
+
+    if (!flags)
+        return true;
+
+    m_currentSegment = openingSegment;
+
+    out(m_outputPrefix);
+    outputCExternDefs();
+
+    bool result = true;
+    if ((flags & kExterns) && !outputExterns())
+        result = false;
+
+    if (flags & kPublics)
+        outputPublics();
+
+    if (flags & kStructs)
+        outputStructs();
+
+    if (flags & kDefines)
+        outputDefines();
+
+    out(m_disassemblyPrefix);
+
+    if (flags & kDisassembly) {
+        outputDisassembly();
+        out("end", Util::kNewLine);
+    }
+
+    if (!save()) {
+        if (!m_error.empty())
+            m_error += '\n';
+        m_error += "write failed";
+        result = false;
+    }
+
+    closeOutputFile();
+
+    return result;
+}
+
+std::string MasmOutput::outputError() const
+{
+    return m_error;
+}
+
+std::string MasmOutput::segmentDirective(const TokenRange& range) const
+{
+    std::string result;
+
+    for (auto token = range.first; token != range.second; advance(token))
+        result += token->string() + ' ';
+
+    if (!result.empty())
+        result.replace(result.end() - 1, result.end(), Util::kNewLine.begin(), Util::kNewLine.end());
+
+    return result;
+}
+
+std::string MasmOutput::endSegmentDirective(const TokenRange& range) const
+{
+    return range.first->string() + " ends" + Util::kNewLineString();
+}
+
+bool MasmOutput::outputExterns()
+{
+    bool result = true;
+
+    if (m_references.externs().empty())
+        return result;
+
+    for (auto ext : m_references.externs()) {
+        assert(std::get<0>(ext).length() && std::get<0>(ext).str());
+
+        out("extern ", std::get<0>(ext), ": ");
+
+        switch (std::get<1>(ext)) {
+        case References::kByte: out("byte"); break;
+        case References::kWord: out("word"); break;
+        case References::kDword: out("dword"); break;
+        case References::kQWord: out("qword"); break;
+        case References::kTbyte: out("tbyte"); break;
+        case References::kNear: out("near"); break;
+        case References::kProc: out("proc"); break;
+        case References::kUser: out(std::get<2>(ext)); break;
+        default:
+//            assert(false);
+            if (!m_error.empty())
+                m_error += '\n';
+            m_error += std::string("undefined reference found: ") + std::get<0>(ext).string();
+            result = false;
+        }
+
+        out(Util::kNewLine);
+    }
+
+    out(Util::kNewLine);
+
+    return result;
+}
+
+void MasmOutput::outputPublics()
+{
+    if (!m_references.publics().empty())
+        for (auto pub : m_references.publics())
+            out("public ", pub, Util::kNewLine);
+
+    out(Util::kNewLine);
+}
+
+void MasmOutput::outputStructs()
+{
+    for (const auto struc : m_structs) {
+        if (struc->resolved())
+            continue;
+
+        for (auto field : *struc) {
+            if (!field->fieldLength()) {
+                auto structName = field->type();
+                auto nestedStruct = m_structs.findStruct(structName);
+
+                assert(nestedStruct);
+                if (nestedStruct && !nestedStruct->resolved())
+                    outputStruct(nestedStruct);
+            }
+        }
+
+        outputStruct(struc);
+    }
+}
+
+void MasmOutput::outputStruct(Struct *struc)
+{
+    int column = outputComment(struc->leadingComments());
+    column += out(struc->name(), struc->isUnion() ? " union" : " struc");
+    outputComment(struc->lineComment(), column);
+
+    for (auto field : *struc) {
+        column = out(kIndent, field->name());
+        if (!field->name().empty())
+            column += out(' ');
+
+        bool structField = false;
+        if (!field->type().empty()) {
+            structField = true;
+            column += out(field->type(), ' ');
+        } else {
+            auto fieldSize = dataSizeSpecifier(field->fieldLength());
+            column += out(fieldSize, ' ');
+        }
+
+        if (!field->dup().empty())
+            column += out(field->dup(), structField ? " dup(<>)" : " dup(?)");
+        else if (structField)
+            column += out("<>");
+        else
+            column += out('?');
+
+        outputComment(field->comment(), column);
+    }
+
+    out(struc->name(), " ends", Util::kNewLine);
+    struc->resolve();
+}
+
+void MasmOutput::outputCExternDefs()
+{
+    out(Util::kNewLine);
+
+    for (int i = 0; i < kNumAmigaRegisters; i++) {
+        const auto& regName = indexToAmigaRegister(i);
+        out(regName, " EQU _", regName, Util::kNewLine);
+    }
+
+    for (auto importsExports : { m_cImportSymbols, m_cExportSymbols }) {
+        if (importsExports) {
+            for (const auto impExp : *importsExports)
+                out(impExp, " EQU _", impExp, Util::kNewLine);
+        }
+    }
+
+    out(Util::kNewLine);
+}
+
+void MasmOutput::outputDefines()
+{
+    for (auto it : m_defines) {
+        auto def = it->cargo;
+
+        int column = outputComment(def->leadingComments());
+        column += out(def->name(), " = ");
+
+        if (def->isInverted())
+            column += out(" not ");
+
+        column += out(def->value());
+        outputComment(def->comment(), column);
+    }
+}
+
+void MasmOutput::outputDisassembly()
+{
+    for (auto item : m_outputItems) {
+        int column;
+
+        if (item->type() == OutputItem::kDirective) {
+            auto directive = item->getItem<Directive>();
+
+            // useless in flat mode, and makes MASM go wild tacking "cs:" prefix to everything
+            if (directive->type() == Directive::kAssume)
+                continue;
+
+            column = outputComment(item->leadingComments());
+            column += outputDirective(item->getItem<Directive>());
+        } else {
+            column = outputComment(item->leadingComments());
+        }
+
+        switch (item->type()) {
+        case OutputItem::kInstruction:
+            column += outputInstruction(item->getItem<Instruction>());
+            break;
+        case OutputItem::kDataItem:
+            column += outputDataItem(item->getItem<DataItem>());
+            break;
+        case OutputItem::kProc:
+            column += outputProc(item->getItem<Proc>());
+            break;
+        case OutputItem::kEndProc:
+            column += outputEndProc(item->getItem<EndProc>(), item->comment(), item->next());
+            break;
+        case OutputItem::kLabel:
+            column += outputLabel(item->getItem<Label>());
+            break;
+        case OutputItem::kStackVariable:
+            column += outputStackVariable(item->getItem<StackVariable>());
+            break;
+        case OutputItem::kDirective:
+            break;
+        case OutputItem::kSegment:
+            column += outputSegment(item->getItem<Segment>());
+            break;
+        case OutputItem::kComment:
+            // already handled
+            break;
+        default:
+            assert(false && "Unhandled output item type");
+            break;
+        }
+
+        if (item->type() != OutputItem::kEndProc)
+            outputComment(item->comment(), column);
+    }
+}
+
+int MasmOutput::outputInstruction(const Instruction *instruction)
+{
+    int column = 0;
+
+    if (m_currentProc)
+        column = out(kIndent, kIndent);
+
+    if (!instruction->prefix().empty()) {
+        // movs[bwd] can only be meaningfully prefixed by rep
+        if (instruction->type() == Token::T_MOVSB || instruction->type() == Token::T_MOVSW || instruction->type() == Token::T_MOVSD)
+            column += out("rep ");
+        else
+            column += out(instruction->prefix(), ' ');
+    }
+
+    auto instructionStart = column;
+
+    if (instruction->type() == Token::T_PUSHFW || instruction->type() == Token::T_POPFW || instruction->type() == Token::T_RETFW)
+        column += out(String(instruction->instructionText().str(), instruction->instructionText().length() - 1));
+    else
+        column += out(instruction->instructionText());
+
+    if (instruction->hasOperands()) {
+        auto instructionLength = column - instructionStart;
+        assert(instructionLength >= 1);
+
+        auto spaces = &OutputWriter::kIndent[std::min(instructionLength, 4) - 1];
+        column += out(spaces);
+    }
+
+    bool isPushPop = instruction->type() == Token::T_PUSH || instruction->type() == Token::T_POP;
+    const auto& operands = instruction->operands();
+
+    for (int i = 0; ; i++) {
+        const auto& operand = operands[i];
+
+        for (auto it : operand) {
+            if (it->type() == Token::T_LARGE)
+                continue;
+
+            bool opDone = false;
+            bool removeShort = false;
+
+            // fix crazy IDA tendency to put dword ptr into segment registers
+            if (i == 1 && instruction->operandSizes()[0] == 2 && it->type() == Token::T_DWORD) {
+                column += out("word");
+                opDone = true;
+            } else if (isPushPop) {
+                if (it->type() == Token::T_SMALL) {
+                    // seems misaligned stack by a word causes a lot of grief in stdlib, so let's just push 4 bytes always
+                    column += out("dword ptr ");
+                    // also make sure "word ptr" is gone
+                    for (it = it->next(); it != operand.end(); it = it->next()) {
+                        if (it->type() != Token::T_WORD && it->type() != Token::T_PTR) {
+                            column += out(it->text());
+                            if (needsSpaceDelimiter(it, operand.end()))
+                                column += out(' ');
+                        }
+                    }
+                    break;
+                } else if (instruction->operandTypes()[i] == Instruction::kRegister && (it->text() == "ax" ||
+                    it->text() == "bx" || it->text() == "cx" || it->text() == "dx")) {
+                    // this seems not important, but let it be for now
+                    column += out('e', it->text());
+                    opDone = true;
+                }
+            } else if (it->type() == Token::T_SHORT && instruction->isBranch() && it->next() != operand.end()) {
+                // sometimes a jmp/call short can be referencing a label that ended up in a different file
+                const auto& label = it->next()->text();
+                removeShort = opDone = !label.startsWith("@@") && m_references.hasReference(label);
+            }
+
+            if (!opDone) {
+                int opSize = instruction->operandSizes()[i + (i == 0 ? 1 : -1)];
+                if (it->type() != Token::T_ID || !outputFixedStructAcces(it->text(), column, opSize))
+                    column += out(it->text());
+            }
+
+            if (!removeShort && needsSpaceDelimiter(it, operand.end()))
+                column += out(' ');
+        }
+
+        if (i == operands.size() - 1 || operands[i + 1].begin() == operands[i + 1].end())
+            break;
+
+        column += out(", ");
+    }
+
+    return column;
+}
+
+int MasmOutput::outputDataItem(const DataItem *item)
+{
+    int column = 0;
+
+    if (!item->name().empty())
+        column = out(item->name(), ' ');
+
+    auto element = item->begin();
+    assert(element);
+
+    if (!item->structName().empty()) {
+        // I don't know if this is a MASM bug, or just a very poorly documented spot
+        // but I was unable to initialize array of structures containing array of structures
+        auto struc = m_structs.findStruct(item->structName());
+        assert(struc);
+
+        if (struc && struc->dupNotAllowed() && element->dup()) {
+            column += out("db ", element->dup(), " * sizeof ", struc->name(), " dup(0)");
+            return column;
+        } else {
+            column += out(item->structName(), ' ');
+        }
+    } else {
+        auto sizeSpecifier = dataSizeSpecifier(item->size());
+        column += out(sizeSpecifier, ' ');
+        if (!item->name().empty()) {
+            auto replacement = m_symFileParser.symbolReplacement(item->name());
+            if (!replacement.empty())
+                return out(replacement);
+        }
+    }
+
+    bool isString = item->numElements() > 0 && element->type() == DataItem::kString;
+
+    for (size_t i = 0; i < item->numElements(); i++, element = element->next()) {
+        bool isOffset = (element->type() & DataItem::kIsOffsetFlag) != 0;
+
+        if (isOffset)
+            column += out("offset ");
+
+        const auto& text = element->text();
+        if (element->dup()) {
+            column += out(element->dup(), " dup(", text, ')');
+        } else {
+            if (!item->structName().empty()) {
+                column += out("<>");
+            } else {
+                if (element->type() == DataItem::kLabel && text.endsWith("e308"))
+                    column += out(text.substr(0, text.length() - 1), '7');
+                else if (!isOffset || !outputFixedStructAcces(text, column))
+                    column += out(text);
+            }
+        }
+
+        if (isOffset && element->offset())
+            column += out('+', element->offset());
+
+        bool last = i == item->numElements() - 1;
+        if (!last) {
+            // account for floating point numbers... both of them :P
+            bool isFloating = element->type() == DataItem::kDec && element->next()->text().startsWith('.');
+
+            if (!isFloating)
+                out(',');
+
+            // another IDA formatting weirdness
+            if (!isString && !isFloating)
+                out(' ');
+        }
+    }
+
+    return column;
+}
+
+int MasmOutput::outputProc(const Proc *proc)
+{
+    int column = 0;
+
+    // there are some procs in data segment, causing a crash when accessed
+    assert(!m_currentSegment.empty());
+    if (m_currentSegment != "cseg") {
+        column += out(m_currentSegment, " ends", Util::kNewLine);
+        column += out("cseg segment", Util::kNewLine);
+
+        m_previousSegment = m_currentSegment;
+        m_currentSegment = "cseg";
+    }
+
+    m_currentProc = proc;
+
+    // assume everything is near
+    column += out(proc->name(), " proc near");
+
+    return column;
+}
+
+int MasmOutput::outputEndProc(const EndProc *endProc, const String& comment, const OutputItem *next)
+{
+    int column = out(endProc->name(), " endp");
+    column += outputComment(comment, column);
+
+    if (!m_previousSegment.empty() && next->type() != OutputItem::kProc) {
+        column += out("cseg ends", Util::kNewLine);
+        column += out(m_previousSegment, " segment", Util::kNewLine);
+        m_currentSegment = m_previousSegment;
+        m_previousSegment.clear();
+    }
+
+    return column;
+}
+
+int MasmOutput::outputLabel(const Label *label)
+{
+    int column = out(label->name());
+
+    // MASM treats every label as local to containing proc, but IDA uses them liberally
+    if (m_currentProc && !label->isLocal())
+        column += out(" proc near", Util::kNewLine, label->name(), " endp");
+    else
+        column += out(':');
+
+    return column;
+}
+
+int MasmOutput::outputStackVariable(const StackVariable *var)
+{
+    return out(var->name(), "= ", var->sizeString(), " ptr ", var->offsetString());
+}
+
+int MasmOutput::outputDirective(const Directive *directive)
+{
+    int column = out(directive->directive());
+
+    auto count = directive->paramCount();
+    auto param = directive->begin();
+
+    while (count--) {
+        if (param->text() != ",")
+            column += out(' ');
+        column += out(param->text());
+        param = param->next();
+    }
+
+    return column;
+}
+
+int MasmOutput::outputSegment(const Segment *segment)
+{
+    assert(segment && segment->count() > 1);
+
+    int column = 0;
+    auto param = segment->begin();
+
+    out(param->text());
+    param = param->next();
+
+    for (size_t i = 1; i < segment->count(); i++) {
+        column += out(' ', param->text());
+        param = param->next();
+    }
+
+    m_currentSegment = segment->begin()->text();
+
+    return column;
+}
+
+bool MasmOutput::outputFixedStructAcces(const String& str, int& column, int opSize /* = -1 */)
+{
+    // gross hack ahead :) IDA doesn't mark struct variable that has data as such, it only puts fields in comments,
+    // so there is almost no way to associate variable with its underlying struct type; to avoid having to go
+    // through every field of every struct each time struct access is detected, we'll just handle these two special
+    // cases: Player struct is the only one being accessed, and each variable ends with "Sprite(s)?", or starts with
+    // "result" :)
+    int dotIndex = str.indexOf('.');
+
+    if (dotIndex >= 0 && dotIndex < static_cast<int>(str.length()) - 1) {
+        auto var = str.substr(0, dotIndex);
+        auto field = str.substr(dotIndex + 1);
+
+        String spriteStr("Sprite");
+        auto spriteIndex = var.indexOf(spriteStr);
+
+        if (!var.contains("savedSprites") && spriteIndex >= 0 && (spriteIndex == var.length() - spriteStr.length() ||
+            spriteIndex == var.length() - spriteStr.length() - 1) || var.startsWith("result")) {
+
+            // troubles never end, it's declared as word but accessed as dword sometimes and without prefix
+            if (opSize == 4 || !opSize && field == "deltaZ")
+                out("dword ptr ");
+
+            column += out(var, " + Player.", field);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const char *MasmOutput::dataSizeSpecifier(size_t size)
+{
+    switch (size) {
+    case 1: return "db";
+    case 2: return "dw";
+    case 4: return "dd";
+    case 8: return "dq";
+    default:
+        assert(false);
+        return nullptr;
+    }
+}
+
+// try matching IDA's weird rules about whitespace delimiter placing in an instruction
+bool MasmOutput::needsSpaceDelimiter(const Instruction::Operand *op, const Instruction::Operand *end)
+{
+    if (op->next() == end)
+        return false;
+
+    auto type = op->type();
+    auto nextType = op->next()->type();
+
+    return Token::isText(type) && Token::isText(nextType) || type != Token::T_ID && nextType == Token::T_LBRACKET;
+}
+
+void MasmOutput::ensureNewLineEnd(std::string& str)
+{
+    if (!str.empty() && !Util::endsWith(str, Util::kNewLine))
+        str.append(std::begin(Util::kNewLine), std::end(Util::kNewLine));
+}

@@ -1,0 +1,454 @@
+# list of functions to remove completely
+# to remove a range, list beginning and ending function separated by - (minus)
+# ranges are semi-open, just like in C++
+
+@remove
+# procs
+Initialization
+InitializationError
+DetectCPU
+ReadSetupDat
+ReadCommandLineParameters
+InitAIL22khz
+AllocateDosMemory
+CalcMaxBlock
+MemAllocError
+NumberToString6Digits
+EndProgramInterruptHandler
+Int9KeyboardHandler
+EndProgramSetTextVideoMode
+FillPalettes
+InitIntroAnimation
+OpenSoccerBin
+CopySoccerBinSection
+ReadFromSoccerBin
+IntroWaitNextFrameInterval
+EGAFlip
+ChangeMenuMusic
+ValidateHilPointerAdd - InitHighlightsPointers
+NullInterruptHandler - Text2Sprite
+DumpSfxSampleChannel - RestoreOldInt9Handler
+FindFirstFile - SelectFilesInit
+cseg_1A35C - FillPalettes
+
+# CD-ROM routines
+CDROM_InitCheck
+CheckForCD
+FindCdrom
+CDROM_GetInfo
+CDROM_Input
+CDROM_DriverError
+
+# AIL routines
+#AIL_play_MIDI
+#AIL_start_sequence
+
+# joypads
+Joy1NormalizeX
+Joy1NormalizeY
+Joy2NormalizeX
+Joy2NormalizeY
+Joy1NormalizeReadings
+Joy2NormalizeReadings
+VerifyJoypadControls
+
+# variables
+#prevVideoMode
+#errorCheckWord
+a386ProcessorFoundIntroUnavailbleSk
+freeMemBuffer
+handle384k
+handle2_6Mb
+handle982k
+handle120k
+maxKbInMaxBlock
+aPressEscToReturnToDosOrSpaceToCont
+aErrorIncorrectDosVersion5_0OrHighe
+aErrorWrongProcessor80386OrAboveReq
+aErrorInsufficientBaseMemory_
+aErrorInsufficientXmsMemory_
+aErrorErrorInitializingXms_
+aError8MegVersion000000kMore
+#int9Ofs
+int9Seg
+aErrorInsufficentBaseMemo
+#SWOS_StackTop
+dta - totalNumberOfFiles
+aDemo_dat
+aDemo_dat_0 - friendlyGameMenu
+# extend this range when removing options menu
+aDemo1_car - SWOS_MainMenu
+optionsMenu - pitchTypeStrTable
+# AIL data
+#dataStart - aChairmanScenes
+#dosVariablesStart - dataEnd
+
+# CD ROM variables
+#rmRegs
+dosMemSegment
+dosMemSelector
+#mem1kSeg
+mem1kSelector
+#linAdr1k
+defaultDiskNumber
+numOfCdrom
+#cdDriveLetter
+cdromLettersBuffer
+firstCdLetter - PIT_countdown
+aErrorCdromDriverError_
+
+
+# turn these into null procs, consisting of retn only
+@null
+RestoreOldInt9Handler
+Int8Handler
+LockMemory
+DummyProc01
+ProgramPIT
+SetEGAPalette
+EGAGetVisibleScreenPtr
+CDROM_PlayAudio
+ReadGamePort
+SetDefaultOptions
+
+# CD-ROM (kill these as soon as you can)
+CDChangeToRootDir
+SelectDefaultDrive
+RequestToCDRom
+CDROM_Seek
+FadeOutCDAudio
+
+
+# replace variable's content with what's given here
+@replace
+# careful when changing strings, as offsets must not change
+aCommentary, 'COMMENTARY****', 0
+aQuitToDos, 'QUIT TO WINDOWS', 0
+
+
+# these functions destroy registers C++ assumes will not change with a function call,
+# so inject the code to save and restore them
+# warning: do not list MenuProc & DrawSprite16Pixels here, it can exit by jumping to other procs!
+
+@save-regs
+DrawSprite
+DrawSpriteInColor
+DrawSpriteCentered
+DrawChar
+TextToGoalScorersSprites
+DrawMenu
+MainKeysCheck
+FindStartingDword
+Player1StatusProc
+Player2StatusProc
+RestoreCameraPosition
+FadeIn
+InitSavedSprites
+InitBackground
+ScrollToCurrent
+DrawAnimatedPatterns
+FadeAndSaveReplay
+SortSprites
+SaveCoordinatesForHighlights
+DarkenRectangle
+PlaySamples
+CommonMenuExit
+ShowMenu
+DrawMenuItem
+CalcMenuEntryAddress
+DrawMenuText
+SetCurrentEntry
+
+
+# list of symbols to export to header so they can be accessible from C++
+# inside asm files they will be prefixed with underscore, and made public
+# syntax for generating SWOS C++ header files is:
+# <symbol> [, prefix <prefix>][, function |, (array | pointer | ptr) <type>['['<size>']'] |, <type>]
+
+@export
+# options
+
+g_menuMusic, int16_t
+g_musicOff, int16_t
+g_inputControls, int16_t
+g_gameLength, int16_t
+g_autoReplays, int16_t
+g_autoSaveHighlights, int16_t
+g_allPlayerTeamsEqual, int16_t
+g_pitchType, int16_t
+g_commentary, int16_t
+g_chairmanScenes, int16_t
+g_spinBigS, int16_t
+
+g_upScanCode, byte
+g_downScanCode, byte
+g_leftScanCode, byte
+g_rightScanCode, byte
+g_fireScanCode, byte
+
+skipIntro, word
+setupDatBuffer, word
+dosMemLinAdr, char *
+dosMemOfs30000h, char *
+g_pitchPatterns, char *
+dosMemOfs4fc00h, char *
+dosMemOfs60c00h, char *
+aSensibleWorldOfSoccerV2_0, array const char
+selTeamsPtr, dword
+aSetup_dat, array const char
+linAdr384k, char *
+linAdr982k, char *
+linAdr2_6Mb, char *
+linAdr120k, char *
+FadeOutToBlack, function
+partOneImages, array const char *
+partTwoImages, array const char *
+controlWord, word
+g_videoSpeedIndex, word
+g_joy2Status, word
+g_joy1Status, word
+g_joy1X, word
+g_joy1Y, word
+g_joy2X, word
+g_joy2Y, word
+someColorConversionFlag, word
+aSprite_dat, array const char
+aCharset_dat, array const char
+goalBasePtr, dword *
+nextGoalPtr, dword *
+hilFileBuffer, array char
+currentHilBuffer, array dword
+spritesIndex, array char
+randomSeed, word
+LoadTitleAndStartMusic, function
+FixupInitialCharset, function
+ChainFont, function
+Randomize2, function
+vsPtr, char *
+screenWidth, dword
+spriteFixupFlag, word
+InitMainMenu, function
+MenuProc, function
+TimerProc, function
+g_prevScanCode, word
+g_scanCode, word
+keyCount, word
+keyBuffer, array char[10]
+lastKey, word
+convertedKey, byte
+convertKeysTable, array const char[110]
+SetControlWord, function
+menuStatus, word
+g_currentMenu, array char[6500]
+g_exitMenu, word
+g_currentMenuPtr, MenuBase *
+RestorePreviousMenu, function
+StartMainGameLoop, function
+g_extension, array char
+g_pitchDatBuffer, array char[10032]
+skillsPerQuadrant, array char[245]
+ofsPitch1Dat, const char *
+aPitch1_blk, array const char
+g_fadePalette, array char[768]
+menuCycleTimer, word
+EGA_graphics, word
+g_workingPalette, array char[768]
+currentTick, word
+paused, word
+stoppageTimer, word
+timerBoolean, word
+bumpBigSFrame, word
+ClearBackground, function
+aChairmanScenes, array const char
+aMenu_xmi, array const char
+aSwos_xmi, array const char
+cdAudioPlaying, word
+g_soundOff, int16_t
+memAllOk, word
+commentarySampleHandle, int
+PlayIntroAnimation, function
+IntroFillSoundBuffer, function
+aArcSoccer_bin, array const char
+soccerBinPtr, char *
+introCurrentSoundBuffer, char *
+soccerBinSoundChunkBuffer, char *
+soccerBinSoundDataPtr, char *
+introCurrentSoundBufferChunk, char *
+introScreenBuffer, char *
+introAborted, byte
+introFrameDataOffset, dword
+introFirstChunkLoaded, byte
+introNumFrames, dword
+introFrameDataChunkRemainder, dword
+soccerBinHandle, FILE *
+introSoundBufferIndex, dword
+introCurrentSoundBufferNum, byte
+introFrameDataSize, dword
+introCurrentFrameDataPtr, char *
+introAnimationTimer, byte
+introCountDownTimer, byte
+introWaitInterval, byte
+g_midiPlaying, word
+ReadTimerDelta, function
+playHighlightFlag, word
+MainKeysCheck, function
+PlaySamples, function
+replayState, word
+hilSceneNumber, word
+numReplaysInHilFile, word
+RestoreGoalPointers, function
+hilStartOfGoalsBuffer, array char
+currentHilPtr, dword *
+FindStartingDword, function
+skipFade, word
+Player1StatusProc, function
+Player2StatusProc, function
+RestoreCameraPosition, function
+pl1Fire, byte
+pl2Fire, byte
+statsFireExit, word
+FadeIn, function
+cameraX, word
+cameraY, word
+savedCameraX, word
+savedCameraY, word
+oldCameraX, word
+oldCameraY, word
+currentGoalPtr, dword *
+ResetAnimatedPatternsForBothTeams, function
+InitSavedSprites, function
+InitBackground, function
+ScrollToCurrent, function
+MoveView, function
+hilLeftTeamGoals, word
+hilRightTeamGoals, word
+DrawAnimatedPatterns, function
+animPatternsState, word
+DrawSprite16Pixels, function
+noBigReplayLetter, word
+deltaColor, byte
+gameAborted, word
+userRequestedReplay, word
+teamDataPtr, TeamGeneralInfo *
+fadeAndSaveReplay, word
+FadeAndSaveReplay, function
+resetHilPtrFlag, word
+SortSprites, function
+numSpritesToRender, word
+sortedSprites, array Player * [79]
+spriteGraphicsPtr, SpriteGraphics **
+big_S_Sprite, Player
+SaveCoordinatesForHighlights, function
+DarkenRectangle, function
+playGame, word
+CommonMenuExit, function
+
+# options menu
+aOptions, array const char
+aExit, array const char
+ExitOptions, function
+SetExitMenuFlag, function
+controlsStatus, word
+showPrereleaseCounter, word
+CalcMenuEntryAddress, function
+aFriendlyDiyGam, array const char
+aFixPitchType, array const char
+aAutoReplays, array const char
+aAllPlayerTeams, array const char
+aAutoSaveHighli, array const char
+gameLengthStrTable, void *
+pitchTypeStrTable, void *
+autoReplaysStrTable, void *
+allPlTeamsEqualStrTable, void *
+autoSaveHlStrTable, void *
+chairmanScenesStrTable, void *
+ChangeGameLength, function
+ChangePitchType, function
+ChangeAutoReplays, function
+ChangeAllPlTeamsEqual, function
+ChangeAutoSaveHighlights, function
+ChangeChairmanScenes, function
+aOn, array const char
+aOff, array const char
+aMenuMusic, array const char
+aCommentary, array const char
+aPlus, array const char
+aMinus, array const char
+menuMusicStrTable, void *
+commentaryStrTable, void *
+ChangeCommentary, function
+aCustom, array const char
+ShowErrorMenu, function
+DrawMenuItem, function
+TryRestartingMusic, function
+DrawMenuText, function
+SetCurrentEntry, function
+
+ConvertMenu, function
+player1ClearFlag, word
+###
+smallCharsTable, array const char
+###
+  Rand, function
+  seed, byte
+
+# at the beginning of each listed proc Foo insert a call to external Foo_OnEnter
+
+@on-enter
+DoUnchainSpriteInMenus
+InitGame
+ClearBackground
+PlayCrowdNoiseSample
+FadeOutToBlack
+FindStartingDword
+DrawBenchAndSubsMenu
+GameOver
+MenuProc
+
+
+# list of symbols that will be replaced by code from C++
+# it is assumed to be a label in assembly, and void parameterless function in C++
+# they'll go to SWOS namespace to avoid name clashes
+
+@import
+SWOS
+ToMainGameLoop
+LoadFile
+WriteFile
+MainMenu
+FlipInMenu
+SetPalette
+ShowMenu
+SetPrevVideoModeEndProgram
+FindFiles
+FindFilesExtensionPresent
+Joy1SetStatus
+Joy2SetStatus
+ReadPitchFile
+WaitRetrace
+Flip
+DrawBackPattern
+InitMenuMusic
+PlayMidi
+StopMidiSequence
+CDROM_StopAudio
+IOCTL_CDROM_Read
+PlayChantSample22Khz
+PlaySfxSample22Khz
+PlayCommentarySample22Khz
+PlayRefereeWhistleSample
+FadeOutXmidi
+StopAudio
+IsSamplePlaying
+IntroEnsureFrameDataLoaded
+IntroDrawFrame
+JoyKeyOrCtrlPressed
+CloseSoccerBin
+PlayIntroSample
+PlayHighlightsLoop
+GetKey
+RenderReplayFrame
+PlayReplayLoop
+DrawSprites
+OptionsMenuSelected
+PrepareMenu

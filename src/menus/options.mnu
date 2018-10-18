@@ -1,0 +1,177 @@
+//
+// Options menu entered from the main menu, and its sub-menus
+//
+
+#include "optionsCommon.mh"
+
+Menu optionsMenu
+{
+    kEntryVerticalDistance = 12
+    kBaseY = 48
+
+    defaultX: kBaseX
+    defaultWidth: kBigButtonWidth
+    defaultHeight: kBigButtonHeight
+    defaultColor: @kGreen
+    initialEntry: controls
+
+    Entry header {
+        text: aOptions
+        color: kHeaderColor
+    }
+
+    defaultY: @prevEndY + kEntryVerticalDistance
+
+    Entry controls {
+        y: kBaseY
+        text: "CONTROLS"
+        downEntry: >
+    }
+
+    Entry video {
+        text: "VIDEO"
+        upEntry: <
+        downEntry: >
+        onSelect: doShowVideoOptionsMenu
+    }
+
+    Entry audio {
+        text: "AUDIO"
+        upEntry: <
+        downEntry: >
+        onSelect: doShowAudioOptionsMenu
+    }
+
+    Entry gameplay {
+        text: "GAMEPLAY"
+        upEntry: <
+        downEntry: >
+        onSelect: showGameplayOptions
+    }
+
+    Entry exit {
+        y: kExitY
+        text: aExit
+        color: kExitColor
+        upEntry: <
+        onSelect: exitOptions
+        controlsMask: 0x30
+    }
+
+    Entry secret {
+        x: -8
+        y: 0
+        width: @kScreenWidth
+        text: "WHO'S JOHNNY? SHE SAID AND SMILED IN HER SPECIAL WAY"
+        textFlags: @kYellowText
+        color: @kRed | @kYellowFrame
+        invisible: true
+    }
+}
+
+//
+// Gameplay options menu, most of the standard SWOS options are here
+//
+
+Menu gameplayOptionsMenu
+{
+    defaultWidth: kOptionWidth
+    defaultHeight: kOptionHeight
+    initialEntry: exit
+
+    Entry header {
+        x: kBaseX
+        y: 0
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+        text: "GAMEPLAY OPTIONS"
+        color: kHeaderColor
+    }
+
+    defaultX: kColumn1X
+
+    TemplateEntry {
+        color: kColumn1Color
+    }
+
+    Entry {
+        y: kStartY
+        text: aFriendlyDiyGam
+    }
+
+    defaultY: @prevEndY + kRowDistance
+
+    Entry { text: aFixPitchType }
+    Entry { text: aAutoReplays }
+    Entry { text: aAllPlayerTeams }
+    Entry { text: aAutoSaveHighli }
+    Entry { text: aChairmanScenes }
+    Entry { text: "GAME STYLE" }
+
+    // start of column 2, where the actual controls are
+    defaultX: kColumn2X
+
+    TemplateEntry {
+        color: kColumn2Color
+    }
+
+    Entry {
+        y: kStartY
+        stringTable: ~gameLengthStrTable
+        onSelect: ~ChangeGameLength
+        downEntry: >
+    }
+
+    Entry {
+        stringTable: ~pitchTypeStrTable
+        onSelect: ~ChangePitchType
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry {
+        stringTable: ~autoReplaysStrTable
+        onSelect: ~ChangeAutoReplays
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry {
+        stringTable: ~allPlTeamsEqualStrTable
+        onSelect: ~ChangeAllPlTeamsEqual
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry {
+        stringTable: ~autoSaveHlStrTable
+        onSelect: ~ChangeAutoSaveHighlights
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry {
+        stringTable: ~chairmanScenesStrTable
+        onSelect: ~ChangeChairmanScenes
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry gameStyle {
+        stringTable: [ m_gameStyle, "PC", "AMIGA" ]
+        onSelect: changeGameStyle
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry exit {
+        x: kBaseX
+        y: kExitY
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+        text: aExit
+        color: kExitColor
+        onSelect: ~SetExitMenuFlag
+        upEntry: <
+    }
+}

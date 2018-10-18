@@ -1,0 +1,312 @@
+# Register set
+
+al      Register    GeneralRegister     1
+ah      Register    GeneralRegister     1
+ax      Register    GeneralRegister     2
+eax     Register    GeneralRegister     4
+
+bl      Register    GeneralRegister     1
+bh      Register    GeneralRegister     1
+bx      Register    GeneralRegister     2
+ebx     Register    GeneralRegister     4
+
+cl      Register    GeneralRegister     1
+ch      Register    GeneralRegister     1
+cx      Register    GeneralRegister     2
+ecx     Register    GeneralRegister     4
+
+dl      Register    GeneralRegister     1
+dh      Register    GeneralRegister     1
+dx      Register    GeneralRegister     2
+edx     Register    GeneralRegister     4
+
+si      Register    GeneralRegister     2
+esi     Register    GeneralRegister     4
+
+di      Register    GeneralRegister     2
+edi     Register    GeneralRegister     4
+
+bp      Register    GeneralRegister     2
+ebp     Register    GeneralRegister     4
+
+sp      Register    GeneralRegister     2
+esp     Register    GeneralRegister     4
+
+ss      Register    SegmentRegister     2
+ds      Register    SegmentRegister     2
+es      Register    SegmentRegister     2
+cs      Register    SegmentRegister     2
+fs      Register    SegmentRegister     2
+gs      Register    SegmentRegister     2
+
+# Keywords
+
+assume  Keyword
+align   Keyword
+db      Keyword     DataSizeSpecifier
+dd      Keyword     DataSizeSpecifier
+dw      Keyword     DataSizeSpecifier
+dq      Keyword     DataSizeSpecifier
+dt      Keyword     DataSizeSpecifier
+endp    Keyword
+fword   Keyword
+byte    Keyword     SizeSpecifier
+word    Keyword     SizeSpecifier
+dword   Keyword     SizeSpecifier
+tbyte   Keyword     SizeSpecifier
+qword   Keyword     SizeSpecifier
+para    Keyword     SizeSpecifier
+page    Keyword     SizeSpecifier
+ends    Keyword
+near    Keyword
+far     Keyword
+offset  Keyword
+proc    Keyword
+ptr     Keyword
+segment Keyword
+short   Keyword
+small   Keyword
+struc   Keyword     StructUnion
+union   Keyword     StructUnion
+size    Keyword
+large   Keyword
+seg     Keyword
+
+# Ignored keywords
+
+end     Ignore
+public  Ignore      # ignore public, we'll be deciding later what will go public
+
+# Instructions
+
+aaa      Instruction
+aad      Instruction
+aam      Instruction
+aas      Instruction
+adc      Instruction
+add      Instruction
+and      Instruction
+call     Instruction    BranchInstruction
+cbw      Instruction
+cdq      Instruction
+clc      Instruction
+cld      Instruction
+cli      Instruction
+cmc      Instruction
+cmp      Instruction
+cmps     Instruction
+cmpsb    Instruction
+cmpsw    Instruction
+cpuid    Instruction
+cwd      Instruction
+cwde     Instruction
+daa      Instruction
+das      Instruction
+dec      Instruction
+div      Instruction
+esc      Instruction
+f2xm1    Instruction
+fabs     Instruction
+fadd     Instruction
+faddp    Instruction
+fbld     Instruction
+fbstp    Instruction
+fchs     Instruction
+fclex    Instruction
+fcom     Instruction
+fcomp    Instruction
+fcompp   Instruction
+fdecstp  Instruction
+fdisi    Instruction
+fdiv     Instruction
+fdivp    Instruction
+fdivr    Instruction
+fdivrp   Instruction
+feni     Instruction
+ffree    Instruction
+ffreep   Instruction
+fiadd    Instruction
+ficom    Instruction
+ficomp   Instruction
+fidiv    Instruction
+fidivr   Instruction
+fild     Instruction
+fimul    Instruction
+fincstp  Instruction
+finit    Instruction
+fist     Instruction
+fistp    Instruction
+fisub    Instruction
+fisubr   Instruction
+fld      Instruction
+fld1     Instruction
+fldcw    Instruction
+fldenv   Instruction
+fldenvw  Instruction
+fldl2e   Instruction
+fldl2t   Instruction
+fldlg2   Instruction
+fldln2   Instruction
+fldpi    Instruction
+fldz     Instruction
+fmul     Instruction
+fmulp    Instruction
+fnclex   Instruction
+fndisi   Instruction
+fneni    Instruction
+fninit   Instruction
+fnop     Instruction
+fnsave   Instruction
+fnsavew  Instruction
+fnstcw   Instruction
+fnstenv  Instruction
+fnstenvw Instruction
+fnstsw   Instruction
+fpatan   Instruction
+fprem    Instruction
+fptan    Instruction
+frndint  Instruction
+frstor   Instruction
+frstorw  Instruction
+fsave    Instruction
+fsavew   Instruction
+fscale   Instruction
+fsqrt    Instruction
+fst      Instruction
+fstcw    Instruction
+fstenv   Instruction
+fstenvw  Instruction
+fstp     Instruction
+fstsw    Instruction
+fsub     Instruction
+fsubp    Instruction
+fsubr    Instruction
+fsubrp   Instruction
+ftst     Instruction
+fwait    Instruction
+fxam     Instruction
+fxch     Instruction
+fxtract  Instruction
+fyl2x    Instruction
+fyl2xp1  Instruction
+hlt      Instruction
+idiv     Instruction
+imul     Instruction
+in       Instruction
+inc      Instruction
+int      Instruction
+into     Instruction
+iret     Instruction
+ja       Instruction    BranchInstruction
+jae      Instruction    BranchInstruction
+jb       Instruction    BranchInstruction
+jbe      Instruction    BranchInstruction
+jc       Instruction    BranchInstruction
+jcxz     Instruction    BranchInstruction
+je       Instruction    BranchInstruction
+jecxz    Instruction    BranchInstruction
+jg       Instruction    BranchInstruction
+jge      Instruction    BranchInstruction
+jl       Instruction    BranchInstruction
+jle      Instruction    BranchInstruction
+jmp      Instruction    BranchInstruction
+jna      Instruction    BranchInstruction
+jnae     Instruction    BranchInstruction
+jnb      Instruction    BranchInstruction
+jnbe     Instruction    BranchInstruction
+jnc      Instruction    BranchInstruction
+jne      Instruction    BranchInstruction
+jng      Instruction    BranchInstruction
+jnge     Instruction    BranchInstruction
+jnl      Instruction    BranchInstruction
+jnle     Instruction    BranchInstruction
+jno      Instruction    BranchInstruction
+jnp      Instruction    BranchInstruction
+jns      Instruction    BranchInstruction
+jnz      Instruction    BranchInstruction
+jo       Instruction    BranchInstruction
+jp       Instruction    BranchInstruction
+jpe      Instruction    BranchInstruction
+jpo      Instruction    BranchInstruction
+js       Instruction    BranchInstruction
+jz       Instruction    BranchInstruction
+lahf     Instruction
+lar      Instruction
+lds      Instruction
+lea      Instruction
+leave    Instruction
+les      Instruction
+lock     Instruction    PrefixInstruction
+lods     Instruction
+lodsb    Instruction
+lodsw    Instruction
+loop     Instruction
+loope    Instruction    BranchInstruction
+loopew   Instruction    BranchInstruction
+loopne   Instruction    BranchInstruction
+loopnew  Instruction    BranchInstruction
+loopnz   Instruction    BranchInstruction
+loopnzw  Instruction    BranchInstruction
+loopw    Instruction    BranchInstruction
+loopz    Instruction    BranchInstruction
+loopzw   Instruction    BranchInstruction
+lsl      Instruction
+mov      Instruction
+movs     Instruction
+movsb    Instruction
+movsd    Instruction
+movsw    Instruction
+movsx    Instruction
+movzx    Instruction
+mul      Instruction
+neg      Instruction
+nop      Instruction
+not      Instruction
+or       Instruction
+out      Instruction
+outsb    Instruction
+pop      Instruction
+popa     Instruction
+popf     Instruction
+popfw    Instruction
+push     Instruction
+pusha    Instruction
+pushf    Instruction
+pushfw   Instruction
+rcl      Instruction
+rcr      Instruction
+rep      Instruction    PrefixInstruction
+repe     Instruction    PrefixInstruction
+repne    Instruction    PrefixInstruction
+ret      Instruction    BranchInstruction
+retf     Instruction    BranchInstruction
+retfw    Instruction    BranchInstruction
+retn     Instruction    BranchInstruction
+rol      Instruction    ShiftRotateInstruction
+ror      Instruction    ShiftRotateInstruction
+sahf     Instruction
+sal      Instruction    ShiftRotateInstruction
+sar      Instruction    ShiftRotateInstruction
+sbb      Instruction
+scas     Instruction
+scasb    Instruction
+scasw    Instruction
+setnz    Instruction
+setz     Instruction
+shl      Instruction    ShiftRotateInstruction
+shr      Instruction    ShiftRotateInstruction
+sidt     Instruction
+stc      Instruction
+std      Instruction
+sti      Instruction
+stos     Instruction
+stosb    Instruction
+stosd    Instruction
+stosw    Instruction
+sub      Instruction
+test     Instruction
+wait     Instruction
+xchg     Instruction
+xlat     Instruction
+xlatb    Instruction
+xor      Instruction
