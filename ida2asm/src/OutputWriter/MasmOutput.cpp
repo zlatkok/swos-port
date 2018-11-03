@@ -562,25 +562,27 @@ bool MasmOutput::outputFixedStructAcces(const String& str, int& column, int opSi
     // gross hack ahead :) IDA doesn't mark struct variable that has data as such, it only puts fields in comments,
     // so there is almost no way to associate variable with its underlying struct type; to avoid having to go
     // through every field of every struct each time struct access is detected, we'll just handle these two special
-    // cases: Player struct is the only one being accessed, and each variable ends with "Sprite(s)?", or starts with
+    // cases: Sprite struct is the only one being accessed, and each variable ends with "Sprite(s)?", or starts with
     // "result" :)
     int dotIndex = str.indexOf('.');
 
     if (dotIndex >= 0 && dotIndex < static_cast<int>(str.length()) - 1) {
         auto var = str.substr(0, dotIndex);
         auto field = str.substr(dotIndex + 1);
+        assert(var.length() > 1);
 
         String spriteStr("Sprite");
         auto spriteIndex = var.indexOf(spriteStr);
 
-        if (!var.contains("savedSprites") && spriteIndex >= 0 && (spriteIndex == var.length() - spriteStr.length() ||
+        if (spriteIndex > 0 && var[0] != '(' && !var.contains("savedSprites") &&
+            (spriteIndex == var.length() - spriteStr.length() ||
             spriteIndex == var.length() - spriteStr.length() - 1) || var.startsWith("result")) {
 
             // troubles never end, it's declared as word but accessed as dword sometimes and without prefix
             if (opSize == 4 || !opSize && field == "deltaZ")
                 out("dword ptr ");
 
-            column += out(var, " + Player.", field);
+            column += out(var, " + Sprite.", field);
             return true;
         }
     }

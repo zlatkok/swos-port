@@ -92,6 +92,7 @@ static bool m_interestingGame;
 
 static Mix_Chunk *m_lastPlayedComment;
 static size_t m_lastPlayedCommentHash;
+static int m_lastPlayedCategory;
 
 #pragma pack(push, 1)
 struct WaveFileHeader {
@@ -644,11 +645,16 @@ static void playSfx(SfxSampleIndex index, int volume = MIX_MAX_VOLUME, int loopC
     }
 }
 
+static bool commentPlaying()
+{
+    return m_commentaryChannel >= 0 && Mix_Playing(m_commentaryChannel);
+}
+
 static void playComment(Mix_Chunk *chunk, bool interrupt = true)
 {
     assert(chunk);
 
-    if (m_commentaryChannel >= 0 && Mix_Playing(m_commentaryChannel)) {
+    if (commentPlaying()) {
         if (!interrupt) {
             logDebug("Playing comment aborted since the previous comment is still playing");
             return;
@@ -725,6 +731,7 @@ static void playComment(CommentarySampleTableIndex tableIndex, bool interrupt = 
             logDebug("Playing comment %d from category %d", j, tableIndex);
             playComment(chunk, interrupt);
             table.lastPlayedIndex = j;
+            m_lastPlayedCategory = tableIndex;
             return;
         }
     } else {
@@ -763,20 +770,24 @@ void SWOS::PlayerTackled_59()
 void SWOS::PlayPenaltyGoalComment()
 {
     playComment(kPenaltyGoal);
+    performingPenalty = 0;
 }
 
 void SWOS::PlayPenaltyMissComment()
 {
     playComment(kPenaltyMissed);
+    performingPenalty = 0;
 }
 
-void SWOS::PlaySavedPenaltyComment()
+void SWOS::PlayPenaltySavedComment()
 {
     playComment(kPenaltySaved);
+    performingPenalty = 0;
 }
 
 void SWOS::PlayPenaltyComment()
 {
+    performingPenalty = -1;
     playComment(kPenalty);
 }
 
@@ -812,17 +823,36 @@ void SWOS::PlayBarHitComment()
 
 void SWOS::PlayKeeperClaimedComment()
 {
-    playComment(kKeeperClaimed);
+    if (performingPenalty) {
+        playComment(kPenaltySaved);
+        performingPenalty = 0;
+    } else {
+        // don't interrupt penalty saved comments
+        if (m_lastPlayedCategory != kPenaltySaved || !commentPlaying())
+            playComment(kKeeperClaimed);
+    }
 }
 
 void SWOS::PlayNearMissComment()
 {
-    playComment(kNearMiss);
+    if (performingPenalty || penaltiesState == -1)
+        PlayPenaltyMissComment();
+    else
+        playComment(kNearMiss);
 }
 
 void SWOS::PlayGoalkeeperSavedComment()
 {
-    playComment(kKeeperSaved);
+    if (performingPenalty || penaltiesState == -1)
+        PlayPenaltySavedComment();
+    else
+        playComment(kKeeperSaved);
+}
+
+// fix original SWOS bug where penalty flag remains set when penalty is missed, but it's not near miss
+void SWOS::CheckIfBallOutOfPlay_251()
+{
+    performingPenalty = 0;
 }
 
 void SWOS::PlayOwnGoalComment()
@@ -832,7 +862,10 @@ void SWOS::PlayOwnGoalComment()
 
 void SWOS::PlayGoalComment()
 {
-    playComment(kGoal);
+    if (performingPenalty || penaltiesState == -1)
+        PlayPenaltyGoalComment();
+    else
+        playComment(kGoal);
 }
 
 void SWOS::PlayYellowCardSample()
@@ -1295,6 +1328,9 @@ static void initGameAudio()
     m_refereeWhistleSampleChannel = -1;
     m_commentaryChannel = -1;
     m_chantsChannel = -1;
+
+    m_lastPlayedCategory = -1;
+    m_lastPlayedComment = nullptr;
 
     m_chantsSample = nullptr;
 

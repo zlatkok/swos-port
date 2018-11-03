@@ -749,3 +749,6 @@
 - fixed F8 not turning comments on/off
 - increased chants volume a bit
 - fixed errors when playing with sound off
+03.11.2018.
+- fixed penalty comments not being played
+- fixed original SWOS bugs with penalty flag staying on (discovered by Michael Mihelakakis)

@@ -458,6 +458,9 @@ playingCornerSample, int16_t
 substituteSampleTimer, int16_t
 tacticsChangedSampleTimer, int16_t
 
+performingPenalty, word
+penaltiesState, word
+
 statsTeam1Goals, word
 statsTeam2Goals, word
 resultChantFilenames, array const char *
@@ -490,6 +493,7 @@ RunStoppageEventsAndSetAnimationTables, 320
 GameLoop, 224
 PlayerDoingHeader, 157
 PlayerTackled, 59
+CheckIfBallOutOfPlay, 251
 
 
 # list of symbols that will be replaced by code from C++
@@ -538,7 +542,7 @@ LoadSoundEffects
 LoadIntroChant
 PlayPenaltyGoalComment
 PlayPenaltyMissComment
-PlaySavedPenaltyComment
+PlayPenaltySavedComment
 PlayPenaltyComment
 PlayFoulComment
 PlayHarderFoulComment
