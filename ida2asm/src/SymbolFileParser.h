@@ -48,14 +48,14 @@ private:
     enum Namespace { kGlobal, kEndRange, kSaveRegs, kReplaceNs, kOnEnterNs, };
 
     struct Hasher {
-        size_t operator()(const std::pair<std::string, Namespace>& key) const {
-            return std::hash<std::string>{}(key.first);
+        size_t operator()(const std::tuple<std::string, Namespace, SymbolAction>& key) const {
+            return std::hash<std::string>{}(std::get<0>(key));
         }
     };
 
-    std::unordered_map<std::pair<std::string, Namespace>, size_t, Hasher> m_symbolLine;
+    std::unordered_map<std::tuple<std::string, Namespace, SymbolAction>, size_t, Hasher> m_symbolLine;
 
-    void ensureUniqueSymbol(const char *start, const char *end, Namespace symNamespace);
+    void ensureUniqueSymbol(const char *start, const char *end, Namespace symNamespace, SymbolAction action);
 
     StringList m_exports;
     StringList m_imports;

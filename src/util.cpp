@@ -86,6 +86,12 @@ std::string joinPaths(const char *path1, const char *path2)
     return std::string(path1) + getDirSeparator() + path2;
 }
 
+void toUpper(char *str)
+{
+    while (*str)
+        *str++ = toupper(*str);
+}
+
 constexpr int kMaxRegStorageCapacity = 10;
 static std::array<char[k68kRegisterTotalSize], kMaxRegStorageCapacity> m_savedRegisters;
 static int m_regStorageIndex;
@@ -126,4 +132,14 @@ int getRandomInRange(int min, int max)
 {
     std::uniform_int_distribution<int> dist(min, max);
     return dist(m_mt);
+}
+
+bool isMatchRunning()
+{
+    return screenWidth == kGameScreenWidth;
+}
+
+void beep()
+{
+    ::PlaySound(TEXT("SystemExclamation"), nullptr, SND_ALIAS | SND_ASYNC);
 }

@@ -1,0 +1,378 @@
+//
+// Joypad configuration menu
+//
+
+#include "optionsCommon.mh"
+
+Menu joypadConfigMenu
+{
+    kInfoLabelsColumnX = 20
+    kLabelWidth = 50;
+    kButtonLabelWidth = 60
+    kInfoValuesColumnX = kInfoLabelsColumnX + kLabelWidth
+    kButtonsColumnX = kInfoLabelsColumnX + kButtonLabelWidth + 2
+    kStartY = 25
+    export kInfoFieldWidth = 260;
+    kButtonWidth = 48;
+    kInfoFieldHeight = 10
+
+    x: -8
+
+    onInit: joypadConfigMenuOnInit
+    onDraw: joypadConfigMenuOnDraw
+
+    initialEntry: fireButton
+
+    Entry header {
+        x: kBaseX
+        y: 0
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: "CONTROLLER SETUP"
+        color: kHeaderColor
+    }
+
+    defaultX: kInfoLabelsColumnX
+    defaultWidth: kLabelWidth
+    defaultHeight: 10
+    defaultTextFlags: @kLeftAligned
+
+    //
+    // info labels
+    //
+
+    Entry {
+        y: kStartY
+        textFlags: @kLeftAligned
+        text: "NAME:"
+    }
+
+    defaultY: @prevY + kInfoFieldHeight
+
+    Entry { text: "GUID:" }
+    Entry { text: "ID:" }
+    Entry { text: "BUTTONS:" }
+    Entry { text: "AXES:" }
+    Entry { text: "POWER:" }
+    Entry { text: "RAW X:" }
+    Entry { text: "RAW Y:" }
+
+    //
+    // labels for modifiable settings
+    //
+
+    Entry fireButtonLabel {
+        y: @prevY + 2 * kInfoFieldHeight
+        text: "FIRE:"
+    }
+    Entry { text: "BENCH" }
+    Entry { text: "CUT-OFF X+:" }
+    Entry { text: "CUT-OFF Y+:" }
+    Entry { text: "CUT-OFF X-:" }
+    Entry { text: "CUT-OFF Y-:" }
+
+    //
+    // display values
+    //
+
+    defaultX: kInfoValuesColumnX
+    defaultWidth: kInfoFieldWidth
+    defaultTextFlags: @kYellowText | @kLeftAligned
+
+    Entry name {
+        y: kStartY
+        text: @kAlloc
+    }
+
+    Entry guid {
+        text: @kAlloc
+    }
+
+    TemplateEntry {
+        number: 0
+        textFlags: @kYellowText | @kCenterAligned
+    }
+
+    // seems like numbers are slightly shifted to the left
+    defaultX: kInfoValuesColumnX + 1
+
+    Entry id {}
+    Entry numButtons {}
+    Entry numAxes {}
+
+
+    Entry powerLevel {
+        textFlags: @kYellowText | @kLeftAligned
+        text: @kAlloc
+    }
+
+    Entry rawX {
+        number: 0
+        textFlags: @kYellowText | @kLeftAligned
+    }
+
+    Entry rawY {
+        number: 0
+        textFlags: @kYellowText | @kLeftAligned
+    }
+
+    //
+    // buttons
+    //
+
+    defaultX: kButtonsColumnX
+    defaultWidth: kButtonWidth
+
+    TemplateEntry {
+        number: 0
+        textFlags: @kWhiteText
+        color: @kLightBlue
+    }
+
+    Entry fireButton {
+        y: fireButtonLabel.y
+        onSelect: selectFireButton
+
+        rightEntry: decXNeg
+        upEntry: incXNeg
+        downEntry: >
+    }
+
+    Entry benchButton {
+        onSelect: selectBenchButton
+
+        rightEntry: decXNeg
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry deadZoneXPos {
+        onSelect: enterDeadZoneXPos
+
+        rightEntry: decXNeg
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry deadZoneYPos {
+        onSelect: enterDeadZoneYPos
+
+        rightEntry: decXNeg
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry deadZoneXNeg {
+        onSelect: enterDeadZoneXNeg
+
+        rightEntry: decYPos
+        upEntry: <
+        downEntry: >
+    }
+
+    Entry deadZoneYNeg {
+        onSelect: enterDeadZoneYNeg
+
+        rightEntry: decYPos
+        upEntry: <
+        downEntry: exit
+    }
+
+    //
+    // dead-zone % change boxes
+    //
+
+    kChangerColor = @kLightBlue
+    kPercentageBoxColor = @kDarkBlue
+    kPercentageBoxTextColor = @kWhiteText
+
+    kPercentageBoxWidth = #textWidth("100%") + 4
+    kChangerWidth = #textWidth("+") + 3
+    kBoxHeight = #textHeight("+") + 4
+
+    export kDeadZoneBoxX1 = 160
+    export kDeadZoneBoxY1 = 60
+    export kDeadZoneBoxX2 = 280
+    export kDeadZoneBoxY2 = 166
+
+    kDeadZoneWidth = kDeadZoneBoxX2 - kDeadZoneBoxX1 + 1
+    kDeadZoneHeight = kDeadZoneBoxY2 - kDeadZoneBoxY1 + 1
+
+    kHorizontalBoxesStartX = kDeadZoneBoxX1 + (kDeadZoneWidth - 2 * kChangerWidth - kPercentageBoxWidth - 3) / 2
+    kVerticalBoxesStartY = kDeadZoneBoxY1 + (kDeadZoneHeight - 3 * (kBoxHeight + 1)) / 2
+
+    defaultX: @prevEndX + 1
+    defaultY: kDeadZoneBoxY1 - kBoxHeight - 1
+
+    defaultWidth: kChangerWidth
+    defaultHeight: kBoxHeight
+    defaultTextFlags: @kWhiteText
+
+    // top
+
+    Entry decYNeg {
+        x: kHorizontalBoxesStartX
+
+        text: aMinus
+        color: kChangerColor
+
+        leftEntry: incXNeg
+        rightEntry: incYNeg
+        downEntry: decYPos
+
+        onSelect: decreaseYNeg
+    }
+
+    Entry yNegPercentage {
+        width: kPercentageBoxWidth
+        text: @kAlloc
+        textFlags: kPercentageBoxTextColor
+        color: kPercentageBoxColor
+    }
+
+    Entry incYNeg {
+        text: aPlus
+        color: kChangerColor
+
+        leftEntry: decYNeg
+        rightEntry: incXPos
+        downEntry: incYPos
+
+        onSelect: increaseYNeg
+    }
+
+    // bottom
+
+    defaultY: kDeadZoneBoxY2 + 2
+
+    Entry decYPos {
+        x: kHorizontalBoxesStartX
+
+        text: aMinus
+        color: kChangerColor
+
+        leftEntry: deadZoneYNeg
+        rightEntry: incYPos
+        upEntry: decYNeg
+        downEntry: exit
+
+        onSelect: decreaseYPos
+    }
+
+    Entry yPosPercentage {
+        width: kPercentageBoxWidth
+        text: @kAlloc
+        color: kPercentageBoxColor
+        textFlags: kPercentageBoxTextColor
+    }
+
+    Entry incYPos {
+        text: aPlus
+
+        color: kChangerColor
+
+        leftEntry: decYPos
+        upEntry: incYNeg
+        downEntry: exit
+
+        onSelect: increaseYPos
+    }
+
+    // left
+
+    kChangerDist = (kPercentageBoxWidth - kChangerWidth) / 2
+
+    defaultY: @prevEndY + 1
+
+    Entry incXNeg {
+        x: kDeadZoneBoxX1 - kChangerWidth - kChangerDist
+        y: kVerticalBoxesStartY
+
+        text: aPlus
+        color: kChangerColor
+
+        leftEntry: fireButton
+        rightEntry: incXPos
+        upEntry: decYNeg
+        downEntry: decXNeg
+
+        onSelect: increaseXNeg
+    }
+
+    Entry xNegPercentage {
+        x: kDeadZoneBoxX1 - kPercentageBoxWidth - 1
+        width: kPercentageBoxWidth
+
+        text: @kAlloc
+        textFlags: kPercentageBoxTextColor
+        color: kPercentageBoxColor
+    }
+
+    Entry decXNeg {
+        x: incXNeg.x
+
+        text: aMinus
+        color: kChangerColor
+
+        leftEntry: fireButton
+        rightEntry: decXPos
+        upEntry: incXNeg
+        downEntry: exit
+
+        onSelect: decreaseXNeg
+    }
+
+    // right
+
+    Entry incXPos {
+        x: kDeadZoneBoxX2 + kChangerDist + 2
+        y: kVerticalBoxesStartY
+
+        text: aPlus
+        color: kChangerColor
+
+        leftEntry: incXNeg
+        downEntry: decXPos
+        upEntry: incYNeg
+
+        onSelect: increaseXPos
+    }
+
+    Entry xPosPercentage {
+        x: kDeadZoneBoxX2 + 2
+        width: kPercentageBoxWidth
+
+        text: @kAlloc
+        textFlags: kPercentageBoxTextColor
+        color: kPercentageBoxColor
+    }
+
+    Entry decXPos {
+        x: incXPos.x
+
+        text: aMinus
+        color: kChangerColor
+
+        upEntry: incXPos
+        leftEntry: decXNeg
+        downEntry: incYPos
+
+        onSelect: decreaseXPos
+    }
+
+    Entry exit {
+        x: kBaseX
+        y: kExitY
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: aExit
+        textFlags: @kCenterAligned
+        color: kExitColor
+
+        onSelect: ~SetExitMenuFlag
+
+        upEntry: deadZoneYNeg
+    }
+}

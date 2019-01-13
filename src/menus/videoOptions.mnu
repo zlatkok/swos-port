@@ -7,8 +7,8 @@
 Menu videoOptionsMenu
 {
     kRowHeight = 12
-    kBoxWidth = 10
-    kCustomSizeWidth = 30
+    kBoxHeight = 10
+    kCustomSizeWidth = #textWidth("999999") + 4
 
     export kNumResolutionFields = 6
 
@@ -17,26 +17,22 @@ Menu videoOptionsMenu
     kResolutionListY = 100
 
     kArrowWidth = 10
-    kArrowSprite = 175
-
-    kUpArrowSprite = 183
-    kDownArrowSprite = 184
-
-    kScrollArrowWidth = 8
-    kScrollArrowHeight = 14
+    kArrowSpriteIndex = 175
 
     kScrollArrowX = kResolutionFieldX + kResolutionFieldWidth + 2
     kScrollDownArrowY = kResolutionListY + kNumResolutionFields * kRowHeight - kScrollArrowHeight
 
-    kColumn1X = 84
+    kFirstArrowX = 74
+    kColumn1X = 82
     kColumn2X = 96
 
     kCustomSizeY = 48
     kBorderlessMaximizedY = kCustomSizeY + 2 * kRowHeight + 2
     kFullScreenY = kBorderlessMaximizedY + kRowHeight + 2
 
+    onInit: videoOptionsMenuOnInit
     onDraw: videoOptionsMenuOnDraw
-    initialEntry: exit
+    initialEntry: windowed
     defaultHeight: kRowHeight
 
     Entry header {
@@ -60,32 +56,33 @@ Menu videoOptionsMenu
     defaultTextFlags: @kLeftAligned
 
     Entry customSizeArrow {
-        x: kColumn1X
+        x: kFirstArrowX
         width: kArrowWidth
-        sprite: kArrowSprite
+        sprite: kArrowSpriteIndex
     }
 
-    defaultX: @prevEndX + 2
+    defaultX: @prevEndX + 1
 
     Entry windowed {
-        x: kColumn2X
+        x: @prevEndX + 4
         width: @kTextWidth + 3
 
         text: "WINDOWED"
 
-        onSelect: switchToWindow
+        onSelect: ~switchToWindow
 
         downEntry: resizable
         rightEntry: customWidth
     }
 
     Entry customWidth {
+        x: @prevEndX
         y: @prevY + 1
         width: kCustomSizeWidth
-        height: kBoxWidth
+        height: kBoxHeight
 
         color: @kLightBlue
-        textFlags: @kRightAligned
+        textFlags: @kCenterAligned
         number: 9999
 
         onSelect: inputWindowWidth
@@ -96,17 +93,19 @@ Menu videoOptionsMenu
     }
 
     Entry {
+        x: @prevEndX - 1
         text: "X"
         width: 10
     }
 
     Entry customHeight {
+        x: @prevEndX - 2
         y: @prevY + 1
         width: kCustomSizeWidth
-        height: kBoxWidth
+        height: kBoxHeight
 
         color: @kLightBlue
-        textFlags: @kRightAligned
+        textFlags: @kCenterAligned
         number: 9999
 
         onSelect: inputWindowHeight
@@ -122,7 +121,7 @@ Menu videoOptionsMenu
 
         text: "RESIZABLE"
 
-        onSelect: toggleWindowResizable
+        onSelect: ~toggleWindowResizable
 
         upEntry: windowed
         downEntry: borderlessMaximized
@@ -138,7 +137,7 @@ Menu videoOptionsMenu
         stringTable: [ m_windowResizable, "OFF", "ON" ]
         color: @kLightBlue
 
-        onSelect: toggleWindowResizable
+        onSelect: ~toggleWindowResizable
 
         upEntry: customWidth
         downEntry: borderlessMaximized
@@ -150,7 +149,7 @@ Menu videoOptionsMenu
     Entry borderlessMaximizedArrow {
         x: kColumn1X
         width: kArrowWidth
-        sprite: kArrowSprite
+        sprite: kArrowSpriteIndex
     }
 
     Entry borderlessMaximized {
@@ -159,7 +158,7 @@ Menu videoOptionsMenu
 
         text: "BORDERLESS MAXIMIZED"
 
-        onSelect: switchToBorderlessMaximized
+        onSelect: ~switchToBorderlessMaximized
 
         upEntry: resizable
         downEntry: resolutionField0
@@ -170,7 +169,7 @@ Menu videoOptionsMenu
     Entry fullScreenArrow {
         x: kColumn1X
         width: kArrowWidth
-        sprite: kArrowSprite
+        sprite: kArrowSpriteIndex
     }
 
     Entry fullScreen {
@@ -208,7 +207,7 @@ Menu videoOptionsMenu
         width: kScrollArrowWidth
         height: kScrollArrowHeight
 
-        sprite: kUpArrowSprite
+        sprite: kUpArrowSpriteIndex
         onSelect: scrollResolutionsUpSelected
 
         leftEntry: resolutionField0
@@ -222,7 +221,7 @@ Menu videoOptionsMenu
         width: kScrollArrowWidth
         height: kScrollArrowHeight
 
-        sprite: kDownArrowSprite
+        sprite: kDownArrowSpriteIndex
         onSelect: scrollResolutionsDownSelected
 
         upEntry: scrollUpArrow

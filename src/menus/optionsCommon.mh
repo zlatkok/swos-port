@@ -1,5 +1,5 @@
 //
-// commonly used menu constants
+// commonly used constants inside options menu
 //
 
 kBaseX = 92
@@ -22,3 +22,9 @@ kRowDistance = 1
 
 kColumn1Color = @kGray
 kColumn2Color = @kLightBlue
+
+kScrollArrowWidth = 8
+kScrollArrowHeight = 14
+
+kUpArrowSpriteIndex = 183
+kDownArrowSpriteIndex = 184

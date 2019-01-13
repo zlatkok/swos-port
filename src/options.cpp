@@ -4,6 +4,7 @@
 #include "render.h"
 #include "audio.h"
 #include "music.h"
+#include "controlOptionsMenu.h"
 #include "options.mnu.h"
 #include <adlmidi.h>
 
@@ -11,246 +12,107 @@ enum SoundEnabledState { kUnspecified, kOn, kOff, } static m_soundState;
 static bool m_noIntro;
 static bool m_noReels;
 static int m_bankNo;
-enum Controls {
-    kNoControls, kKeyboardOnly, kJoypadOnly, kJoypadAndKeyboard, kKeyboardAndJoypad, kTwoJoypads, kMaxControl,
-};
-static Controls m_controlInput = kNoControls;
+
+using OptionalControls = std::pair<bool, Controls>;
+using OptionalJoypadGuid = std::pair<bool, std::string>;
+
+OptionalControls m_pl1Controls;
+OptionalControls m_pl2Controls;
+
+OptionalJoypadGuid m_pl1Joypad;
+OptionalJoypadGuid m_pl2Joypad;
 
 static int16_t m_gameStyle;         // 0 = PC, 1 = Amiga
 
 static constexpr char kIniFilename[] = "swos.ini";
 static constexpr char kStandardSection[] = "standard-options";
-static constexpr char kControlsSection[] = "controls";
-static constexpr char kVideoSection[] = "video";
-static constexpr char kAudioSection[] = "audio";
-
-template <typename T> struct Option {
-    const char *key;
-    T *value;
-    typename std::make_signed<T>::type min;
-    typename std::make_signed<T>::type max;
-
-    T clamp(long val) const {
-        if (val < min || val > max)
-            logInfo("Option value for %s out of range (%d), clamping to [%d, %d]", key, val, min, max);
-
-        val = std::min<long>(max, val);
-        val = std::max<long>(min, val);
-
-        return static_cast<T>(val);
-    }
-};
 
 static const std::array<Option<int16_t>, 9> kStandardOptions = {
-    "gameLength",  &g_gameLength, 0, 3,
-    "autoReplays",  &g_autoReplays, 0, 1,
-    "menuMusic",  &g_menuMusic, 0, 1,
-    "autoSaveHighlights",  &g_autoSaveHighlights, 0, 1,
-    "allPlayerTeamsEqual", &g_allPlayerTeamsEqual, 0, 1,
-    "pitchType", &g_pitchType, -2, 6,
-    "chairmanScenes", &g_chairmanScenes, 0, 1,
-    "showBigLetterS", &g_spinBigS, 0, 1,
-    "gameStyle", &m_gameStyle, 0, 1,
+    "gameLength",  &g_gameLength, 0, 3, 0,
+    "autoReplays",  &g_autoReplays, 0, 1, 0,
+    "menuMusic",  &g_menuMusic, 0, 1, 1,
+    "autoSaveHighlights",  &g_autoSaveHighlights, 0, 1, 1,
+    "allPlayerTeamsEqual", &g_allPlayerTeamsEqual, 0, 1, 0,
+    "pitchType", &g_pitchType, -2, 6, 4,
+    "chairmanScenes", &g_chairmanScenes, 0, 1, 1,
+    "showBigLetterS", &g_spinBigS, 0, 1, 0,
+    "gameStyle", &m_gameStyle, 0, 1, 0,
 };
-
-static const std::array<Option<byte>, 5> kControlOptions = {
-    "upScanCode", &g_upScanCode, -128, 127,
-    "downScanCode", &g_downScanCode, -128, 127,
-    "leftScanCode", &g_leftScanCode, -128, 127,
-    "rightScanCode", &g_rightScanCode, -128, 127,
-    "fireScanCode", &g_fireScanCode, -128, 127,
-};
-
-static const std::array<Option<int16_t>, 4> kAudioOptions = {
-    "soundOff", &g_soundOff, 0, 1,
-    "musicOff", &g_musicOff, 0, 1,
-    "commentary", &g_commentary, 0, 1,
-    "crowdChants", &g_crowdChantsOn, 0, 1,
-};
-
-const char kMasterVolume[] = "masterVolume";
-const char kMusicVolume[] = "musicVolume";
-
-// video options
-const char kWindowMode[] = "windowMode";
-const char kWindowWidth[] = "windowWidth";
-const char kWindowHeight[] = "windowHeight";
-const char kWindowResizable[] = "windowResizable";
-const char kFullScreenWidth[] = "fullScreenWidth";
-const char kFullScreenHeight[] = "fullScreenHeight";
-
-static void loadAudioOptions(const CSimpleIniA& ini);
-static void saveAudioOptions(CSimpleIniA& ini);
-static void loadVideoOptions(const CSimpleIniA& ini);
-static void saveVideoOptions(CSimpleIniA& ini);
-
-// controls
-const char kInputControlsKey[] = "inputControls";
-const char kDeadZoneJoypad1Section[] = "joypad1DeadZone";
-const char kDeadZoneJoypad2Section[] = "joypad2DeadZone";
-const char *kDeadZoneJoypadSections[] = { kDeadZoneJoypad1Section, kDeadZoneJoypad2Section };
-
-const char kDeadZonePositiveX[] = "joypadDeadZoneXPositive";
-const char kDeadZoneNegativeX[] = "joypadDeadZoneXNegative";
-const char kDeadZoneNegativeY[] = "joypadDeadZoneYPositive";
-const char kDeadZonePositiveY[] = "joypadDeadZoneYNegative";
-const int kDefaultDeadZoneValue = 8000;
-
-template<typename T, size_t N>
-static void loadOptions(const CSimpleIniA& ini, const std::array<Option<T>, N>& options, const char *section)
-{
-    for (const auto& opt : options) {
-        auto val = ini.GetLongValue(section, opt.key);
-        *opt.value = opt.clamp(val);
-    }
-}
-
-template<typename T, size_t N>
-static void saveOptions(CSimpleIni& ini, const std::array<Option<T>, N>& options, const char *section)
-{
-    for (const auto& opt : options)
-        ini.SetLongValue(section, opt.key, *opt.value);
-}
 
 void loadOptions()
 {
     logInfo("Loading options");
 
-    CSimpleIniA ini;
+    CSimpleIniA ini(true);
     auto path = pathInRootDir(kIniFilename);
 
-    if (ini.LoadFile(path.c_str()) >= 0) {
+    auto errorCode = ini.LoadFile(path.c_str());
+    if (errorCode >= 0) {
         loadOptions(ini, kStandardOptions, kStandardSection);
 
-        if (m_controlInput != kNoControls)
-            g_inputControls = m_controlInput;
-        else
-            g_inputControls = static_cast<int16_t>(ini.GetLongValue(kControlsSection, kInputControlsKey));
-
-        loadOptions(ini, kControlOptions, kControlsSection);
-
-        typedef decltype(setJoypad1DeadZone) SetFunction;
-        SetFunction *setFunctions[] = { setJoypad1DeadZone, setJoypad2DeadZone };
-
-        for (int i = 0; i < 2; i++) {
-            const auto section = kDeadZoneJoypadSections[i];
-            int xPos = ini.GetLongValue(section, kDeadZonePositiveX, kDefaultDeadZoneValue);
-            int xNeg = ini.GetLongValue(section, kDeadZoneNegativeX, -kDefaultDeadZoneValue);
-            int yPos = ini.GetLongValue(section, kDeadZonePositiveY, kDefaultDeadZoneValue);
-            int yNeg = ini.GetLongValue(section, kDeadZoneNegativeY, -kDefaultDeadZoneValue);
-            setFunctions[i](xPos, xNeg, yPos, yNeg);
-        }
+        loadControlOptions(ini);
 
         loadAudioOptions(ini);
         loadVideoOptions(ini);
+    } else {
+        beep();
+        logWarn("Error loading options, error code: %d", errorCode);
     }
-}
-
-static void loadAudioOptions(const CSimpleIniA& ini)
-{
-    loadOptions(ini, kAudioOptions, kAudioSection);
-
-    g_menuMusic = !g_musicOff;
-
-    auto volume = ini.GetLongValue(kAudioSection, kMasterVolume);
-    setMasterVolume(volume, false);
-
-    auto musicVolume = ini.GetLongValue(kAudioSection, kMusicVolume);
-    setMusicVolume(musicVolume, false);
-}
-
-static void loadVideoOptions(const CSimpleIniA& ini)
-{
-    auto windowMode = static_cast<WindowMode>(ini.GetLongValue(kVideoSection, kWindowMode, -1));
-
-    if (windowMode < 0 || windowMode >= kMaxWindowMode)
-        windowMode = kModeWindow;
-
-    setWindowMode(windowMode, false);
-
-    auto windowWidth = ini.GetLongValue(kVideoSection, kWindowWidth);
-    auto windowHeight = ini.GetLongValue(kVideoSection, kWindowHeight);
-
-    setWindowSize(windowWidth, windowHeight, false);
-
-    auto displayWidth = ini.GetLongValue(kVideoSection, kFullScreenWidth);
-    auto displayHeight = ini.GetLongValue(kVideoSection, kFullScreenHeight);
-
-    setFullScreenResolution(displayWidth, displayHeight, false);
-
-    auto windowResizable = ini.GetBoolValue(kVideoSection, kWindowResizable, true);
-    setWindowResizable(windowResizable, false);
 }
 
 void saveOptions()
 {
     logInfo("Saving options...");
 
-    CSimpleIniA ini;
+    CSimpleIniA ini(true);
     ini.SetValue(kStandardSection, nullptr, nullptr, "; Automatically generated by SWOS\n"
         "; Do not edit! All your changes will be lost\n" );
 
     saveOptions(ini, kStandardOptions, kStandardSection);
-
-    const char kInputControlsComment[] = "; 1 = keyboard only, 2 = joypad only, 3 = keyboard & joypad, "
-        "4 = joypad & keyboard, 5 = two joypads";
-    ini.SetLongValue(kControlsSection, kInputControlsKey, g_inputControls, kInputControlsComment);
-
-    saveOptions(ini, kControlOptions, kControlsSection);
-
-    typedef decltype(joypad1DeadZone) GetFunction;
-    GetFunction *getFunctions[] = { joypad1DeadZone, joypad2DeadZone };
-
-    for (int i = 0; i < 2; i++) {
-        int xPos, xNeg, yPos, yNeg;
-        std::tie(xPos, xNeg, yPos, yNeg) = getFunctions[i]();
-
-        const auto section = kDeadZoneJoypadSections[i];
-        ini.SetLongValue(section, kDeadZonePositiveX, xPos);
-        ini.SetLongValue(section, kDeadZoneNegativeX, xNeg);
-        ini.SetLongValue(section, kDeadZonePositiveY, yPos);
-        ini.SetLongValue(section, kDeadZoneNegativeY, yNeg);
-    }
+    saveControlOptions(ini);
 
     saveAudioOptions(ini);
     saveVideoOptions(ini);
 
     auto path = pathInRootDir(kIniFilename);
-    ini.SaveFile(path.c_str());
+    auto errorCode = ini.SaveFile(path.c_str());
+
+    if (errorCode < 0) {
+        beep();
+        logWarn("Failed to save options, error code: %d", errorCode);
+    }
 }
 
-void saveAudioOptions(CSimpleIni& ini)
+template<typename LogFunction>
+static void parseControls(LogFunction log, OptionalControls& controls, const char *str)
 {
-    g_musicOff = !g_menuMusic;
+    char *endPtr;
+    auto controlsIndex = strtol(str, &endPtr, 0);
 
-    saveOptions(ini, kAudioOptions, kAudioSection);
+    if (endPtr == str) {
+        controls.first = true;
 
-    auto masterVolume = getMasterVolume();
-    ini.SetLongValue(kAudioSection, kMasterVolume, masterVolume);
-
-    auto musicVolume = getMusicVolume();
-    ini.SetLongValue(kAudioSection, kMusicVolume, musicVolume);
-}
-
-void saveVideoOptions(CSimpleIniA& ini)
-{
-    auto windowMode = getWindowMode();
-    ini.SetLongValue(kVideoSection, kWindowMode, static_cast<long>(windowMode));
-
-    int windowWidth, windowHeight;
-    std::tie(windowWidth, windowHeight) = getWindowSize();
-
-    ini.SetLongValue(kVideoSection, kWindowWidth, windowWidth);
-    ini.SetLongValue(kVideoSection, kWindowHeight, windowHeight);
-
-    int displayWidth, displayHeight;
-    std::tie(displayWidth, displayHeight) = getFullScreenResolution();
-
-    ini.SetLongValue(kVideoSection, kFullScreenWidth, displayWidth);
-    ini.SetLongValue(kVideoSection, kFullScreenHeight, displayHeight);
-
-    bool resizable = isWindowResizable();
-    ini.SetBoolValue(kVideoSection, kWindowResizable, resizable);
+        if (strstr(str, "none") == str) {
+            controls.second = kNone;
+        } else if (strstr(str, "keyboard1") == str) {
+            controls.second = kKeyboard1;
+        } else if (strstr(str, "keyboard2") == str) {
+            controls.second = kKeyboard2;
+        } else if (strstr(str, "joystick") == str || strstr(str, "joypad")) {
+            controls.second = kJoypad;
+        } else {
+            log(std::string("Unrecognized control name: ") + str);
+            controls.first = false;
+        }
+    } else {
+        if (controlsIndex >= 0 && controlsIndex < kNumControls) {
+            controls.first = true;
+            controls.second = static_cast<Controls>(controlsIndex);
+        } else {
+            auto max = std::to_string(static_cast<int>(kNumControls) - 1);
+            log(std::to_string(controls.second) + " is not valid value for controls ([0.." + max + "] accepted)");
+        }
+    }
 }
 
 std::vector<LogItem> parseCommandLine(int argc, char **argv)
@@ -263,7 +125,10 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
     const char kNoReels[] = "--no-image-reels";
     const char kMaxBank[] = "--max-bank";
     const char kBankNum[] = "--bank-number=";
-    const char kControls[] = "--controls=";
+    const char kPl1Controls[] = "--pl1controls=";
+    const char kPl2Controls[] = "--pl2controls=";
+    const char kPl1Joypad[] = "--pl1joypad=";
+    const char kPl2Joypad[] = "--pl2joypad=";
 
     auto log = [&commandLineWarnings](const std::string& str, LogCategory category = kWarning) {
         commandLineWarnings.emplace_back(category, str);
@@ -292,18 +157,30 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
                     ", range is [0.." + std::to_string(maxBankNo) + "]";
                 log(warningText);
             }
-        } else if (strstr(argv[i], kControls) == argv[i]) {
-            auto controlsStr = argv[i] + sizeof(kControls) - 1;
-            auto controls = atoi(controlsStr);
-            if (controls > kNoControls && controls < kMaxControl) {
-                m_controlInput = static_cast<Controls>(controls);
-            } else {
-                auto min = std::to_string(kNoControls + 1);
-                auto max = std::to_string(kMaxControl - 1);
-                log(std::to_string(controls) + " is not valid value for controls ([" + min + ".." + max + "] accepted)");
+        } else if (strstr(argv[i], kPl1Controls) == argv[i] || strstr(argv[i], kPl2Controls)) {
+            assert(argv[i][4] == '1' || argv[i][4] == '2');
+
+            auto& controls = argv[i][4] == '1' ? m_pl1Controls : m_pl2Controls;
+            auto controlsStr = argv[i] + sizeof(kPl1Controls) - 1;
+
+            parseControls(log, controls, controlsStr);
+
+            if (controls.first && controls.second == kNone && &controls == &m_pl1Controls) {
+                controls.first = false;
+                log("Player 1 can not have controls disabled");
+            }
+        } else if (strstr(argv[i], kPl1Joypad) == argv[i] || strstr(argv[i], kPl2Joypad) == argv[i]) {
+            assert(argv[i][4] == '1' || argv[i][4] == '2');
+
+            auto& joypad = argv[i][4] == '1' ? m_pl1Joypad : m_pl2Joypad;
+            auto joypadStr = argv[i] + sizeof(kPl1Joypad) - 1;
+
+            if (*joypadStr) {
+                joypad.first = true;
+                joypad.second = joypadStr;
             }
         } else {
-            commandLineWarnings.emplace_back(kWarning, std::string("Unknown option ignored: ") + argv[i]);
+            log(std::string("Unknown option ignored: ") + argv[i]);
         }
     }
 
@@ -372,6 +249,11 @@ void doShowAudioOptionsMenu()
     showAudioOptionsMenu();
 }
 
+void doShowControlOptionsMenu()
+{
+    showControlOptionsMenu();
+}
+
 void showGameplayOptions()
 {
     showMenu(gameplayOptionsMenu);
@@ -379,5 +261,6 @@ void showGameplayOptions()
 
 void changeGameStyle()
 {
+    logInfo("Game style changed to %s", m_gameStyle ? "AMIGA" : "PC");
     m_gameStyle = !m_gameStyle;
 }

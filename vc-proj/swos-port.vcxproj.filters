@@ -18,6 +18,15 @@
     <Filter Include="Source Files\debug">
       <UniqueIdentifier>{17fb11e0-ae3c-431c-8383-13eaab94c0c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\controls">
+      <UniqueIdentifier>{501283ed-b2d5-4054-9630-2b0e1148860f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\audio">
+      <UniqueIdentifier>{1ad788a0-4e43-4409-ad52-099103dbcbf5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\video">
+      <UniqueIdentifier>{18482253-5ebd-4fd2-baa0-0c9da9ded338}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="swos-asm\swos-08.asm">
@@ -53,7 +62,13 @@
     <CustomBuild Include="..\src\menus\audioOptions.mnu">
       <Filter>Source Files\menu</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\src\menus\controls.mnu">
+    <CustomBuild Include="..\src\menus\controlOptions.mnu">
+      <Filter>Source Files\menu</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\menus\replayExit.mnu">
+      <Filter>Source Files\menu</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src\menus\joypadConfig.mnu">
       <Filter>Source Files\menu</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -73,12 +88,6 @@
     <ClCompile Include="..\src\util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\render.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\controls.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -91,13 +100,7 @@
     <ClCompile Include="..\src\game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\audio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\options.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\music.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\debug\dump.cpp">
@@ -105,6 +108,33 @@
     </ClCompile>
     <ClCompile Include="..\src\pitch.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio\audio.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio\music.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\controls\controls.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\controls\scanCodes.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\controls\controlOptionsMenu.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\controls\joypads.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\controls\joypadConfigMenu.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\video\render.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\video\videoOptionsMenu.cpp">
+      <Filter>Source Files\video</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -114,13 +144,7 @@
     <ClInclude Include="..\src\util.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\render.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\file.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\controls.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\log.h">
@@ -129,13 +153,7 @@
     <ClInclude Include="..\src\crash.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\audio.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\options.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\music.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\menus\menu.h">
@@ -144,12 +162,39 @@
     <ClInclude Include="..\src\debug\dump.h">
       <Filter>Source Files\debug</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\controls\controls.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio\audio.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio\music.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\controls\scanCodes.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\controls\joypads.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\controls\joypadConfigMenu.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\controls\controlOptionsMenu.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\video\render.h">
+      <Filter>Source Files\video</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Types.natvis" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\menus\optionsCommon.mh">
+      <Filter>Source Files\menu</Filter>
+    </None>
+    <None Include="..\src\menus\mnu2h.py">
       <Filter>Source Files\menu</Filter>
     </None>
   </ItemGroup>

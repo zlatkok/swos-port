@@ -2,6 +2,8 @@
 
 #include "swossym.h"
 #include "swos.h"
+#include "util.h"
+#include "render.h"
 
 namespace SWOS_Menu {
 
@@ -58,6 +60,13 @@ struct MenuHeader
 
 struct MenuEnd {
     word code = -999;
+};
+
+struct MenuXY {
+    word code = -998;
+    word x;
+    word y;
+    MenuXY(word x, word y) : x(x), y(y) {}
 };
 
 struct TemplateEntry {
@@ -189,35 +198,35 @@ public:
 };
 
 class EntryLeftSkip : EntryElement {
-    byte directionLeft;
     byte skipLeftEntry;
+    byte directionLeft;
 public:
     EntryLeftSkip(byte directionLeft, byte skipLeftEntry)
-        : EntryElement(kLeftSkip), directionLeft(directionLeft), skipLeftEntry(skipLeftEntry) {}
+        : EntryElement(kLeftSkip), skipLeftEntry(skipLeftEntry), directionLeft(directionLeft) {}
 };
 
 class EntryRightSkip : EntryElement {
-    byte directionRight;
     byte skipRightEntry;
+    byte directionRight;
 public:
     EntryRightSkip(byte directionRight, byte skipRightEntry)
-        : EntryElement(kRightSkip), directionRight(directionRight), skipRightEntry(skipRightEntry) {}
+        : EntryElement(kRightSkip), skipRightEntry(skipRightEntry), directionRight(directionRight) {}
 };
 
 class EntryUpSkip : EntryElement {
-    byte directionUp;
     byte skipUpEntry;
+    byte directionUp;
 public:
     EntryUpSkip(byte directionUp, byte skipUpEntry)
-        : EntryElement(kUpSkip), directionUp(directionUp), skipUpEntry(skipUpEntry) {}
+        : EntryElement(kUpSkip), skipUpEntry(skipUpEntry), directionUp(directionUp) {}
 };
 
 class EntryDownSkip : EntryElement {
-    byte directionDown;
     byte skipDownEntry;
+    byte directionDown;
 public:
     EntryDownSkip(byte directionDown, byte skipDownEntry)
-        : EntryElement(kDownSkip), directionDown(directionDown), skipDownEntry(skipDownEntry) {}
+        : EntryElement(kDownSkip), skipDownEntry(skipDownEntry), directionDown(directionDown) {}
 };
 
 class EntryColorConvertedSprite : EntryElement {
@@ -266,7 +275,7 @@ static inline void drawMenuItem(MenuEntry *entry)
 
 static inline int getCurrentEntry()
 {
-    auto currentMenu = reinterpret_cast<Menu *>(g_currentMenu);
+    auto currentMenu = getCurrentMenu();
     return currentMenu->selectedEntry ? currentMenu->selectedEntry->ordinal : -1;
 }
 
@@ -275,3 +284,50 @@ static inline void setCurrentEntry(int ordinal)
     D0 = ordinal;
     SetCurrentEntry();
 }
+
+static inline void drawMenuText(int x, int y, const char *text, int color = kWhiteText2)
+{
+    D1 = x;
+    D2 = y;
+    D3 = color;
+    A1 = smallCharsTable;
+    A0 = text;
+    DrawMenuText();
+}
+
+// coordinates mark the center of the string
+static inline void drawMenuTextCentered(int x, int y, const char *text, int color = kWhiteText2)
+{
+    D1 = x;
+    D2 = y;
+    D3 = color;
+    A1 = smallCharsTable;
+    A0 = text;
+    SAFE_INVOKE(DrawMenuTextCentered);
+}
+
+static inline void drawMenuSprite(int x, int y, int index)
+{
+    D0 = index;
+    D1 = x;
+    D2 = y;
+    DrawSprite();
+}
+
+static inline void redrawMenuBackground()
+{
+    memcpy(linAdr384k, linAdr384k + 128 * 1024, 320 * 200);
+}
+
+static inline void redrawMenuBackground(int lineFrom, int lineTo)
+{
+    int offset = lineFrom * kMenuScreenWidth;
+    int length = (lineTo - lineFrom) * kMenuScreenWidth;
+    memcpy(linAdr384k + offset, linAdr384k + 128 * 1024 + offset, length);
+}
+
+using MouseWheelEntryList = std::vector<std::tuple<int, int, int>>;
+void setMouseWheelEntries(const MouseWheelEntryList& mouseWheelEntries);
+int getStringPixelLength(const char *str);
+void elideString(char *str, int len, int maxPixels);
+bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum);

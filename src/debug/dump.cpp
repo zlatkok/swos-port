@@ -228,7 +228,7 @@ void printString(char *str, int x, int y, int color, bool big /* = false */, int
 void dumpVariables()
 {
     char buf[256];
-    sprintf_s(buf, "%hd", animPatternsState);
+    snprintf(buf, sizeof(buf), "%hd", animPatternsState);
     printString(buf, 0, 16, kYellowText, false, ALIGN_LEFT);
 }
 

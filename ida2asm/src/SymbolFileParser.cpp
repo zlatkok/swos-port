@@ -46,6 +46,7 @@ void SymbolFileParser::outputHeaderFile(const char *path)
         "        data = reinterpret_cast<dword>(t);\n"
         "    }\n"
         "    word asWord() const { return static_cast<word>(data); }\n"
+        "    int16_t asInt16() const { return static_cast<int16_t>(data); }\n"
         "    dword asDword() const { return static_cast<dword>(data); }\n"
         "    int asInt() const { return static_cast<int>(data); }\n"
         "    template <typename T> typename std::enable_if<std::is_convertible<T, dword>::value, T>::type as() {\n"
@@ -276,7 +277,7 @@ void SymbolFileParser::parseSymbolFile()
             }
 
             if (action == kRemove || action == kNull || action == kInsertCall) {
-                ensureUniqueSymbol(symStart, symEnd, kGlobal);
+                ensureUniqueSymbol(symStart, symEnd, kGlobal, action);
                 if (action == kInsertCall) {
                     if (p == start)
                         error("missing line number");
@@ -303,7 +304,7 @@ void SymbolFileParser::parseSymbolFile()
 
                     m_imports.add(buf, buf + len + 1 + lineString.length());
                 } else {
-                    ensureUniqueSymbol(start, p, kEndRange);
+                    ensureUniqueSymbol(start, p, kEndRange, action);
                     m_procs.add(symStart, symEnd - symStart, action, start, p - start);
                 }
             } else {
@@ -318,7 +319,7 @@ void SymbolFileParser::parseSymbolFile()
                 else if (action == kReplace)
                     ns = kReplaceNs;
 
-                ensureUniqueSymbol(symStart, symEnd, ns);
+                ensureUniqueSymbol(symStart, symEnd, ns, action);
 
                 if (action == kExport || action == kImport) {
                     if (action == kExport) {
@@ -548,19 +549,24 @@ auto SymbolFileParser::lookupKeyword(const char *p, const char *limit) -> std::p
     return notKeywordResult;
 };
 
-void SymbolFileParser::ensureUniqueSymbol(const char *start, const char *end, Namespace symNamespace)
+void SymbolFileParser::ensureUniqueSymbol(const char *start, const char *end, Namespace symNamespace, SymbolAction action)
 {
     const std::string& sym{ start, end };
 
     if (!sym.empty()) {
-        auto res = m_symbolLine.insert(std::make_pair(std::make_pair(sym, symNamespace), m_lineNo));
+        auto res = m_symbolLine.insert(std::make_pair(std::make_tuple(sym, symNamespace, action), m_lineNo));
 
-        if (!res.second) {
-            auto endOfRange = res.first->first.second;
-            auto sym = res.first->first.first;
+        bool successfullyInserted = res.second;
+        auto element = res.first;
+        auto oldAction = std::get<2>(element->first);
+
+        if (!successfullyInserted && (oldAction != kImport || action != kRemove) && (oldAction != kRemove || action != kImport)) {
+            auto line = element->second;
+            auto endOfRange = std::get<1>(element->first);
+            auto sym = std::get<0>(element->first);
 
             if (!endOfRange)
-                error("duplicate symbol found: `" + sym + "', first defined at line " + std::to_string(res.first->second));
+                error("duplicate symbol found: `" + sym + "', first defined at line " + std::to_string(line));
             else
                 error("duplicate end of range: `" + sym + '\'');
         }

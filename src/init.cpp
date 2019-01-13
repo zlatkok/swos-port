@@ -83,6 +83,8 @@ static void init()
     EGA_graphics = 0;
     g_videoSpeedIndex = 100;
 
+    g_inputControls = 6;    // set this up for CheckControls to avoid touching g_*ScanCode variables
+
     logInfo("Setting up base and extended memory pointers");
     setupDosBaseMemory();
     setupExtendedMemory();
@@ -384,8 +386,10 @@ void SWOS::SWOS()
 //PlayIntroAnimation();
 
     controlWord = 0;
-    g_joy2Status = 0;
-    g_joy1Status = 0;
+    g_pl2Status = 0;
+    g_pl1Status = 0;
+    pl1FinalStatus = -1;
+    pl2FinalStatus = -1;
 
     logInfo("Loading title and menu music");
     SAFE_INVOKE(LoadTitleAndStartMusic);
@@ -413,7 +417,7 @@ void SWOS::SWOS()
     SDL_FlushEvents(SDL_KEYDOWN, SDL_KEYUP);
 
 #ifndef NDEBUG
-    // verify that string offsets are OK
+    // verify that the string offsets are OK
     assert(!memcmp(aChairmanScenes + 0x4dc1, "YUGOSLAVIA", 11));
     assert(!memcmp(aChairmanScenes + 0x2e5, "THE PRESIDENT", 14));
     assert(!memcmp(aChairmanScenes + 0x2f, "RETURN TO GAME", 15));

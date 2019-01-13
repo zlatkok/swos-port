@@ -23,6 +23,8 @@ kMenuDefaults = (   # expansion of these is delayed, so they can have different 
     'defX', 'defaultX', 'defY', 'defaultY', 'defaultColor', 'defaultTextFlags',
 )
 
+kNextEntryProperties = ('leftEntry', 'rightEntry', 'upEntry', 'downEntry', 'skipLeft', 'skipRight', 'skipUp', 'skipDown')
+
 kEntryFunctions = ('onSelect', 'beforeDraw', 'afterDraw')
 
 kConstants = {
@@ -41,19 +43,24 @@ kConstants = {
     'kLightBrownText': 5, 'kOrangeText': 6, 'kGrayText': 7, 'kNearBlackText': 8,
     'kVeryDarkGreenText': 9, 'kRedText': 10, 'kBlueText': 11, 'kPurpleText': 12,
     'kSoftBlueText': 13, 'kGreenText': 14, 'kYellowText': 15,
+    'kCenterAligned': 0,
     'kLeftAligned': 1 << 15, 'kRightAligned': 1 << 14, 'kShowText': 1 << 9, 'kBlinkText': 1 << 13,
     'kBigText': 1 << 4, 'kBigFont': 1 << 4,
+
+    # entry directions
+    'kNoEntry': -1, 'kLeft': 0, 'kRight': 1, 'kUp': 2, 'kDown': 3,
 }
 
 class Token:
-    def __init__(self, string, inputFilename='', line=0):
+    def __init__(self, string, path='', line=0):
         assert(isinstance(string, (str, int)))
-        assert(isinstance(inputFilename, str))
+        assert(isinstance(path, str))
         assert(isinstance(line, int))
 
         self.string = str(string)
         self.line = line
-        self.inputFilename = inputFilename
+        self.path = path
+        self.inputFilename = os.path.basename(path)
 
     def __repr__(self):
         return f"'{self.string}' [{self.inputFilename}, line {self.line}]"
@@ -61,7 +68,7 @@ class Token:
 class Menu:
     def __init__(self):
         self.properties = { 'defaultWidth': 0, 'defaultHeight': 0, 'defaultX': 0,
-            'defaultY': 0, 'defaultColor': 0, 'defaultTextFlags': 0, }
+            'defaultY': 0, 'defaultColor': 0, 'defaultTextFlags': 0, 'x': 0, 'y': 0 }
         self.exportedProperties = {}
         self.entries = {}
         self.variables = {}
@@ -75,8 +82,6 @@ class Menu:
         self.afterDraw = 0
         self.onDraw = 0
 
-        self.x = 0
-        self.y = 0
         self.previousX = 0
         self.previousY = 0
 
@@ -92,8 +97,14 @@ class StringTable:
 
 class Entry:
     def __init__(self, ordinal=-1, name=''):
+        assert(isinstance(ordinal, int))
+        assert(isinstance(name, str))
+
         self.name = name
         self.ordinal = ordinal
+
+        for property in kNextEntryProperties:
+            setattr(self, property + 'Token', None)
 
         self.x = 0
         self.y = 0
@@ -128,6 +139,15 @@ class Entry:
         self.onSelect = 0
         self.beforeDraw = 0
         self.afterDraw = 0
+
+class Variable:
+    def __init__(self, value, token):
+        assert(isinstance(value, str))
+        assert(isinstance(token, Token))
+
+        self.value = value
+        self.token = token
+        self.referenced = False
 
 class ResetTemplateEntry:
     pass
@@ -174,7 +194,7 @@ class Parser:
     #     tokenOrline - offending token, or the line number where error occurred
     #     text        - text of the error to display
     #
-    # Print formatted error to stdout, with input file path and offending line, and exit program.
+    # Prints formatted error to stdout, with input file path and offending line, and exits the program.
     #
     def error(self, tokenOrLine, text):
         assert(isinstance(tokenOrLine, (Token, int)))
@@ -193,13 +213,13 @@ class Parser:
     #
     # in:
     #     text          - warning text
-    #     line          - line number
-    #     inputFilename - name of the input file
+    #     line          - line number (can be omitted)
+    #     inputFilename - name of the input file (use current one if not supplied)
     #
-    # Issue a warning in input file at line number.
+    # Issues a warning in input file at line number.
     #
-    def warning(self, text, line, inputFilename=None):
-        assert(isinstance(line, int))
+    def warning(self, text, line=None, inputFilename=None):
+        assert(line is None or isinstance(line, int))
 
         fname = inputFilename
         if not fname:
@@ -209,15 +229,26 @@ class Parser:
         if line:
             lineStr = f'({line})'
 
-        print(f'{fname}{lineStr}: warning, {text}')
+        print(f'{fname}{lineStr}: warning: {text}')
+
+    # getPreviousToken
+    #
+    # Returns previous token, which must exist. Assumes tokenization had already been done.
+    #
+    def getPreviousToken(self):
+        assert(self.tokenized)
+        assert(self.currentToken - 1 >= 0)
+
+        return self.tokens[self.currentToken - 1]
 
     # getNextToken
     #
     # in:
     #     lookingFor - textual description of the expected token, can be null, in that case
-    #                  generic error is shown if EOF
+    #                  generic error is shown in case EOF is encountered
     #
-    # Returns next token. Assumes the tokenization has been done. Sets atEof when end of file is reached.
+    # Returns the next token. Assumes the tokenization had already been done.
+    # Sets atEof when end of file is reached.
     #
     def getNextToken(self, lookingFor=None):
         assert(lookingFor is None or isinstance(lookingFor, str))
@@ -242,7 +273,7 @@ class Parser:
 
     # gotTokensLeft
     #
-    # Returns true if there are any tokens left. Assumes the tokenization has already been done.
+    # Returns true if there are any tokens left. Assumes the tokenization had already been done.
     #
     def gotTokensLeft(self):
         assert(self.tokenized)
@@ -256,7 +287,7 @@ class Parser:
     #
     # Makes sure that the given token is a block start (opening brace). Displays an error and exits
     # the program if it isn't. Returns the token following the opening brace.
-    # Assumes the tokenization has already been done.
+    # Assumes the tokenization had already been done.
     #
     def expectBlockStart(self, token):
         assert(isinstance(token, Token))
@@ -273,10 +304,11 @@ class Parser:
     #     token - token to test
     #
     # Makes sure that the given token is a colon. Returns the token following the colon.
-    # Assumes the tokenization has already been done.
+    # Assumes the tokenization had already been done.
     #
     def expectColon(self, token):
         assert(isinstance(token, Token))
+        assert(self.tokenized)
 
         if token.string != ':':
             error(token, f"expected colon `:', got `{token.string}'")
@@ -289,10 +321,12 @@ class Parser:
     #     token        - Token to check
     #     expectedNext - optional string that describes next expected token
     #
-    # Checks if a token is a valid C++ identifier, if not displays an error and ends the program.
+    # Checks if the given token is a valid C++ identifier, if not displays an error and ends the program.
+    # Assumes the tokenization had already been done.
     #
     def expectIdentifier(self, token, expectedNext=None):
         assert(isinstance(token, Token))
+        assert(self.tokenized)
 
         if not isIdentifier(token.string):
             self.error(token, f"`{token.string}' is not a valid identifier")
@@ -305,7 +339,8 @@ class Parser:
     #     text  - expected string
     #     token - current token
     #
-    # Make sure that token contains expected string. If not, complain and quit. Return next token.
+    # Makes sure that token contains the expected string. If not, complains and quits. Returns next token.
+    # Assumes the tokenization had already been done.
     #
     def expect(self, text, token):
         assert(isinstance(text, str))
@@ -316,6 +351,43 @@ class Parser:
 
         return self.getNextToken()
 
+    # verifyNonCppKeyword
+    #
+    # in:
+    #     token   - string that's being checked for C++ keyword
+    #     context - optional context string, it is what this token represents (e.g. menu name, entry name...)
+    #
+    # Makes sure that the given token isn't a C++ keyword. If it is, displays an error and ends the program.
+    # Assumes the tokenization had already been done.
+    #
+    def verifyNonCppKeyword(self, token, context=None):
+        assert(isinstance(token, Token))
+        assert(context is None or isinstance(context, str) and len(context))
+        assert(self.tokenized)
+
+        kCppKeywords = {
+            'alignas', 'alignof', 'and', 'and_eq', 'asm', 'auto', 'bitand', 'bitor', 'bool', 'break', 'case',
+            'catch', 'char', 'char8_t', 'char16_t', 'char32_t', 'class', 'compl', 'concept', 'const', 'consteval',
+            'constexpr', 'const_cast', 'continue', 'decltype', 'default', 'delete', 'do', 'double', 'dynamic_cast',
+            'else', 'enum', 'explicit', 'export', 'extern', 'false', 'float', 'for', 'friend', 'goto', 'if',
+            'import', 'inline', 'int', 'long', 'module', 'mutable', 'namespace', 'new', 'noexcept', 'not', 'not_eq',
+            'nullptr', 'operator', 'or', 'or_eq', 'private', 'protected', 'public', 'register', 'reinterpret_cast',
+            'requires', 'return', 'short', 'signed', 'sizeof', 'static', 'static_assert', 'static_cast', 'struct',
+            'switch', 'template', 'this', 'thread_local', 'throw', 'true', 'try', 'typedef', 'typeid', 'typename',
+            'union', 'unsigned', 'using', 'virtual', 'void', 'volatile', 'wchar_t', 'while', 'xor', 'xor_eq'
+        }
+
+        if token.string in kCppKeywords:
+            errorStr = f"can't use a C++ keyword `{token.string}'"
+
+            if context:
+                errorStr += f' as a'
+                if context[0] in ('a', 'e', 'i', 'o', 'u'):
+                    errorStr += 'n'
+                errorStr += ' ' + context
+
+            self.error(token, errorStr)
+
     # expandBuiltinVariable
     #
     # in:
@@ -323,7 +395,7 @@ class Parser:
     #     menu - menu in which context we're expanding (if any)
     #     line - line number, if given
     #
-    # Expands built-in variable (variables that begin with '@') and return expanded variable. Variable must be
+    # Expands built-in variable (variables that begin with '@') and returns expanded variable. Variable must be
     # valid or the execution stops.
     #
     def expandBuiltinVariable(self, text, menu=None, line=None):
@@ -342,9 +414,9 @@ class Parser:
         elif text == 'previousY' or text == 'prevY':
             result = menu.previousY
         elif text == 'previousEndX' or text == 'prevEndX':
-            result = f'{menu.previousX} + {menu.previousWidth}'
+            result = f'({menu.previousX} + {menu.previousWidth})'
         elif text == 'previousEndY' or text == 'prevEndY':
-            result = f'{menu.previousY} + {menu.previousHeight}'
+            result = f'({menu.previousY} + {menu.previousHeight})'
         elif text == 'previousWidth' or text == 'prevWidth':
             result = menu.previousWidth
         elif text == 'previousHeight' or text == 'prevHeight':
@@ -369,8 +441,8 @@ class Parser:
     #     textOrToken - token or string/int with the potential variable
     #     menu        - menu the potential variable belongs to (if any)
     #
-    # Test if token contains a variable (be it built-in or user-defined), and if so expand it.
-    # If not, simply return it as is.
+    # Tests if the token contains a variable (be it built-in or user-defined), and if so expands it.
+    # If not, simply returns it as is.
     #
     def expandVariable(self, textOrToken, menu=None):
         assert(isinstance(textOrToken, (Token, str, int)))
@@ -391,9 +463,10 @@ class Parser:
 
         if not text.startswith('@'):
             for varDict in varDicts:
-                variableValue = varDict.get(text, None)
-                if variableValue is not None:
-                    text = variableValue
+                var = varDict.get(text, None)
+                if var is not None:
+                    text = var.value
+                    var.referenced = True
                     break
 
         if text.startswith('@'):
@@ -409,13 +482,13 @@ class Parser:
     # parseExpression
     #
     # in:
-    #     token - current token
-    #     menu  - current menu (if any)
+    #     token           - current token
+    #     menu            - current menu (if any)
     #     expandVariables - if false do not expand variables, copy everything verbatim
     #     getTokenFunc    - function that retrieves tokens, will use getNextToken if not given
     #
-    # Parse an expression starting with token and return the result. Move current token to last one after the expression.
-    # Return result of the expression (as string) and the current token.
+    # Parses an expression starting with token and returns the result. Moves current token to the last one after the
+    # expression. Returns result of the expression (as string) and the current token.
     #
     def parseExpression(self, token, menu=None, expandVariables=True, getTokenFunc=getNextToken):
         assert(isinstance(token, Token))
@@ -427,7 +500,9 @@ class Parser:
         kOperands = ('+', '-', '*', '/', '%', '&', '|', '^')
 
         isOperand = lambda token: token.string not in kOperands + ('(', ')')
-        unmatchedParentheses = lambda line: error(line, 'unmatched parentheses')
+        unmatchedParenthesis = lambda line: self.error(line, 'unmatched parenthesis')
+
+        singleOperand = True
 
         while True:
             if token.string == '(':
@@ -435,42 +510,70 @@ class Parser:
                 subResult, token = self.parseExpression(token, menu, expandVariables, getTokenFunc)
 
                 if token.string != ')':
-                    self.unmatchedParentheses(token.line)
+                    unmatchedParenthesis(token.line)
 
                 token = getTokenFunc(self)
 
-                if token.string == ')':
-                    self.unmatchedParentheses(token.line)
+                if token.string == ')' and not self.gotTokensLeft():
+                    unmatchedParenthesis(token.line)
 
                 if subResult.endswith(' '):
                     subResult = subResult[:-1]
 
                 result += '(' + subResult + ')'
+                singleOperand = False
             elif token.string == ')':
-                self.unmatchedParentheses(token.line)
+                unmatchedParenthesis(token.line)
             elif token.string == '#':
                 if getTokenFunc != Parser.getNextToken:
                     self.error(token, 'preprocessor directives unavailable in this context')
                 token, value = self.parsePreprocessorDirective(self.getNextToken(), menu)
                 if value is None:
-                    self.error(token.line, f'void directive used in value expecting context')
+                    self.error(token, f'void directive used in value expecting context')
                 result = formatToken(result, str(value))
             else:
                 if not isOperand(token):
-                    error(token.line, f"operand expected, got `{token.string}'")
+                    error(token, f"operand expected, got `{token.string}'")
+
+                # can't check it here, it's too restrictive, real solution is to check at output time
+                # (but then we must save original tokens in order to properly report the error)
+                #self.verifyNonCppKeyword(token)
 
                 value = self.expandVariable(token, menu) if expandVariables else token.string
-                result = formatToken(result, value)
                 token = getTokenFunc(self)
+
+                if token.string == '.':
+                    if menu is None:
+                        self.error(token, "dot operator (`.') can only be used inside the menu")
+                    if value not in menu.entries:
+                        self.error(token, f"`{value}' is not recognized as an entry name")
+
+                    entry = menu.entries[value]
+                    token = getTokenFunc(self)
+
+                    if token.string == 'endY':
+                        value = str(entry.y) + '+' + str(entry.height)
+                    else:
+                        if not hasattr(entry, token.string):
+                            self.error(token, f"entry `{value}' does not have property `{token.string}'")
+                        value = getattr(entry, token.string)
+
+                    token = getTokenFunc(self)
+
+                result = formatToken(result, value)
 
             if isOperand(token) or token.string in (')', '}'):
                 break
 
             result = formatToken(result, token.string)
             token = getTokenFunc(self)
+            singleOperand = False
 
         if result.endswith(' '):
             result = result[:-1]
+
+        if not singleOperand:
+            result = f'({result})'
 
         return result, token
 
@@ -481,7 +584,7 @@ class Parser:
     #     property - new property that's being set
     #     line     - line number where property is defined
     #
-    # Check for conflicting properties inside the entry, such as both text and sprite, basically for any pair of
+    # Checks for conflicting properties inside the entry, such as both text and sprite, basically for any pair of
     # members belonging to any of two entry struct's unions.
     #
     def checkConflictingProperties(self, entry, property, line):
@@ -500,16 +603,18 @@ class Parser:
     # in:
     #     token - token containing function name
     #
-    # Check if a function inside the given token is an identifier and if it requires forward declaration in C++ file.
-    # If so, check it for uniqueness, if it's redefined report an error and exit.
-    # Return pair: function name, token (which will be the next after the function).
+    # Checks if a function inside the given token is an identifier and if it requires forward declaration in C++ file.
+    # If so, checks it for uniqueness, if it's redefined reports an error and exits.
+    # Returns a pair: function name, token (which will be the next after the function).
     #
     def registerFunction(self, token):
         assert(isinstance(token, Token))
 
+        self.verifyNonCppKeyword(token, 'name of function handler')
+
         declareFunction = True
 
-        # if it's prefixed with tilde don't declare it (presumably declared elsewhere)
+        # if it's prefixed with tilde don't declare it (presumably it is declared elsewhere)
         if token.string == '~':
             token = self.getNextToken('function handler')
             declareFunction = False
@@ -528,10 +633,12 @@ class Parser:
     # in:
     #     token - initial token of string table block
     #
-    # Parse string table block and return filled string table object and token that follows it.
+    # Parses string table block and returns a filled-in string table object and a token that follows it.
     #
     def parseStringTable(self, token):
         assert(isinstance(token, Token))
+
+        self.verifyNonCppKeyword(token, 'string table name')
 
         if token.string == '~':
             token = self.getNextToken()
@@ -583,7 +690,7 @@ class Parser:
 
     # fillCharWidthTables
     #
-    # Fill tables used for calculating string widths.
+    # Fills tables used for calculating string widths. Functions that do calculation later expect this to be filled.
     #
     def fillCharWidthTables(self):
         self.smallFontWidths = (
@@ -613,7 +720,7 @@ class Parser:
     #     text       - text to measure
     #     useBigFont - flag whether to use big or small font to measure
     #
-    # Return width of the given text in pixels.
+    # Returns the width of the given text in pixels. Expects width tables to be filled.
     #
     def textWidth(self, text, useBigFont):
         assert(isinstance(text, str))
@@ -643,7 +750,7 @@ class Parser:
     # in:
     #     useBigFont - flag whether to use big or small font to measure
     #
-    # Return height of the text in pixels.
+    # Returns the height of the text in pixels.
     #
     def textHeight(self, useBigFont):
         return 8 if useBigFont else 6
@@ -655,7 +762,7 @@ class Parser:
     #     properties - all the properties that were set from the entry
     #     token      - last token of the entry, for error reporting purposes
     #
-    # Expand @kTextWidth and @kTextHeight height constants. We can only reliably do that after the entire
+    # Expands @kTextWidth and @kTextHeight height constants. We can only reliably do that after the entire
     # entry has been parsed, and only then can we also reliably detect errors.
     #
     def expandTextWidthAndHeight(self, entry, properties, token):
@@ -680,7 +787,7 @@ class Parser:
             self.error(token, f'non-text entry uses {w}/{h} constants')
 
         try:
-            useBigFont = int(entry.textFlags, 0) & kConstants['kBigFont']
+            useBigFont = int(removeEnclosingParentheses(entry.textFlags), 0) & kConstants['kBigFont']
         except ValueError:
             self.error(token, 'could not calculate text flags value')
 
@@ -719,15 +826,21 @@ class Parser:
         name = ''
 
         if token.string == '#':
-            token, _ = self.parsePreprocessorDirective(self.getNextToken(), menu)
-
-        if isIdentifier(token.string):
+            token, name = self.parsePreprocessorDirective(self.getNextToken(), menu)
+            nameToken = self.getPreviousToken()
+        elif token.string != '{':
             name = token.string
+            nameToken = token
+            token = self.getNextToken()
+
+        if name:
+            if not isIdentifier(name):
+                self.error(nameToken, f"`{name}' is not a valid entry name")
 
             if name in menu.entries:
-                self.error(token, f"entry `{name}' already declared")
+                self.error(nameToken, f"entry `{name}' already declared")
 
-            token = self.getNextToken()
+            self.verifyNonCppKeyword(nameToken, 'entry name')
 
         token = self.expectBlockStart(token)
 
@@ -735,13 +848,13 @@ class Parser:
             entry = Entry()
             entry.template = True
             entry.width = entry.height = 1              # to avoid assert
-            entry.ordinal = 30000 + len(menu.entries)   # just a random big number to avoid clashes with non-templates
+            entry.ordinal = 30_000 + len(menu.entries)  # just a random big number to avoid clashes with non-templates
             internalName = f'{len(menu.entries):02}'
         else:
             entry = copy.deepcopy(menu.templateEntry)
 
             for property in ('x', 'y', 'width', 'height', 'color', 'textFlags'):
-                if property != 'color' and property != 'textFlags' or not menu.gotTemplate:
+                if property != 'color' or not menu.gotTemplate:
                     value = str(menu.properties['default' + property[0].upper() + property[1:]])
                     tokens = tokenize(value) + ['']
                     tokenFeeder = lambda self: Token(tokens.pop(0))
@@ -769,6 +882,11 @@ class Parser:
 
         while token.string != '}':
             property = token.string
+            if property == 'topEntry':  # I've made this mistake so many times that I've made it into an alias
+                property = 'upEntry'
+            elif property == 'bottomEntry':
+                property = 'downEntry'
+
             propertyToken = token
             properties.append(property)
 
@@ -796,6 +914,9 @@ class Parser:
 
             setattr(entry, property, result)
 
+            if property in kNextEntryProperties:
+                setattr(entry, property + 'Token', propertyToken)
+
         self.expandTextWidthAndHeight(entry, properties, token)
 
         if not isTemplate:
@@ -812,13 +933,14 @@ class Parser:
     #     text - a string that should contain numeric value
     #     line - line number in the input file where the string comes from
     #
-    # Extract numeric value from a string. If the value could not be converted, report error and exit.
+    # Extracts a numeric value from the string. If the value could not be converted, reports an error and exits.
     #
     def getNumericValue(self, text, line):
         assert(isinstance(text, str))
         assert(isinstance(line, int))
 
         try:
+            text = removeEnclosingParentheses(text)
             value = int(text, 0)
         except ValueError:
             self.error(line, f"`{text}' is not a numeric value'")
@@ -830,7 +952,7 @@ class Parser:
     # in:
     #     token - input token to get bool value from
     #
-    # Extracts boolean value from the given token and returns it
+    # Extracts a boolean value from the given token and returns it
     #
     def getBoolValue(self, token):
         assert(isinstance(token, Token))
@@ -848,10 +970,12 @@ class Parser:
 
     # parseMenu
     #
-    # Parses menu and convert it into internal structure, to be ready for output. On any error will complain and quit.
+    # Parses menu and converts it into internal structure, to be ready for output. On any error will complain and quit.
     # Assumes tokenization has already been done.
     #
     def parseMenu(self):
+        assert(self.tokenized)
+
         token = self.getNextToken('menu name')
 
         if token.string == '{':
@@ -863,6 +987,8 @@ class Parser:
         if menuName in self.menus:
             self.error(token, f"menu `{menuName}' redeclared")
 
+        self.verifyNonCppKeyword(token, 'menu name')
+
         token = self.expectIdentifier(token, "`{'")
         token = self.expectBlockStart(token)
 
@@ -873,8 +999,6 @@ class Parser:
         kMenuProperties = kMenuFunctions + (kInitialEntry, 'x', 'y') + kMenuDefaults
 
         seenProperties = ()
-        previousProperty = None
-        expectedProperty = None
 
         while token.string != '}':
             if token.string == 'Entry':
@@ -889,6 +1013,7 @@ class Parser:
                 token, _ = self.parsePreprocessorDirective(self.getNextToken(), menu)
                 continue
             else:
+                propertyToken = token
                 property = token.string
                 isFunction = property in kMenuFunctions
 
@@ -897,7 +1022,8 @@ class Parser:
                     exported = True
                     token = self.getNextToken()
                     property = token.string
-                    propertyToken = token
+
+                    self.verifyNonCppKeyword(token, 'exported variable name')
 
                 token = self.expectIdentifier(token)
 
@@ -924,14 +1050,11 @@ class Parser:
                         if exported:
                             menu.exportedProperties[property] = (value, propertyToken)
 
-                        menu.variables[property] = value
+                        menu.variables[property] = Variable(value, propertyToken)
                     continue
 
                 if property not in kMenuProperties:
                     self.error(token, f"unknown menu property: `{property}'")
-
-                if expectedProperty and expectedProperty != property:
-                    self.error(token, f"expected `{expectedProperty}', got `{property}'")
 
                 token = self.expectColon(token)
 
@@ -946,18 +1069,7 @@ class Parser:
                     value, token = self.parseExpression(token, menu, not delayedExpansionProperty)
 
                 if property == 'x' or property == 'y':
-                    value = getNumericValue(value, expressionLine)
-
-                    expectedProperty = None
-
-                    if property == 'x':
-                        menu.x = value
-                        if previousProperty != 'y':
-                            expectedProperty = 'y'
-                    else:
-                        menu.y = value
-                        if previousProperty != 'x':
-                            expectedProperty = 'x'
+                    value = self.getNumericValue(value, expressionLine)
 
                 if property == 'defWidth':
                     property = 'defaultWidth'
@@ -970,14 +1082,14 @@ class Parser:
                 elif property == 'defTextFlags':
                     property = 'defaultTextFlags'
 
-                menu.properties[property] = value
-                previousProperty = property
+                if property == kInitialEntry:
+                    menu.initialEntryToken = propertyToken
 
-        if expectedProperty:
-            self.error(token, f"expected property `{expectedProperty}' not found")
+                menu.properties[property] = value
 
         if kInitialEntry not in menu.properties:
             menu.properties[kInitialEntry] = 0
+            menu.initialEntryToken = None
 
         return token
 
@@ -986,7 +1098,7 @@ class Parser:
     # in:
     #     token - initial token of include directive (filename to include)
     #
-    # Parse include directive, open the file and scoop all the tokens.
+    # Parses include directive, opens the file and scoops all the tokens.
     #
     def parseInclude(self, token):
         assert(isinstance(token, Token))
@@ -1065,7 +1177,7 @@ class Parser:
     def parseTextHeight(self, token):
         assert(isinstance(token, Token))
 
-        token, _, useBigFont = parseTextWidthAndHeight(token)
+        token, _, useBigFont = self.parseTextWidthAndHeight(token)
         height = self.textHeight(useBigFont)
         return token, height
 
@@ -1075,7 +1187,7 @@ class Parser:
     #     token - initial token of "repeat" directive (must be repeat count)
     #     menu  - parent menu, if any
     #
-    # Scan for "#repeatEnd" marker and repeat all tokens in between by the given number of times.
+    # Scans for "#repeatEnd" marker and repeats all tokens in between by the given number of times.
     # Optional parameter is a name of loop variable, which will default to `i' if not given.
     #
     def parseRepeatDirective(self, token, menu):
@@ -1154,6 +1266,9 @@ class Parser:
     # in:
     #     token - must be initial opening braces
     #
+    # Creates a single token by concatenating a comma separated list of tokens. Whole construct is replaced by the
+    # resulting token.
+    #
     def parseJoinDirective(self, token):
         assert(isinstance(token, Token))
 
@@ -1174,10 +1289,29 @@ class Parser:
         end = self.currentToken - 2
         del self.tokens[start:end]
 
-        self.currentToken = start + 1
+        self.currentToken = start + 2
         self.tokens[start].string = joinedString
 
-        return self.tokens[start], joinedString
+        return self.tokens[start + 1], joinedString
+
+    # parsePrintDirective
+    #
+    # in:
+    #     token - initial token of the expression to print
+    #     menu  - parent menu, if any
+    #
+    # Simply prints an expression that follows the directive. Useful for debugging.
+    #
+    def parsePrintDirective(self, token, menu):
+        assert(isinstance(token, Token))
+
+        line = token.line
+        filename = token.inputFilename
+
+        value, token = self.parseExpression(token, menu)
+
+        print(f"{filename}({line}): `{value}'")
+        return token, None
 
     # parsePreprocessorDirective
     #
@@ -1185,8 +1319,8 @@ class Parser:
     #     token - token containing directive
     #     menu  - current menu we're in, if any
     #
-    # Initial character of preprocessor directive has been encountered, recognize which one it is and
-    # process it.
+    # After the initial character of preprocessor directive has been encountered, recognizes which
+    # directive it was and processes it.
     #
     def parsePreprocessorDirective(self, token, menu=None):
         assert(isinstance(token, Token))
@@ -1204,6 +1338,8 @@ class Parser:
             return self.parseRepeatDirective(token, menu)
         elif directive == 'join':
             return self.parseJoinDirective(token)
+        elif directive == 'print':
+            return self.parsePrintDirective(token, menu)
         else:
             self.error(token, f"unknown preprocessor directive `{directive}'")
 
@@ -1213,7 +1349,7 @@ class Parser:
     #     inputPath - path to the file to tokenize
     #     token     - if given, token of the include directive
     #
-    # Open a file whose path is given, tokenize it and return produced tokens in an array.
+    # Opens a file whose path is given, tokenizes it and returns produced tokens in an array.
     #
     def tokenize(self, inputPath, token=None):
         assert(inputPath and isinstance(inputPath, str))
@@ -1231,7 +1367,7 @@ class Parser:
 
                     prev = ''
                     for string in tokenize(line, lineNo):
-                        tokens.append(Token(string, inputFilename, lineNo))
+                        tokens.append(Token(string, inputPath, lineNo))
 
                         if len(string) and isString(string):
                             if len(string) < 2 or string[-1] != string[0]:
@@ -1259,7 +1395,7 @@ class Parser:
     def parse(self):
         token = self.getNextToken()
 
-        while self.gotTokensLeft():
+        while not self.atEof:
             if token.string == 'Menu':
                 token = self.parseMenu()
             elif token.string == '}':
@@ -1267,6 +1403,7 @@ class Parser:
             elif token.string == 'Entry':
                 self.error(token, 'entries can only be used inside menus')
             else:
+                varToken = token
                 var = token.string
 
                 if var == '#':
@@ -1282,12 +1419,27 @@ class Parser:
 
                 value, token = self.parseExpression(token)
 
-                self.globals[var] = value
+                self.globals[var] = Variable(value, varToken)
                 continue
 
             token = self.getNextToken()
 
         self.parsed = True
+
+    # checkForUnusedVariables
+    #
+    # Checks if there are unused variables and issues warnings if so.
+    #
+    def checkForUnusedVariables(self):
+        for varName, var in self.globals.items():
+            if not var.referenced and var.token.path == self.inputPath:
+                self.warning(f"unused global variable `{varName}'", var.token.line, var.token.inputFilename)
+
+        for menuName, menu in self.menus.items():
+            for varName, var in menu.variables.items():
+                if not var.referenced and var.token.path == self.inputPath:
+                    self.warning(f"unused variable `{varName}' declared in menu `{menuName}'",
+                        var.token.line, var.token.inputFilename)
 
     # processInputFile
     #
@@ -1299,6 +1451,7 @@ class Parser:
         self.tokens = self.tokenize(self.inputPath)
         self.tokenized = True
         self.parse()
+        self.checkForUnusedVariables()
 
     # getEntryStructs
     #
@@ -1306,15 +1459,14 @@ class Parser:
     #     menuName - name of parent menu
     #     entry    - menu entry to process
     #
-    # Compare entry to default entry and return a list of SWOS menu codes (in the form of C++ code strings)
-    # of all the differences.
+    # Compares the given entry element values to default values and returns a list of SWOS menu codes
+    # (in the form of C++ code strings) of all the differences.
     #
     def getEntryStructs(self, menuName, entry):
         assert(isinstance(menuName, str))
         assert(isinstance(entry, Entry))
 
         result = []
-        freshEntry = Entry()
         ord = f'{entry.ordinal:02}'
 
         if entry.text:
@@ -1346,17 +1498,15 @@ class Parser:
         if entry.leftEntry != -1 or entry.rightEntry != -1 or entry.upEntry != -1 or entry.downEntry != -1:
             result.append(f'EntryNextPositions ep{ord}{{ {entry.leftEntry}, {entry.rightEntry}, {entry.upEntry}, {entry.downEntry} }};')
 
-        if entry.directionLeft != -1 or entry.skipLeft != -1:
-            result.append(f'EntryLeftSkip els{ord}{{ {entry.directionLeft}, {entry.skipLeft} }};')
+        for direction in ('Left', 'Right', 'Up', 'Down'):
+            newDirection = getattr(entry, 'direction' + direction)
+            skip = getattr(entry, 'skip' + direction)
 
-        if entry.directionRight != -1 or entry.skipRight != -1:
-            result.append(f'EntryRightSkip ers{ord}{{ {entry.directionRight}, {entry.skipRight} }};')
+            if newDirection != -1 or skip != -1:
+                if newDirection == -1:
+                    newDirection = kConstants['k' + direction]
 
-        if entry.directionUp != -1 or entry.skipUp != -1:
-            result.append(f'EntryUpSkip eus{ord}{{ {entry.directionUp}, {entry.skipUp} }};')
-
-        if entry.directionDown != -1 or entry.skipDown != -1:
-            result.append(f'EntryDownSkip eds{ord}{{ {entry.directionDown}, {entry.skipDown} }};')
+                result.append(f'Entry{direction}Skip e{direction[0]}s{ord}{{ {newDirection}, {skip} }};')
 
         if entry.controlsMask:
             result.append(f'EntryOnSelectFunctionWithMask eosfm{ord}{{ {entry.onSelect}, {entry.controlsMask} }};')
@@ -1374,16 +1524,18 @@ class Parser:
     # resolveEntryReferences
     #
     # in:
-    #     text  - string possibly containing entry references that need to be resolved
-    #     menu  - parent menu
-    #     entry - parent entry, if applicable
+    #     text     - string possibly containing entry references that need to be resolved
+    #     menu     - parent menu
+    #     refToken - token that's referencing the entry (if we have a reference)
+    #     entry    - parent entry, if applicable
     #
-    # Returns text with entry references replaced. Display an error and end the program if an undefined reference
-    # is encountered.
+    # Returns the text with entry references replaced. Displays an error and ends the program
+    # if an undefined reference is encountered.
     #
-    def resolveEntryReferences(self, text, menu, entry=None):
+    def resolveEntryReferences(self, text, menu, refToken, entry=None):
         assert(isinstance(text, str))
         assert(isinstance(menu, Menu))
+        assert(refToken is None or isinstance(refToken, Token))
         assert(not entry or isinstance(entry, Entry))
 
         result = ''
@@ -1392,31 +1544,36 @@ class Parser:
             if entry:
                 if token == '>':
                     if menu.lastEntry == entry:
-                        sys.exit(f'{self.inputFilename}: referencing entry beyond the last one')
+                        self.error(refToken, f'referencing entry beyond the last one')
                     result = formatToken(result, str(entry.ordinal + 1))
                     continue
                 elif token == '<':
                     if entry.ordinal == 0:
-                        sys.exit(f'{self.inputFilename}: referencing entry before the first one')
+                        self.error(refToken, f'referencing entry before the first one')
                     result = formatToken(result, str(entry.ordinal - 1))
                     continue
 
             if isIdentifier(token):
                 entry = menu.entries.get(token, None)
                 if entry is None:
-                    sys.exit(f"{self.inputFilename}: undefined entry reference: `{token}'")
+                    self.error(refToken, f"undefined entry reference: `{token}'")
                 result = formatToken(result, str(entry.ordinal))
             else:
                 result = formatToken(result, token)
+
+        if result.startswith('('):
+            result = result.strip()[1:-1]
 
         return int(result, 0)
 
     # resolveEntryDotReferences
     #
-    # Resolve all entry.property reference.
+    # Resolves all entry.property references.
     #
     def resolveEntryDotReferences(self):
         for menu, entryName, property, value, token in self.entryDotReferences:
+            assert(isinstance(value, str))
+
             if entryName not in menu.entries:
                 self.error(token, f"menu `{menu.name}' doesn't contain entry `{entryName}'")
 
@@ -1424,26 +1581,30 @@ class Parser:
             if not hasattr(entry, property):
                 self.error(token, f"entry `{entryName}' doesn't contain property `{property}'")
 
-            if property in ('leftEntry', 'rightEntry', 'upEntry', 'downEntry'):
-                if value not in menu.entries:
+            if property in kNextEntryProperties:
+                if value != '-1' and value not in menu.entries:
                     self.error(token, f"entry `{value}' undefined")
-                value = menu.entries[value].ordinal
+                if value != '-1':
+                    value = menu.entries[value].ordinal
+                if value == '-1':
+                    value = -1
 
             setattr(entry, property, value)
 
     # resolveReferences
     #
-    # Resolve all forward references to entries in all of the menus.
+    # Resolves all forward references to entries in all of the menus.
     #
     def resolveReferences(self):
         for menu in self.menus.values():
-            menu.properties[kInitialEntry] = self.resolveEntryReferences(str(menu.properties[kInitialEntry]), menu)
+            menu.properties[kInitialEntry] = self.resolveEntryReferences(str(menu.properties[kInitialEntry]), menu, menu.initialEntryToken)
 
             for entry in menu.entries.values():
-                entry.leftEntry = self.resolveEntryReferences(str(entry.leftEntry), menu, entry)
-                entry.rightEntry = self.resolveEntryReferences(str(entry.rightEntry), menu, entry)
-                entry.upEntry = self.resolveEntryReferences(str(entry.upEntry), menu, entry)
-                entry.downEntry = self.resolveEntryReferences(str(entry.downEntry), menu, entry)
+                for property in kNextEntryProperties:
+                    token = getattr(entry, property + 'Token')
+                    oldValue = str(getattr(entry, property))
+                    newValue = self.resolveEntryReferences(oldValue, menu, token, entry)
+                    setattr(entry, property, newValue)
 
         self.resolveEntryDotReferences()
 
@@ -1452,7 +1613,7 @@ class Parser:
     # in:
     #     out - output function
     #
-    # Output forward declarations of handler functions.
+    # Outputs forward declarations of handler functions.
     #
     def outputFunctionForwardDeclarations(self, out):
         assert(callable(out))
@@ -1469,7 +1630,7 @@ class Parser:
     # in:
     #     out - output function
     #
-    # Outputs C++ code for all string tables gathered.
+    # Outputs C++ code for all the string tables gathered.
     #
     def outputStringTableDeclarations(self, out):
         assert(callable(out))
@@ -1505,12 +1666,91 @@ class Parser:
 
             out('')
 
+    # outputMenu
+    #
+    # in:
+    #     menuName - name of the menu (doesn't come prepackaged :))
+    #     menu     - menu itself
+    #     out      - output function
+    #
+    # Outputs C++ code for the parsed menu.
+    #
+    def outputMenu(self, menuName, menu, out):
+        assert(isinstance(menuName, str))
+        assert(isinstance(menu, Menu))
+        assert(callable(out))
+        assert(self.parsed)
+
+        for func in kMenuFunctions:
+            if not func in menu.properties:
+                menu.properties[func] = 'nullptr'
+
+        out(f'struct SWOS_Menu_{menuName} : public BaseMenu\n{{')
+        out(f'    MenuHeader header{{ {menu.properties[kOnInit]}, {menu.properties[kAfterDraw]}, '
+            f'{menu.properties[kOnDraw]}, {menu.properties[kInitialEntry]} }};')
+
+        templateIndex = 0
+        resetTemplateIndex = 0
+
+        if menu.properties['x'] != 0 or menu.properties['y'] != 0:
+            out(f"\n    MenuXY menuXY{{{menu.properties['x']}, {menu.properties['y']}}};")
+
+        for entry in menu.entries.values():
+            if entry is ResetTemplateEntry:
+                out(f'\n    ResetTemplateEntry rte{resetTemplateIndex:02}{{}};')
+                resetTemplateIndex += 1
+                continue
+            elif entry.template:
+                out(f'\n    TemplateEntry te{templateIndex:02}{{}};')
+                templateIndex += 1
+
+            out(f'\n    Entry eb{entry.ordinal:02}{{ {entry.x}, {entry.y}, {entry.width}, {entry.height} }};')
+
+            for entryStruct in self.getEntryStructs(menuName, entry):
+                out('        ', entryStruct)
+
+            out(f'    EntryEnd ee{entry.ordinal:02}{{}};')
+
+        out('\n    MenuEnd menuEnd{};')
+        out(f'}} static const {menuName};\n')
+
+        # allow C++ to use all the symbolic entry names through a namespaced enum
+        namespace = menuName[0].upper() + menuName[1:]
+        if namespace == menuName:
+            namespace += 'NS';
+
+        out(f'namespace {namespace} {{')
+        out('    enum Entries {')
+
+        exportedOrdinals = False
+        for entry in menu.entries.values():
+            if not entry.template and entry.name:
+                out(f'        {entry.name} = {entry.ordinal},')
+                exportedOrdinals = True
+
+        out('    };')
+
+        if len(menu.exportedProperties) and exportedOrdinals:
+            out()
+
+        for property, valueToken in menu.exportedProperties.items():
+            value, token = valueToken
+            entry = next((entry for entry in menu.entries.values() if entry.name == property), None)
+
+            if entry:
+                self.error(token, f"can't export constant `{property}' since there is an entry with same name")
+
+            out(f'    constexpr int {property} = {value};')
+
+        out('}')
+
+
     # output
     #
     # in:
     #     outputPath - path of the output file
     #
-    # Write all the digested input to the specified output file.
+    # Writes all the digested input to the specified output file.
     #
     def output(self):
         assert(self.parsed)
@@ -1531,66 +1771,11 @@ class Parser:
                 self.outputFunctionForwardDeclarations(out)
                 self.outputStringTableDeclarations(out)
 
+                if not len(self.menus):
+                    self.warning('no menus found')
+
                 for menuName, menu in self.menus.items():
-                    for func in kMenuFunctions:
-                        if not func in menu.properties:
-                            menu.properties[func] = 'nullptr'
-
-                    out(f'struct SWOS_Menu_{menuName} : public BaseMenu\n{{')
-                    out(f'    MenuHeader header{{ {menu.properties[kOnInit]}, {menu.properties[kAfterDraw]}, '
-                        f'{menu.properties[kOnDraw]}, {menu.properties[kInitialEntry]} }};')
-
-                    templateIndex = 0
-                    resetTemplateIndex = 0
-
-                    for entry in menu.entries.values():
-                        if entry is ResetTemplateEntry:
-                            out(f'\n    ResetTemplateEntry rte{resetTemplateIndex:02}{{}};')
-                            resetTemplateIndex += 1
-                            continue
-                        elif entry.template:
-                            out(f'\n    TemplateEntry te{templateIndex:02}{{}};')
-                            templateIndex += 1
-
-                        out(f'\n    Entry eb{entry.ordinal:02}{{ {entry.x}, {entry.y}, {entry.width}, {entry.height} }};')
-
-                        for entryStruct in self.getEntryStructs(menuName, entry):
-                            out('        ', entryStruct)
-
-                        out(f'    EntryEnd ee{entry.ordinal:02}{{}};')
-
-                    out('\n    MenuEnd menuEnd{};')
-                    out(f'}} static const {menuName};\n')
-
-                    # allow C++ to use all the symbolic entry names through a namespaced enum
-                    namespace = menuName[0].upper() + menuName[1:]
-                    if namespace == menuName:
-                        namespace += 'NS';
-
-                    out(f'namespace {namespace} {{')
-                    out('    enum Entries {')
-
-                    exportedOrdinals = False
-                    for entry in menu.entries.values():
-                        if not entry.template and entry.name:
-                            out(f'        {entry.name} = {entry.ordinal},')
-                            exportedOrdinals = True
-
-                    out('    };')
-
-                    if len(menu.exportedProperties) and exportedOrdinals:
-                        out()
-
-                    for property, valueToken in menu.exportedProperties.items():
-                        value, token = valueToken
-                        entry = next((entry for entry in menu.entries.values() if entry.name == property), None)
-
-                        if entry:
-                            self.error(token, f"can't export constant `{property}' since there is an entry with same name")
-
-                        out(f'    constexpr int {property} = {value};')
-
-                    out('}')
+                    self.outputMenu(menuName, menu, out)
 
                 out('#pragma pack(pop)')
 
@@ -1647,13 +1832,27 @@ def isString(string):
     return string[0] == '"' and string[-1] == '"' or string[0] == "'" and string[-1] == "'"
 
 
+# removeEnclosingParentheses
+#
+# in:
+#    string - a string to remove enclosing parentheses from
+#
+# Returns a string with balanced, enclosing parentheses removed.
+#
+def removeEnclosingParentheses(string):
+    while string[0] == '(' and string[-1] == ')':
+        string = string[1:-1]
+
+    return string
+
+
 # formatToken
 #
 # in:
 #     result - string that's being assembled
 #     text   - text of the token that's to be added to result
 #
-# Concatenate text to result making sure whitespace is inserted properly, and return it.
+# Concatenates text to result making sure the whitespace is inserted properly, and returns it.
 #
 def formatToken(result, text):
     assert(isinstance(result, str))
@@ -1676,7 +1875,7 @@ def formatToken(result, text):
 #     menuName - name of parent menu
 #     entry    - entry for which we're deciding string table name
 #
-# Form and return a unique string table name for the entry.
+# Forms and returns a unique string table name for the entry.
 #
 def getStringTableName(menuName, entry):
     assert(isinstance(menuName, str))
@@ -1692,8 +1891,8 @@ def getStringTableName(menuName, entry):
 
 # getInputAndOutputFile
 #
-# Fetch input and output file parameters from the command line, return them as list.
-# If they're not present, complain and exit the program.
+# Fetches input and output file parameters from the command line and returns them as a list.
+# If they're not present, complains and exits the program.
 #
 def getInputAndOutputFile():
     if len(sys.argv) < 3:

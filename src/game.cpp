@@ -2,7 +2,9 @@
 #include "audio.h"
 #include "log.h"
 #include "controls.h"
+#include "menu.h"
 #include "util.h"
+#include "replayExit.mnu.h"
 
 void SWOS::InitGame_OnEnter()
 {
@@ -36,9 +38,9 @@ static bool highlightsAborted()
     if (!skipFade)
         return false;
 
-    Player1StatusProc();
+    SWOS::Player1StatusProc();
     if (!pl1Fire) {
-        Player2StatusProc();
+        SWOS::Player2StatusProc();
         if (!pl2Fire)
             return false;
     }
@@ -61,6 +63,14 @@ static void highlightsMoveToNextScene()
     FindStartingDword();
 }
 
+static void fadeIfNeeded()
+{
+    if (!skipFade) {
+        FadeIn();
+        skipFade = -1;
+    }
+}
+
 // take over highlights rendering to avoid clearing background last frame before fade, causing players to disappear
 void SWOS::PlayHighlightsLoop()
 {
@@ -81,10 +91,7 @@ void SWOS::PlayHighlightsLoop()
 
             if (replayState) {
                 Flip();
-                if (!skipFade) {
-                    FadeIn();
-                    skipFade = -1;
-                }
+                fadeIfNeeded();
                 continue;
             } else {
                 SAFE_INVOKE(FadeOutToBlack);
@@ -308,13 +315,13 @@ static bool replayAborted()
     }
 
     if (checkWhichPlayerFire & 1) {
-        Player1StatusProc();
+        SWOS::Player1StatusProc();
         if (pl1Fire)
             return true;
     }
 
     if (checkWhichPlayerFire & 2) {
-        Player2StatusProc();
+        SWOS::Player2StatusProc();
         if (pl2Fire)
             return true;
     }
@@ -360,10 +367,7 @@ void SWOS::PlayReplayLoop()
 
         Flip();
 
-        if (!skipFade) {
-            FadeIn();
-            skipFade = -1;
-        }
+        fadeIfNeeded();
     }
 
     SAFE_INVOKE(FadeOutToBlack);
@@ -505,4 +509,58 @@ __declspec(naked) void SWOS::DrawBenchAndSubsMenu_OnEnter()
 void SWOS::EndProgram()
 {
     std::exit(1);
+}
+
+void SWOS::StartMainGameLoop()
+{
+    initGameControls();
+
+    A5 = &leftTeamIngame;
+    A6 = &rightTeamIngame;
+
+    EGA_graphics = 0;
+
+    SAFE_INVOKE(GameLoop);
+
+    vsPtr = linAdr384k;
+
+    finishGameControls();
+}
+
+//
+// Replay/Exit menu
+//
+
+void SWOS::ReplayExitMenuAfterFriendly()
+{
+    showMenu(replayExitMenu);
+}
+
+static void replayExitMenuOnInit()
+{
+    replaySelected = 0;
+
+    DrawMenu();     // redraw menu so it's ready for the fade-in
+    fadeIfNeeded();
+
+    cameraX = 0;
+    cameraY = 0;
+}
+
+static void replayExitMenuDone(bool replay = false)
+{
+    replaySelected = replay;
+    SAFE_INVOKE(FadeOutToBlack);
+    SetExitMenuFlag();
+}
+
+static void replayOnSelect()
+{
+    logInfo("Going for another one!");
+    replayExitMenuDone(true);
+}
+
+static void exitOnSelect()
+{
+    replayExitMenuDone();
 }

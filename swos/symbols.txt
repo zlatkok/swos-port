@@ -7,7 +7,6 @@
 __int_3 - SelectAndShowSquadToView
 Initialization - RingABell
 cseg_1994F
-FillPalettes
 InitIntroAnimation
 OpenSoccerBin
 CopySoccerBinSection
@@ -23,11 +22,9 @@ ResetAnimatedPatterns
 # CD ROM routines
 CDROM_GetInfo - Text2Sprite
 FindFirstFile - SelectFilesInit
-cseg_1A35C - FillPalettes
 
 # joypads
-Joy1NormalizeReadings - Joy2SetStatus
-Joy2NormalizeReadings - Player1StatusProc
+Joy1SetStatus - TryRestartingMusic
 VerifyJoypadControls
 
 # commentary & sfx
@@ -128,8 +125,6 @@ TextToGoalScorersSprites
 DrawMenu
 MainKeysCheck
 FindStartingDword
-Player1StatusProc
-Player2StatusProc
 RestoreCameraPosition
 FadeIn
 InitSavedSprites
@@ -141,12 +136,12 @@ SortSprites
 SaveCoordinatesForHighlights
 DarkenRectangle
 CommonMenuExit
-ShowMenu
 DrawMenuItem
 CalcMenuEntryAddress
 DrawMenuText
 SetCurrentEntry
 SaveSprite
+FilterKeys
 
 
 # list of symbols to export to header so they can be accessible from C++
@@ -169,12 +164,6 @@ g_chairmanScenes, int16_t
 g_spinBigS, int16_t
 g_crowdChantsOn, int16_t
 
-g_upScanCode, byte
-g_downScanCode, byte
-g_leftScanCode, byte
-g_rightScanCode, byte
-g_fireScanCode, byte
-
 skipIntro, word
 setupDatBuffer, word
 dosMemLinAdr, char *
@@ -191,8 +180,8 @@ partOneImages, array const char *
 partTwoImages, array const char *
 controlWord, word
 g_videoSpeedIndex, word
-g_joy2Status, word
-g_joy1Status, word
+g_pl2Status, word
+g_pl1Status, word
 g_joy1X, word
 g_joy1Y, word
 g_joy2X, word
@@ -218,13 +207,11 @@ keyBuffer, array char[10]
 lastKey, word
 convertedKey, byte
 convertKeysTable, array const char[110]
-SetControlWord, function
 menuStatus, word
 g_currentMenu, array char[6500]
 g_exitMenu, word
 g_currentMenuPtr, MenuBase *
 RestorePreviousMenu, function
-StartMainGameLoop, function
 g_extension, array char
 g_pitchDatBuffer, array char[10032]
 skillsPerQuadrant, array char[245]
@@ -279,8 +266,6 @@ hilStartOfGoalsBuffer, array char
 currentHilPtr, dword *
 FindStartingDword, function
 skipFade, word
-Player1StatusProc, function
-Player2StatusProc, function
 RestoreCameraPosition, function
 pl1Fire, byte
 pl2Fire, byte
@@ -323,6 +308,7 @@ CommonMenuExit, function
 # options menu
 aOptions, array const char
 aExit, array const char
+aReplay, array const char
 SetExitMenuFlag, function
 controlsStatus, word
 showPrereleaseCounter, word
@@ -358,10 +344,13 @@ ShowErrorMenu, function
 DrawMenuItem, function
 TryRestartingMusic, function
 DrawMenuText, function
+DrawMenuTextCentered, function
+DrawSprite, function
 SetCurrentEntry, function
 
 ConvertMenu, function
 player1ClearFlag, word
+player2ClearFlag, word
 
 smallCharsTable, array const char
 
@@ -433,6 +422,7 @@ playFansChant4lOffset, functionPointer
 goodPassTimer, word
 soundEffectsTable, array const char *
 leftTeamIngame, TeamGame
+rightTeamIngame, TeamGame
 introTeamChantIndices, array const int8_t[16]
 introTeamChantsTable, array const char *
 loadCrowdChantSampleFlag, word
@@ -473,8 +463,35 @@ up, byte
 down, byte
 left, byte
 right, byte
+pl1LastFired, byte
+pl2LastFired, byte
+pl2ShortFireCounter, word
+pl1FinalStatus, word
+pl2FinalStatus, word
 
 animatedPatterns, array int16_t[8]
+GameLoop, function
+
+GetTextSize, function
+
+g_exitGameFlag, word
+useColorTable, word
+isCareer, word
+playMatchTeam1Ptr, char *
+playMatchTeam2Ptr, char *
+careerTeam, array char[1292]
+
+pl1ShortFire, byte
+pl2ShortFire, byte
+
+PlayMatchSelected, function
+playerNumThatStarted, word
+pl1IsntPlayer, word
+
+replaySelected, word
+
+inputingText, word
+FilterKeys, function
 
 ### debug dump
 breakCameraMode, word
@@ -499,6 +516,8 @@ GameLoop, 224
 PlayerDoingHeader, 157
 PlayerTackled, 59
 CheckIfBallOutOfPlay, 251
+SetupPlayers, 160
+InputText, 23
 
 
 # list of symbols that will be replaced by code from C++
@@ -519,8 +538,6 @@ ShowMenu
 SetPrevVideoModeEndProgram
 FindFiles
 FindFilesExtensionPresent
-Joy1SetStatus
-Joy2SetStatus
 ReadPitchFile
 WaitRetrace
 Flip
@@ -550,7 +567,7 @@ PlayPenaltyMissComment
 PlayPenaltySavedComment
 PlayPenaltyComment
 PlayFoulComment
-PlayHarderFoulComment
+PlayDangerousPlayComment
 PlayGoodPassComment
 PlayGoodTackleComment
 PlayPostHitComment
@@ -591,3 +608,9 @@ PlayItsBeenACompleteRoutComment
 PlayCrowdChants
 EndProgram
 ResetAnimatedPatternsForBothTeams
+Player1StatusProc
+Player2StatusProc
+StartMainGameLoop
+ExitPlayMatch
+ReplayExitMenuAfterFriendly
+Int2Ascii

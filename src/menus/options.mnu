@@ -26,6 +26,7 @@ Menu optionsMenu
         y: kBaseY
         text: "CONTROLS"
         downEntry: >
+        onSelect: doShowControlOptionsMenu
     }
 
     Entry video {
@@ -77,7 +78,7 @@ Menu gameplayOptionsMenu
 {
     defaultWidth: kOptionWidth
     defaultHeight: kOptionHeight
-    initialEntry: exit
+    initialEntry: gameLength
 
     Entry header {
         x: kBaseX
@@ -115,7 +116,7 @@ Menu gameplayOptionsMenu
         color: kColumn2Color
     }
 
-    Entry {
+    Entry gameLength {
         y: kStartY
         stringTable: ~gameLengthStrTable
         onSelect: ~ChangeGameLength

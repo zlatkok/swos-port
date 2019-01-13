@@ -1,0 +1,264 @@
+//
+// Controls menu
+//
+
+#include "optionsCommon.mh"
+
+Menu controlOptionsMenu
+{
+    x: -8           // must be set to -8 to get the calculations right
+    kStartY = 28
+    kNextPartGap = 14
+
+    kSelectJoypad = "SELECT GAME CONTROLLER"
+    kRedefineControls = "REDEFINE CONTROLS"
+
+    export kControlButtonWidth = 144
+
+    kColumnDistance = 6
+    kColumn1X = (@kScreenWidth - 2 * kControlButtonWidth - kColumnDistance) / 2
+    kColumn2X = kColumn1X + kControlButtonWidth + kColumnDistance
+
+    kScrollArrowDistance = 2
+    kPl1ScrollArrowX = kColumn1X - kScrollArrowWidth - kScrollArrowDistance
+    kPl2ScrollArrowX = kColumn2X + kControlButtonWidth + kScrollArrowDistance
+
+    export kNumControlEntries = 4
+
+    defaultWidth: kControlButtonWidth
+    defaultHeight: kOptionHeight + 1
+
+    onInit: controlOptionsMenuInit
+    onDraw: controlOptionsMenuOnDraw
+    initialEntry: pl1Control0
+
+    Entry header {
+        x: kBaseX + 8
+        y: 0
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: "CONTROLS MENU"
+        color: kHeaderColor
+    }
+
+    defaultX: kColumn1X
+    defaultY: @prevEndY + 2
+
+    Entry {
+        y: kStartY
+
+        text: "PLAYER 1"
+    }
+
+#repeat kNumControlEntries
+    Entry #join(pl1Control, #i) {
+        text: @kAlloc
+
+        upEntry: <
+        downEntry: >
+        rightEntry: #join(pl2Control, #i)
+
+        skipLeft: <
+        directionLeft: @kUp
+        skipUp: <
+        skipDown: >
+
+        onSelect: pl1SelectControls
+    }
+#endRepeat
+
+    pl1Control0.leftEntry = pl1ScrollUp
+    pl1Control0.upEntry = @kNoEntry
+    pl1Control0.skipUp = @kNoEntry
+    pl1Control1.leftEntry = pl1ScrollUp
+    pl1Control2.leftEntry = pl1ScrollDown
+    pl1Control3.leftEntry = pl1ScrollDown
+    pl1Control3.downEntry = pl1RedefineControls
+    pl1Control3.skipDown = pl1RedefineControls
+
+    Entry pl1ScrollUp {
+        x: kPl1ScrollArrowX
+        y: pl1Control0.y
+        width: kScrollArrowWidth
+        height: kScrollArrowHeight
+
+        sprite: kUpArrowSpriteIndex
+
+        downEntry: pl1ScrollDown
+        rightEntry: pl1Control0
+
+        onSelect: pl1ScrollUpSelected
+    }
+
+    Entry pl1ScrollDown {
+        x: kPl1ScrollArrowX
+        y: pl1Control3.y
+        width: kScrollArrowWidth
+        height: kScrollArrowHeight
+
+        sprite: kDownArrowSpriteIndex
+
+        upEntry: pl1ScrollUp
+        downEntry: pl1RedefineControls
+        rightEntry: pl1Control3
+
+        onSelect: pl1ScrollDownSelected
+    }
+
+    defaultX: kColumn2X
+
+    Entry {
+        y: kStartY
+
+        text: "PLAYER 2"
+    }
+
+#repeat kNumControlEntries
+    Entry #join(pl2Control, #i) {
+        text: @kAlloc
+
+        upEntry: <
+        downEntry: >
+        leftEntry: #join(pl1Control, #i)
+
+        skipRight: <
+        directionRight: @kUp
+        skipUp: <
+        skipDown: >
+
+        onSelect: pl2SelectControls
+    }
+#endRepeat
+
+    pl2Control0.rightEntry = pl2ScrollUp
+    pl2Control0.upEntry = @kNoEntry
+    pl2Control0.skipUp = @kNoEntry
+    pl2Control1.rightEntry = pl2ScrollUp
+    pl2Control2.rightEntry = pl2ScrollDown
+    pl2Control3.rightEntry = pl2ScrollDown
+    pl2Control3.downEntry = pl2RedefineControls
+    pl2Control3.skipDown = pl2RedefineControls
+
+    Entry pl2ScrollUp {
+        x: kPl2ScrollArrowX
+        y: pl2Control0.y
+        width: kScrollArrowWidth
+        height: kScrollArrowHeight
+
+        sprite: kUpArrowSpriteIndex
+
+        downEntry: pl2ScrollDown
+        leftEntry: pl2Control0
+
+        onSelect: pl2ScrollUpSelected
+    }
+
+    Entry pl2ScrollDown {
+        x: kPl2ScrollArrowX
+        y: pl2Control3.y
+        width: kScrollArrowWidth
+        height: kScrollArrowHeight
+
+        sprite: kDownArrowSpriteIndex
+
+        upEntry: pl2ScrollUp
+        downEntry: pl2RedefineControls
+        leftEntry: pl2Control3
+
+        onSelect: pl2ScrollDownSelected
+    }
+
+    Entry pl2RedefineControls {
+        y: pl2Control0.endY + kNumControlEntries * pl2Control0.height + kNextPartGap
+
+        text: kRedefineControls
+
+        upEntry: pl2Control3
+        downEntry: >
+        leftEntry: pl1RedefineControls
+
+        skipRight: pl2SelectJoypad
+        directionRight: @kDown
+
+        skipUp: pl2Control3
+
+        onSelect: redefinePlayer2Controls
+    }
+
+    Entry pl2SelectJoypad {
+        text: kSelectJoypad
+
+        upEntry: <
+        downEntry: autoConnectJoypads
+        leftEntry: pl1SelectJoypad
+
+        skipUp: pl2RedefineControls
+
+        onSelect: pl2SelectWhichJoypad
+    }
+
+    defaultX: kColumn1X
+
+    Entry pl1RedefineControls {
+        y: pl2RedefineControls.y
+
+        text: kRedefineControls
+
+        upEntry: pl1Control3
+        downEntry: >
+        rightEntry: pl2RedefineControls
+
+        skipLeft: pl1SelectJoypad
+        directionLeft: @kDown
+
+        skipUp: pl1Control3
+
+        onSelect: redefinePlayer1Controls
+    }
+
+    Entry pl1SelectJoypad {
+        text: kSelectJoypad
+
+        upEntry: <
+        downEntry: autoConnectJoypads
+        rightEntry: pl2SelectJoypad
+
+        onSelect: pl1SelectWhichJoypad
+    }
+
+    Entry autoConnectJoypadsLabel {
+        y: @prevEndY + kNextPartGap
+        height: kOptionHeight
+        color: kColumn1Color
+        text: "AUTO-DETECT JOYPADS"
+    }
+
+    Entry autoConnectJoypads {
+        x: kColumn2X
+        y: autoConnectJoypadsLabel.y
+        height: kOptionHeight
+        color: kColumn2Color
+
+        stringTable: [ m_autoConnectJoypads, "OFF", "ON" ]
+
+        onSelect: toggleAutoConnectJoypads
+
+        upEntry: pl2SelectJoypad
+        downEntry: exit
+    }
+
+    Entry exit {
+        x: kBaseX
+        y: kExitY
+        width: kBigButtonWidth
+        height: kBigButtonHeight
+
+        text: aExit
+        color: kExitColor
+
+        onSelect: exitControlsMenu
+
+        upEntry: autoConnectJoypads
+    }
+}

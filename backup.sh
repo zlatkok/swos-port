@@ -21,7 +21,7 @@ month=${BASH_REMATCH[2]}
 year=${BASH_REMATCH[3]}
 hour=${BASH_REMATCH[4]}
 
-if (( $hour < 12 )); then
+if (( $hour < 13 )); then
     date="$(date -d yesterday +'%d.%m.%Y')"
 else
     date=$day.$month.$year
@@ -29,8 +29,9 @@ fi
 
 destFile='swos-port-'$date'.rar'
 
-# check for argument destination directory, if not, use preset
+# check for argument destination directory, if not, use preset (first env. then command line)
 destDir=${1:-"/cygdrive/D/backup/swos-port/"}
+destDir=${SWOS_PORT_BACKUP_DIR:-${destDir}}
 destDir=${destDir%/}/
 
 if  [ ! -d $destDir ]; then

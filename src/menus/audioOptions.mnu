@@ -8,7 +8,7 @@ Menu audioOptionsMenu
 {
     defaultWidth: kOptionWidth
     defaultHeight: kOptionHeight
-    initialEntry: exit
+    initialEntry: masterSound
 
     Entry header {
         x: kBaseX

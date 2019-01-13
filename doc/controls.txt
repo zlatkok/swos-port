@@ -1,0 +1,48 @@
+There are several available options to control the menu and the team during
+the game:
+- keyboard (2 simultaneous players can use it with separate key configurations)
+- mouse (just 1 available)
+- game controller (any recognized controller connected to the system is
+                   available, one per player)
+
+Controls can be set up in details from Controls menu, reachable from the
+Options menu.
+
+Controls Menu
+
+- controls menu contains maximum 4 elements, if there are more selectable controls than that, arrows
+  should show up, and entries can be scrolled
+- entries are light blue, and the selected entry is purple
+- there is always at least one entry selected
+- configure controls buttons should only be enabled for joysticks/keyboards
+- selecting mouse controls should unselect other player's mouse, if selected
+- redefine keys menu should be exitable by clicking a mouse
+- at the end of redefining keys prompt is controlled by keys: y - accepts choice, n - clears the choice and starts
+  over, q - quits to previous menu without changing anything
+- q is an additional option compared to SWOS++
+- if the keyboard isn't properly configured (some of the keys are null), redefine keys dialog will
+  be automatically shown -- in this keys user is not allowed to quit
+
+Joysticks
+
+- individual joystick can be tracked by GUID
+- individual joystick settings are tracked via GUID, and they are button indices (fire/bench)
+  and dead zones
+- GUIDs of selected joysticks are saved, and an attempt is made to restore them on the next run
+- at startup default keys should be assigned if any of the keys is missing/invalid
+- if joystick is selected for one player that the other one is using, the other player should be stripped of
+  this joystick, if any other joystick exists it should be selected, if not, default for player 1 is
+  keyboard and for player 2 no controls; if joystick fails to open, other one should be tried (if any),
+  until one succeeds, if none can open fall-back to defaults
+- auto-connect joypads is suspended at start-up, it only works later in game
+- when auto-connecting joysticks, assign it to the player that has no joystick selected, try player 2,
+  then player 1, if both are using joysticks, overwrite the one that was added earlier
+
+Play Match
+
+- when starting a game, controls for the team will be determined by the controller that pressed fire on "PLAY MATCH"
+  menu entry
+- if a controller has already been selected for the previous team, nothing should happen (it should be quietly
+  ignored)
+- fire from any joypad connected to the system is accepted (any button really)
+- after player 1 has selected their team, those controls will be inactive while player 2 sets up their team

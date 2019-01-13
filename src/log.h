@@ -12,9 +12,9 @@ struct LogItem {
     std::string text;
 };
 
-#define logInfo(...) log(kInfo, __VA_ARGS__)
-#define logWarn(...) log(kWarning, __VA_ARGS__)
-#define logError(...) log(kError, __VA_ARGS__)
+#define logInfo(...) ::log(kInfo, __VA_ARGS__)
+#define logWarn(...) ::log(kWarning, __VA_ARGS__)
+#define logError(...) ::log(kError, __VA_ARGS__)
 
 #ifndef NDEBUG
 #define logDebug(...) logInfo(__VA_ARGS__)

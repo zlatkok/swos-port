@@ -1,0 +1,36 @@
+//
+// Replay/Exit menu after a friendly game
+//
+
+Menu replayExitMenu
+{
+    defaultWidth: 150
+    defaultHeight: 20
+    defaultTextFlags: @kBigFont
+
+    onInit: replayExitMenuOnInit
+
+    Entry replay {
+        x: 85
+        y: 66
+
+        color: @kGreen
+        text: aReplay
+
+        downEntry: >
+
+        onSelect: replayOnSelect
+    }
+
+    Entry exit {
+        x: 85
+        y: 116
+
+        color: @kLightBrownWithOrangeFrame
+        text: aExit
+
+        upEntry: <
+
+        onSelect: exitOnSelect
+    }
+}

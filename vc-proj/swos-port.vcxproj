@@ -146,7 +146,13 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\controls.cpp" />
+    <ClCompile Include="..\src\audio\audio.cpp" />
+    <ClCompile Include="..\src\audio\music.cpp" />
+    <ClCompile Include="..\src\controls\controlOptionsMenu.cpp" />
+    <ClCompile Include="..\src\controls\controls.cpp" />
+    <ClCompile Include="..\src\controls\joypadConfigMenu.cpp" />
+    <ClCompile Include="..\src\controls\joypads.cpp" />
+    <ClCompile Include="..\src\controls\scanCodes.cpp" />
     <ClCompile Include="..\src\crash.cpp" />
     <ClCompile Include="..\src\debug\dump.cpp" />
     <ClCompile Include="..\src\file.cpp" />
@@ -155,11 +161,8 @@
     <ClCompile Include="..\src\log.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\menu.cpp" />
-    <ClCompile Include="..\src\music.cpp" />
     <ClCompile Include="..\src\options.cpp" />
     <ClCompile Include="..\src\pitch.cpp" />
-    <ClCompile Include="..\src\render.cpp" />
-    <ClCompile Include="..\src\audio.cpp" />
     <ClCompile Include="..\src\stdinc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -167,20 +170,26 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\src\stdinc.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="..\src\util.cpp" />
+    <ClCompile Include="..\src\video\render.cpp" />
+    <ClCompile Include="..\src\video\videoOptionsMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\controls.h" />
+    <ClInclude Include="..\src\audio\audio.h" />
+    <ClInclude Include="..\src\audio\music.h" />
+    <ClInclude Include="..\src\controls\controlOptionsMenu.h" />
+    <ClInclude Include="..\src\controls\controls.h" />
+    <ClInclude Include="..\src\controls\joypadConfigMenu.h" />
+    <ClInclude Include="..\src\controls\joypads.h" />
+    <ClInclude Include="..\src\controls\scanCodes.h" />
     <ClInclude Include="..\src\crash.h" />
     <ClInclude Include="..\src\debug\dump.h" />
     <ClInclude Include="..\src\file.h" />
     <ClInclude Include="..\src\log.h" />
     <ClInclude Include="..\src\menus\menu.h" />
-    <ClInclude Include="..\src\music.h" />
     <ClInclude Include="..\src\options.h" />
-    <ClInclude Include="..\src\render.h" />
-    <ClInclude Include="..\src\audio.h" />
     <ClInclude Include="..\src\swos.h" />
     <ClInclude Include="..\src\util.h" />
+    <ClInclude Include="..\src\video\render.h" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Types.natvis" />
@@ -216,7 +225,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\src\menus\controls.mnu">
+    <CustomBuild Include="..\src\menus\controlOptions.mnu">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\src\menus\mnu2h.py %(FullPath) $(OutputPath)%(Filename)%(Extension).h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
@@ -229,7 +238,34 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutputPath)%(Filename)%(Extension).h</Outputs>
     </CustomBuild>
+    <CustomBuild Include="..\src\menus\joypadConfig.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\src\menus\mnu2h.py %(FullPath) $(OutputPath)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutputPath)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\src\menus\mnu2h.py;$(ProjectDir)..\src\menus\optionsCommon.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\src\menus\mnu2h.py %(FullPath) $(OutputPath)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutputPath)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\src\menus\mnu2h.py;$(ProjectDir)..\src\menus\optionsCommon.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <None Include="..\src\menus\mnu2h.py" />
     <None Include="..\src\menus\optionsCommon.mh" />
+    <CustomBuild Include="..\src\menus\replayExit.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\src\menus\mnu2h.py %(FullPath) $(OutputPath)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutputPath)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\src\menus\mnu2h.py;$(ProjectDir)..\src\menus\optionsCommon.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\src\menus\mnu2h.py %(FullPath) $(OutputPath)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutputPath)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\src\menus\mnu2h.py;$(ProjectDir)..\src\menus\optionsCommon.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D4D7FBF9-503F-4213-8557-9A7EA57658A4}</ProjectGuid>
@@ -263,11 +299,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(OutDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);..\include;..\include\SDL2;..\include\SDL2_image;..\include\SDL_net;..\include\adlmidi;..\include\crashrpt;..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\menus;$(ProjectDir)..\src\debug;$(ProjectDir)\swos-asm;$(IncludePath)</IncludePath>
+    <IncludePath>$(OutDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);..\include;..\include\SDL2;..\include\SDL2_image;..\include\SDL_net;..\include\adlmidi;..\include\crashrpt;..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\audio;$(ProjectDir)..\src\video;$(ProjectDir)..\src\controls;$(ProjectDir)..\src\debug;$(ProjectDir)..\src\menus;$(ProjectDir)\swos-asm;$(IncludePath)</IncludePath>
     <LibraryPath>..\lib\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(OutDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);..\include;..\include\SDL2;..\include\SDL2_image;..\include\SDL_net;..\include\adlmidi;..\include\crashrpt;..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\menus;$(ProjectDir)..\src\debug;$(ProjectDir)\swos-asm;$(IncludePath)</IncludePath>
+    <IncludePath>$(OutDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);..\include;..\include\SDL2;..\include\SDL2_image;..\include\SDL_net;..\include\adlmidi;..\include\crashrpt;..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\audio;$(ProjectDir)..\src\video;$(ProjectDir)..\src\controls;$(ProjectDir)..\src\debug;$(ProjectDir)..\src\menus;$(ProjectDir)\swos-asm;$(IncludePath)</IncludePath>
     <LibraryPath>..\lib\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

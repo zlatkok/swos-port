@@ -1,3 +1,5 @@
+earlier:
+- struggled to create fastest possible parser, which eventually turned out to be generated state machine
 18.03.2018.
 - finished custom step of Meson build
 - refactored script a little
@@ -69,13 +71,13 @@
 - and it's not crashing anymore! :)
 12,13.04.2018.
 - working on parser, solid progress, hope to finish struct parsing soon
-- enable tokenizer to recognize and report numbers
+- enabled tokenizer to recognize and report numbers
 14.04.2018.
 - switched build to x86 (was x64), it can only be done when running Meson from x86 set up VS command prompt
 - did some testing, and IFs turn out to be slightly faster than SWITCH (tables probably mess up the cache)
 - switched to custom isspace that's 10x faster than the one from std lib (wtf)
 - added support for parsing numbers, and debugged it
-- in the light of recent changes gperf seems to slightly overperform the state machine
+- in the light of recent changes gperf seems to slightly outperform the state machine
 15.04.2018.
 - after some changes state machine is beating gperf again :)
 - improved custom hash by using binary search, now it's outperforming std::unordered_map in release too
@@ -308,7 +310,7 @@
 22.06.2018.
 - finished symbol file parsing code
 - added possibility to remove variables from assembly too (not just procs)
-- removed bunch of useless crap and rerouted SWOS() into C++ :)
+- removed a bunch of useless crap and rerouted SWOS() into C++ :)
 23.06.2018.
 - fixed export needed by C++ not turning up in publics list if it wasn't needed as public in asm
 - implemented a nice templatized class to deal with nasty conversions involved with 68k registers ;)
@@ -677,7 +679,7 @@
 15.10.2018.
 - connected audio options variables, but it's all untested
 16.10.2018.
-- debugged audio options variables, made it _mostly_ work
+- debugged audio options variables, made it _mostly_ working
 - added "please wait" line while enumerating video modes
 - fixed a bug in video options when an entry that becomes hidden was still selected when moving window to other
   monitor (when resolution list was recreated)
@@ -779,3 +781,204 @@
 - crowd background noise (that loops the whole game) is now turned on/off together with chants
 - temporarily disabled chairman scenes
 - starting converting some of the control functions in order to implement new control methods more easily
+13.11.2018.
+/
+14.11.2018.
+- allowed symbol that's removed + imported in ida2asm
+- set sensible default values for missing variables in ini file (instead of zeros)
+15.11.2018.
+- wrote mouse input routine :)
+16.11.2018.
+/
+17.11.2018.
+/
+18.11.2018.
+- learned that sprintf_s _does not_ behave as I expected :/ what I really needed was snprintf
+- [mnu2h] implemented #print directive for easier debugging
+- [mnu2h] fixed bug when reading x/y menu coordinates (missing "self." :)), and implemented output
+- [mnu2h] removed previousProperty mechanism, and I had a feeling I was implementing it for nothing :)
+- [mnu2h] added dot directive in order to be able to declare entry properties in terms of other entry properties
+- made menus always controllable with keyboard, even when no player has keyboard selected
+- implemented joypad data saving to options, at least the bulk of it
+19.11.2018.
+- implemented joypad data loading, fixed some errors
+- fixed mouse ruining other controls (I hope!)
+20.11.2018.
+- implemented redefine keys "dialog", although it's quite buggy
+21.11.2018.
+- debugged redefine keys, it works pretty good now
+- started implementing on select routines for the actual changing of controls
+22.11.2018.
+- finished on select routines, fixed some bugs, started (made stub) select joypad menu
+23.11.2018.
+- [mnu2h] added warning about unused variables (only non-included though)
+24.11.2018.
+- fixed swapped comment playing functions (foul and dangerous play)
+25.11.2018.
+- [mnu2h] fixed some bugs and added line number to referencing unknown entry error
+26.11.2018.
+/
+27.11.2018.
+/
+28.11.2018.
+/
+29.11.2018.
+- struggling with controls
+30.11.2018.
+- ditto
+01.12.2018.
+/
+02.12.2018.
+/
+03.12.2018.
+/
+04.12.2018.
+/
+05.12.2018.
+/
+06.12.2018.
+/
+07.12.2018.
+/
+08.12.2018.
+/
+09.12.2018.
+/
+10.12.2018.
+/
+11.12.2018.
+/
+12.12.2018.
+/
+13.12.2018.
+/
+14.12.2018.
+/
+15.12.2018.
+- haven't done much, but at least got it to compile again and stop triggering asserts :P
+16.12.2018.
+/
+17.12.2018.
+- repositioned config entries and implemented highlighting and enabling/disabling on main controls menu
+18.12.2018.
+- [mnu2h] fixed handling of next entries if disabled and next direction are given
+- [mnu2h] fixed #join directive (was returning one token before the proper one)
+- fixed controls menu items order
+19.12.2018.
+- further fixed controls menu items order (hopefully it's all good now)
+- implemented scroll arrow handlers (and corrected arrow positions)
+20.12.2018.
+- worked on implementing controls selection from the menu (although it needs debugging)
+21.12.2018.
+- fixed controls selection (seems quite all right now)
+- fixed item transition order (control items to scroll arrows)
+- fixed infinite loop in InputText (was happening since MenuProc rewrite in C++)
+22.12.2018.
+- found out that I've missed to analyze CheckControls, but luckily it can stay as is (it just translates
+  both player controls into menu controls (ORs them))
+- trying to fix controls getting stuck in menus even after key release when player 2 is set to mouse,
+  and finally succeeded! forgot to reset the controls as the first step (d-oh!), how did it work at all??
+23.12.2018.
+- a little bit of analysing, but no results
+24.12.2018.
+- fixed invalid entry selection by mouse calculations (y coordinate wasn't taking into account black bars
+  on top and bottom if height isn't a multiple of 200)
+- set default height to be multiple of 200
+- started implementing play match menu fire, but it will be more complicated then I anticipated;
+  hopefully any joypad fire press should select that joypad for the team (as well as mouse click)
+25.12.2018.
+- thought out how to apply controls through fire in play match menu and maintain them throughout the game
+- the need to track all joypad buttons will require that all joypads be open, which means big changes to
+  joypad processing code...
+26.12.2018.
+/
+27.12.2018.
+- I've decided to go with always current list of all connected joypads, player's choice will be an index there, and
+  we will be able to track all the buttons pressed anytime (I've read some SDL code and it doesn't seem that tracking
+  all joypads will pose a significant resource drain)
+28.12.2018.
+- first phase of moving to permanent joypad list is finished, gotta fix menus to use it too
+- GUIDs of selected joypads are now saved, and an attempt is made to restore it at the next startup
+- list of joystick ID's in recently added order is maintained (single id won't cut it)
+29.12.2018.
+- fully switched to a new way of handling joypad input
+- just noticed that each SWOS menu has something "useful" selected upon entry... NOT exit button which I was
+  systematically setting as default in all of my menus... d-oh!
+- fixed controls menu items order some more :)
+- added log entries for control selection
+- wow, it didn't even crash :P
+30.12.2018.
+- separated kKeyboard controls into explicit kKeyboard1 and kKeyboard2 in order to be able to use them independently
+  during the game
+- implemented key conflict resolution at startup if both players are using keyboard
+- plenty of refactoring
+- fixed some small bugs
+- reorganized scan codes into a small class, stopped using SWOS variables
+31.12.2018.
+- fixed mouse clicks when only player 2 keyboard is selected (they would stop working)
+- fixed player 1 having invalid index for selected joypad
+- fixed invalid joypad assignment if GUIDs are not found
+- fixed fire staying on shortly after clicking a menu item
+- implemented mouse wheel scrolling where applicable ;)
+01.01.2019.
+- fixed wrong joypad GUIDs ending up in ini file
+- fixed warning message overlapping mouse click aborts label in redefine keys dialog
+- changed menu default items from exit to something useful (usually top element), except in controls menu (for safety)
+- refactored video and audio options saving/loading into renderer/audio module (where they belong)
+- no more "Window mode change requested, from 1 to 1" message in the log :)
+- played a first mouse "controlled" game :)
+02.01.2019.
+- implemented selection of joypad by simply pressing fire, had to add special case handling of my stupid game port to
+  USB adapter which sends button codes when axis are used for the first time
+03.01.2019.
+- [mnu2h] fixed parsing empty file :)
+- [mnu2h] added a rudimentary check for variables that go into C++, making sure they aren't C++ keywords (not
+  everything is checked, that might be a too big effort, but even checking at this level helps)
+- in-game controls are finally working properly! as well as any controller fire on "PLAY MATCH" entry
+- working on rewriting replay/exit menu after friendly game, but so far got only black screen
+04.01.2019.
+- fixed mouse not working on replay/exit menu, it's working perfectly now, just needed to redraw the menu
+  before the fade-in ;-)
+- added a new shortcut: alt-shift-enter -> going into true full screen mode
+- fixed bench button not working on keyboard controls
+- fixed joypad auto-connect (player 1 and 2 were swapped... d-oh!)
+- mouse cursor doesn't get hidden anymore when going full screen if we have a mouse player
+- playing with mouse is a bit easier now, but it's still awful :D
+05.01.2019.
+- got some cool ideas for joystick config menu ;) (decided to combine everything into one menu)
+- things can't go on like this, I simply must refactor and divide monstrous controls.cpp refactor
+- pooh... refactored the damn thing, I'm dying
+06.01.2019.
+- working on joypad config menu, it turns out there will be quite a lot to do there
+- finished joypad info & readings display
+07.01.2019.
+- introduced error checking when saving and loading options
+- just realized I haven't checked for invalid joypad buttons input (fixed!)
+- working on joypad config menu, finished numeric input in menus, rewrote input routine from scratch, it works
+  so beautifully :)
+08.01.2019.
+- [mnu2h] fixed invalid line number when warning about unused variables (was storing wrong token)
+- [mnu2h] fixed invalid unmatched parenthesis error if there's more than one closing parenthesis clumped together
+- [mnu2h] fixed last token in the file getting ignored
+- [mnu2h] fixed incredible error of ending up with wrong results due to expressions not having outer parenthesis, so
+  if we got a = b + c, d = 2 * a, it expands to d = 2 * b + c (ouch!)
+- also learned the difference between parenthesis and parentheses :D
+- incredibly dull work of setting up dead zone box menu entries
+09.01.2019.
+- [mnu2h] added some aliases to some entry properties cause I kept getting it wrong :)
+- set up dead zone % +/- buttons order
+- introducing button handlers to actually change dead zone values
+10.01.2019.
+- finished implementing handlers for changing all dead zone values (both absolute and percentage)
+- dead box "animation" finished and works nice :)
+11.01.2019.
+- finished joypad button selection! finally the joypad config menu is finished! :)
+- fixed few critical bugs preventing match from playing
+- fixed mouse wheel stopping working after returning to a menu with wheel entries
+- added right mouse click = exit menu (works on most menus but not every single one)
+12.01.2019.
+- finally fixed mouse coordinate calculation in odd sized window (for good I hope!) ;)
+- refactored render into video dir with several components (menu is now in its own file)
+- stopped hiding mouse pointer in fake fullscreen mode if we're not in the game, and fixed entry selection
+- applied my beautiful number input routine to width/height fields in video options menu, and centered entries
+  a bit better

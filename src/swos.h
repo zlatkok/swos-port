@@ -5,6 +5,35 @@ typedef uint16_t word;
 typedef uint8_t byte;
 
 #pragma pack(push, 1)
+struct MenuEntry;
+
+struct Menu {
+    void(*onInit)();
+    void(*afterDraw)();
+    void(*onDraw)();
+    MenuEntry *selectedEntry;
+    word numEntries;
+    char *endOfMenuPtr;
+};
+
+enum MenuEntryBackgroundType : word {
+    kEntryNoBackground = 0,
+    kEntryFunc1 = 1,
+    kEntryFrameAndBackColor = 2,
+    kEntrySprite1 = 3,
+};
+
+enum MenuEntryContentType : word {
+    kEntryNoForeground = 0,
+    kEntryFunc2 = 1,
+    kEntryString = 2,
+    kEntrySprite2 = 3,
+    kEntryStringTable = 4,
+    kEntryMultiLineText = 5,
+    kEntryNumber = 6,
+    kEntrySpriteCopy = 7,
+};
+
 struct MenuEntry {
     word drawn;
     word ordinal;
@@ -26,13 +55,13 @@ struct MenuEntry {
     int16_t y;
     word width;
     word height;
-    word type1;
+    MenuEntryBackgroundType type1;
     union {
         void (*entryFunc)(word, word);
         word entryColor;
         word spriteIndex;
     } u1;
-    word type2;
+    MenuEntryContentType type2;
     word textColor;
     union {
         void (*entryFunc2)(word, word);
@@ -49,14 +78,7 @@ struct MenuEntry {
     void (*afterDraw)();
 };
 
-struct Menu {
-    void (*onInit)();
-    void (*afterDraw)();
-    void (*onDraw)();
-    MenuEntry *selectedEntry;
-    word numEntries;
-    char *endOfMenuPtr;
-};
+constexpr int kStdMenuTextSize = 70;
 
 /* sprite graphics structure - from dat files */
 struct SpriteGraphics {
@@ -109,8 +131,8 @@ struct Player {
     int16_t destX;
     int16_t destY;
     byte unk003[6];
-    word visible;       // skip it when rendering if false
-    int16_t pictureIndex; // -1 if none
+    word visible;           // skip it when rendering if false
+    int16_t pictureIndex;   // -1 if none
     word saveSprite;
     dword ballDistance;
     word unk004;
@@ -167,6 +189,38 @@ struct TeamStatsData {
     word sendingsOff;
     word goalAttempts;
     word onTarget;
+};
+
+enum TeamControls : byte {
+    kTeamNotSelected = 0,
+    KComputerTeam = 1,
+    kPlayerCoach = 2,
+    kCoach = 3,
+};
+
+struct TeamFile {
+    byte teamFileNo;
+    byte teamOrdinal;
+    word globalTeamNumber;
+    TeamControls teamControls;
+    byte teamName [17];
+    byte writesZeroHere;
+    byte andWith0xFE;
+    byte tactics;
+    byte league;
+    byte prShirtType;
+    byte prStripesColor;
+    byte prBasicColor;
+    byte prShortsColor;
+    byte prSocksColor;
+    byte secShirtTpe;
+    byte secStripesColor;
+    byte secBasicColor;
+    byte secShortsColor;
+    byte secSocksColor;
+    byte coachName[23];
+    byte someFlag;
+    byte playerNumbers[16];
 };
 
 struct TeamGame {
@@ -265,24 +319,6 @@ struct TeamGeneralInfo {
 static_assert(sizeof(TeamGeneralInfo) == 145, "TeamGeneralInfo is invalid");
 #pragma pack(pop)
 
-enum MenuEntryBackgroundType {
-    NO_BACKGROUND = 0,
-    ENTRY_FUNC1 = 1,
-    ENTRY_FRAME_AND_BACK_COLOR = 2,
-    ENTRY_SPRITE1 = 3,
-};
-
-enum MenuEntryContentType {
-    NO_FOREGROUND = 0,
-    ENTRY_FUNC2 = 1,
-    ENTRY_STRING = 2,
-    ENTRY_SPRITE2 = 3,
-    ENTRY_STRING_TABLE = 4,
-    ENTRY_MULTI_LINE_TEXT = 5,
-    ENTRY_NUMBER = 6,
-    ENTRY_SPRITE_COPY = 7,
-};
-
 enum SpriteIndices {
     SPR_SQUARE_GRID_FOR_RESULT = 252,
     SPR_BIG_0 = 287,
@@ -324,3 +360,38 @@ enum MenuEntryBackgrounds {
     kLightBlue = 13,
     kGreen = 14,
 };
+
+enum PCKeys {
+    kKeyEscape     = 0x01,
+    kKey1          = 0x02,
+    kKey2          = 0x03,
+    kKey3          = 0x04,
+    kKey4          = 0x05,
+    kKey5          = 0x06,
+    kKey6          = 0x07,
+    kKey7          = 0x08,
+    kKey8          = 0x09,
+    kKey9          = 0x0a,
+    kKey0          = 0x0b,
+    kKeyBackspace  = 0x0e,
+    kKeyDelete     = 0x53,
+    kKeyEnter      = 0x1c,
+    kKeyLShift     = 0x2a,
+    kKeyRShift     = 0x36,
+    kKeyHome       = 0x47,
+    kKeyEnd        = 0x4f,
+    kKeyArrowLeft  = 0x4b,
+    kKeyArrowRight = 0x4d,
+    kKeyArrowUp    = 0x48,
+    kKeyArrowDown  = 0x50,
+    kKeyMinus      = 0x0c,
+    kKeyKpMinus    = 0x4a,
+    kKeyQ          = 0x10,
+    kKeyY          = 0x15,
+    kKeyN          = 0x31,
+};
+
+constexpr int kCursorChar = -1;
+
+constexpr int kMenuScreenWidth = 320;
+constexpr int kGameScreenWidth = 384;

@@ -80,7 +80,7 @@ goal #2:
 
 20.06.2018.
 - it's all linked, and invoking SWOS code in win32 for the first time :)
-- my patience with Meson is done, as well as build systems in general, switch to plain simple VS project
+- my patience with Meson is done, as well as build systems in general, switched to a plain simple VS project
 
 01.07.2018.
 - game finally started working a little bit :) (sadly it crashes randomly); but menus are mostly working
@@ -94,3 +94,6 @@ goal #2:
 - menu compiler works awesome, I'm writing menu scripts and adding new functionality; once the menus are fairly
   complete I can dedicate to fixing career bugs (perhaps in parallel to adding SWOS++ functionality, we'll see
   how things work out)
+
+05.01.2019.
+- controls handling is nearing completion, things have been progressing fine, slowly but steadily

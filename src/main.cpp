@@ -4,7 +4,7 @@
 #include "audio.h"
 #include "file.h"
 #include "crash.h"
-#include "controls.h"
+#include "joypads.h"
 
 int main(int argc, char **argv)
 {
@@ -35,7 +35,6 @@ int main(int argc, char **argv)
 
     atexit(finishAudio);
 
-    atexit(finishJoypads);
     initJoypads();
 
     SWOS::SWOS();
