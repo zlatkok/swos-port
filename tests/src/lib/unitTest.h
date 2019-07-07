@@ -4,13 +4,32 @@
 
 namespace SWOS_UnitTest
 {
+    namespace Detail {
+        template<typename T1, typename T2>
+        bool different(const T1& t1, const T2& t2) {
+            return t1 != t2;
+        }
+        static inline bool different(const char *t1, const char *t2) {
+            return strcmp(t1, t2) != 0;
+        }
+        static inline bool different(const char *t1, char *t2) {
+            return strcmp(t1, t2) != 0;
+        }
+        static inline bool different(char *t1, const char *t2) {
+            return strcmp(t1, t2) != 0;
+        }
+        static inline bool different(char *t1, char *t2) {
+            return strcmp(t1, t2) != 0;
+        }
+    };
     template<typename T1, typename T2>
     void assertEqual(const T1& t1, const T2& t2, const char *t1Str, const char *t2Str, const char *file, int line)
     {
-        if (t1 != t2)
+        if (Detail::different(t1, t2))
             throw FailedEqualAssertException(t1, t2, t1Str, t2Str, file, line);
     }
 
+    void assertNumItemsImp(int num, const char *numStr, const char *file, int line);
     void assertItemIsNumberImp(int index, const char *indexStr, int value, const char *file, int line);
     void assertItemIsVisibleImp(int index, const char *indexStr, bool visible, const char *file, int line);
     void assertItemEnabledImp(int index, const char *indexStr, bool enabled, const char *file, int line);
@@ -44,3 +63,4 @@ namespace SWOS_UnitTest
 #define setNumericItemValue(i, v) SWOS_UnitTest::setNumericItemValueImp(i, #i, v, __FILE__, __LINE__)
 #define assertItemEnabled(i, e) SWOS_UnitTest::assertItemEnabledImp(i, #i, e, __FILE__, __LINE__)
 #define sendMouseWheelEvent(i, d) SWOS_UnitTest::sendMouseWheelEventImp(i, #i, d, __FILE__, __LINE__)
+#define assertNumItems(n) SWOS_UnitTest::assertNumItemsImp(n, #n, __FILE__, __LINE__)

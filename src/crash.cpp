@@ -4,7 +4,7 @@
 
 int CALLBACK crashCallback(CR_CRASH_CALLBACK_INFO *info)
 {
-    logError("We have crashed!");
+    logError("Great Scott! We've crashed!");
     finishLog();
 
     char buf[64];

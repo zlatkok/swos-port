@@ -1456,3 +1456,8 @@ earlier:
 - fixed a small bug with resolution list where the current resolution would stay marked even in windowed mode
 - video options menu tests are DONE!!! hellz yeah!!!
 - [mnu2] added tests for string manipulation routines
+- finally pushed code to the repository today, haven't done that in a looong time
+- fixed clumsy report output in tester with multiple tests
+07.07.2019.
+- fixed crash when opening edit tactics menu
+- added Great Scott! We've crashed! to the log when crashing ;)

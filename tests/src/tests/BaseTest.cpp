@@ -127,6 +127,7 @@ auto BaseTest::doRunTests(const TestOptions &options, const TestNamesSet& testLi
                     return { numTestsRan, failures };
             }
         }
+        std::cout << '\n';
     }
 
     return { numTestsRan, failures };
@@ -231,8 +232,6 @@ void BaseTest::runTestCase(BaseTest *test, const Case& testCase, size_t i, const
 template <typename Time>
 void BaseTest::showReport(int numTestsRan, const FailureList &failures, Time startTime)
 {
-    std::cout << '\n';
-
     if (numTestsRan) {
         std::cout << '\n';
 

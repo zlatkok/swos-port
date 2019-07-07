@@ -121,6 +121,9 @@
     <ClCompile Include="..\src\lib\bmpWriter.cpp">
       <Filter>Source Files\lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tests\EditTacticsMenuTest.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\stdinc.h">
@@ -170,6 +173,9 @@
     </ClInclude>
     <ClInclude Include="..\src\lib\bmpWriter.h">
       <Filter>Source Files\lib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tests\EditTacticsMenuTest.h">
+      <Filter>Source Files\tests</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

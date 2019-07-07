@@ -70,7 +70,7 @@ void VideoOptionsMenuTest::defaultCaseInit()
 
 const char *VideoOptionsMenuTest::name() const
 {
-    return "video-options";
+    return "video-options-menu";
 }
 
 const char *VideoOptionsMenuTest::displayName() const

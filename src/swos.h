@@ -461,5 +461,27 @@ enum Nationalities {
     kNor = 25,    kCrc = 51,    kVen = 77,    kTog = 103,   kVie = 129,
 };
 
+enum Tactics {
+    kTacticDefault = 0,
+    kTactic_541 = 1,
+    kTactic_451 = 2,
+    kTactic_532 = 3,
+    kTactic_352 = 4,
+    kTactic_433 = 5,
+    kTactic_424 = 6,
+    kTactic_343 = 7,
+    kTacticSweep = 8,
+    kTactic_523 = 9,
+    kTacticAttack = 10,
+    kTacticDefend = 11,
+    kTacticUserA = 12,
+    kTacticUserB = 13,
+    kTacticUserC = 14,
+    kTacticUserD = 15,
+    kTacticUserE = 16,
+    kTacticUserF = 17,
+    kTacticImported = 1000,
+};
+
 constexpr int kMenuScreenWidth = 320;
 constexpr int kGameScreenWidth = 384;

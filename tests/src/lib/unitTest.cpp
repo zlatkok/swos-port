@@ -21,6 +21,13 @@ static void verifyNumericItem(const MenuEntry *entry, const char *file, int line
         throw SWOS_UnitTest::InvalidEntryTypeException(entry, "number", file, line);
 }
 
+void SWOS_UnitTest::assertNumItemsImp(int expectedNumItems, const char *expectedStr, const char *file, int line)
+{
+    int actualNumItems = getCurrentMenu()->numEntries;
+    if (actualNumItems != expectedNumItems)
+        throw InvalidNumberOfEntriesInMenu(actualNumItems, expectedNumItems, expectedStr, file, line);
+}
+
 void SWOS_UnitTest::assertItemIsNumberImp(int index, const char *indexStr, int value, const char *file, int line)
 {
     auto entry = getVerifiedEntry(index, indexStr, file, line);

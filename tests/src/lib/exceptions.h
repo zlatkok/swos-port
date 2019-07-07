@@ -25,6 +25,15 @@ namespace SWOS_UnitTest
         std::string m_error;
     };
 
+    struct InvalidNumberOfEntriesInMenu : public BaseException
+    {
+        InvalidNumberOfEntriesInMenu(int actualNumItems, int expectedNumItems, const char *expectedStr, const char *file, int line)
+            : BaseException(file, line) {
+            m_error += "Menu has " + std::to_string(actualNumItems) + " but expecting " + std::to_string(expectedNumItems) +
+                + " (" + expectedStr + ") items";
+        }
+    };
+
     struct InvalidEntryIndexException : public BaseException
     {
         InvalidEntryIndexException(int index, const char *indexStr, const char *file, int line) : BaseException(file, line) {
@@ -101,17 +110,19 @@ namespace SWOS_UnitTest
 
     namespace Detail {
         template<typename T>
-        std::string stringify(const T& t)
-        {
+        std::string stringify(T t) {
             return std::to_string(t);
-        };
-
+        }
         template<typename T>
-        std::string stringify(const std::pair<T, T>& t)
-        {
+        std::string stringify(const std::pair<T, T>& t) {
             return "(" + std::to_string(t.first) + ", " + std::to_string(t.second) + ")";
-
-        };
+        }
+        static inline std::string stringify(char *str) {
+            return std::string("\"") + str + '"';
+        }
+        static inline std::string stringify(const char *str) {
+            return std::string("\"") + str + '"';
+        }
     };
 
     template<typename T1, typename T2>

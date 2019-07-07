@@ -114,10 +114,14 @@ g_commentary, 1
 
 # these functions destroy registers C++ assumes will not change with a function call,
 # so inject the code to save and restore them
-# warning: do not list DrawSprite16Pixels here, it can exit by jumping to other procs!
+# warning! procs not to be listed here:
+#   DrawSprite16Pixels  - it can exit by jumping to other procs
+# note:
+#   always include or exclude both DrawSprite and DrawSpriteCentered, since later jumps into former
 
 @save-regs
 DrawSprite
+DrawSpriteCentered
 DrawSpriteInColor
 DrawMenu
 MainKeysCheck
@@ -550,11 +554,15 @@ InitUserTactics, function
 aAbort, array const char
 aSave, array const char
 
+### tester
+chosenTactics, word
+
 ### debug dump
 breakCameraMode, word
 
 
 # at the beginning of each listed proc Foo insert a call to external Foo_OnEnter
+
 @on-enter
 DoUnchainSpriteInMenus
 InitGame
@@ -565,8 +573,9 @@ DrawBenchAndSubsMenu
 GameOver
 
 
-# insert call into a proc at a given line, in the form of call <proc name>_<line number>
+# insert a call into a proc at a given line, in the form of call <proc name>_<line number>
 # it's effectively and import entry
+
 @insert-hook
 RunStoppageEventsAndSetAnimationTables, 320
 GameLoop, 224
@@ -577,7 +586,7 @@ SetupPlayers, 160
 InputText, 23
 
 
-# list of symbols that will be replaced by code from C++
+# list of symbols that will be replaced by the C++ code
 # it is assumed to be a label in assembly, and a parameterless function in C++, returning void or int
 # they'll go to SWOS namespace to avoid name clashes
 

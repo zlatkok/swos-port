@@ -173,6 +173,7 @@
     <ClCompile Include="..\src\mocks\mockSfx.cpp" />
     <ClCompile Include="..\src\sdlProcs.cpp" />
     <ClCompile Include="..\src\tests\BaseTest.cpp" />
+    <ClCompile Include="..\src\tests\EditTacticsMenuTest.cpp" />
     <ClCompile Include="..\src\tests\VideoOptionsMenuTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -191,6 +192,7 @@
     <ClInclude Include="..\src\mocks\mockRender.h" />
     <ClInclude Include="..\src\sdlProcs.h" />
     <ClInclude Include="..\src\tests\BaseTest.h" />
+    <ClInclude Include="..\src\tests\EditTacticsMenuTest.h" />
     <ClInclude Include="..\src\tests\VideoOptionsMenuTest.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
