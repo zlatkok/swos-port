@@ -156,16 +156,16 @@ struct Player {
     int16_t z;
     int16_t direction;
     int16_t speed;
-    dword deltaX;
-    dword deltaY;
-    dword deltaZ;
+    int32_t deltaX;
+    int32_t deltaY;
+    int32_t deltaZ;
     int16_t destX;
     int16_t destY;
     byte unk003[6];
     word visible;           // skip it when rendering if false
     int16_t pictureIndex;   // -1 if none
     word saveSprite;
-    dword ballDistance;
+    int32_t ballDistance;
     word unk004;
     word unk005;
     word fullDirection;
@@ -308,22 +308,22 @@ struct PlayerGameHeader : private TeamGame, public PlayerGame {
 static_assert(sizeof(PlayerGameHeader) == sizeof(TeamGame) + sizeof(PlayerGame), "PlayerGameHeader invalid");
 
 struct TeamGeneralInfo {
-    TeamGeneralInfo *opponentsTeam;
+    TeamGeneralInfo* opponentsTeam;
     word playerNumber;
     word plCoachNum;
     word isPlCoach;
-    TeamGame *inGameTeamPtr;
-    TeamStatsData *teamStatsPtr;
+    TeamGame* inGameTeamPtr;
+    TeamStatsData* teamStatsPtr;
     word teamNumber;
-    Player *(*players)[11];
-    void *someTablePtr;
+    Player* (*players)[11];
+    void* field_18;
     word tactics;
-    word tensTimer;
-    Player *controlledPlayerSprite;
-    Player *passToPlayerPtr;
+    word updatePlayerIndex;
+    Player* controlledPlayerSprite;
+    Player* passToPlayerPtr;
     word playerHasBall;
-    word playerHadBall;
-    word currentAllowedDirection;
+    word allowedDirections;
+    word currentDirection;
     word direction;
     byte quickFire;
     byte normalFire;
@@ -331,9 +331,9 @@ struct TeamGeneralInfo {
     byte joyTriggered;
     word header;
     word fireCounter;
-    word allowedPlDirection;
+    word controlledPlDirection;
     word shooting;
-    byte ofs60;
+    byte field_3C;
     byte plVeryCloseToBall;
     byte plCloseToBall;
     byte plNotFarFromBall;
@@ -343,12 +343,12 @@ struct TeamGeneralInfo {
     byte ball12To17;
     byte ballAbove17;
     byte prevPlVeryCloseToBall;
-    word ofs70;
-    Player *lastHeadingPlayer;
+    word field_46;
+    Player* lastHeadingPlayer;
     word goalkeeperSavedCommentTimer;
-    word ofs78;
-    word goalkeeperJumpingRight;
-    word goalkeeperJumpingLeft;
+    word field_4E;
+    word goalkeeperDivingRight;
+    word goalkeeperDivingLeft;
     word ballOutOfPlayOrKeeper;
     word goaliePlayingOrOut;
     word passingBall;
@@ -359,23 +359,23 @@ struct TeamGeneralInfo {
     word ballX;
     word ballY;
     word passKickTimer;
-    Player *passingKickingPlayer;
-    word ofs108;
+    Player* passingKickingPlayer;
+    word unkBallTimer;
     word ballCanBeControlled;
     word ballControllingPlayerDirection;
-    word ofs114;
-    word ofs116;
-    word spinTimer;
+    word field_72;
+    word field_74;
+    int16_t spinTimer;
     word leftSpin;
     word rightSpin;
     word longPass;
     word longSpinPass;
     word passInProgress;
     word AITimer;
-    word ofs134;
-    word ofs136;
-    word ofs138;    // timer
-    word unkTimer;
+    word field_84;
+    word field_86;
+    int16_t field_88;
+    word wonBallTimer;
     word goalkeeperPlaying;
     word resetControls;
     byte joy1SecondaryFire;
@@ -523,6 +523,6 @@ constexpr int kGameScreenWidth = 384;
 #if _HAS_CXX17
 static
 #else
-constexpr
+static
 #endif
 char *kSentinel = reinterpret_cast<char *>(-1);

@@ -312,6 +312,35 @@ DarkenRectangle, function
 playGame, word
 CommonMenuExit, function
 
+Rand, function
+AI_counter, dword
+AI_beginPlayTimer, word
+AI_rand, word
+inSubstitutesMenu, word
+ballSprite, Player
+leftTeamData, TeamGeneralInfo
+rightTeamData, TeamGeneralInfo
+lastPlayedTeam, TeamGeneralInfo *
+gameStatePl, word
+gameState, word
+team1Computer, word
+team2Computer, word
+stoppageTimerTotal, word
+resultTimer, word
+stoppageTimerActive, word
+playingPenalties, word
+cameraDirection, word
+playerTurnFlags, word
+FindClosestPlayerToBallFacing, function
+someAIDirectionAllowedFlag, word
+penalty, word
+AISetDirectionAllowed, function
+AIHeader, function
+dseg_1309A7, word
+frameCount, word
+cseg_859CB, function
+AI_maxStoppageTime, word
+
 # options menu
 aOptions, array const char
 aExit, array const char
@@ -686,3 +715,5 @@ InitMainMenuStuff
 ExitEuropeanChampionshipMenu
 GetFilenameAndExtension, int
 SelectFileToSaveDialog, int
+CalculateDeltaXAndY, int
+DoAI
