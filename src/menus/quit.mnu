@@ -11,6 +11,7 @@ Menu quitMenu {
     defaultTextFlags: @kBigFont
 
     onInit: quitMenuOnInit
+    initialEntry: returnToGame
 
     Entry quit {
         y: kPromptTopItemY

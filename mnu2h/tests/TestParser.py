@@ -260,7 +260,7 @@ class TestParser(unittest.TestCase):
         ('''#warningsOff Menu m1 {} atEnd=9+9''', {
                 'func': set(),
                 'st': set(),
-                'menu': [('m1', 0, {})]
+                'menu': [('m1', 0, 0, {})]
             }
         ),
         ('''#warningsOff
@@ -278,7 +278,9 @@ class TestParser(unittest.TestCase):
                     downEntry: >
                     rightEntry: e2
                 }
+
                 e1.width = 53
+
                 Entry e2 {
                     stringTable: ~autoReplaysStrTable
                     beforeDraw: thinkYoureLuckyPunk
@@ -288,6 +290,7 @@ class TestParser(unittest.TestCase):
                     upEntry: <
                     downEntry: >
                 }
+
                 Entry e3 {
                     y: @prevY + 2
                     width: @prevWidth + 10
@@ -299,6 +302,7 @@ class TestParser(unittest.TestCase):
                     leftEntry: @kTextWidth
                     upEntry: <
                 }
+
                 e1.width = 54
                 e3.downEntry = e1
                 e3.rightEntry = -1
@@ -329,6 +333,32 @@ class TestParser(unittest.TestCase):
                 e0.x = 72
                 e0.upEntry = e1.upEntry
                 e1.upEntry = e0.upEntry
+            }
+            Menu m3 {
+                defaultX: 5
+                defaultY: 6
+                defaultWidth: 11
+                defaultHeight: 12
+                defaultColor: @kGreen
+
+                TemplateEntry {
+                    width: 42
+                    number: 99
+                    color: @kRed
+                }
+
+                Entry krang1 {}
+
+                ResetTemplate
+
+                Entry krang2 {}
+
+                Entry krang3 {
+                    width: 700
+                    height: 800
+                    text: "trick"
+                    leftEntry: (5+7)/2*3
+                }
             }''', {
                 'func': { 'wakeUpInTheMorning', 'takeMeHome', 'thinkYoureLuckyPunk', 'iJustGotBack' },
                 'st': {
@@ -339,8 +369,9 @@ class TestParser(unittest.TestCase):
                 },
                 'menu': [
                     # default values expansion is delayed, hence it needs to be a string
-                    ('m1', 3, { 'onInit': 'wakeUpInTheMorning', 'defaultWidth': '50' }),
-                    ('m2', 5, { 'onReturn': 'iJustGotBack', 'y': 23 }),
+                    ('m1', 3, 3, { 'onInit': 'wakeUpInTheMorning', 'defaultWidth': '50' }),
+                    ('m2', 5, 5, { 'onReturn': 'iJustGotBack', 'y': 23 }),
+                    ('m3', 3, 5, {}),
                 ],
                 'entry': {
                     'm1': (
@@ -355,6 +386,11 @@ class TestParser(unittest.TestCase):
                         ('e1', (('x', 50), ('y', 44), ('height', 5), ('upEntry', -1))),
                         ('e2', (('x', 50), ('y', 51), ('height', 5))),
                         ('numba2', (('x', 50), ('y', 25), ('height', 5), ('width', 100))),
+                    ),
+                    'm3': (
+                        ('krang1', (('x', '5'), ('y', '6'), ('width', '42'), ('height', '12'), ('color', '0'))),
+                        ('krang2', (('x', '5'), ('y', '6'), ('width', '11'), ('height', '12'), ('color', '14'))),
+                        ('krang3', (('x', '5'), ('y', '6'), ('width', '700'), ('height', '800'), ('color', '14'), ('leftEntry', 18))),
                     ),
                 },
             }
@@ -401,9 +437,10 @@ class TestParser(unittest.TestCase):
         actualMenus = parser.getMenus()
 
         expectedAndActualIterator = zip(expectedMenus, actualMenus.items())
-        for (expectedMenuName, numEntries, properties), (actualMenuName, menu) in expectedAndActualIterator:
+        for (expectedMenuName, numEntries, totalNumEntries, properties), (actualMenuName, menu) in expectedAndActualIterator:
             self.assertEqual(expectedMenuName, actualMenuName)
-            self.assertEqual(numEntries, len(menu.entries))
+            self.assertEqual(numEntries, menu.numEntries())
+            self.assertEqual(totalNumEntries, len(menu.entries))
             for property, value in properties.items():
                 self.assertIn(property, menu.properties)
                 self.assertEqual(value, menu.properties[property])
@@ -434,6 +471,7 @@ class TestParser(unittest.TestCase):
         ('luckyStar = 33 Menu XIV { y: luckyStar }', None),
         ('Menu ZvezdaKec { starLight = 59 }', "unused variable `starLight' declared in menu `ZvezdaKec'"),
         ('Menu ZvezdaKec { starLight = 59 initialEntry: starLight }', None),
+        ('Menu ZvezdaKec { export starLight = 59}', None),
         ('heavenlyBody = @allRight Menu FlashBack { x: heavenlyBody }', "unknown internal variable `@allRight'"),
         ('heavenlyBody = @kScreenWidth Menu FlashBack { x: heavenlyBody }', None),
         ('#warningsOff Pirate1 = @kAlloc', None),
@@ -496,6 +534,14 @@ class TestParser(unittest.TestCase):
             #repeat 3
                 #join(p_,#i) = #{dark = 3 * i}
             #endRepeat
+
+            pOrdInit = @prevOrd
+            Entry {}
+            pOrd0 = @previousOrdinal
+            Entry {}
+            pOrd1 = @previousOrd
+            Entry {}
+            pOrd2 = @prevOrdinal
         }
 
         #join(joined, #join(Hyb, rid), #{3 * dark}, #{dark / 6}) = 100
@@ -514,7 +560,10 @@ class TestParser(unittest.TestCase):
                 ('q_0000', '10'), ('q_0001', '15'), ('hawk', '32'), ('Medjed', '"Bear"'),
                 ('hinge', '(17 + 29)'), ('binge', '92'),
             )),
-            ('Day', (('sun', '1'), ('skies', '"Blue"'), ('p_0', '0'), ('p_1', '3'), ('p_2', '6'))),
+            ('Day', (
+                ('sun', '1'), ('skies', '"Blue"'), ('p_0', '0'), ('p_1', '3'), ('p_2', '6'),
+                ('pOrdInit', '0'), ('pOrd0', '0'), ('pOrd1', '1'), ('pOrd2', '2'),
+            )),
         ),
         'preproc': (('dark', 6), ('forTea', 2), ('hybrid', 215)),
     }))

@@ -18,15 +18,16 @@ kMenuDefaults = (   # expansion of these is delayed, so that they can have diffe
 kMenuProperties = kMenuFunctions + (kInitialEntry, 'x', 'y') + kMenuDefaults
 
 kNextEntryProperties = ('leftEntry', 'rightEntry', 'upEntry', 'downEntry', 'skipLeft', 'skipRight', 'skipUp', 'skipDown')
+kEntryTypeProperties = ('text', 'stringTable', 'number', 'sprite', 'customDrawForeground')
 kEntryFunctions = ('onSelect', 'beforeDraw', 'onReturn', 'customDrawBackground', 'customDrawForeground')
 kImmutableEntryProperties = ('name', 'ordinal')
-kPreviousEntryFields = ('x', 'y', 'width', 'height', 'color', 'textFlags')
+kPreviousEntryFields = ('ordinal', 'x', 'y', 'width', 'height', 'color', 'textFlags')
 
 kConstants = {
     # backgrounds
     'kNoBackground': 0, 'kNoFrame': 0, 'kGray': 7, 'kDarkBlue': 3, 'kLightBrownWithOrangeFrame': 4,
-    'kLightBrownWithYellowFrame': 6, 'kRed': 10, 'kPurple': 11, 'kLightBrownWithRedFrame': 12,
-    'kLightBlue': 13, 'kGreen': 14,
+    'kOrangeWithOrangeFrame': 5, 'kLightBrownWithYellowFrame': 6, 'kRed': 10, 'kPurple': 11,
+    'kLightBrownWithRedFrame': 12, 'kLightBlue': 13, 'kGreen': 14,
 
     # inner frames
     'kGrayFrame': 0x10, 'kWhiteFrame': 0x20, 'kBlackFrame': 0x30, 'kBrownFrame': 0x40,

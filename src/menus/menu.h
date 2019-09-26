@@ -195,7 +195,7 @@ class EntryLeftSkip : EntryElement {
     byte skipLeftEntry;
     byte directionLeft;
 public:
-    EntryLeftSkip(byte directionLeft, byte skipLeftEntry)
+    EntryLeftSkip(byte skipLeftEntry, byte directionLeft)
         : EntryElement(kLeftSkip), skipLeftEntry(skipLeftEntry), directionLeft(directionLeft) {}
 };
 
@@ -203,7 +203,7 @@ class EntryRightSkip : EntryElement {
     byte skipRightEntry;
     byte directionRight;
 public:
-    EntryRightSkip(byte directionRight, byte skipRightEntry)
+    EntryRightSkip(byte skipRightEntry, byte directionRight)
         : EntryElement(kRightSkip), skipRightEntry(skipRightEntry), directionRight(directionRight) {}
 };
 
@@ -211,7 +211,7 @@ class EntryUpSkip : EntryElement {
     byte skipUpEntry;
     byte directionUp;
 public:
-    EntryUpSkip(byte directionUp, byte skipUpEntry)
+    EntryUpSkip(byte skipUpEntry, byte directionUp)
         : EntryElement(kUpSkip), skipUpEntry(skipUpEntry), directionUp(directionUp) {}
 };
 
@@ -219,7 +219,7 @@ class EntryDownSkip : EntryElement {
     byte skipDownEntry;
     byte directionDown;
 public:
-    EntryDownSkip(byte directionDown, byte skipDownEntry)
+    EntryDownSkip(byte skipDownEntry, byte directionDown)
         : EntryElement(kDownSkip), skipDownEntry(skipDownEntry), directionDown(directionDown) {}
 };
 
@@ -258,13 +258,10 @@ static inline Menu *getCurrentMenu()
 
 static inline MenuEntry *getMenuEntryAddress(int ordinal)
 {
-    assert(ordinal >= 0 && ordinal < 256);
+    assert(ordinal >= 0 && ordinal < 255);
 
-    D0 = ordinal;
-    CalcMenuEntryAddress();
-
-    assert(A0.asInt() != 0);
-    return A0.as<MenuEntry *>();
+    auto ptr = g_currentMenu + sizeof(Menu) + ordinal * sizeof(MenuEntry);
+    return reinterpret_cast<MenuEntry *>(ptr);
 }
 
 static inline void drawMenuItem(MenuEntry *entry)
@@ -290,7 +287,7 @@ static inline void drawMenuText(int x, int y, const char *text, int color = kWhi
     D1 = x;
     D2 = y;
     D3 = color;
-    A1 = smallCharsTable;
+    A1 = &smallCharsTable;
     A0 = text;
     DrawMenuText();
 }
@@ -301,7 +298,7 @@ static inline void drawMenuTextCentered(int x, int y, const char *text, int colo
     D1 = x;
     D2 = y;
     D3 = color;
-    A1 = smallCharsTable;
+    A1 = &smallCharsTable;
     A0 = text;
     SAFE_INVOKE(DrawMenuTextCentered);
 }
@@ -326,8 +323,38 @@ static inline void redrawMenuBackground(int lineFrom, int lineTo)
     memcpy(linAdr384k + offset, linAdr384k + 128 * 1024 + offset, length);
 }
 
-using MouseWheelEntryList = std::vector<std::tuple<int, int, int>>;
+static inline void selectEntry(int ordinal)
+{
+    assert(ordinal >= 0 && ordinal < 255);
+
+    if (ordinal >= 0 && ordinal < 255) {
+        auto entry = getMenuEntryAddress(ordinal);
+
+        assert(entry->onSelect);
+        if (entry->onSelect)
+            entry->onSelect();
+    }
+}
+
+static inline bool inputText(char *destBuffer, int maxLength, bool allowExtraChars = false)
+{
+    A0 = destBuffer;
+    D0 = maxLength;
+    g_allowExtraCharsFlag = allowExtraChars;
+    SAFE_INVOKE(InputText);
+}
+
+struct MouseWheelEntry {
+    MouseWheelEntry(int ordinal, int scrollUpEntry, int scrollDownEntry)
+        : ordinal(ordinal), scrollUpEntry(scrollUpEntry), scrollDownEntry(scrollDownEntry) {}
+    int ordinal;
+    int scrollUpEntry;
+    int scrollDownEntry;
+};
+
+using MouseWheelEntryList = std::vector<MouseWheelEntry>;
 void setMouseWheelEntries(const MouseWheelEntryList& mouseWheelEntries);
-int getStringPixelLength(const char *str);
-void elideString(char *str, int len, int maxPixels);
+void setGlobalWheelEntries(int upEntry = -1, int downEntry = -1);
+int getStringPixelLength(const char *str, bool bigText = false);
+void elideString(char *str, int maxStrLen, int maxPixels, bool bigText = false);
 bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum);

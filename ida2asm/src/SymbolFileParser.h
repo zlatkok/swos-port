@@ -30,8 +30,22 @@ public:
     const StringList& imports() const;
 
 private:
+#pragma pack(push, 1)
+    struct ExportEntry {
+        String symbol;
+        String prefix;
+        String type;
+        String arraySize;
+        bool function = false;
+        bool functionPointer = false;
+        bool array = false;
+        bool trailingArray = false;
+    };
+#pragma pack(pop)
+
     void parseSymbolFile();
     SymbolAction getSectionName(const char *begin, const char *end);
+    const char *handlePotentialArray(const char *start, const char *p, ExportEntry& e);
     const char *addExportEntry(const char *start, const char *p);
     const char *addImportEntry(const char *start, const char *p);
     std::pair<const char *, const char *> getNextToken(const char *p);
@@ -87,21 +101,11 @@ private:
     StringMap<SymbolRangeHolder> m_procs;
     StringMap<SymbolRangeHolder> m_replacements;
 
-#pragma pack(push, 1)
-    struct ExportEntry {
-        String symbol;
-        String prefix;
-        String type;
-        String arraySize;
-        bool function = false;
-        bool functionPointer = false;
-        bool array = false;
-    };
-
     std::vector<ExportEntry> m_exportEntries;
 
     enum ImportReturnType : uint8_t { kVoid, kInt, };
 
+#pragma pack(push, 1)
     class ImportEntry {
     public:
         ImportEntry(const String& name, ImportReturnType returnType = kVoid) : m_returnType(returnType) {

@@ -133,6 +133,9 @@
     <ClCompile Include="..\src\lib\exceptions.cpp">
       <Filter>Source Files\lib</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tests\ControlOptionsMenuTest.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\stdinc.h">
@@ -201,6 +204,9 @@
     </ClInclude>
     <ClInclude Include="..\src\mocks\dirent.h">
       <Filter>Source Files\mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tests\ControlOptionsMenuTest.h">
+      <Filter>Source Files\tests</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

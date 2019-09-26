@@ -29,7 +29,6 @@ class Entry:
         self.customDrawForeground = None
 
         self.textFlags = 0
-        self.template = False
 
         self.func1 = 0
         self.color = 0

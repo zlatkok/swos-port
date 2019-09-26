@@ -1,0 +1,31 @@
+DOS SWOS limitations in regard to files:
+- files are limited to 8 characters for base name, 3 characters for extension
+- maximum of 45 files will be displayed in the menu
+
+These limitations are lifted in the following manner:
+- scroll arrows will appear if there are more than 45 files, they can be used to scroll and reach all files;
+  they scroll entire list up or down by one row when clicked (or mouse wheel moved)
+  (that increases usability limit to perhaps couple hundred of files, but having that many files is a mess anyway,
+  and it's recommended to clean them up occasionally)
+- long filenames are supported, but they will be elided (fitted into available space with "..." at the end) if
+  there is no room to display them in full; so there are more visible characters now but don't go overboard ;)
+
+Normally files are shown in 3 columns, unless there are 8 or less files, in which case they will all be in one,
+central column. If there is at least one long filename in the list and there are more than 8 files, 2 column layout
+will be used, with wider entries.
+
+Room for save filename input has been increased to 38 characters.
+
+Scroll arrows should be reachable from right-most visible entries. Going up from top-right visible file entry should
+land at top arrow, and going down from bottom-right should land at bottom arrow. Additionally, going right from
+approximately top half of right-most visible file column should lead to up arrow, and bottom half should lead to down
+arrow.
+
+Using mouse wheel on this screen when there are more than 45 files should result in scrolling, independently of the
+mouse cursor location.
+
+File extensions that SWOS recognizes when searching the directory:
+"DIY", "PRE", "SEA", "SEA", "CAR", "RPL", "TAC", "HIL"
+
+Added:
+"RPL"

@@ -62,6 +62,7 @@
     <ClInclude Include="..\ida2asm\src\OutputWriter\OutputWriter.h" />
     <ClInclude Include="..\ida2asm\src\OutputWriter\OutputWriterTemplates.h" />
     <ClInclude Include="..\ida2asm\src\OutputWriter\VerbatimOutput.h" />
+    <ClInclude Include="..\ida2asm\src\ParsingException.h" />
     <ClInclude Include="..\ida2asm\src\References.h" />
     <ClInclude Include="..\ida2asm\src\Struct.h" />
     <ClInclude Include="..\ida2asm\src\SymbolFileParser.h" />
@@ -124,12 +125,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\OutputWriter;$(ProjectDir)..\ida2asm\src\OutputItem;$(ProjectDir)..\ida2asm\src\Util;$(ProjectDir)$(ProjectName)\$(Configuration)\;$(IncludePath)</IncludePath>
-    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\OutputWriter;$(ProjectDir)..\ida2asm\src\OutputItem;$(ProjectDir)..\ida2asm\src\Util;$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <IntDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\OutputWriter;$(ProjectDir)..\ida2asm\src\OutputItem;$(ProjectDir)..\ida2asm\src\Util;$(ProjectDir)$(ProjectName)\$(Configuration)\;$(IncludePath)</IncludePath>
-    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\OutputWriter;$(ProjectDir)..\ida2asm\src\OutputItem;$(ProjectDir)..\ida2asm\src\Util;$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <IntDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

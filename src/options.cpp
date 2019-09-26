@@ -234,7 +234,7 @@ void exitOptions()
         saveOptions();
     } else if (controlsStatus == 0x30 && ++showPrereleaseCounter == 15) {
         auto entry = getMenuEntryAddress(OptionsMenu::Entries::secret);
-        entry->invisible = 0;
+        entry->show();
     }
 }
 

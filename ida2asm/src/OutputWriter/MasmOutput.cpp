@@ -52,6 +52,10 @@ bool MasmOutput::output(OutputFlags flags, CToken *openingSegment /* = nullptr *
     m_currentSegment = openingSegment;
 
     out(m_outputPrefix);
+
+    if (!m_outputPrefix.empty())
+        out(Util::kNewLine);
+
     outputCExternDefs();
 
     bool result = true;
@@ -213,8 +217,6 @@ void MasmOutput::outputStruct(Struct& struc)
 
 void MasmOutput::outputCExternDefs()
 {
-    out(Util::kNewLine);
-
     for (int i = 0; i < kNumAmigaRegisters; i++) {
         const auto& regName = indexToAmigaRegister(i);
         out(regName, " EQU _", regName, Util::kNewLine);

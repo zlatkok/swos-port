@@ -42,12 +42,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
-    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\Util;$(ProjectDir)ida2asm\$(Configuration);$(IncludePath)</IncludePath>
+    <IntDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\Util;$(ProjectDir)..\tmp\ida2asm-$(Configuration);$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
-    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\Util;$(ProjectDir)ida2asm\$(Configuration);$(IncludePath)</IncludePath>
+    <IntDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\ida2asm\src;$(ProjectDir)..\ida2asm\src\Util;$(ProjectDir)..\tmp\ida2asm-$(Configuration);$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -55,6 +57,9 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -67,6 +72,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

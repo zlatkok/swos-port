@@ -23,6 +23,7 @@ protected:
         CaseProc init;
         CaseProc proc;
         size_t numTests = 1;
+        bool allowScreenshots = true;
     };
     using CaseList = std::vector<Case>;
 

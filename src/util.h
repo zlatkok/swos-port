@@ -29,11 +29,13 @@ void restore68kRegisters();
 size_t hash(const void *buffer, size_t length);
 int getRandomInRange(int min, int max);
 
-int setZeroFlagAndD0();
+int setZeroFlagAndD0FromAl();
 
 bool isMatchRunning();
 
 void beep();
+
+bool isDebuggerPresent();
 
 #ifdef DEBUG
 void debugBreakIfDebugged();

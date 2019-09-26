@@ -4,8 +4,6 @@ import Constants
 from Entry import Entry
 from Entry import ResetTemplateEntry
 
-import copy
-
 class Menu:
     def __init__(self):
         self.properties = {
@@ -17,7 +15,7 @@ class Menu:
         self.entries = {}
         self.variables = {}
         self.templateEntry = Entry()
-        self.gotTemplate = False
+        self.templateActive = False
         self.name = ''
 
         self.lastEntry = None
@@ -35,7 +33,11 @@ class Menu:
         entry, internalName = self.createNewEntry(name, isTemplate)
 
         self.entries[internalName] = entry
-        if not isTemplate:
+
+        if isTemplate:
+            self.templateEntry = entry
+            self.templateActive = True
+        else:
             self.lastEntry = entry
 
         return entry
@@ -48,8 +50,6 @@ class Menu:
 
     def createNewTemplateEntry(self, isReset=False):
         entry = ResetTemplateEntry() if isReset else Entry()
-        entry.template = True
-        entry.width = entry.height = 1              # to avoid assert
         entry.ordinal = Constants.kTemplateEntryOrdinalStart + len(self.entries)
         internalName = f'{len(self.entries):02}'    # use a number since it can't be assigned to entry name by the user
 
@@ -58,7 +58,10 @@ class Menu:
     def createNewStandardEntry(self, name):
         assert isinstance(name, str)
 
-        entry = copy.copy(self.templateEntry)
+        entry = Entry()
+        for property in ('x', 'y', 'width', 'height'):
+            value = getattr(self.templateEntry, property)
+            setattr(entry, property, value)
 
         internalName = name
         if not name:
@@ -69,9 +72,20 @@ class Menu:
 
         return entry, internalName
 
-    def getNextEntryOrdinal(self):
+    def numEntries(self):
+        numEntries = 0
+        for currentEntry in self.entries.values():
+            if isinstance(currentEntry, Entry) and not currentEntry.isTemplate():
+                numEntries += 1
+
+        return numEntries
+
+    def getLastEntryOrdinal(self):
         for currentEntry in reversed(list(self.entries.values())):
-            if isinstance(currentEntry, Entry) and not currentEntry.template:
-                return currentEntry.ordinal + 1
-        else:
-            return 0
+            if isinstance(currentEntry, Entry) and not currentEntry.isTemplate():
+                return currentEntry.ordinal
+
+        return -1
+
+    def getNextEntryOrdinal(self):
+        return self.getLastEntryOrdinal() + 1

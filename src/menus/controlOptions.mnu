@@ -53,6 +53,7 @@ Menu controlOptionsMenu
 
 #repeat kNumControlEntries
     Entry #join(pl1Control, #i) {
+        color: @kLightBlue
         text: @kAlloc
 
         upEntry: <
@@ -116,6 +117,7 @@ Menu controlOptionsMenu
 
 #repeat kNumControlEntries
     Entry #join(pl2Control, #i) {
+        color: @kLightBlue
         text: @kAlloc
 
         upEntry: <
@@ -168,6 +170,8 @@ Menu controlOptionsMenu
 
         onSelect: pl2ScrollDownSelected
     }
+
+    defaultColor: @kGreen
 
     Entry pl2RedefineControls {
         y: pl2Control0.endY + kNumControlEntries * pl2Control0.height + kNextPartGap

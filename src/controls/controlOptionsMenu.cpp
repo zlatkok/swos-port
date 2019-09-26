@@ -90,9 +90,9 @@ static void setupPlayerControlEntries(PlayerNumber player)
 
     int numJoypads = SDL_NumJoysticks();
 
-    int showScrollArrows = numJoypads > (player == kPlayer1 ? 2 : 1);
-    getMenuEntryAddress(scrollUp)->invisible = !showScrollArrows;
-    getMenuEntryAddress(scrollDown)->invisible = !showScrollArrows;
+    bool showScrollArrows = numJoypads > (player == kPlayer1 ? 2 : 1);
+    getMenuEntryAddress(scrollUp)->setVisible(showScrollArrows);
+    getMenuEntryAddress(scrollDown)->setVisible(showScrollArrows);
 
     if (!showScrollArrows || *scrollOffset > numJoypads - initiallyVisisbleJoypadEntries)
         *scrollOffset = 0;
@@ -147,7 +147,7 @@ static void setupPlayerControlEntries(PlayerNumber player)
     }
 
     while (entriesFilled < kNumControlEntries)
-        baseEntry[entriesFilled++].invisible = 1;
+        baseEntry[entriesFilled++].hide();
 
     assert(entriesFilled == kNumControlEntries);
 }

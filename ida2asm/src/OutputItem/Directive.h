@@ -41,7 +41,7 @@ private:
 
     uint8_t m_directiveLenght;
     uint8_t m_numParams;
-    DirectiveType m_type;
+    DirectiveType m_type = kNone;
     // followed by directive text, params (length then text)
 };
 #pragma pack(pop)

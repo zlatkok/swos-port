@@ -184,9 +184,15 @@ class CodeGenerator:
                 out(f'\n    ResetTemplateEntry rte{resetTemplateIndex:02}{{}};')
                 resetTemplateIndex += 1
                 continue
-            elif entry.template:
+            elif entry.isTemplate():
                 out(f'\n    TemplateEntry te{templateIndex:02}{{}};')
                 templateIndex += 1
+
+                # set width/height to non-zero value to avoid triggering the assert
+                for property in ('width', 'height'):
+                    value = getattr(entry, property)
+                    if not value or value == '0':
+                        setattr(entry, property, 1)
             else:
                 if entry.menuX != currentMenuX or entry.menuY != currentMenuY:
                     outputMenuXY(entry.menuX, entry.menuY, entry.ordinal)
@@ -221,7 +227,7 @@ class CodeGenerator:
 
         exportedOrdinals = False
         for entry in menu.entries.values():
-            if not entry.template and entry.name:
+            if not entry.isTemplate() and entry.name:
                 out(f'        {entry.name} = {entry.ordinal},')
                 exportedOrdinals = True
 
@@ -295,7 +301,7 @@ class CodeGenerator:
                 if newDirection == '-1':
                     newDirection = Constants.kConstants['k' + direction]
 
-                result.append(f'Entry{direction}Skip e{direction[0].lower()}s{ord}{{ {newDirection}, {skip} }};')
+                result.append(f'Entry{direction}Skip e{direction[0].lower()}s{ord}{{ {skip}, {newDirection} }};')
 
         if entry.controlsMask:
             result.append(f'EntryOnSelectFunctionWithMask eosfm{ord}{{ {entry.onSelect}, {entry.controlsMask} }};')

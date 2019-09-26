@@ -12,5 +12,7 @@ class SelectFilesMenuTest : public BaseTest
     CaseList getCases() override;
 
 private:
-    void test() {}
+    void setupLoadingCompetitionTest();
+    void testLoadingCompetition();
+    void testStringElision();
 };

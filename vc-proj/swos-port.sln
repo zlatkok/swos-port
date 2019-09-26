@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29230.47
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "swos-port", "swos-port.vcxproj", "{D4D7FBF9-503F-4213-8557-9A7EA57658A4}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -23,6 +23,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "token-lookup-tester", "toke
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "..\tests\vc-proj\tests.vcxproj", "{D2A66351-08F8-4356-8373-E45E792663B3}"
 	ProjectSection(ProjectDependencies) = postProject
+		{EABE2029-C1E5-4E1B-95C7-07812E6724CF} = {EABE2029-C1E5-4E1B-95C7-07812E6724CF}
 		{D4D7FBF9-503F-4213-8557-9A7EA57658A4} = {D4D7FBF9-503F-4213-8557-9A7EA57658A4}
 	EndProjectSection
 EndProject
@@ -61,5 +62,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8AFDC65C-B406-4A16-9FC6-05DF30207A39}
 	EndGlobalSection
 EndGlobal

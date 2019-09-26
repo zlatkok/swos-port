@@ -224,6 +224,25 @@ class TestPreprocessor(unittest.TestCase):
             (('Searching for a paradise: ', 4, 33, 35), 8),
             (('Searching for a paradise: ', 5, 33, 35), 8),
         )),
+        ('''Menu GeorgyPorgy
+            {
+                export kMaxColumns = 3
+                export kMaxEntriesPerColumn = 2
+
+                #repeat kMaxColumns
+                    #repeat kMaxEntriesPerColumn
+                        #print #i, #j, #{i * kMaxEntriesPerColumn + j}:02
+                    #endRepeat
+                #endRepeat
+            }
+        ''', (
+            ((0, 0, '00'), 8),
+            ((0, 1, '01'), 8),
+            ((1, 0, '02'), 8),
+            ((1, 1, '03'), 8),
+            ((2, 0, '04'), 8),
+            ((2, 1, '05'), 8),
+        )),
     )
     def testRepeat(self, testData, mockPrint):
         input, expectedOutput = testData

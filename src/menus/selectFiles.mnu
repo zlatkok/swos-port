@@ -8,15 +8,17 @@ Menu selectFilesMenu
 {
     export kMaxColumns = 3
     export kMaxEntriesPerColumn = 15
-    kNumFilenameItems = kMaxColumns * kMaxEntriesPerColumn
+    export kNumFilenameItems = kMaxColumns * kMaxEntriesPerColumn
     export kFilenameHeight = 8
+
+    kDescriptionWidth = 39
+    export kMaxSaveFilenameChars = 38
+    kSaveFileInputWidth = (kMaxSaveFilenameChars + 1) * 6
 
     onInit: selectFilesOnInit
     onReturn: selectFilesOnReturn
 
-//defaultEntry:
-//fix width
-    defaultWidth: 21
+    initialEntry: #join(fileEntry_,#{kMaxEntriesPerColumn}:02)
 
     Entry title {
         x: 2
@@ -28,9 +30,9 @@ Menu selectFilesMenu
         text: @kNull
     }
 
-    y: -1
-
     TemplateEntry {
+        width: 42
+
         color: @kLightBrownWithYellowFrame
         text: @kAlloc
 
@@ -38,22 +40,68 @@ Menu selectFilesMenu
         beforeDraw: drawDescription
     }
 
-#repeat kNumFilenameItems
-    Entry #join(fileEntry_, #{i}:02) {
-        x: #{i < 15 ? 20 : 300}
-        y: #{i * 9 + 20}
-        height: kFilenameHeight
-    }
+    export kFirstEntry = @currentOrd + 1
+
+#repeat kMaxColumns => column
+    #repeat kMaxEntriesPerColumn => row
+        Entry #join(fileEntry_, #{column * kMaxEntriesPerColumn + row}:02) {
+            height: kFilenameHeight
+
+            leftEntry: #{column ? kFirstEntry + (column - 1) * kMaxEntriesPerColumn + row : -1}
+            rightEntry: #{column < kMaxColumns - 1 ? kFirstEntry + (column + 1) * kMaxEntriesPerColumn + row : -1}
+            upEntry: #{row > 0 ? kFirstEntry + column * kMaxEntriesPerColumn + row - 1 : -1}
+            downEntry: #{row < kMaxEntriesPerColumn - 1 ? kFirstEntry + column * kMaxEntriesPerColumn + row + 1 : -1}
+
+            skipLeft: #{column == 0 && row > 0 ? kFirstEntry + kMaxEntriesPerColumn - 1 : -1}
+            directionLeft: #{column == 0 && row > 0 ? @kUp : -1}
+            skipRight: #{column == kMaxColumns - 1 && row > 0 ? kFirstEntry + (column + 1) * kMaxEntriesPerColumn - 1 : -1}
+            directionRight: #{column == kMaxColumns - 1 && row > 0 ? @kUp : -1}
+        }
+    #endRepeat
 #endRepeat
 
+    ResetTemplate
+
+#repeat kMaxColumns => column
+    #join(fileEntry_, #{(column + 1) * kMaxEntriesPerColumn - 1}:02)
+        .downEntry = inputSaveFilename
+    #join(fileEntry_, #{column * kMaxEntriesPerColumn}:02)
+        .upEntry = arrowUp
+#endRepeat
+
+#repeat kMaxEntriesPerColumn / 2 => row
+    #join(fileEntry_, #{(kMaxColumns - 1) * kMaxEntriesPerColumn + row}:02)
+        .rightEntry = arrowUp
+#endRepeat
+
+#repeat (kMaxEntriesPerColumn + 1) / 2 => row
+    #join(fileEntry_, #{(kMaxColumns - 1) * kMaxEntriesPerColumn + kMaxEntriesPerColumn / 2 + row}:02)
+        .rightEntry = arrowDown
+#endRepeat
+
+    export kLastFilenameOrdinal = @prevOrdinal
+
+    Entry description {
+        width: kDescriptionWidth
+        height: kFilenameHeight
+        invisible: true
+        color: @kOrangeWithOrangeFrame
+        text: @kNull
+    }
+
     Entry inputSaveFilename {
-        x: 112
+        x: (@kScreenWidth - kSaveFileInputWidth - 8) / 2
         y: 152
-        width: 80
-        height: 8
+        width: kSaveFileInputWidth
+        height: kFilenameHeight
+
         invisible: true
         color: @kLightBlue
         text: @kAlloc
+
+        upEntry: #{kFirstEntry + ((kMaxColumns - 1) / 2 + 1) * kMaxEntriesPerColumn - 1}
+        downEntry: saveLabel
+
         onSelect: inputFilenameToSave
     }
 
@@ -62,9 +110,16 @@ Menu selectFilesMenu
         y: 165
         width: 62
         height: 15
+
         invisible: true
         color: @kGreen
         text: aSave
+
+        leftEntry: kFirstEntry + kMaxEntriesPerColumn - 1
+        rightEntry: kFirstEntry + kMaxColumns * kMaxEntriesPerColumn - 1
+        upEntry: inputSaveFilename
+        downEntry: abort
+
         onSelect: saveFileSelected
     }
 
@@ -73,19 +128,30 @@ Menu selectFilesMenu
         y: 185
         width: 62
         height: 15
+
         color: @kRed
         text: aAbort
+
+        leftEntry: saveLabel.leftEntry
+        rightEntry: saveLabel.rightEntry
+        upEntry: saveLabel
+
         onSelect: abortSaveFile
     }
 
+    defaultX: @kScreenWidth - kScrollArrowWidth - 14
     defaultWidth: kScrollArrowWidth
     defaultHeight: kScrollArrowHeight
 
     Entry arrowUp {
         sprite: kUpArrowSpriteIndex
+        downEntry: arrowDown
+        onSelect: scrollUp
     }
 
     Entry arrowDown {
         sprite: kDownArrowSpriteIndex
+        upEntry: arrowUp
+        onSelect: scrollDown
     }
 }

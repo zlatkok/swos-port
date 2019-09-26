@@ -69,6 +69,11 @@ static int getSubnodeIndex(const Node& node, const char *filename, size_t len)
     return -1;
 }
 
+static bool isFinalComponent(const char *path)
+{
+    return !path || !*path || (*path == '.' && (!path[1] || (path[1] == getDirSeparator() && !path[1])));
+}
+
 template<typename F>
 void visitEachPathComponent(const char *path, F f)
 {
@@ -78,9 +83,10 @@ void visitEachPathComponent(const char *path, F f)
         auto [nextComponent, len] = extractNextPathComponent(currentComponent);
         assert(len);
 
-        bool isFinalComponent = nextComponent == nullptr;
-        auto keepIterating = f(currentComponent, len, isFinalComponent);
-        if (!keepIterating || isFinalComponent)
+        bool finalComponent = isFinalComponent(nextComponent);
+        auto keepIterating = f(currentComponent, len, finalComponent);
+
+        if (!keepIterating || finalComponent)
             break;
 
         currentComponent = nextComponent;
@@ -93,44 +99,74 @@ void resetFakeFiles()
     m_nodes[0].children.clear();
 }
 
-void addFakeFiles(const MockFileList& files)
+static const char *ignoreVolume(const char *path)
 {
+    if (path && isalpha(*path) && path[1] == ':')
+        path += 3;
+
+    return path;
+}
+
+static void addNode(const char *path, NodeType nodeType, const char *data = nullptr, size_t size = 0)
+{
+    assert(nodeType == kFile || nodeType == kDirectory);
     assert(!m_nodes.empty() && m_nodes[0].isDirectory());
 
-    for (const auto& file : files) {
-        size_t currentDirIndex = 0;
+    path = ignoreVolume(path);
 
-        visitEachPathComponent(file.path, [&](const char *component, size_t len, bool isLastComponent) {
-            assert(currentDirIndex < m_nodes.size() && m_nodes[currentDirIndex].isDirectory());
+    size_t currentDirIndex = 0;
 
-            auto subnodeIndex = getSubnodeIndex(m_nodes[currentDirIndex], component, len);
-            if (subnodeIndex >= 0) {
-                auto& subNode = m_nodes[subnodeIndex];
-                if (subNode.isDirectory()) {
-                    currentDirIndex = subnodeIndex;
-                    return true;
-                } else if (isLastComponent) {
-                    assert(subNode.isFile() && subNode.children.empty());
-                    subNode.data = file.data;
-                    subNode.size = file.size;
-                    return false;
+    visitEachPathComponent(path, [&](const char *component, size_t len, bool isLastComponent) {
+        assert(currentDirIndex < m_nodes.size() && m_nodes[currentDirIndex].isDirectory());
+
+        auto subnodeIndex = getSubnodeIndex(m_nodes[currentDirIndex], component, len);
+        if (subnodeIndex >= 0) {
+            auto& subNode = m_nodes[subnodeIndex];
+            if (subNode.isDirectory()) {
+                currentDirIndex = subnodeIndex;
+                return true;
+            } else if (isLastComponent) {
+                assert(nodeType != kFile || (subNode.isFile() && subNode.children.empty()));
+                if (nodeType == kFile) {
+                    subNode.data = data;
+                    subNode.size = size;
+                } else {
+                    subNode.data = nullptr;
+                    subNode.size = 0;
                 }
+                return false;
             }
+        }
 
-            if (isLastComponent)
-                m_nodes.emplace_back(kFile, std::string(component, len), file.data, file.size);
-            else
-                m_nodes.emplace_back(kDirectory, std::string(component, len));
+        if (isLastComponent)
+            m_nodes.emplace_back(nodeType, std::string(component, len), data, size);
+        else
+            m_nodes.emplace_back(kDirectory, std::string(component, len));
 
-            auto nodeIndex = m_nodes.size() - 1;
-            m_nodes[currentDirIndex].children.push_back(nodeIndex);
-            currentDirIndex = nodeIndex;
+        auto nodeIndex = m_nodes.size() - 1;
+        m_nodes[currentDirIndex].children.push_back(nodeIndex);
+        currentDirIndex = nodeIndex;
 
-            return !isLastComponent;
-        });
-    }
+        return !isLastComponent;
+    });
+}
+
+void addFakeFiles(const MockFileList& files)
+{
+    for (const auto& file : files)
+        addFakeFile(file);
 
     m_enableMocking = true;
+}
+
+void addFakeFile(const MockFile& file)
+{
+    addNode(file.path, kFile, file.data, file.size);
+}
+
+void addFakeDirectory(const char *path)
+{
+    addNode(path, kDirectory);
 }
 
 static std::tuple<int, int, int> findNodeAndParent(const char *path)
@@ -168,6 +204,7 @@ static std::tuple<int, int, int> findNodeAndParent(const char *path)
 
 static int findNode(const char *path)
 {
+    path = ignoreVolume(path);
     auto result = findNodeAndParent(path);
     return std::get<0>(result);
 }
@@ -241,6 +278,7 @@ dirent *readdir(DIR *dirp)
 
 
 #define dirExists dirExists_REAL
+std::string pathInRootDir_REAL(const char *filename);
 #define pathInRootDir pathInRootDir_REAL
 int loadFile_REAL(const char *path, void *buffer, bool required = true);
 #define loadFile loadFile_REAL

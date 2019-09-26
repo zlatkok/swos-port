@@ -97,11 +97,23 @@ bool String::endsWith(char c) const
     return m_length > 0 && m_str[m_length - 1] == c;
 }
 
+String String::withoutLast() const
+{
+    assert(m_length > 0);
+    return substr(0, m_length - 1);
+}
+
 String String::substr(int from, int len) const
 {
-    assert(from >= 0 && from < static_cast<int>(m_length) && (len < 0 || from + len < static_cast<int>(m_length)));
+    assert(from >= 0 && from < static_cast<int>(m_length) && (len < 0 || from + len <= static_cast<int>(m_length)));
 
     return String(m_str + from, len < 0 ? m_length - from : len);
+}
+
+void String::removeLast()
+{
+    assert(m_length > 0);
+    m_length--;
 }
 
 void String::clear()

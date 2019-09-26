@@ -1,5 +1,6 @@
 #include "Directive.h"
 #include "Util.h"
+#include "ParsingException.h"
 
 Directive::Directive(CToken *begin, CToken *end)
 {
@@ -18,7 +19,6 @@ Directive::Directive(CToken *begin, CToken *end)
         m_type = kAssume;
         assert(begin && begin < end);
     } else {
-        m_type = kNone;
         auto p = directive->text() + 1;
 
         if (directive->textLength == 4) {
@@ -51,10 +51,12 @@ Directive::Directive(CToken *begin, CToken *end)
             assert(begin && begin < end);
             if (*begin == "flat")
                 m_type = kModelFlat;
-            else
-                assert(false);
-        } else
-            assert(false && "unknown directive");
+        }
+    }
+
+    if (m_type == kNone) {
+        assert(false && "unknown directive");
+        throw ParsingException("invalid directive: \"" + directive->string() + '"', directive);
     }
 
     Util::assignSize(m_directiveLenght, directive->textLength);

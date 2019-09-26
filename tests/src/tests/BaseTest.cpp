@@ -2,6 +2,7 @@
 #include "unitTest.h"
 #include "util.h"
 #include "render.h"
+#include "menu.h"
 #include "bmpWriter.h"
 #include <iomanip>
 #include <future>
@@ -64,7 +65,7 @@ auto BaseTest::runTestsWithTimeoutCheck(const TestOptions& options, const TestNa
         auto currentTest = m_currentTestPacked.load();
         auto now = std::chrono::high_resolution_clock::now();
 
-        if (currentTest == lastTest) {
+        if (!isDebuggerPresent() && currentTest == lastTest) {
             auto msSinceLastTestChanged = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastCheckTime);
             if (msSinceLastTestChanged.count() >= options.timeout) {
                 auto [testIndex, caseIndex, dataIndex] = unpackCurrentTest();
@@ -227,7 +228,7 @@ void BaseTest::runTestCase(BaseTest *test, const Case& testCase, size_t i, const
             throw;
     }
 
-    if (options.doSnapshots)
+    if (options.doSnapshots && testCase.allowScreenshots)
         takeSnapshot(options.snapshotsDir, test->name(), testCase.name, i);
 }
 
@@ -288,6 +289,10 @@ static RgbQuad *getMenuPalette()
 void BaseTest::takeSnapshot(const char *snapshotDir, const char *testName, const char *caseName, int caseInstanceIndex)
 {
     static std::vector<std::future<void>> forgottenFutures; // it's not stupid if it works ;)
+
+    // skip tests that don't show menus, currently no better way to check since main menu always gets shown at start
+    if (std::count(linAdr384k, linAdr384k + kVgaScreenSize, 0) == kVgaScreenSize)
+        return;
 
     auto screen = new char[kVgaScreenSize];
     memcpy(screen, linAdr384k, kVgaScreenSize);

@@ -90,7 +90,10 @@ kTestData = (
 
             TemplateEntry {
                 stringTable: [ Indianapolis, 2002, "1" ]
+                color: @kLightBrownWithYellowFrame
+                beforeDraw: aperitif
             }
+
             Entry Madera {
                 sprite: 1001
             }
@@ -110,7 +113,7 @@ kTestData = (
     ''', {
         'functions': (
             'someCoolInit', 'hereIAm', 'danceSnake', 'uncleSamNeedsYOU', 'drawYellow', 'drawRed',
-            'returnOfThePhantom', 'prepareWell', 'pumpItUp'
+            'returnOfThePhantom', 'prepareWell', 'pumpItUp', 'aperitif',
         ),
         'menus': ['Charlie', 'Bravo', 'Tango', 'Delta'],
         'stringTables': ((1, 3), (
@@ -175,6 +178,8 @@ kTestData = (
                 {'id': 'te00',    'type': 'TemplateEntry', 'params': []},
                 {'id': 'eb30000', 'type': 'Entry',      'params': ['0', '0', '1', '1']},
                 {'id': 'est30000', 'type': 'EntryStringTable', 'params': ['0', '&Tango_30000_stringTable']},
+                {'id': 'ec30000', 'type': 'EntryColor', 'params': ['6']},
+                {'id': 'ebdf30000', 'type': 'EntryBeforeDrawFunction', 'params': ['aperitif']},
                 {'id': 'ee30000', 'type': 'EntryEnd',   'params': []},
 
                 {'id': 'eb00',    'type': 'Entry',      'params': ['0', '0', '0', '0']},
@@ -186,8 +191,8 @@ kTestData = (
                 {'id': 'menuXY01', 'type': 'MenuXY',    'params': ['125', '35']},
 
                 {'id': 'eb01',    'type': 'Entry',      'params': ['0', '0', '0', '0']},
-                {'id': 'els01',   'type': 'EntryLeftSkip', 'params': ['0', '2']},
-                {'id': 'ers01',   'type': 'EntryRightSkip', 'params': ['1', '0']},
+                {'id': 'els01',   'type': 'EntryLeftSkip', 'params': ['2', '0']},
+                {'id': 'ers01',   'type': 'EntryRightSkip', 'params': ['0', '1']},
                 {'id': 'ee01',    'type': 'EntryEnd',   'params': []},
 
                 {'id': 'menuEnd', 'type': 'MenuEnd',    'params': []},

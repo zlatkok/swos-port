@@ -34,30 +34,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="swos-asm\swos-08.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
-    <CustomBuild Include="swos-asm\swos-01.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
-    <CustomBuild Include="swos-asm\swos-02.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
-    <CustomBuild Include="swos-asm\swos-03.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
-    <CustomBuild Include="swos-asm\swos-04.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
-    <CustomBuild Include="swos-asm\swos-05.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
-    <CustomBuild Include="swos-asm\swos-06.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
-    <CustomBuild Include="swos-asm\swos-07.asm">
-      <Filter>Source Files\swos-asm</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\src\menus\options.mnu">
       <Filter>Source Files\menus</Filter>
     </CustomBuild>
@@ -84,6 +60,30 @@
     </CustomBuild>
     <CustomBuild Include="..\src\menus\selectFiles.mnu">
       <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-01.asm">
+      <Filter>Source Files\swos-asm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-02.asm">
+      <Filter>Source Files\swos-asm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-03.asm">
+      <Filter>Source Files\swos-asm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-04.asm">
+      <Filter>Source Files\swos-asm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-05.asm">
+      <Filter>Source Files\swos-asm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-06.asm">
+      <Filter>Source Files\swos-asm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-07.asm">
+      <Filter>Source Files\swos-asm</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\tmp\swos-asm\swos-08.asm">
+      <Filter>Source Files\swos-asm</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

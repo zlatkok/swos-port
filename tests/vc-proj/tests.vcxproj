@@ -69,14 +69,18 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\include;$(SolutionDir)..\include\SDL2;$(OutDir);$(SolutionDir)..\include\adlmidi;$(SolutionDir)..\include\crashrpt;$(SolutionDir)..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\src;$(SolutionDir)..\src\audio;$(SolutionDir)..\src\controls;$(SolutionDir)..\src\debug;$(SolutionDir)..\src\files;$(SolutionDir)..\src\menus;$(SolutionDir)..\src\video;$(SolutionDir)swos-asm;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);..\..\lib\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
-    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\include;$(SolutionDir)..\include\SDL2;$(OutDir);$(SolutionDir)..\include\adlmidi;$(SolutionDir)..\include\crashrpt;$(SolutionDir)..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\src;$(SolutionDir)..\src\audio;$(SolutionDir)..\src\controls;$(SolutionDir)..\src\debug;$(SolutionDir)..\src\files;$(SolutionDir)..\src\menus;$(SolutionDir)..\src\video;$(SolutionDir)..\tmp\swos-asm;$(SolutionDir)..\tmp\swos-port-$(Configuration);$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\tmp\sdl-address-table-fetcher-$(Configuration);$(SolutionDir)..\tmp\swos-port-$(Configuration);..\..\lib\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IntDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(Configuration)</TargetName>
+    <OutDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\include;$(SolutionDir)..\include\SDL2;$(OutDir);$(SolutionDir)..\include\adlmidi;$(SolutionDir)..\include\crashrpt;$(SolutionDir)..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\tests;$(SolutionDir)..\src;$(SolutionDir)..\src\audio;$(SolutionDir)..\src\controls;$(SolutionDir)..\src\debug;$(SolutionDir)..\src\files;$(SolutionDir)..\src\menus;$(SolutionDir)..\src\video;$(SolutionDir)swos-asm;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OutDir);..\..\lib\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
-    <IntDir>$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\include;$(SolutionDir)..\include\SDL2;$(OutDir);$(SolutionDir)..\include\adlmidi;$(SolutionDir)..\include\crashrpt;$(SolutionDir)..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\src;$(SolutionDir)..\src\audio;$(SolutionDir)..\src\controls;$(SolutionDir)..\src\debug;$(SolutionDir)..\src\files;$(SolutionDir)..\src\menus;$(SolutionDir)..\src\video;$(SolutionDir)..\tmp\swos-asm;$(SolutionDir)..\tmp\swos-port-$(Configuration);$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\tmp\sdl-address-table-fetcher-$(Configuration);$(SolutionDir)..\tmp\swos-port-$(Configuration);..\..\lib\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IntDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(Configuration)</TargetName>
+    <OutDir>$(SolutionDir)..\tmp\$(ProjectName)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -99,6 +103,14 @@
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -131,6 +143,13 @@
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <CustomBuildStep>
+      <Command>copy $(SolutionDir)..\tmp\sdl-address-table-fetcher-$(Configuration)\SdlAddressTableFetcher.dll $(OutDir)</Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -180,6 +199,7 @@
     <ClCompile Include="..\src\sdlProcs.cpp" />
     <ClCompile Include="..\src\tests\BaseTest.cpp" />
     <ClCompile Include="..\src\tests\CommentaryTest.cpp" />
+    <ClCompile Include="..\src\tests\ControlOptionsMenuTest.cpp" />
     <ClCompile Include="..\src\tests\EditTacticsMenuTest.cpp" />
     <ClCompile Include="..\src\tests\SelectFilesMenuTest.cpp" />
     <ClCompile Include="..\src\tests\VideoOptionsMenuTest.cpp" />
@@ -205,6 +225,7 @@
     <ClInclude Include="..\src\sdlProcs.h" />
     <ClInclude Include="..\src\tests\BaseTest.h" />
     <ClInclude Include="..\src\tests\CommentaryTest.h" />
+    <ClInclude Include="..\src\tests\ControlOptionsMenuTest.h" />
     <ClInclude Include="..\src\tests\EditTacticsMenuTest.h" />
     <ClInclude Include="..\src\tests\SelectFilesMenuTest.h" />
     <ClInclude Include="..\src\tests\VideoOptionsMenuTest.h" />

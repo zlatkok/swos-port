@@ -67,7 +67,7 @@ aPressEscToReturnToDosOrSpaceToCont - convertKeysTable
 nextEntryDirectionOffsets
 int9Ofs
 int9Seg
-# remove select files menu too
+# select files menu (remove highlights when done too)
 dta - highlightsMenu
 aBenc2_dat
 aDemo_dat
@@ -112,7 +112,10 @@ g_soundOff, 0
 g_musicOff, 0
 g_menuMusic, 1
 g_commentary, 1
-
+# make room for long filenames (though it will be limited by UI)
+hilFilename, 256 dup(0)
+competitionFilename, 256 dup(0)
+importTacticsFilename, 256 dup(0)
 
 # these functions destroy registers C++ assumes will not change with a function call,
 # so inject the code to save and restore them
@@ -305,7 +308,7 @@ resetHilPtrFlag, word
 SortSprites, function
 numSpritesToRender, word
 sortedSprites, array Player * [79]
-spriteGraphicsPtr, SpriteGraphics **
+spriteGraphicsPtr, array SpriteGraphics *(*)
 big_S_Sprite, Player
 SaveCoordinatesForHighlights, function
 DarkenRectangle, function
@@ -359,7 +362,8 @@ ConvertMenu, function
 player1ClearFlag, word
 player2ClearFlag, word
 
-smallCharsTable, array const char
+smallCharsTable, CharTable
+bigCharsTable, CharTable
 
 spritesIndex, array SpriteGraphics *
 SavePixelsBehindSprite, function
@@ -496,8 +500,10 @@ pl1IsntPlayer, word
 
 replaySelected, word
 
-inputingText, word
 FilterKeys, function
+InputText, function
+g_inputingText, word
+g_allowExtraCharsFlag, word
 
 ZeroOutStars, function
 
@@ -544,7 +550,7 @@ diyFileBuffer, array byte
 g_numSelectedTeams, word
 teamsLoaded, word
 poolplyrLoaded, word
-impTactFilename, array char[14]
+importTacticsFilename, array char[14]
 chooseTacticsTeamPtr, void *
 
 InitCareerVariables, function
@@ -555,6 +561,7 @@ InitUserTactics, function
 # select files menu
 aAbort, array const char
 aSave, array const char
+g_skipNonCompetitionFiles, word
 
 ### tester
 chosenTactics, word
@@ -622,7 +629,7 @@ CloseSoccerBin
 PlayIntroSample
 PlayHighlightsLoop
 GetKey
-RenderReplayFrame
+ReplaySegment
 PlayReplayLoop
 DrawSprites
 OptionsMenuSelected

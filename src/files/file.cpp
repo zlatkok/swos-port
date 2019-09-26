@@ -2,7 +2,6 @@
 #include "file.h"
 #include "log.h"
 #include "util.h"
-#include "selectFilesMenu.h"
 #include <dirent.h>
 
 static std::string m_rootDir;
@@ -56,77 +55,6 @@ static int loadFile(const char *path, void *buffer, int bufferSize, bool require
     return bufferSize;
 }
 
-static bool isAllowedExtensionStartChar(char c)
-{
-    return c == 'D' || c == 'P' || c == 'S' || c == 'T' || c == 'H' || c == 'C';
-}
-
-static FileList findFiles(const char *extension)
-{
-    assert(extension && extension[0] == '.');
-
-    FileList result;
-
-    logInfo("Searching for files, extension: .%s", extension);
-
-    auto dir = opendir(!m_rootDir.empty() ? m_rootDir.c_str() : ".");
-    if (!dir)
-        sdlErrorExit("Couldn't open SWOS root directory");
-
-    bool acceptAll = extension[0] == '*';
-
-    for (dirent *entry; entry = readdir(dir); ) {
-        if (!entry->d_namlen)
-            continue;
-
-        auto dot = entry->d_name + entry->d_namlen - 1;
-        while (dot >= entry->d_name && *dot != '.')
-            dot--;
-
-        if (dot < entry->d_name)
-            continue;
-
-        if (!acceptAll) {
-            if (entry->d_namlen < 5)
-                continue;
-
-            bool match = true;
-
-            for (int i = 0; i < 3; i++) {
-                if (!dot[i + 1])
-                    break;
-                if (toupper(extension[i + 1]) != toupper(dot[i + 1])) {
-                    match = false;
-                    break;
-                }
-            }
-
-            if (!match)
-                continue;
-        } else {
-            // skip "." and ".." entries
-            if (entry->d_namlen == 1 && entry->d_name[0] == '.' ||
-                entry->d_namlen == 2 && entry->d_name[0] == '.' && entry->d_name[1] == '.')
-                continue;
-        }
-
-        char c = toupper(dot[1]);
-        if (!isAllowedExtensionStartChar(c))
-            continue;
-
-        // must make it upper case or SWOS will reject it like a cruel mother
-        toUpper(entry->d_name);
-
-        result.emplace_back(entry->d_name, dot - entry->d_name - 1);
-    }
-
-    closedir(dir);
-
-    logInfo("Found %d files", result.size());
-
-    return result;
-}
-
 int loadFile(const char *path, void *buffer, bool required /* = true */)
 {
     auto size = getFileSize(path, required);
@@ -161,85 +89,6 @@ std::pair<char *, size_t> loadFile(const char *path, size_t bufferOffset /* = 0 
         delete[] buffer;
 
     return { buffer, size + bufferOffset };
-}
-
-static bool getFilenameAndExtension()
-{
-    auto savedExtension = D0.asDword();
-
-    char extension[5];
-    *reinterpret_cast<dword *>(extension) = D0;
-    std::swap(extension[0], extension[3]);
-    std::swap(extension[1], extension[2]);
-    extension[4] = '\0';
-
-    auto menuTitle = A0.asPtr();
-    auto files = findFiles(extension);
-
-    auto selectedFilename = showSelectFilesMenu(menuTitle, false, files);
-
-    static char filenameBuffer[kMaxPath];
-    strncpy_s(filenameBuffer, sizeof(filenameBuffer), selectedFilename.c_str(), _TRUNCATE);
-
-    A0 = filenameBuffer;
-    D1 = savedExtension;
-
-    return filenameBuffer[0] != '\0';
-}
-
-// GetFilenameAndExtension
-//
-// Creates a menu from files with extension in D1, and returns the name of selected file in A0.
-//
-// in:
-//      D0 - extension to search for, 32-bit char constant, dot is in highest byte
-//      A0 -> menu title
-//      A1 ->   -||-
-// out:
-//      D0 - 1 = success (zero flag set)
-//           0 = no files selected (zero flag clear)
-//      D1 - extension
-//      A0 -> selected filename
-//      zero flag - clear = error
-//                  set = OK
-// globals:
-//   read:
-//     searchAlsoTacAndHil - if -1, .TAC and .HIL files
-//                           are not searched for
-//   write:
-//     selectedFilename
-//     extension
-//
-__declspec(naked) int SWOS::GetFilenameAndExtension()
-{
-    __asm {
-        call getFilenameAndExtension
-        call setZeroFlagAndD0
-    }
-}
-
-static bool selectFileToSaveDialog()
-{
-    return false;
-}
-
-// SelectFileToSaveDialog
-//
-// in:
-//      D0 - file extension
-//      A0 - buffer for selected filename
-//      A1 - menu header
-// out:
-//      A0 -> selected file name
-//      zero flag - set = canceled or error, clear = OK
-//      (D0 also)
-//
-__declspec(naked) int SWOS::SelectFileToSaveDialog()
-{
-    __asm {
-        call selectFileToSaveDialog
-        call setZeroFlagAndD0
-    }
 }
 
 // LoadFile
@@ -290,7 +139,7 @@ void SWOS::WriteFile()
     auto buffer = A1.as<char *>();
     auto bufferSize = D1;
 
-    logInfo("Writing file `%s' [%s bytes]", filename, formatNumberWithCommas(bufferSize).c_str());
+    logInfo("Writing `%s' [%s bytes]", filename, formatNumberWithCommas(bufferSize).c_str());
 
     auto f = openFile(filename, "wb");
     bool ok = f && fwrite(buffer, 1, bufferSize, f) == bufferSize;
@@ -327,7 +176,6 @@ std::string pathInRootDir(const char *filename)
     return m_rootDir.empty() ? filename : m_rootDir + filename;
 }
 
-
 char getDirSeparator()
 {
     return '\\';
@@ -340,7 +188,13 @@ bool isFileSystemCaseInsensitive()
 
 std::string joinPaths(const char *path1, const char *path2)
 {
-    return std::string(path1) + getDirSeparator() + path2;
+    std::string result = path1;
+    auto dirSeparator = getDirSeparator();
+
+    if (result.back() != dirSeparator)
+        result += dirSeparator;
+
+    return result + path2;
 }
 
 bool dirExists(const char *path)
@@ -364,4 +218,83 @@ const char *getBaseName(const char *path)
 {
     auto result = strrchr(path, getDirSeparator());
     return result ? result + 1 : path;
+}
+
+static bool isAllowedExtension(const char *ext, const char **allowedExtensions, size_t numAllowedExtensions)
+{
+    if (!allowedExtensions)
+        return true;
+
+    while (numAllowedExtensions--) {
+        if (!_stricmp(ext, *allowedExtensions++))
+            return true;
+    }
+
+    return false;
+}
+
+FoundFileList findFiles(const char *extension, const char **allowedExtensions /* = nullptr */, size_t numAllowedExtensions /* = 0 */)
+{
+    assert(extension && (extension[0] == '\0' || extension[0] == '.'));
+
+    FoundFileList result;
+
+    logInfo("Searching for files, extension: %s", extension && *extension ? extension : "*.*");
+
+    auto dirPath = pathInRootDir(".");
+    auto dir = opendir(dirPath.c_str());
+    if (!dir)
+        sdlErrorExit("Couldn't open SWOS root directory");
+
+    bool acceptAll = extension[0] == '\0' || extension[1] == '*';
+
+    for (dirent *entry; entry = readdir(dir); ) {
+        if (!entry->d_namlen)
+            continue;
+
+        auto dot = entry->d_name + entry->d_namlen - 1;
+        while (dot >= entry->d_name && *dot != '.')
+            dot--;
+
+        if (dot < entry->d_name)
+            continue;
+
+        if (!acceptAll) {
+            if (entry->d_namlen < 5)
+                continue;
+
+            bool match = true;
+
+            for (int i = 0; i < 3; i++) {
+                if (!dot[i + 1])
+                    break;
+                if (toupper(extension[i + 1]) != toupper(dot[i + 1])) {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (!match)
+                continue;
+        } else {
+            // skip "." and ".." entries
+            if (entry->d_namlen == 1 && entry->d_name[0] == '.' ||
+                entry->d_namlen == 2 && entry->d_name[0] == '.' && entry->d_name[1] == '.')
+                continue;
+        }
+
+        if (!isAllowedExtension(dot + 1, allowedExtensions, numAllowedExtensions))
+            continue;
+
+        // must make it upper case or SWOS will reject it like a cruel mother
+        toUpper(entry->d_name);
+
+        result.emplace_back(entry->d_name, dot - entry->d_name + 1);
+    }
+
+    closedir(dir);
+
+    logInfo("Found %d files", result.size());
+
+    return result;
 }

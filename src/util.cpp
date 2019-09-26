@@ -18,6 +18,7 @@ void sdlErrorExit(const char *format, ...)
 
     logError("SDL reported: %s", SDL_GetError());
 
+    debugBreakIfDebugged();
     std::exit(EXIT_FAILURE);
 }
 
@@ -125,9 +126,10 @@ int getRandomInRange(int min, int max)
     return dist(m_mt);
 }
 
-__declspec(naked) int setZeroFlagAndD0()
+__declspec(naked) int setZeroFlagAndD0FromAl()
 {
     __asm {
+        and  eax, 0xff
         test eax, eax
         mov  D0, eax
         jz   done
@@ -149,12 +151,12 @@ void beep()
     ::PlaySound(TEXT("SystemExclamation"), nullptr, SND_ALIAS | SND_ASYNC);
 }
 
-#ifdef DEBUG
 bool isDebuggerPresent()
 {
     return ::IsDebuggerPresent() != 0;
 }
 
+#ifdef DEBUG
 void debugBreakIfDebugged()
 {
     if (isDebuggerPresent())

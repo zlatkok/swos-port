@@ -34,7 +34,9 @@ public:
     bool endsWith(const String& str) const;
     bool endsWith(char c) const;
     String substr(int from, int len = -1) const;
+    String withoutLast() const;
 
+    void removeLast();
     void clear();
 
     bool operator==(const String& rhs) const;

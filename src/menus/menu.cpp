@@ -12,6 +12,9 @@ static ReachabilityMap m_reachableEntries;
 
 static MouseWheelEntryList m_previousMouseWheelEntries;
 static MouseWheelEntryList m_mouseWheelEntries;
+static int m_previousWheelUpEntry, m_previousWheelDownEntry;
+static int m_wheelUpEntry = -1;
+static int m_wheelDownEntry = -1;
 
 void SWOS::FlipInMenu()
 {
@@ -43,11 +46,9 @@ static void menuDelay()
 static void performMouseWheelAction(const MenuEntry& entry, int scrollValue)
 {
     for (const auto& mouseWheelEntry : m_mouseWheelEntries) {
-        int ord = std::get<0>(mouseWheelEntry);
-
-        if (ord == entry.ordinal) {
-            int scrollUpEntry = std::get<1>(mouseWheelEntry);
-            int scrollDownEntry = std::get<2>(mouseWheelEntry);
+        if (mouseWheelEntry.ordinal == entry.ordinal) {
+            int scrollUpEntry = mouseWheelEntry.scrollUpEntry;
+            int scrollDownEntry = mouseWheelEntry.scrollDownEntry;
 
             assert(scrollUpEntry >= 0 && scrollUpEntry < 256);
             assert(scrollDownEntry >= 0 && scrollDownEntry < 256);
@@ -103,7 +104,57 @@ static bool mapCoordinatesToGameArea(int& x, int& y)
     return true;
 }
 
-static void checkMousePosition()
+static bool globalWheelHandler(int scrollAmount)
+{
+    bool handled = false;
+
+    if (scrollAmount > 0 && m_wheelUpEntry >= 0) {
+        selectEntry(m_wheelUpEntry);
+        handled = true;
+    } else if (scrollAmount < 0 && m_wheelDownEntry >= 0) {
+        selectEntry(m_wheelDownEntry);
+        handled = true;
+    }
+
+    return handled;
+}
+
+static void checkForEntryClicksAndMouseWheelMovement(Menu *currentMenu, MenuEntry *entries, int x, int y,
+    Uint32 buttons, bool& selectedLastFrame, bool& clickedLastFrame)
+{
+    auto wheelScrollAmount = mouseWheelAmount();
+    auto wheelHandled = globalWheelHandler(wheelScrollAmount);
+
+    for (size_t i = 0; i < currentMenu->numEntries; i++) {
+        auto& entry = entries[i];
+        bool insideEntry = x >= entry.x && x < entry.x + entry.width && y >= entry.y && y < entry.y + entry.height;
+
+        if (insideEntry && entry.visible() && m_reachableEntries[entry.ordinal]) {
+            currentMenu->selectedEntry = &entry;
+            selectedLastFrame = true;
+
+            bool isPlayMatch = entry.type2 == kEntryString && entry.u2.string && !strcmp(entry.u2.string, "PLAY MATCH");
+
+            if ((buttons & SDL_BUTTON_LMASK) && !isPlayMatch) {
+                pressFire();
+                clickedLastFrame = true;
+
+                // get rid of the damn click
+                SDL_PumpEvents();
+                while (SDL_GetMouseState(nullptr, nullptr)) {
+                    SDL_Delay(10);
+                    SDL_PumpEvents();
+                }
+
+                break;
+            } else if (!wheelHandled && wheelScrollAmount) {
+                performMouseWheelAction(entry, wheelScrollAmount);
+            }
+        }
+    }
+}
+
+static void updateMouse()
 {
     static int lastX = -1, lastY = -1;
     static bool clickedLastFrame;
@@ -145,66 +196,119 @@ static void checkMousePosition()
     if (!mapCoordinatesToGameArea(x, y))
         return;
 
-    if (hasMouseFocus() && !isMatchRunning()) {
-        for (size_t i = 0; i < currentMenu->numEntries; i++) {
-            auto& entry = entries[i];
-            bool insideEntry = x >= entry.x && x < entry.x + entry.width && y >= entry.y && y < entry.y + entry.height;
-
-            if (insideEntry && !entry.invisible && m_reachableEntries[entry.ordinal]) {
-                currentMenu->selectedEntry = &entry;
-                selectedLastFrame = true;
-
-                bool isPlayMatch = entry.type2 == kEntryString && entry.u2.string && !strcmp(entry.u2.string, "PLAY MATCH");
-
-                if ((buttons & SDL_BUTTON_LMASK) && !isPlayMatch) {
-                    pressFire();
-                    clickedLastFrame = true;
-
-                    // get rid of the damn click
-                    SDL_PumpEvents();
-                    while (SDL_GetMouseState(nullptr, nullptr)) {
-                        SDL_Delay(10);
-                        SDL_PumpEvents();
-                    }
-
-                    break;
-                } else if (auto scrollValue = mouseWheelAmount()) {
-                    performMouseWheelAction(entry, scrollValue);
-                }
-            }
-        }
-    }
+    if (hasMouseFocus() && !isMatchRunning())
+        checkForEntryClicksAndMouseWheelMovement(currentMenu, entries, x, y, buttons, selectedLastFrame, clickedLastFrame);
 }
 
 void setMouseWheelEntries(const MouseWheelEntryList& mouseWheelEntries)
 {
+    assert(m_wheelUpEntry == -1 && m_wheelDownEntry == -1);
+
     m_mouseWheelEntries = mouseWheelEntries;
 }
 
-int getStringPixelLength(const char *str)
+void setGlobalWheelEntries(int upEntry /* = -1 */, int downEntry /* = -1 */)
 {
-    A0 = str;
-    A1 = smallCharsTable;
-    GetTextSize();
-    return D7.asInt16();
+    assert(m_mouseWheelEntries.empty());
+
+    m_wheelUpEntry = upEntry;
+    m_wheelDownEntry = downEntry;
 }
 
-void elideString(char *str, int len, int maxPixels)
+static std::pair<int, int> charSpriteWidth(char c, const CharTable *charTable)
+{
+    assert(c >= ' ');
+
+    if (c == ' ')
+        return { charTable->spaceWidth, 0 };
+
+    auto spriteIndex = charTable->conversionTable[c - ' '];
+    spriteIndex += charTable->spriteIndexOffset;
+    const auto sprite = (*spriteGraphicsPtr)[spriteIndex];
+
+    return { sprite->width, charTable->charSpacing };
+}
+
+int getStringPixelLength(const char *str, bool bigText /* = false */)
+{
+    const auto charTable = bigText ? &bigCharsTable : &smallCharsTable;
+    int len = 0;
+    int spacing = 0;
+
+    for (char c; c = *str; str++) {
+        int charWidth, nextSpacing;
+        std::tie(charWidth, nextSpacing) = charSpriteWidth(c, charTable);
+        len += charWidth + spacing;
+        spacing = nextSpacing;
+    }
+
+    return len;
+}
+
+// Ensures that string fits inside a given pixel limitation.
+// If not, replaces last characters with "..." in a way that the string will fit.
+void elideString(char *str, int maxStrLen, int maxPixels, bool bigText /* = false */)
 {
     assert(str && maxPixels);
 
-    if (len < 4)
-        return;
+    const auto charTable = bigText ? &bigCharsTable : &smallCharsTable;
+    int dotWidth, spacing;
+    std::tie(dotWidth, spacing) = charSpriteWidth('.', charTable);
 
-    if (getStringPixelLength(str) <= maxPixels)
-        return;
-    else
-        memcpy(str + len - 3, "...", 3);
+    constexpr int kNumDotsInEllipsis = 3;
+    int ellipsisWidth = kNumDotsInEllipsis * dotWidth;
 
-    while (getStringPixelLength(str) > maxPixels && len >= 4) {
-        str[len-- - 4] = '.';
-        str[len] = '\0';
+    int len = 0;
+    std::array<int, kNumDotsInEllipsis> prevWidths = {};
+
+    for (int i = 0; str[i]; i++) {
+        auto c = str[i];
+
+        int charWidth, nextSpacing;
+        std::tie(charWidth, nextSpacing) = charSpriteWidth(c, charTable);
+
+        if (len + charWidth + spacing > maxPixels) {
+            int pixelsRemaining = maxPixels - len;
+
+            int j = prevWidths.size() - 1;
+
+            while (true) {
+                if (pixelsRemaining >= ellipsisWidth) {
+                    if (maxStrLen - i >= kNumDotsInEllipsis + 1) {
+                        auto dotsInsertPoint = str + i;
+                        std::fill(dotsInsertPoint, dotsInsertPoint + kNumDotsInEllipsis, '.');
+                        str[i + kNumDotsInEllipsis] = '\0';
+
+                        assert(getStringPixelLength(str, bigText) <= maxPixels);
+                        return;
+                    } else {
+                        if (i > 0) {
+                            i--;
+                        } else {
+                            *str = '\0';
+                            return;
+                        }
+                    }
+                } else {
+                    i--;
+                    if (i < 0) {
+                        *str = '\0';
+                        return;
+                    }
+                    pixelsRemaining += prevWidths[j];
+                    j--;
+                    assert(j >= 0 || pixelsRemaining >= ellipsisWidth);
+                }
+            }
+        }
+
+        len += charWidth + spacing;
+        spacing = nextSpacing;
+        std::move(prevWidths.begin() + 1, prevWidths.end(), prevWidths.begin());
+        prevWidths.back() = charWidth;
     }
+
+    assert(getStringPixelLength(str, bigText) <= maxPixels);
 }
 
 static void menuProcCycle()
@@ -242,7 +346,7 @@ static const char *entryText(const MenuEntry *entry)
     return "/";
 }
 
-// Find and mark every reachable item starting from the initial one.
+// Finds and marks every reachable item starting from the initial one.
 static void determineReachableEntries(const MenuBase *menu)
 {
     std::fill(m_reachableEntries.begin(), m_reachableEntries.end(), false);
@@ -250,7 +354,7 @@ static void determineReachableEntries(const MenuBase *menu)
     static_assert(offsetof(MenuEntry, downEntry) == offsetof(MenuEntry, upEntry) + 1 &&
         offsetof(MenuEntry, upEntry) == offsetof(MenuEntry, rightEntry) + 1 &&
         offsetof(MenuEntry, rightEntry) == offsetof(MenuEntry, leftEntry) + 1 &&
-        sizeof(MenuEntry::leftEntry) == 1, "MenuEntry(): assumptions about next entries failed");
+        sizeof(MenuEntry::leftEntry) == 1, "MenuEntry: assumptions about next entries failed");
 
     std::vector<std::pair<const MenuEntry *, int>> entryStack;
     entryStack.reserve(256);
@@ -292,8 +396,8 @@ static void determineReachableEntries(const MenuBase *menu)
     }
 }
 
-// these are macros instead of functions because we need to save these variables for each level of nesting;
-// being functions they can't create local variables on callers stack, and then we'd need explicit stacks
+// These are macros instead of functions because we need to save these variables for each level of nesting;
+// being functions they can't create local variables on callers stack, and then we'd need explicit stacks.
 #define saveCurrentMenu() \
     auto currentMenu = getCurrentMenu(); \
     auto savedEntry = currentMenu->selectedEntry; \
@@ -321,6 +425,10 @@ void SWOS::ShowMenu()
     m_previousMouseWheelEntries = m_mouseWheelEntries;
     m_mouseWheelEntries.clear();
 
+    m_previousWheelUpEntry = m_wheelUpEntry;
+    m_previousWheelDownEntry = m_wheelDownEntry;
+    m_wheelUpEntry = m_wheelDownEntry = -1;
+
     auto newMenu = A6.asPtr();
     saveCurrentMenu();
     logInfo("Showing menu %#x [%s], previous menu is %#x", A6.data, entryText(savedEntry), savedMenu);
@@ -343,6 +451,8 @@ void SWOS::ShowMenu()
     determineReachableEntries(savedMenu);
 
     m_mouseWheelEntries = m_previousMouseWheelEntries;
+    m_wheelUpEntry = m_previousWheelUpEntry;
+    m_wheelDownEntry = m_previousWheelDownEntry;
 
     logInfo("Menu %#x finished, restoring menu %#x", newMenu, g_currentMenuPtr);
 }
@@ -450,7 +560,7 @@ void SWOS::InitMainMenuStuff()
     InitHighestScorersTable();
     teamsLoaded = 0;
     poolplyrLoaded = 0;
-    impTactFilename[0] = 0;
+    importTacticsFilename[0] = 0;
     chooseTacticsTeamPtr = 0;
     InitUserTactics();
 
@@ -464,7 +574,7 @@ static MenuEntry *findNextEntry(byte nextEntryIndex, int nextEntryDirection)
     while (nextEntryIndex != 255) {
         auto nextEntry = getMenuEntryAddress(nextEntryIndex);
 
-        if (!nextEntry->disabled && !nextEntry->invisible)
+        if (!nextEntry->disabled && nextEntry->visible())
             return nextEntry;
 
         auto newDirection = (&nextEntry->leftDirection)[nextEntryDirection];
@@ -513,9 +623,45 @@ static void playMatchSelected(int playerNo)
     SetExitMenuFlag();
 }
 
+static int getControlMask(int entryControlMask)
+{
+    int controlMask = 0;
+
+    if (shortFire)
+        controlMask |= 0x20;
+    if (fire)
+        controlMask |= 0x01;
+    if (left)
+        controlMask |= 0x02;
+    if (right)
+        controlMask |= 0x04;
+    if (up)
+        controlMask |= 0x08;
+    if (down)
+        controlMask |= 0x10;
+
+    if (finalControlsStatus >= 0) {
+        switch (finalControlsStatus >> 1) {
+        case 0:
+            controlMask |= 0x100;   // up-right
+            break;
+        case 1:
+            controlMask |= 0x80;    // down-right
+            break;
+        case 2:
+            controlMask |= 0x200;   // down-left
+            break;
+        default:
+            controlMask |= 0x40;    // up-left
+        }
+    }
+
+    return controlMask & entryControlMask;
+}
+
 void SWOS::MenuProc()
 {
-    checkMousePosition();
+    updateMouse();
 
     g_videoSpeedIndex = 50;     // just in case
 
@@ -551,40 +697,10 @@ void SWOS::MenuProc()
             }
         }
 
-        int controlMask = 0;
         controlsStatus = 0;
 
         if (activeEntry->onSelect) {
-            if (shortFire)
-                controlMask |= 0x20;
-            if (fire)
-                controlMask |= 0x01;
-            if (left)
-                controlMask |= 0x02;
-            if (right)
-                controlMask |= 0x04;
-            if (up)
-                controlMask |= 0x08;
-            if (down)
-                controlMask |= 0x10;
-
-            if (finalControlsStatus >= 0) {
-                switch (finalControlsStatus >> 1) {
-                case 0:
-                    controlMask |= 0x100;   // up-right
-                    break;
-                case 1:
-                    controlMask |= 0x80;    // down-right
-                    break;
-                case 2:
-                    controlMask |= 0x200;   // down-left
-                    break;
-                default:
-                    controlMask |= 0x40;    // up-left
-                }
-            }
-
-            controlMask &= activeEntry->controlMask;
+            int controlMask = getControlMask(activeEntry->controlMask);
 
             if (activeEntry->controlMask == -1 || controlMask) {
                 controlsStatus = controlMask;
@@ -676,7 +792,7 @@ void SWOS::InputText_23()
 {
     if (lastKey == kKeyEscape || SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON_RMASK) {
         convertedKey = kKeyEscape;
-        inputingText = 0;
+        g_inputingText = 0;
     }
 }
 
@@ -687,7 +803,7 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
     int num = static_cast<int16_t>(entry->u2.number);
     assert(num >= minNum && num <= maxNum);
 
-    inputingText = -1;
+    g_inputingText = -1;
 
     char buf[32];
     _itoa_s(num, buf, 10);
@@ -721,7 +837,7 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
             memmove(cursorPtr, cursorPtr + 1, end - cursorPtr);
             entry->type2 = kEntryNumber;
             entry->u2.number = atoi(buf);
-            inputingText = 0;
+            g_inputingText = 0;
             controlWord = 0;
             return true;
 
@@ -729,7 +845,7 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
             A5 = entry;
             entry->type2 = kEntryNumber;
             entry->u2.number = num;
-            inputingText = 0;   // original SWOS leaves it set, wonder if it's significant...
+            g_inputingText = 0;   // original SWOS leaves it set, wonder if it's significant...
             controlWord = 0;
             return false;
 

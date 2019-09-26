@@ -1,0 +1,10 @@
+Do not let them break apart:
+
+g_currentMenu db 6500 dup(0) ; DATA XREF: SWOS:ToMainGameLoop|o ShowMenu+1B|o ...
+leaguesTableCopy db 12944 dup(0) ; DATA XREF: ConvertMenu+11|o ConvertMenu+421|o ...
+skillsPerQuadrant
+
+ofsPitch1Dat - aPitch1_dat
+aPitch1_blk - aPitch6_blk
+
+aChairmanScenes - aQueensland (SWOS string table, offset into it are used)

@@ -1,6 +1,7 @@
 #include "IdaAsmParser.h"
 #include "Util.h"
 #include "DataItem.h"
+#include "ParsingException.h"
 #include "OutputWriter/OutputFactory.h"
 
 constexpr int kDefinesCapacity = 610;

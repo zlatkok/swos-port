@@ -5,7 +5,7 @@
 constexpr int kProcCapacity = 9'000;
 constexpr int kImportsCapacity = 3'000;
 constexpr int kExportsCapacity = 7'500;
-constexpr int kReplacementsCapacity = 400;
+constexpr int kReplacementsCapacity = 600;
 constexpr int kMaxExportEntries = 400;
 
 SymbolFileParser::SymbolFileParser(const char *symbolFilePath, const char *headerFilePath)
@@ -50,6 +50,7 @@ void SymbolFileParser::outputHeaderFile(const char *path)
         "    int16_t asInt16() const { return static_cast<int16_t>(data); }\n"
         "    dword asDword() const { return static_cast<dword>(data); }\n"
         "    int asInt() const { return static_cast<int>(data); }\n"
+        "    MenuEntry *asMenuEntry() { return reinterpret_cast<MenuEntry *>(data); }\n"
         "    template <typename T> typename std::enable_if<std::is_convertible<T, dword>::value, T>::type as() {\n"
         "         return static_cast<T>(data);\n"
         "    }\n"
@@ -103,13 +104,33 @@ void SymbolFileParser::outputHeaderFile(const char *path)
 
             xfwrite(file, "();");
         } else {
-            xfwrite(file, exp.type);
-            if (!exp.type.endsWith('*'))
+            auto isPointer = exp.type.endsWith('*');
+            auto needsParens = isPointer && exp.trailingArray;
+            int charsToRemove = needsParens;
+
+            if (exp.type.endsWith("(*)")) {
+                isPointer = true;
+                needsParens = true;
+                charsToRemove = 3;
+            }
+
+            xfwrite(file, exp.type.substr(0, exp.type.length() - charsToRemove));
+
+            if (!isPointer)
                 xfwrite(file, " ");
+
+            if (needsParens)
+                xfwrite(file, "(*");
 
             if (!exp.prefix.empty())
                 xfwrite(file, exp.prefix);
             xfwrite(file, exp.symbol);
+
+            if (needsParens)
+                xfwrite(file, ")");
+
+            if (exp.trailingArray)
+                xfwrite(file, "[]");
 
             if (exp.array) {
                 xfwrite(file, "[");
@@ -411,6 +432,46 @@ auto SymbolFileParser::getSectionName(const char *begin, const char *end) -> Sym
     return action;
 }
 
+const char *SymbolFileParser::handlePotentialArray(const char *start, const char *p, ExportEntry& e)
+{
+    if (*p == '[') {
+        auto typeStart = start;
+        std::tie(start, p) = getNextToken(p + 1);
+
+        std::string sizeStr = { start, p };
+        e.arraySize = { start, p };
+
+        if (sizeStr == "]") {
+            if (e.array)
+                error("array dimension not supplied");
+            else
+                e.trailingArray = true;
+
+            e.arraySize.clear();
+        }
+
+        if (e.array) {
+            int size;
+
+            try {
+                size = std::stoi(sizeStr);
+            } catch (...) {
+                error("expected array dimension, got `" + sizeStr + '\'');
+            }
+
+            if (!size)
+                error("array dimension can't be zero");
+        }
+
+        skipWhiteSpace(p);
+
+        if (e.array && *p++ != ']')
+            error("missing ending `]'");
+    }
+
+    return p;
+}
+
 const char *SymbolFileParser::addExportEntry(const char *start, const char *p)
 {
     assert(p > start);
@@ -419,6 +480,8 @@ const char *SymbolFileParser::addExportEntry(const char *start, const char *p)
     m_exportEntries.push_back({});
     auto& e = m_exportEntries.back();
     e.symbol = { start, p };
+
+    bool requireArrayDimension = false;
 
     if (*p == ',') {
         std::tie(start, p) = getNextToken(p + 1);
@@ -463,32 +526,7 @@ const char *SymbolFileParser::addExportEntry(const char *start, const char *p)
             std::tie(start, p) = getNextToken(p);
             e.type = { start, p };
             e.array = true;
-            skipWhiteSpace(p);
-
-            if (*p == '[') {
-                std::tie(start, p) = getNextToken(p + 1);
-                std::string sizeStr = { start, p };
-                e.arraySize = { start, p };
-
-                if (sizeStr == "]")
-                    error("array dimension not supplied");
-
-                int size;
-
-                try {
-                    size = std::stoi(sizeStr);
-                } catch (...) {
-                    error("expected array dimension, got `" + sizeStr + '\'');
-                }
-
-                if (!size)
-                    error("array dimension can't be zero");
-
-                skipWhiteSpace(p);
-
-                if (*p++ != ']')
-                    error("missing ending `]'");
-            }
+            requireArrayDimension = true;
             break;
 
         default:
@@ -497,11 +535,14 @@ const char *SymbolFileParser::addExportEntry(const char *start, const char *p)
     }
 
     skipWhiteSpace(p);
-    if (*p != '\n')
+    p = handlePotentialArray(start, p, e);
+
+    if (*p != '\n' && *p != '\r')
         error("unexpected input after end of export declaration");
 
     return p;
 }
+
 const char *SymbolFileParser::addImportEntry(const char *start, const char *p)
 {
     assert(p > start);

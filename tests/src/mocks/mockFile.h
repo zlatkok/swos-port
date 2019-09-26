@@ -13,5 +13,7 @@ using MockFileList = std::vector<MockFile>;
 void enableFileMocking(bool mockingEnabled);
 void resetFakeFiles();
 void addFakeFiles(const MockFileList& files);
+void addFakeFile(const MockFile& file);
+void addFakeDirectory(const char *path);
 bool deleteFakeFile(const char *path);
 bool setFileAsCorrupted(const char *path, bool corrupted = true);

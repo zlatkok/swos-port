@@ -87,7 +87,7 @@ void SWOS::PlayHighlightsLoop()
                 break;
 
             SAFE_INVOKE(ClearBackground);
-            RenderReplayFrame();
+            ReplaySegment();
 
             if (replayState) {
                 Flip();
@@ -215,7 +215,7 @@ void hilDrawResult()
     drawSprite16Pixels(rightScoreDigit2 + SPR_2BIG_0, x, y);
 }
 
-void SWOS::RenderReplayFrame()
+void SWOS::ReplaySegment()
 {
     auto p = currentGoalPtr;
 
@@ -350,7 +350,7 @@ void SWOS::PlayReplayLoop()
         }
 
         SAFE_INVOKE(ClearBackground);
-        RenderReplayFrame();
+        ReplaySegment();
 
         if (!replayState)
             break;
@@ -404,7 +404,7 @@ static void drawSprites(bool saveHihglightCoordinates = true)
         if (player->pictureIndex < 0)
             continue;
 
-        auto sprite = spriteGraphicsPtr[player->pictureIndex];
+        auto sprite = (*spriteGraphicsPtr)[player->pictureIndex];
 
         int x = player->x - sprite->centerX - cameraX;
         int y = player->y - sprite->centerY - cameraY - player->z;

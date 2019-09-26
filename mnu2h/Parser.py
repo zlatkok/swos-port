@@ -1,5 +1,4 @@
 import os
-import copy
 import inspect
 
 import Util
@@ -8,7 +7,6 @@ import Constants
 from Token import Token
 from Menu import Menu
 from Entry import Entry
-from Entry import ResetTemplateEntry
 from VariableStorage import VariableStorage
 from PreprocExpression import PreprocExpression
 from StringTable import StringTable
@@ -108,7 +106,6 @@ class Parser:
                 self.parseEntry(menu, False)
             elif token.string == 'TemplateEntry':
                 self.parseEntry(menu, True)
-                menu.gotTemplate = True
             elif token.string == 'ResetTemplate':
                 self.handleResetTemplateEntry(menu)
             else:
@@ -122,7 +119,7 @@ class Parser:
         assert isinstance(menu, Menu)
 
         menu.templateEntry = Entry()
-        menu.gotTemplate = False
+        menu.templateActive = False
 
         entry, internalName = menu.createNewTemplateEntry(True)
         menu.entries[internalName] = entry
@@ -208,10 +205,11 @@ class Parser:
         if isDotVariable:
             self.entryDotReferences.append((menu, entryNameToken.string, dotProperty, value, entryNameToken))
         else:
+            var = self.varStorage.addMenuVariable(menu, varName, value, idToken)
             if exported:
                 menu.exportedVariables[varName] = (value, idToken)
+                var.referenced = True   # treat exported variables as referenced to suppress unused warning
 
-            self.varStorage.addMenuVariable(menu, varName, value, idToken)
 
     def parseMenuPropertyAssignment(self, menu, propertyToken):
         assert isinstance(menu, Menu)
@@ -311,8 +309,23 @@ class Parser:
 
         propertiesSet = self.parseEntryBody(entry, menu)
 
+        if not isTemplate:
+            self.tryRemovingTemplateEntryType(menu, entry, propertiesSet)
+
         self.expandTextWidthAndHeight(entry, menu, propertiesSet, token)
         self.updateMenuPreviousFields(menu, entry, isTemplate)
+
+    # If the user has explicitly specified entry type, remove any potential type that comes from the template entry.
+    def tryRemovingTemplateEntryType(self, menu, entry, propertiesSet):
+        assert isinstance(entry, Entry)
+        assert isinstance(menu, Menu)
+        assert isinstance(propertiesSet, set)
+
+        if menu.templateActive:
+            userSetTypes = propertiesSet.intersection(Constants.kEntryTypeProperties)
+            if userSetTypes:
+                for property in userSetTypes.symmetric_difference(Constants.kEntryTypeProperties):
+                    setattr(entry, property, None)
 
     def parseEntryBody(self, entry, menu):
         assert isinstance(entry, Entry)
@@ -334,7 +347,7 @@ class Parser:
             propertyToken = token
             propertiesSet.add(property)
 
-            self.verifyEntryProperty(entry, property, token)
+            self.verifyEntryProperty(entry, property, token, propertiesSet)
 
             token = self.tokenizer.expectIdentifier(token, "colon (`:')", fetchNextToken=True)
             self.tokenizer.expectColon(token, fetchNextToken=False)
@@ -361,6 +374,7 @@ class Parser:
             menu.previousY = entry.y
             menu.previousWidth = entry.width
             menu.previousHeight = entry.height
+            menu.previousOrdinal = entry.ordinal
 
     @staticmethod
     def expandEntryPropertyAliases(token):
@@ -374,10 +388,11 @@ class Parser:
 
         return property
 
-    def verifyEntryProperty(self, entry, property, token):
+    def verifyEntryProperty(self, entry, property, token, propertiesSet):
         assert isinstance(entry, Entry)
         assert isinstance(property, str)
         assert isinstance(token, Token)
+        assert isinstance(propertiesSet, set)
 
         if property == 'Entry':
             self.error('entries can not be nested', token)
@@ -387,7 +402,7 @@ class Parser:
         if property in Constants.kImmutableEntryProperties:
             self.error(f"property `{property}' can not be assigned", token)
 
-        self.checkConflictingProperties(entry, property, token)
+        self.checkConflictingProperties(entry, property, propertiesSet, token)
 
     def getEntryPropertyValue(self, property, menu):
         assert isinstance(property, str)
@@ -436,6 +451,22 @@ class Parser:
 
             self.verifyNonCppKeyword(nameToken, 'entry name')
 
+    def hasActivePropertyFromTemplate(self, menu, entry, property):
+        assert isinstance(menu, Menu)
+        assert isinstance(entry, Entry)
+        assert isinstance(property, str)
+
+        return property in ('width', 'height') and menu.templateActive and \
+            getattr(menu.templateEntry, property, 0) != 0
+
+    # assignDefaultEntryValues
+    #
+    # in:
+    #     menu  - parent Menu instance
+    #     entry - new entry we're creating
+    #
+    # Assigns default values for a freshly encountered entry, right before its body will be parsed.
+    #
     def assignDefaultEntryValues(self, menu, entry):
         assert isinstance(menu, Menu)
         assert isinstance(entry, Entry)
@@ -443,8 +474,15 @@ class Parser:
         entry.menuX = menu.properties['x']
         entry.menuY = menu.properties['y']
 
+        hasActivePropertyFromTemplate = lambda property: \
+            property in ('width', 'height') and menu.templateActive and getattr(menu.templateEntry, property, 0) != 0
+
+        isPropertyDefaultAssignable = lambda property: \
+            not entry.isTemplate() and property != 'ordinal' and (property != 'color' or not menu.templateActive) and \
+            not hasActivePropertyFromTemplate(property)
+
         for property in Constants.kPreviousEntryFields:
-            if property != 'color' or not menu.gotTemplate:
+            if isPropertyDefaultAssignable(property):
                 defaultProperty = 'default' + property[0].upper() + property[1:]
                 value = str(menu.properties[defaultProperty])
                 assert value
@@ -769,23 +807,24 @@ class Parser:
     # checkConflictingProperties
     #
     # in:
-    #     entry    - entry to check
-    #     property - new property that's being set
-    #     token    - token which defines property
+    #     entry             - entry to check
+    #     property          - new property that's being set
+    #     userSetProperties - set of properties explicitly set by the user
+    #     token             - token which defines property
     #
     # Checks for conflicting properties inside the entry, such as both text and sprite, basically for any pair of
     # members belonging to any of two entry struct's unions.
     #
-    def checkConflictingProperties(self, entry, property, token):
+    def checkConflictingProperties(self, entry, property, userSetProperties, token):
         assert isinstance(entry, Entry)
         assert isinstance(property, str)
+        assert isinstance(userSetProperties, set)
         assert isinstance(token, Token)
 
-        conflictingProperties = ('text', 'stringTable', 'number', 'sprite', 'customDrawForeground')
-        if property in conflictingProperties:
-            for prop in conflictingProperties:
-                if prop != property and getattr(entry, prop) is not None:
-                    self.error(f"can't use properties `{property}' and `{prop}' at the same time", token.line)
+        if property in Constants.kEntryTypeProperties:
+            for property2 in Constants.kEntryTypeProperties:
+                if property2 != property and getattr(entry, property2) is not None and property2 in userSetProperties:
+                    self.error(f"can't use properties `{property}' and `{property2}' at the same time", token.line)
 
     # registerFunction
     #
@@ -1068,31 +1107,43 @@ class Parser:
 
         result = ''
 
-        for token in Tokenizer.splitLine(text):
+        for tokenString in Tokenizer.splitLine(text):
             if entry:
-                if token == '>':
+                if tokenString == '>':
                     if menu.lastEntry == entry:
                         self.error(f'referencing entry beyond the last one', refToken)
                     result = Util.formatToken(result, str(entry.ordinal + 1))
                     continue
-                elif token == '<':
+                elif tokenString == '<':
                     if entry.ordinal == 0:
                         self.error(f'referencing entry before the first one', refToken)
                     result = Util.formatToken(result, str(entry.ordinal - 1))
                     continue
 
-            if token.isidentifier():
-                entry = menu.entries.get(token, None)
+            if tokenString.isidentifier():
+                entry = menu.entries.get(tokenString)
                 if entry is None:
-                    self.error(f"undefined entry reference: `{token}'", refToken)
+                    # try parsing it as an expression before giving up
+                    self.defaultPropertyTokenizer.resetToString(text, refToken)
+                    expandedValue = self.parseExpression(menu, True, self.defaultPropertyTokenizer)
+
+                    entry = menu.entries.get(expandedValue)
+                    if entry is None:
+                        self.error(f"undefined entry reference: `{expandedValue}'", refToken)
                 result = Util.formatToken(result, str(entry.ordinal))
             else:
-                result = Util.formatToken(result, token)
+                result = Util.formatToken(result, tokenString)
 
         if result.startswith('('):
             result = result.strip()[1:-1]
 
-        return int(result, 0)
+        try:
+            return int(result, 0)
+        except ValueError:
+            try:
+                return int(eval(result))
+            except:
+                return result
 
     # resolveEntryDotReferences
     #

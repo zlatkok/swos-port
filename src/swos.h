@@ -50,6 +50,16 @@ struct StringTable {
     }
 };
 
+struct CharTable {
+    word unk1;
+    word charHeight;
+    dword unk2;
+    word charSpacing;
+    word spaceWidth;
+    word spriteIndexOffset;
+    char conversionTable[224];
+};
+
 struct MenuEntry {
     word drawn;
     word ordinal;
@@ -82,6 +92,7 @@ struct MenuEntry {
     union {
         void (*entryFunc2)(word, word);
         char *string;
+        const char *constString;
         word spriteIndex;
         StringTable *stringTable;
         void *multiLineText;
@@ -93,8 +104,7 @@ struct MenuEntry {
     void (*beforeDraw)();
     void (*afterDraw)();
 
-    const char *typeToString() const
-    {
+    const char *typeToString() const {
         switch (type2) {
         case kEntryNoForeground: return "empty";
         case kEntryFunc2: return "function";
@@ -107,14 +117,30 @@ struct MenuEntry {
         default: assert(false); return "";
         }
     }
+
+    bool visible() const {
+        return !invisible;
+    }
+
+    void hide() {
+        invisible = 1;
+    }
+
+    void show() {
+        invisible = 0;
+    }
+
+    void setVisible(bool visible) {
+        invisible = !visible;
+    }
 };
 
 constexpr int kStdMenuTextSize = 70;
 
-/* sprite graphics structure - from dat files */
+/* sprite graphics structure - from *.dat files */
 struct SpriteGraphics {
-    char  *data;        /* pointer to actual graphics                       */
-    char  unk1[6];      /* unknown                                          */
+    char *data;        /* pointer to actual graphics                       */
+    char unk1[6];      /* unknown                                          */
     int16_t width;      /* width                                            */
     int16_t nlines;     /* height                                           */
     int16_t wquads;     /* (number of bytes / 8) in one line                */
