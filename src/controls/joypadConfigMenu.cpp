@@ -47,7 +47,7 @@ static void updateDeadZonePercentageEntry(int entryIndex, int& percentageValue, 
     auto entry = getMenuEntryAddress(entryIndex);
     assert(entry->type2 == kEntryString);
 
-    auto str = entry->u2.string;
+    auto str = entry->string();
     _itoa(percentageValue, str, 10);
     strcat(str, "%");
 }
@@ -97,14 +97,14 @@ static void fillJoypadInfo()
 
     const auto& joypad = getJoypad();
 
-    auto nameStr = getMenuEntryAddress(name)->u2.string;
+    auto nameStr = getMenuEntryAddress(name)->string();
     auto joypadName = SDL_JoystickName(joypad.handle);
 
     strncpy_s(nameStr, kStdMenuTextSize, joypadName, _TRUNCATE);
     toUpper(nameStr);
     elideString(nameStr, strlen(nameStr), kInfoFieldWidth - 2);
 
-    auto guidStr = getMenuEntryAddress(guid)->u2.string;
+    auto guidStr = getMenuEntryAddress(guid)->string();
     SDL_JoystickGetGUIDString(joypad.config.guid, guidStr, kStdMenuTextSize);
     toUpper(guidStr);
 
@@ -132,7 +132,7 @@ static void fillJoypadInfo()
         entry->width = std::max(8, getStringPixelLength(buf));
     }
 
-    auto powerLevelDest = getMenuEntryAddress(powerLevel)->u2.string;
+    auto powerLevelDest = getMenuEntryAddress(powerLevel)->string();
     auto powerLevel = SDL_JoystickCurrentPowerLevel(joypad.handle);
     const char *powerLevelDesc = "UNKNOWN";
 
@@ -433,7 +433,7 @@ static void changeDeadZonePercentage(int percentageEntryIndex, int absoluteValue
     auto percentageEntry = getMenuEntryAddress(percentageEntryIndex);
     assert(percentageEntry->type2 == kEntryString);
 
-    auto str = percentageEntry->u2.string;
+    auto str = percentageEntry->string();
     assert(strrchr(str, '%'));
 
     auto newPercentageValue = Op()(percentageValue, 1);

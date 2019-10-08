@@ -1,4 +1,4 @@
-# list of functions to remove completely
+# list of functions and variables to remove completely
 # to remove a range, list beginning and ending function separated by - (minus)
 # ranges are semi-open, just like in C++
 
@@ -112,7 +112,7 @@ g_soundOff, 0
 g_musicOff, 0
 g_menuMusic, 1
 g_commentary, 1
-# make room for long filenames (though it will be limited by UI)
+# make room for long filenames (though it will be limited by the UI)
 hilFilename, 256 dup(0)
 competitionFilename, 256 dup(0)
 importTacticsFilename, 256 dup(0)
@@ -463,6 +463,7 @@ DrawMenu, function
 menuFade, word
 CheckControls, function
 finalControlsStatus, int16_t
+lastControls, word
 previousMenuItem, MenuEntry *
 
 fire, word

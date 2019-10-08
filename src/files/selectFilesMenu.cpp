@@ -1,5 +1,6 @@
 #include "selectFilesMenu.h"
 #include "selectFiles.mnu.h"
+#include "menuMouse.h"
 
 using namespace SelectFilesMenu;
 
@@ -143,7 +144,6 @@ __declspec(naked) int SWOS::GetFilenameAndExtension()
     }
 }
 
-// Return 0 for success, !0 for error
 static int selectFileToSaveDialog()
 {
     auto ext = codeToExtension(D0);
@@ -153,7 +153,8 @@ static int selectFileToSaveDialog()
     auto saveFilename = A0.asPtr();
 
     auto selectedFilename = showSelectFilesMenu(menuTitle, files, true, saveFilename);
-    selectedFilename += ext;
+    if (!selectedFilename.empty())
+        selectedFilename += ext;
 
     A0 = getFilenameBuffer(selectedFilename);
     return getSwosErrorCode(A0);
@@ -197,7 +198,7 @@ std::string showSelectFilesMenu(const char *menuTitle, const FoundFileList& file
 static void selectInitialEntry()
 {
     if (m_saving)
-        setCurrentEntry(m_saveFilename ? inputSaveFilename : saveLabel);
+        setCurrentEntry(m_saveFilename && *m_saveFilename ? saveLabel : inputSaveFilename);
     else if (m_filenames.empty())
         setCurrentEntry(SelectFilesMenu::abort);
 }
@@ -222,8 +223,9 @@ static void sortFilenames()
 
 static void copyStringUntilDot(char *dest, const char *src)
 {
-    while (*src && *src != '.')
-        *dest++ = *src++;
+    if (src)
+        while (*src && *src != '.')
+            *dest++ = *src++;
 
     *dest = '\0';
 }
@@ -235,7 +237,7 @@ static void setSaveFilename()
 
         assert(!m_saveFilename || strlen(m_saveFilename) < kMenuStringLength);
 
-        auto dest = saveFilenameEntry->u2.string;
+        auto dest = saveFilenameEntry->string();
         copyStringUntilDot(dest, m_saveFilename);
 
         saveFilenameEntry->show();
@@ -270,6 +272,7 @@ static void splitIntoColumns()
     if (m_filenames.size() <= kSingleColumnCutOff) {
         m_numEntriesPerColumn[(kMaxColumns - 1) / 2] = m_filenames.size();
         m_numColumns = 1;
+        m_maxScrollOffset = 0;
     } else {
         auto quotRem = std::div(m_filenames.size(), m_numColumns);
 
@@ -277,10 +280,6 @@ static void splitIntoColumns()
         auto remainder = quotRem.rem;
 
         auto startingIndex = (m_numColumns - remainder) / 2;
-
-        int overflowRows = m_filenames.size() - kNumFilenameItems;
-        if (overflowRows > 0)
-            m_maxScrollOffset = (overflowRows + m_numColumns - 1) / m_numColumns;
 
         for (int i = 0; i < m_numColumns; i++) {
             m_numEntriesPerColumn[i] = baseNumberOfEntriesPerColumn;
@@ -290,6 +289,9 @@ static void splitIntoColumns()
                 remainder--;
             }
         }
+
+        auto maxColumn = *std::max_element(m_numEntriesPerColumn.begin(), m_numEntriesPerColumn.end());
+        m_maxScrollOffset = std::max(0, maxColumn - kMaxEntriesPerColumn);
     }
 }
 
@@ -299,7 +301,7 @@ static void setScrollArrowsNextEntries(MenuEntry *scrollUpArrow, MenuEntry *scro
     int bottomRightEntry = -1;
 
     auto getVisibleEntryOrdinalAtCoordinates = [](int i, int j) {
-        int entryIndex = kFirstEntry + i * kMaxEntriesPerColumn + j;
+        int entryIndex = kFirstFileEntry + i * kMaxEntriesPerColumn + j;
         auto entry = getMenuEntryAddress(entryIndex);
         return entry->visible() ? entry->ordinal : -1;
     };
@@ -320,7 +322,7 @@ static void setScrollArrowsNextEntries(MenuEntry *scrollUpArrow, MenuEntry *scro
 static void setLastFilenameColumnNextEntries()
 {
     for (int i = 0; i < kMaxEntriesPerColumn; i++) {
-        int entryIndex = kFirstEntry + kMaxEntriesPerColumn + i;
+        int entryIndex = kFirstFileEntry + kMaxEntriesPerColumn + i;
         auto entry = getMenuEntryAddress(entryIndex);
 
         if (m_numColumns == kMaxColumns)
@@ -330,9 +332,49 @@ static void setLastFilenameColumnNextEntries()
     }
 }
 
+static int findArrowsX()
+{
+    int x = kDefaultArrowX + kMenuOffset;
+
+    if (!m_saving)
+        return x;
+
+    auto widthPerItem = m_longNames ? kLongNameFullWidth : kShortNameFullWidth;
+    auto entry = getMenuEntryAddress(kFirstFileEntry);
+
+    for (int i = 0; i < kNumFilenameItems; i++, entry++) {
+        if (entry->visible() && entry->x + widthPerItem >= kDefaultArrowX) {
+            x = entry->x + widthPerItem;
+            break;
+        }
+    }
+
+    return x;
+}
+
+static std::pair<int, int> getFilenameAreaVerticalBounds()
+{
+    auto entry = getMenuEntryAddress(kFirstFileEntry);
+    auto topY = entry->y;
+    auto bottomY = entry->y + entry->height;
+
+    for (int i = 0; i < kNumFilenameItems; i++, entry++) {
+        if (entry->visible()) {
+            if (entry->y + entry->height > bottomY)
+                bottomY = entry->y + entry->height;
+            if (entry->y < topY)
+                topY = entry->y;
+        }
+    }
+
+    return { topY, bottomY };
+}
+
 static void updateScrollArrows(int startY, int verticalSize, int verticalSlack)
 {
-    auto showArrows = m_filenames.size() > kNumFilenameItems;
+    auto showArrows = std::any_of(m_numEntriesPerColumn.begin(), m_numEntriesPerColumn.end(), [](auto numItemsInColumn) {
+        return numItemsInColumn > kMaxEntriesPerColumn;
+    });
 
     auto scrollUpArrow = getMenuEntryAddress(arrowUp);
     auto scrollDownArrow = getMenuEntryAddress(arrowDown);
@@ -341,9 +383,17 @@ static void updateScrollArrows(int startY, int verticalSize, int verticalSlack)
     scrollDownArrow->setVisible(showArrows);
 
     if (showArrows) {
+        scrollUpArrow->x = scrollDownArrow->x = findArrowsX();
+
         constexpr int kArrowVerticalMargin = 2;
         scrollUpArrow->y = startY - verticalSlack + kArrowVerticalMargin;
         scrollDownArrow->y = startY + verticalSize + kArrowVerticalMargin;
+
+        if (m_saving) {
+            auto yBounds = getFilenameAreaVerticalBounds();
+            scrollUpArrow->y = yBounds.first - 1;
+            scrollDownArrow->y = yBounds.second - scrollDownArrow->height + 2;
+        }
 
         setScrollArrowsNextEntries(scrollUpArrow, scrollDownArrow);
         setLastFilenameColumnNextEntries();
@@ -394,47 +444,51 @@ static void assignFilenamesToEntries()
 {
     assert(m_numColumns > 0);
     assert(m_scrollOffset >= 0 && m_scrollOffset <= m_maxScrollOffset);
-    assert(m_scrollOffset * m_numColumns < static_cast<int>(m_filenames.size()));
+    assert(m_scrollOffset * m_numColumns <= static_cast<int>(m_filenames.size()));
 
     size_t numShownEntries = 0;
 
     auto entry = getMenuEntryAddress(fileEntry_00);
-    int fileIndex = m_scrollOffset * m_numColumns;
     int entryIndex = 0;
+    int fileIndex = m_scrollOffset;
 
     for (int i = 0; i < kMaxColumns; i++) {
         int numColumns = std::min(m_numEntriesPerColumn[i] - m_scrollOffset, kMaxEntriesPerColumn);
         numColumns = std::max(numColumns, 0);
 
         // not very cache friendly, but what can ya do...
-        for (int j = 0; j < numColumns; j++, entry++, entryIndex++) {
+        for (int j = 0; j < numColumns; j++, entry++) {
             entry->show();
 
-            m_entryToFilename[entryIndex] = fileIndex;
+            auto entryIndex = entry->ordinal - kFirstFileEntry;
+            m_entryToFilename[entryIndex] = fileIndex + j;
 
-            const auto& filename = m_filenames[fileIndex];
+            const auto& filename = m_filenames[fileIndex + j];
             auto basenameLength = filename.extensionOffset - 1;
             auto stringLength = std::min<size_t>(basenameLength, kMenuStringLength - 1);
-            auto str = entry->u2.string;
+            auto str = entry->string();
 
             memcpy(str, filename.name.c_str(), stringLength);
             str[stringLength] = '\0';
             if (m_longNames)
                 elideString(str, kMenuStringLength, kLongNameWidth - 1);
-
-            fileIndex++;
         }
 
-        for (int j = numColumns; j < kMaxEntriesPerColumn; j++, entry++, entryIndex++) {
+        for (int j = numColumns; j < kMaxEntriesPerColumn; j++, entry++) {
             entry->hide();
+
+            auto entryIndex = entry->ordinal - kFirstFileEntry;
             m_entryToFilename[entryIndex] = -1;
         }
+
+        fileIndex += m_numEntriesPerColumn[i];
     }
 }
 
 static void selectFilesOnReturn()
 {
-    getMenuEntryAddress(title)->u2.string = const_cast<char *>(m_menuTitle);
+    auto titleString = const_cast<char *>(m_menuTitle);
+    getMenuEntryAddress(title)->setString(titleString);
 
     setSaveFilename();
     splitIntoColumns();
@@ -480,12 +534,12 @@ static const char *getFileTypeFromExtension(const char *ext)
 
 static int getFileIndex(const MenuEntry *entry)
 {
-    if (entry->ordinal < kFirstEntry || entry->ordinal >= kFirstEntry + kNumFilenameItems) {
+    if (entry->ordinal < kFirstFileEntry || entry->ordinal >= kFirstFileEntry + kNumFilenameItems) {
         assert(false);
         return -1;
     }
 
-    return m_entryToFilename[entry->ordinal - kFirstEntry];
+    return m_entryToFilename[entry->ordinal - kFirstFileEntry];
 }
 
 static void drawDescription()
@@ -523,10 +577,14 @@ static void selectFile()
     else
         m_selectedFilename.clear();
 
+    // opportunity for overflow, all places that call have had their buffers widened enough, until we can remove it entirely
+    if (m_saving && m_saveFilename)
+        strcpy(m_saveFilename, m_selectedFilename.c_str());
+
     SetExitMenuFlag();
 }
 
-static void abortSaveFile()
+static void abortSelectFile()
 {
     m_selectedFilename.clear();
     SetExitMenuFlag();
@@ -535,7 +593,7 @@ static void abortSaveFile()
 static void inputFilenameToSave()
 {
     auto entry = A5.asMenuEntry();
-    auto entryString = entry->u2.string;
+    auto entryString = entry->string();
 
     if (inputText(entryString, kMaxSaveFilenameChars, true)) {
         assert(m_saveFilename);
@@ -547,7 +605,11 @@ static void inputFilenameToSave()
 static void saveFileSelected()
 {
     auto inputFilenameEntry = getMenuEntryAddress(inputSaveFilename);
-    m_selectedFilename = inputFilenameEntry->u2.string;
+    m_selectedFilename = inputFilenameEntry->string();
+
+    if (m_saving && m_saveFilename)
+        strcpy(m_saveFilename, m_selectedFilename.c_str());
+
     SetExitMenuFlag();
 }
 

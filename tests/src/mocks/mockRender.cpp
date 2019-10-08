@@ -15,6 +15,8 @@ static bool m_failNextResolutionSwitch;
 static int m_windowIndex = 0;
 static auto m_windowMode = kModeWindow;
 
+static UpdateHook m_updateHook;
+
 std::pair<int, int> getWindowSize()
 {
     return { m_windowWidth, m_windowHeight };
@@ -68,6 +70,11 @@ void failNextDisplayModeSwitch()
     m_failNextResolutionSwitch = true;
 }
 
+void setUpdateHook(UpdateHook updateHook)
+{
+    m_updateHook = updateHook;
+}
+
 std::pair<int, int> getFullScreenDimensions()
 {
     return { m_displayWidth, m_displayHeight };
@@ -112,6 +119,12 @@ SDL_Rect getViewport()
     return { 0, 0, m_windowWidth, m_windowHeight };
 }
 
+void updateScreen(const char *, int, int)
+{
+    if (m_updateHook)
+        m_updateHook();
+}
+
 void loadVideoOptions(const CSimpleIniA&) {}
 void saveVideoOptions(CSimpleIniA&) {}
 void initRendering() {}
@@ -120,7 +133,6 @@ void setPalette(const char *, int) {}
 void getPalette(char *) {}
 void clearScreen() {}
 void skipFrameUpdate() {}
-void updateScreen(const char *, int, int) {}
 void frameDelay(double) {}
 void timerProc() {}
 

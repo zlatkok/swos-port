@@ -2,6 +2,8 @@
 // commonly used menu constants
 //
 
+kMenuOffset = 8
+
 kBaseX = 92
 kBigButtonWidth = 125
 kBigButtonHeight = 15

@@ -136,6 +136,9 @@
     <ClCompile Include="..\src\tests\ControlOptionsMenuTest.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\menus\menuMouse.cpp">
+      <Filter>Source Files\project-files\menus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\stdinc.h">
@@ -207,6 +210,12 @@
     </ClInclude>
     <ClInclude Include="..\src\tests\ControlOptionsMenuTest.h">
       <Filter>Source Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mocks\mockLog.h">
+      <Filter>Source Files\mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\menus\menuMouse.h">
+      <Filter>Source Files\project-files\menus</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

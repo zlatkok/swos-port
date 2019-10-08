@@ -7,6 +7,8 @@
 
 #undef assertEqual
 
+static SWOS_UnitTest::MenuCallback m_menuCallback;
+
 static MenuEntry *getVerifiedEntry(int index, const char *indexStr, const char *file, int line)
 {
     if (index < 0 || index > 256)
@@ -19,6 +21,19 @@ static void verifyNumericItem(const MenuEntry *entry, const char *file, int line
 {
     if (entry->type2 != kEntryNumber)
         throw SWOS_UnitTest::InvalidEntryTypeException(entry, "number", file, line);
+}
+
+void SWOS_UnitTest::setMenuCallback(MenuCallback callback)
+{
+    m_menuCallback = callback;
+}
+
+bool SWOS_UnitTest::exitMenuProc()
+{
+    if (m_menuCallback && !m_menuCallback())
+        return false;
+
+    return true;
 }
 
 void SWOS_UnitTest::assertTrueImp(bool expression, const char *exprStr, const char *file, int line)
@@ -52,9 +67,15 @@ void SWOS_UnitTest::assertItemIsNumberImp(int index, const char *indexStr, int v
 void SWOS_UnitTest::assertItemIsVisibleImp(int index, const char *indexStr, bool visible, const char *file, int line)
 {
     auto entry = getVerifiedEntry(index, indexStr, file, line);
+    assertItemIsVisibleImp(entry, indexStr, visible, file, line);
+}
+
+void SWOS_UnitTest::assertItemIsVisibleImp(const MenuEntry *entry, const char *, bool visible, const char *file, int line)
+{
     if (!entry->invisible ^ visible)
         throw InvalidEntryVisibilityException(entry, file, line);
 }
+
 void SWOS_UnitTest::assertItemEnabledImp(int index, const char *indexStr, bool enabled, const char *file, int line)
 {
     auto entry = getVerifiedEntry(index, indexStr, file, line);
@@ -65,9 +86,21 @@ void SWOS_UnitTest::assertItemEnabledImp(int index, const char *indexStr, bool e
 void SWOS_UnitTest::assertItemIsStringImp(int index, const char *indexStr, const char *value, const char *file, int line)
 {
     auto entry = getVerifiedEntry(index, indexStr, file, line);
+    assertItemIsStringImp(entry, value, value, file, line);
+}
+
+void SWOS_UnitTest::assertItemIsStringImp(const MenuEntry *entry, const char *, const std::string& value, const char *file, int line)
+{
+    assertItemIsStringImp(entry, nullptr, value.c_str(), file, line);
+}
+
+void SWOS_UnitTest::assertItemIsStringImp(const MenuEntry *entry, const char *, const char *value, const char *file, int line)
+{
+    assert(entry);
+
     if (entry->type2 != kEntryString)
         throw InvalidEntryTypeException(entry, "string", file, line);
-    if (strcmp(entry->u2.string, value))
+    if (strcmp(entry->string(), value))
         throw EntryStringMismatch(entry, value, file, line);
 }
 
@@ -150,14 +183,18 @@ void SWOS_UnitTest::sendMouseWheelEventImp(int index, const char *indexStr, int 
 void SWOS_UnitTest::selectItemImp(int index, const char *indexStr, const char *file, int line)
 {
     auto entry = getVerifiedEntry(index, indexStr, file, line);
+    selectItemImp(entry, nullptr, file, line);
+}
+
+void SWOS_UnitTest::selectItemImp(MenuEntry *entry, const char *, const char *file, int line)
+{
     if (!entry->onSelect)
         throw EntryOnSelectMissing(entry, file, line);
 
-    assertItemIsVisibleImp(index, indexStr, true, file, line);
+    assertItemIsVisibleImp(entry, nullptr, true, file, line);
 
     getCurrentMenu()->selectedEntry = entry;
-    A5 = entry;
-    entry->onSelect();
+    selectEntry(entry);
 }
 
 void SWOS_UnitTest::clickItemImp(int index, const char *indexStr, const char *file, int line)

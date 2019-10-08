@@ -38,7 +38,7 @@ private:
     void testResolutionListRebuildWhenChangingScreen();
 
     void setFakeDisplayModesForced(const DisplayModeList& displayModes);
-    bool isYellowPleaseWaitTextShown();
+    void verifyYellowPleaseWaitTextPresence();
     void setUpMode(size_t mode);
     void setUpWindowedMode();
     void setUpBorderlessMaximizedMode();
@@ -56,4 +56,6 @@ private:
 
     std::vector<std::pair<DisplayModeList, ScrollMethod>> m_testScrollingData;
     static constexpr int kNumDisplayListsForScrollTesting = 3;
+
+    bool m_verifyYellowText = false;
 };

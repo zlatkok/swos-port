@@ -19,20 +19,26 @@ class TestParser(unittest.TestCase):
 
     @data(
         # note: ` will be replaced with \n (improves readability)
-        # top level parsing errors
+
+        # expression parsing errors
         ('}', 1, 'unmatched block end'),
         ('Entry', 1, 'entries can only be used inside menus'),
         ('ping', 1, "unexpected end of file while looking for an equal sign (`=')"),
         ('ping ` pong', 2, "expected equal `=', got `pong'"),
         ('ping = ``', 1, "unexpected end of file while looking for an expression start"),
-        ('ping = -+``', 1, "operand expected, got `-'"),
+        ('ping = -+``', 1, "operand expected, got `+'"),
         ('ping =`(57 24``', 2, 'unmatched parenthesis'),
         ('a =`#include "something"', 2, "directive `include' not allowed in this context"),
         ('a = )', 1, 'unmatched parenthesis'),
         ('a = (5``()', 3, 'unmatched parenthesis'),
         ('a = (5))', 1, "unexpected `)'"),
         ('a = (((`5`))', 3, "unexpected end of file while looking for a closing parenthesis `)'"),
-        ('a = +', 1, "operand expected, got `+'"),
+        ('a = +', 1, 'unexpected end of file'),
+        ('a = -+', 1, "operand expected, got `+'"),
+        ('a = +-', 1, "operand expected, got `-'"),
+        ('a = !-+', 1, "operand expected, got `-'"),
+        ('a = -5+', 1, 'unexpected end of file while looking for an expression operand'),
+        ('a = +5-', 1, 'unexpected end of file while looking for an expression operand'),
         ('a`=`"HEY"[', 3, 'unexpected end of file while looking for a string index value'),
         ('a`=`"YOU".', 3, 'unexpected end of file while looking for a string function'),
         ('a`=`"BMX".run', 3, "unexpected end of file while looking for a function parameter list start `('"),
@@ -525,6 +531,8 @@ class TestParser(unittest.TestCase):
             alloc = @kAlloc
             hinge = Glib.endY
             binge = #{2*hinge}
+            blob = -binge
+            glob = -blob
         }
 
         Menu Day {
@@ -558,7 +566,7 @@ class TestParser(unittest.TestCase):
             ('Night', (
                 ('shadows', '1'), ('sun', '0'), ('go', '"Auf Wiedersehen Monty"'), ('alloc', '-1'),
                 ('q_0000', '10'), ('q_0001', '15'), ('hawk', '32'), ('Medjed', '"Bear"'),
-                ('hinge', '(17 + 29)'), ('binge', '92'),
+                ('hinge', '(17 + 29)'), ('binge', '92'), ('blob', '(-92)'), ('glob', '(-(-92))'),
             )),
             ('Day', (
                 ('sun', '1'), ('skies', '"Blue"'), ('p_0', '0'), ('p_1', '3'), ('p_2', '6'),

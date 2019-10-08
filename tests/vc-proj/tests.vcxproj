@@ -87,7 +87,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SWOS_TEST;DIRENT_H;DEBUG;SDL_ADDRESS_FETCHER_DLL="SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SWOS_TEST;DIRENT_H;DEBUG;SDL_ADDRESS_FETCHER_DLL=".\\SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\src\stdinc.h</ForcedIncludeFiles>
@@ -126,7 +126,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SWOS_TEST;DIRENT_H;NDEBUG;SDL_ADDRESS_FETCHER_DLL="SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SWOS_TEST;DIRENT_H;NDEBUG;SDL_ADDRESS_FETCHER_DLL=".\\SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\src\stdinc.h</ForcedIncludeFiles>
@@ -178,6 +178,7 @@
     <ClCompile Include="..\..\src\game.cpp" />
     <ClCompile Include="..\..\src\init.cpp" />
     <ClCompile Include="..\..\src\menus\menu.cpp" />
+    <ClCompile Include="..\..\src\menus\menuMouse.cpp" />
     <ClCompile Include="..\..\src\pitch.cpp" />
     <ClCompile Include="..\..\src\stdinc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -213,12 +214,14 @@
     <ClInclude Include="..\..\src\files\file.h" />
     <ClInclude Include="..\..\src\files\selectFilesMenu.h" />
     <ClInclude Include="..\..\src\menus\menu.h" />
+    <ClInclude Include="..\..\src\menus\menuMouse.h" />
     <ClInclude Include="..\..\src\stdinc.h" />
     <ClInclude Include="..\src\lib\bmpWriter.h" />
     <ClInclude Include="..\src\lib\exceptions.h" />
     <ClInclude Include="..\src\lib\unitTest.h" />
     <ClInclude Include="..\src\mocks\dirent.h" />
     <ClInclude Include="..\src\mocks\mockFile.h" />
+    <ClInclude Include="..\src\mocks\mockLog.h" />
     <ClInclude Include="..\src\mocks\mockRender.h" />
     <ClInclude Include="..\src\mocks\mockSdlMixer.h" />
     <ClInclude Include="..\src\mocks\mockUtil.h" />

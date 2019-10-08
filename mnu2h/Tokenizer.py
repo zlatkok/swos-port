@@ -8,6 +8,17 @@ import Util
 from Token import Token
 
 class Tokenizer:
+    kOperators = tuple(sorted(
+        (
+            '(', ')', '{', '}', '~', '!', '?', ':', ',', '-', '+', '*', '/', '%',
+            '#', '|', '&', '^', '<', '>', '=',
+            '*=', '/=', '%=', '==', '^=', '!=', '++', '+=', '--', '-=', '|=',
+            '&&', '||', '&=', '<<', '>>', '=>', '<=', '>=',
+            '>>=', '<<=', '|>>', '<<|',
+            '|>>=', '<<=|',
+        ), key=len, reverse=True)
+    )
+
     @staticmethod
     def fromFile(inputPath):
         return Tokenizer(inputPath)
@@ -221,15 +232,10 @@ class Tokenizer:
                         tokenLen = j - i + 1
                         break
             elif not line[i].isalnum():
-                if line[i : i + 4] in ('|>>=', '<<=|'):
-                    tokenLen = 4
-                elif line[i : i + 3] in ('>>=', '<<=', '|>>', '<<|'):
-                    tokenLen = 3
-                elif line[i : i + 2] in ('*=', '/=', '%=', '==', '^=', '!=', '++', '+=', '--', '-=', '|=',
-                    '&&', '||', '&=', '<<', '>>', '=>', '<=', '>='):
-                    tokenLen = 2
-                elif line[i] in ('(', ')', '{', '}', '~', '?', ':', ',', '#', '-', '+'):
-                    tokenLen = 1
+                for op in Tokenizer.kOperators:
+                    if op == line[i : i + len(op)]:
+                        tokenLen = len(op)
+                        break
 
             if not tokenLen:
                 match = re.search(r'(?:@)?[\w]+|[{},():]|[-+]*\d+|[^\s\w]', line[i:])

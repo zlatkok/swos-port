@@ -214,7 +214,7 @@ const char *getFileExtension(const char *path)
     return result ? result : path;
 }
 
-const char *getBaseName(const char *path)
+const char *getBasename(const char *path)
 {
     auto result = strrchr(path, getDirSeparator());
     return result ? result + 1 : path;
@@ -265,7 +265,8 @@ FoundFileList findFiles(const char *extension, const char **allowedExtensions /*
 
             bool match = true;
 
-            for (int i = 0; i < 3; i++) {
+            int i = 0;
+            for (; i < 3; i++) {
                 if (!dot[i + 1])
                     break;
                 if (toupper(extension[i + 1]) != toupper(dot[i + 1])) {
@@ -274,7 +275,7 @@ FoundFileList findFiles(const char *extension, const char **allowedExtensions /*
                 }
             }
 
-            if (!match)
+            if (!match || i == 3 && dot[4])
                 continue;
         } else {
             // skip "." and ".." entries

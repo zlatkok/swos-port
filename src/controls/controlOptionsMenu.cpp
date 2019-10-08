@@ -1,5 +1,6 @@
 #include "controls.h"
 #include "joypads.h"
+#include "menuMouse.h"
 #include "joypadConfigMenu.h"
 #include "controlOptions.mnu.h"
 
@@ -106,7 +107,7 @@ static void setupPlayerControlEntries(PlayerNumber player)
     int entriesFilled = 0;
 
     for (int i = startIndex + *scrollOffset; i < static_cast<int>(std::size(kFixedEntries)); i++) {
-        strcpy(baseEntry[entriesFilled].u2.string, kFixedEntries[i]);
+        strcpy(baseEntry[entriesFilled].string(), kFixedEntries[i]);
         baseEntry[entriesFilled].u1.entryColor = kLightBlue;
         plEntryControls[entriesFilled].first = kFixedEntryControls[i];
 
@@ -126,7 +127,7 @@ static void setupPlayerControlEntries(PlayerNumber player)
     assert(numJoypadEntries <= kNumControlEntries);
 
     for (int i = startJoypad; i < startJoypad + numJoypadEntries; i++) {
-        auto destStr = baseEntry[entriesFilled].u2.string;
+        auto destStr = baseEntry[entriesFilled].string();
         auto& joypad = getJoypad(i);
 
         joypad.tryReopening(i);

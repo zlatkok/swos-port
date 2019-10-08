@@ -12,6 +12,8 @@ static int m_mouseX;
 static int m_mouseY;
 static Uint32 m_mouseButtonFlags;
 
+static SDL_Scancode m_scancodes[SDL_NUM_SCANCODES];
+
 static void SDL_Delay_NOP(Uint32) {}
 static int SDL_PeepEvents_NOP(SDL_Event *, int, SDL_eventaction, Uint32) { return 0; }
 
@@ -89,6 +91,24 @@ static void pumpEvents()
     }
 }
 
+static int getNumJoypads()
+{
+    return 0;
+}
+
+static Uint8 getJoystickButton(SDL_Joystick *, int)
+{
+    return 0;
+}
+
+static Uint8 *getKeyboardState(int *numKeys)
+{
+    if (numKeys)
+        *numKeys = std::size(m_scancodes);
+
+    return reinterpret_cast<Uint8 *>(&m_scancodes);
+}
+
 void takeOverInput()
 {
     m_table[SDL_PollEventIndex] = getEventFromQueue;
@@ -96,6 +116,9 @@ void takeOverInput()
     m_table[SDL_GetMouseStateIndex] = getMouseState;
     m_table[SDL_PeepEventsIndex] = pumpEvents;
     m_table[SDL_PumpEventsIndex] = pumpEvents;
+    m_table[SDL_NumJoysticksIndex] = getNumJoypads;
+    m_table[SDL_GetKeyboardStateIndex] = getKeyboardState;
+    m_table[SDL_JoystickGetButtonIndex] = getJoystickButton;
 }
 
 void queueSdlEvent(const SDL_Event& event)
@@ -141,6 +164,25 @@ void queueSdlMouseButtonEvent(bool mouseUp /* = false */, int button /* = 1 */)
     event.button.y = m_mouseY;
 
     queueSdlEvent(event);
+}
+
+static void queueSdlKeyEvent(SDL_Scancode keyCode, bool keyDown)
+{
+    SDL_Event event {};
+    event.type = keyDown ? SDL_KEYDOWN : SDL_KEYUP;
+    event.key.state = keyDown ? SDL_PRESSED : SDL_RELEASED;
+    event.key.keysym.scancode = keyCode;
+    queueSdlEvent(event);
+}
+
+void queueSdlKeyDown(SDL_Scancode keyCode)
+{
+    queueSdlKeyEvent(keyCode, true);
+}
+
+void queueSdlKeyUp(SDL_Scancode keyCode)
+{
+    queueSdlKeyEvent(keyCode, false);
 }
 
 void setSdlMouseState(int x, int y, bool leftClick /* = false */, bool rightClick /* = false */)

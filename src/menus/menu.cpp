@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "menuMouse.h"
 #include "log.h"
 #include "util.h"
 #include "render.h"
@@ -7,14 +8,9 @@
 #include "main.mnu.h"
 #include "quit.mnu.h"
 
-using ReachabilityMap = std::array<bool, 256>;
-static ReachabilityMap m_reachableEntries;
-
-static MouseWheelEntryList m_previousMouseWheelEntries;
-static MouseWheelEntryList m_mouseWheelEntries;
-static int m_previousWheelUpEntry, m_previousWheelDownEntry;
-static int m_wheelUpEntry = -1;
-static int m_wheelDownEntry = -1;
+#ifdef SWOS_TEST
+# include "unitTest.h"
+#endif
 
 void SWOS::FlipInMenu()
 {
@@ -30,7 +26,7 @@ void SWOS::SetPrevVideoModeEndProgram()
 
 static void menuDelay()
 {
-#ifndef NDEBUG
+#ifdef DEBUG
     extern void checkMemory();
 
     assert(_CrtCheckMemory());
@@ -41,178 +37,6 @@ static void menuDelay()
         timerProc();
         timerProc();    // imitate int 8 ;)
     }
-}
-
-static void performMouseWheelAction(const MenuEntry& entry, int scrollValue)
-{
-    for (const auto& mouseWheelEntry : m_mouseWheelEntries) {
-        if (mouseWheelEntry.ordinal == entry.ordinal) {
-            int scrollUpEntry = mouseWheelEntry.scrollUpEntry;
-            int scrollDownEntry = mouseWheelEntry.scrollDownEntry;
-
-            assert(scrollUpEntry >= 0 && scrollUpEntry < 256);
-            assert(scrollDownEntry >= 0 && scrollDownEntry < 256);
-
-            if (scrollValue > 0) {
-                assert(getMenuEntryAddress(scrollUpEntry)->onSelect);
-                getMenuEntryAddress(scrollUpEntry)->onSelect();
-            } else {
-                assert(getMenuEntryAddress(scrollDownEntry)->onSelect);
-                getMenuEntryAddress(scrollDownEntry)->onSelect();
-            }
-
-            break;
-        }
-    }
-}
-
-static bool mapCoordinatesToGameArea(int& x, int& y)
-{
-    int windowWidth, windowHeight;
-
-    if (isInFullScreenMode()) {
-        std::tie(windowWidth, windowHeight) = getFullScreenDimensions();
-        x = x * kVgaWidth / windowWidth;
-        y = y * kVgaHeight / windowHeight;
-        return true;
-    }
-
-    std::tie(windowWidth, windowHeight) = getWindowSize();
-
-    SDL_Rect viewport = getViewport();
-
-    int slackWidth = 0;
-    int slackHeight = 0;
-
-    if (viewport.x) {
-        auto logicalWidth = kVgaWidth * windowHeight / kVgaHeight;
-        slackWidth = (windowWidth - logicalWidth) / 2;
-    } else if (viewport.y) {
-        auto logicalHeight = kVgaHeight * windowWidth / kVgaWidth;
-        slackHeight = (windowHeight - logicalHeight) / 2;
-    }
-
-    if (y < slackHeight || y >= windowHeight - slackHeight)
-        return false;
-
-    if (x < slackWidth || x >= windowWidth - slackWidth)
-        return false;
-
-    x = (x - slackWidth) * kVgaWidth / (windowWidth - 2 * slackWidth);
-    y = (y - slackHeight) * kVgaHeight / (windowHeight - 2 * slackHeight);
-
-    return true;
-}
-
-static bool globalWheelHandler(int scrollAmount)
-{
-    bool handled = false;
-
-    if (scrollAmount > 0 && m_wheelUpEntry >= 0) {
-        selectEntry(m_wheelUpEntry);
-        handled = true;
-    } else if (scrollAmount < 0 && m_wheelDownEntry >= 0) {
-        selectEntry(m_wheelDownEntry);
-        handled = true;
-    }
-
-    return handled;
-}
-
-static void checkForEntryClicksAndMouseWheelMovement(Menu *currentMenu, MenuEntry *entries, int x, int y,
-    Uint32 buttons, bool& selectedLastFrame, bool& clickedLastFrame)
-{
-    auto wheelScrollAmount = mouseWheelAmount();
-    auto wheelHandled = globalWheelHandler(wheelScrollAmount);
-
-    for (size_t i = 0; i < currentMenu->numEntries; i++) {
-        auto& entry = entries[i];
-        bool insideEntry = x >= entry.x && x < entry.x + entry.width && y >= entry.y && y < entry.y + entry.height;
-
-        if (insideEntry && entry.visible() && m_reachableEntries[entry.ordinal]) {
-            currentMenu->selectedEntry = &entry;
-            selectedLastFrame = true;
-
-            bool isPlayMatch = entry.type2 == kEntryString && entry.u2.string && !strcmp(entry.u2.string, "PLAY MATCH");
-
-            if ((buttons & SDL_BUTTON_LMASK) && !isPlayMatch) {
-                pressFire();
-                clickedLastFrame = true;
-
-                // get rid of the damn click
-                SDL_PumpEvents();
-                while (SDL_GetMouseState(nullptr, nullptr)) {
-                    SDL_Delay(10);
-                    SDL_PumpEvents();
-                }
-
-                break;
-            } else if (!wheelHandled && wheelScrollAmount) {
-                performMouseWheelAction(entry, wheelScrollAmount);
-            }
-        }
-    }
-}
-
-static void updateMouse()
-{
-    static int lastX = -1, lastY = -1;
-    static bool clickedLastFrame;
-    static bool selectedLastFrame = true;
-    static Uint32 startingTicks = SDL_GetTicks();
-
-    int x, y;
-    auto buttons = SDL_GetMouseState(&x, &y);
-
-    // make sure to discard initial activity while the window is initializing
-    if ((x != lastX || y != lastY) && SDL_GetTicks() - startingTicks > 100)
-        selectedLastFrame = false;
-
-    lastX = x;
-    lastY = y;
-
-    if (clickedLastFrame) {
-        if (!buttons) {
-            clickedLastFrame = false;
-            selectedLastFrame = false;
-        }
-
-        releaseFire();
-        return;
-    }
-
-    auto currentMenu = getCurrentMenu();
-    auto entries = reinterpret_cast<MenuEntry *>(g_currentMenu + sizeof(Menu));
-
-    if (buttons & SDL_BUTTON_RMASK) {
-        clickedLastFrame = true;
-        SetExitMenuFlag();
-        return;
-    }
-
-    if (selectedLastFrame && !(buttons & SDL_BUTTON_LMASK) && !mouseWheelAmount())
-        return;
-
-    if (!mapCoordinatesToGameArea(x, y))
-        return;
-
-    if (hasMouseFocus() && !isMatchRunning())
-        checkForEntryClicksAndMouseWheelMovement(currentMenu, entries, x, y, buttons, selectedLastFrame, clickedLastFrame);
-}
-
-void setMouseWheelEntries(const MouseWheelEntryList& mouseWheelEntries)
-{
-    assert(m_wheelUpEntry == -1 && m_wheelDownEntry == -1);
-
-    m_mouseWheelEntries = mouseWheelEntries;
-}
-
-void setGlobalWheelEntries(int upEntry /* = -1 */, int downEntry /* = -1 */)
-{
-    assert(m_mouseWheelEntries.empty());
-
-    m_wheelUpEntry = upEntry;
-    m_wheelDownEntry = downEntry;
 }
 
 static std::pair<int, int> charSpriteWidth(char c, const CharTable *charTable)
@@ -336,7 +160,7 @@ static const char *entryText(const MenuEntry *entry)
     static char buf[16];
     if (entry) {
         switch (entry->type2) {
-        case kEntryString: return entry->u2.string;
+        case kEntryString: return entry->string();
         case kEntryMultiLineText: return reinterpret_cast<char *>(entry->u2.multiLineText) + 1;
         case kEntrySprite2:
         case kEntryNumber: return _itoa(entry->u2.number, buf, 10);
@@ -344,56 +168,6 @@ static const char *entryText(const MenuEntry *entry)
     }
 
     return "/";
-}
-
-// Finds and marks every reachable item starting from the initial one.
-static void determineReachableEntries(const MenuBase *menu)
-{
-    std::fill(m_reachableEntries.begin(), m_reachableEntries.end(), false);
-
-    static_assert(offsetof(MenuEntry, downEntry) == offsetof(MenuEntry, upEntry) + 1 &&
-        offsetof(MenuEntry, upEntry) == offsetof(MenuEntry, rightEntry) + 1 &&
-        offsetof(MenuEntry, rightEntry) == offsetof(MenuEntry, leftEntry) + 1 &&
-        sizeof(MenuEntry::leftEntry) == 1, "MenuEntry: assumptions about next entries failed");
-
-    std::vector<std::pair<const MenuEntry *, int>> entryStack;
-    entryStack.reserve(256);
-
-    auto currentMenu = getCurrentMenu();
-    auto currentEntry = currentMenu->selectedEntry;
-    auto entries = reinterpret_cast<MenuEntry *>(g_currentMenu + sizeof(Menu));
-
-    entryStack.emplace_back(currentEntry, 0);
-
-    while (!entryStack.empty()) {
-        const MenuEntry *entry;
-        int direction;
-
-        std::tie(entry, direction) = entryStack.back();
-
-        assert(entry && direction >= 0 && direction <= 4);
-        assert(entry->ordinal < 256);
-
-        m_reachableEntries[entry->ordinal] = true;
-
-        auto nextEntries = reinterpret_cast<const uint8_t *>(&entry->leftEntry);
-
-        for (; direction < 4; direction++) {
-            auto ord = nextEntries[direction];
-
-            if (ord != 255 && !m_reachableEntries[ord]) {
-                entryStack.emplace_back(&entries[ord], 0);
-                break;
-            }
-        }
-
-        if (direction >= 4) {
-            entryStack.pop_back();
-        } else {
-            assert(entryStack.size() >= 2);
-            entryStack[entryStack.size() - 2].second = direction + 1;
-        }
-    }
 }
 
 // These are macros instead of functions because we need to save these variables for each level of nesting;
@@ -422,12 +196,7 @@ void SWOS::ShowMenu()
     controlWord = 0;
     menuStatus = 0;
 
-    m_previousMouseWheelEntries = m_mouseWheelEntries;
-    m_mouseWheelEntries.clear();
-
-    m_previousWheelUpEntry = m_wheelUpEntry;
-    m_previousWheelDownEntry = m_wheelDownEntry;
-    m_wheelUpEntry = m_wheelDownEntry = -1;
+    menuMouseOnAboutToShowNewMenu();
 
     auto newMenu = A6.asPtr();
     saveCurrentMenu();
@@ -439,8 +208,9 @@ void SWOS::ShowMenu()
     while (!g_exitMenu) {
         menuProcCycle();
 #ifdef SWOS_TEST
-        // unit tests want to run only one menu frame
-        return;
+        // ask unit tests how long they want to run menu proc
+        if (SWOS_UnitTest::exitMenuProc())
+            return;
 #endif
     }
 
@@ -450,9 +220,7 @@ void SWOS::ShowMenu()
     restorePreviousMenu();
     determineReachableEntries(savedMenu);
 
-    m_mouseWheelEntries = m_previousMouseWheelEntries;
-    m_wheelUpEntry = m_previousWheelUpEntry;
-    m_wheelDownEntry = m_previousWheelDownEntry;
+    menuMouseOnOldMenuRestored();
 
     logInfo("Menu %#x finished, restoring menu %#x", newMenu, g_currentMenuPtr);
 }
@@ -580,6 +348,13 @@ static MenuEntry *findNextEntry(byte nextEntryIndex, int nextEntryDirection)
         auto newDirection = (&nextEntry->leftDirection)[nextEntryDirection];
         if (newDirection != 255) {
             nextEntryIndex = (&nextEntry->leftEntryDis)[nextEntryDirection];
+
+            assert((nextEntryIndex != nextEntry->ordinal || nextEntryDirection != newDirection) &&
+                "Entry referencing itself, infinite loop!");
+
+            if (nextEntryIndex == nextEntry->ordinal && nextEntryDirection == newDirection)
+                break;
+
             nextEntryDirection = newDirection;
             assert(newDirection <= 3);
             assert(nextEntryIndex != 255);
@@ -593,17 +368,10 @@ static MenuEntry *findNextEntry(byte nextEntryIndex, int nextEntryDirection)
 
 static void invokeOnSelect(MenuEntry *entry)
 {
-    assert(entry->onSelect);
-
     stopTitleSong();
-
-    save68kRegisters();
-    auto func = entry->onSelect;
-
     menuCycleTimer = 1;     // set cycle timer to prevent InputText choking
 
-    SAFE_INVOKE(func);
-    restore68kRegisters();
+    selectEntry(entry);
 }
 
 static bool isPlayMatchEntry(const MenuEntry *entry)
@@ -621,6 +389,21 @@ static void playMatchSelected(int playerNo)
     player1ClearFlag = 0;
     player2ClearFlag = 0;
     SetExitMenuFlag();
+}
+
+static bool checkForPlayMatchEntry(const MenuEntry *activeEntry)
+{
+    if (isPlayMatchEntry(activeEntry)) {
+        int playerNo = matchControlsSelected(activeEntry);
+        updateMatchControls();
+
+        if (playerNo >= 0) {
+            playMatchSelected(playerNo);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static int getControlMask(int entryControlMask)
@@ -659,6 +442,48 @@ static int getControlMask(int entryControlMask)
     return controlMask & entryControlMask;
 }
 
+static void selectEntryWithControlMask(MenuEntry *entry)
+{
+    controlsStatus = 0;
+
+    if (entry->onSelect) {
+        int controlMask = getControlMask(entry->controlMask);
+
+        if (entry->controlMask == -1 || controlMask) {
+            controlsStatus = controlMask;
+            invokeOnSelect(entry);
+        }
+    }
+}
+
+static MenuEntry *handleSwitchingToNextEntry(MenuEntry *entry)
+{
+    // if no fire but there's a movement, try moving to the next entry
+    if (!fire && finalControlsStatus >= 0) {
+        // map direction values (down, right, left, up) to order in MenuEntry structure
+        static const size_t nextDirectionOffsets[MenuEntry::kNumDirections] = { 2, 1, 3, 0, };
+
+        // this will hold the offset of the next entry to move to (direction)
+        int nextEntryDirection = nextDirectionOffsets[(finalControlsStatus >> 1) & 3];
+        auto nextEntryIndex = (&entry->leftEntry)[nextEntryDirection];
+
+        entry = findNextEntry(nextEntryIndex, nextEntryDirection);
+    }
+
+    return entry;
+}
+
+static void highlightEntry(Menu *currentMenu, MenuEntry *entry)
+{
+    assert(currentMenu);
+
+    if (entry) {
+        previousMenuItem = currentMenu->selectedEntry;
+        currentMenu->selectedEntry = entry;
+        entry->type1 == kEntryNoBackground ? DrawMenu() : DrawMenuItem();
+    }
+}
+
 void SWOS::MenuProc()
 {
     updateMouse();
@@ -687,37 +512,10 @@ void SWOS::MenuProc()
         activeEntry = currentMenu->selectedEntry = previousMenuItem;
 
     if (activeEntry) {
-        if (isPlayMatchEntry(activeEntry)) {
-            int playerNo = matchControlsSelected(activeEntry);
-            updateMatchControls();
-
-            if (playerNo >= 0) {
-                playMatchSelected(playerNo);
-                return;
-            }
-        }
-
-        controlsStatus = 0;
-
-        if (activeEntry->onSelect) {
-            int controlMask = getControlMask(activeEntry->controlMask);
-
-            if (activeEntry->controlMask == -1 || controlMask) {
-                controlsStatus = controlMask;
-                invokeOnSelect(activeEntry);
-            }
-        }
-
-        // if no fire but there's movement, move to next entry
-        if (!fire && finalControlsStatus >= 0) {
-            static const size_t nextDirectionOffsets[4] = { 2, 1, 3, 0, };
-
-            // will hold offset of next entry to move to (direction)
-            int nextEntryDirection = nextDirectionOffsets[(finalControlsStatus >> 1) & 3];
-            auto nextEntryIndex = (&activeEntry->leftEntry)[nextEntryDirection];
-
-            nextEntry = findNextEntry(nextEntryIndex, nextEntryDirection);
-        }
+        if (checkForPlayMatchEntry(activeEntry))
+            return;
+        selectEntryWithControlMask(activeEntry);
+        nextEntry = handleSwitchingToNextEntry(activeEntry);
     } else if (finalControlsStatus < 0) {
         return;
     } else if (previousMenuItem) {
@@ -725,11 +523,7 @@ void SWOS::MenuProc()
         nextEntry = previousMenuItem;
     }
 
-    if (nextEntry) {
-        previousMenuItem = currentMenu->selectedEntry;
-        currentMenu->selectedEntry = nextEntry;
-        nextEntry->type1 == kEntryNoBackground ? DrawMenu() : DrawMenuItem();
-    }
+    highlightEntry(currentMenu, nextEntry);
 }
 
 void SWOS::ExitPlayMatch()
@@ -815,7 +609,7 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
     *end = '\0';
 
     entry->type2 = kEntryString;
-    entry->u2.string = buf;
+    entry->setString(buf);
 
     auto cursorPtr = end - 1;
 

@@ -1,6 +1,8 @@
 #include "videoOptions.mnu.h"
+#include "menuMouse.h"
 
 constexpr auto kSelectedColor = kSoftBlueText;
+constexpr int kShowPleaseWaitLimit = 20;
 
 static bool m_menuShown;
 static int16_t m_windowResizable = 1;
@@ -44,7 +46,7 @@ static DisplayModeList getDisplayModes(int displayIndex)
     else
         logInfo("Enumerating display modes, %d found", numModes);
 
-    if (numModes > 20) {
+    if (numModes > kShowPleaseWaitLimit) {
         drawMenuText(55, 80, "PLEASE WAIT, ENUMERATING GRAPHICS MODES...", kYellowText);
         updateScreen();
     }
@@ -87,7 +89,7 @@ static int m_resListOffset;
 
 static void fillResolutionListUi()
 {
-    int currentEntry = getCurrentEntry();
+    int currentEntry = getCurrentEntryOrdinal();
 
     for (int i = resolutionField0; i < resolutionField0 + kNumResolutionFields; i++)
         getMenuEntryAddress(i)->hide();
@@ -99,7 +101,7 @@ static void fillResolutionListUi()
 
         auto width = m_resolutions[i].first;
         auto height = m_resolutions[i].second;
-        snprintf(entry->u2.string, 30, "%d X %d", width, height);
+        snprintf(entry->string(), 30, "%d X %d", width, height);
 
         entry->u1.entryColor = kLightBlue;
         if (isInFullScreenMode() && getFullScreenDimensions() == std::make_pair(width, height))
@@ -116,9 +118,9 @@ static void updateFullScreenAvailability()
     auto fullScreenEntry = getMenuEntryAddress(fullScreen);
     bool fullScreenAvailable = !m_resolutions.empty();
 
-    strcpy(fullScreenEntry->u2.string, "FULL SCREEN:");
+    strcpy(fullScreenEntry->string(), "FULL SCREEN:");
     if (!fullScreenAvailable)
-        strcpy(fullScreenEntry->u2.string + 11, " UNAVAILABLE");
+        strcpy(fullScreenEntry->string() + 11, " UNAVAILABLE");
 
     fullScreenEntry->disabled = !fullScreenAvailable;
 
@@ -142,7 +144,7 @@ static void updateScrollArrows()
 {
     bool show = m_resolutions.size() > kNumResolutionFields;
 
-    int selectedEntry = getCurrentEntry();
+    int selectedEntry = getCurrentEntryOrdinal();
 
     for (auto i : { scrollUpArrow, scrollDownArrow }) {
         auto entry = getMenuEntryAddress(i);
@@ -170,7 +172,7 @@ static void changeResolutionSelected()
     char buffer[64];
 
     if (setFullScreenResolution(m_resolutions[i].first, m_resolutions[i].second)) {
-        strcpy_s(buffer, entry->u2.string);
+        strcpy_s(buffer, entry->string());
         if (auto space = strchr(buffer, ' ')) {
             *space = 'x';
 
@@ -182,8 +184,8 @@ static void changeResolutionSelected()
 
         logInfo("Successfully switched to %s", buffer);
     } else {
-        logWarn("Failed to switch to %s", entry->u2.string);
-        snprintf(buffer, sizeof(buffer), "FAILED TO SWITCH TO %s", entry->u2.string);
+        logWarn("Failed to switch to %s", entry->string());
+        snprintf(buffer, sizeof(buffer), "FAILED TO SWITCH TO %s", entry->string());
         showError(buffer);
     }
 }
@@ -231,7 +233,7 @@ static void setWindowedFieldsColor(bool selected)
 
 static void setBorderlessFieldsColor(bool selected)
 {
-    getMenuEntryAddress(VideoOptionsMenu::borderlessMaximized)->textColor = selected ? kSelectedColor : kWhiteText;;
+    getMenuEntryAddress(VideoOptionsMenu::borderlessMaximized)->textColor = selected ? kSelectedColor : kWhiteText;
 }
 
 static void setFullScreenFieldsColor(bool selected)

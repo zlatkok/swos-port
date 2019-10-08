@@ -348,7 +348,3 @@ std::pair<char *, size_t> loadFile(const char *path, size_t bufferOffset /* = 0 
 
     return { buf, node.size + bufferOffset };
 }
-
-//fopen,fread,fwrite?
-//FILE *openFile(const char *path, const char *mode = "rb")
-//int getFileSize(const char *path, bool required = true);

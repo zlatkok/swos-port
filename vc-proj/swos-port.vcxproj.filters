@@ -165,6 +165,9 @@
     <ClCompile Include="..\src\game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\menus\menuMouse.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\swos.h">
@@ -238,6 +241,12 @@
     </ClInclude>
     <ClInclude Include="..\src\assert.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\menus\menuCodes.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\menus\menuMouse.h">
+      <Filter>Source Files\menus</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -44,13 +44,15 @@ protected:
 
 private:
     struct Failure {
-        Failure(size_t caseIndex, const std::string& error) : caseIndex(caseIndex), error(error) {}
-        size_t caseIndex;
+        Failure(const std::string& testCaseName, size_t dataIndex, const std::string& error)
+            : testCaseName(testCaseName), dataIndex(dataIndex), error(error) {}
+        std::string testCaseName;
+        size_t dataIndex;
         std::string error;
     };
     struct TestFailures {
-        TestFailures(BaseTest *test, size_t caseIndex, const std::string& error) : test(test) {
-            failures.emplace_back(caseIndex, error);
+        TestFailures(BaseTest *test, const std::string& testCaseName, size_t dataIndex, const std::string& error) : test(test) {
+            failures.emplace_back(testCaseName, dataIndex, error);
         }
         BaseTest *test;
         std::vector<Failure> failures;
@@ -72,7 +74,7 @@ private:
     template <typename Time>
     static void showReport(int numTestsRan, const FailureList& failures, Time startTime);
     static void outputStats(std::chrono::time_point<std::chrono::steady_clock> startTime, int numTestsRan);
-    static void takeSnapshot(const char *snapshotDir, const char *testName, const char *caseName, int caseInstanceIndex);
+    static void takeSnapshot(const char *snapshotDir, const char *caseId, int caseInstanceIndex);
 
     static std::tuple<size_t, size_t, size_t> unpackCurrentTest();
     static void packCurrentTest(size_t testIndex, size_t testCaseIndex, size_t dataIndex);

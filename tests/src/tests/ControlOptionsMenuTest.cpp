@@ -1,8 +1,14 @@
 #include "ControlOptionsMenuTest.h"
 #include "controlOptionsMenu.h"
 #include "unitTest.h"
+#include "sdlProcs.h"
 
 static ControlOptionsMenuTest t;
+
+void ControlOptionsMenuTest::init()
+{
+    takeOverInput();
+}
 
 const char *ControlOptionsMenuTest::name() const
 {

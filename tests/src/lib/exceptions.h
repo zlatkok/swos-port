@@ -8,7 +8,7 @@ namespace SWOS_UnitTest
     struct BaseException
     {
         BaseException(const char *file, int line) {
-            m_error = std::string(getBaseName(file)) + '(' + std::to_string(line) + "): ";
+            m_error = std::string(getBasename(file)) + '(' + std::to_string(line) + "): ";
             debugBreakIfDebugged();
         }
 
@@ -101,7 +101,7 @@ namespace SWOS_UnitTest
             assert(entry && (entry->type2 == kEntryString || entry->type2 == kEntryStringTable));
             auto string = entry->type2 == kEntryString ? entry->u2.string : entry->u2.stringTable->currentString();
             m_error += getEntryStringWithOrdinal(entry) + " has unexpected string value `" +
-                string + "', expected `" + expectedString + '\'';;
+                string + "', expected `" + expectedString + '\'';
         }
     };
 
@@ -116,15 +116,15 @@ namespace SWOS_UnitTest
 
     namespace Detail {
         template<typename T>
-        std::string stringify(T t) {
+        static inline std::string stringify(T t) {
             return std::to_string(t);
         }
         template<typename T>
-        std::string stringify(const std::pair<T, T>& t) {
+        static inline std::string stringify(const std::pair<T, T>& t) {
             return "(" + std::to_string(t.first) + ", " + std::to_string(t.second) + ")";
         }
         template<typename T>
-        std::string stringify(T *t) {
+        static inline std::string stringify(T *t) {
             char buf[32];
             _itoa(reinterpret_cast<int>(t), buf, 16);
             return std::string("0x") + buf;
@@ -134,6 +134,9 @@ namespace SWOS_UnitTest
         }
         static inline std::string stringify(const char *str) {
             return std::string("\"") + str + '"';
+        }
+        static inline std::string stringify(const std::string& str) {
+            return '"' + str + '"';
         }
     };
 

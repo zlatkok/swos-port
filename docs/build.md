@@ -1,3 +1,29 @@
+# Requirements
+
+Currently, the game only builds and runs on Windows. To build you must have the following installed and available
+in the system path:
+
+- Visual Studio 2019 for the tests, 2015 for the rest (maybe older would work too)
+- Python 3.6+
+  - ddt (for mnu2h tests)
+- MASM at least version 8
+- gperf (optional, for tokenizer performance test)
+- Cygwin (optional, for backup script)
+<!-- - Inno Setup (for the installer) [later] -->
+
+Required libraries (as *.lib files in lib dir):
+- SDL2
+- SDL2_image \[currently unused\]
+- SDL2_net \[currently unused\]
+- SDL_Mixer
+- libADLMIDI (to play menu.xmi)
+- CrashRpt (crash reporter)
+
+Include only libraries:
+- SimpleIni
+
+Also corresponding dll's are required to run.
+
 # Build process
 
 `swos-port` is composed of several inter-dependent projects. Goal of this document is to describe those
@@ -25,18 +51,18 @@ It depends on same files as `ida2asm`:
 - `ida2asm/gen-lookup/tokens.lst`
 
 but will run script with different parameters and its output will be `main.cpp`. `main.cpp` is then compiled into
-tester executable the usual way. Tester is capable of running tests for the generated token lookup function, as well
-as performance tests comparing it to several alternative implementations. Optional dependence is `gperf`, which is
-looked up during the build, and used in performance tests if found.
+tester executable in the usual way. Tester is capable of running tests for the generated token lookup function, as
+well as performance tests comparing it to several alternative implementations. Optional dependency is `gperf`, which
+is looked up during the build, and used in performance tests if found.
 
 Note that the tester is only built, but not executed in any way.
 
 ## `swos-asm`
 
 This intermediate project invokes `ida2asm` binaries on `swos/swos.asm` (SWOS disassembly) and `swos/symbols.txt`
-(control file for `ida2asm`, for more details see [`ida2asm`](ida2asm.md)). The result are actual ASM
-files which will be fed to MASM. To speed up the build process 8 ASM files are generated, `swos-01.asm` to
-`swos-08.asm`.
+(control file for `ida2asm`, for more details see [`ida2asm`](ida2asm.md)). The result are actual ASM files which
+will be fed to MASM, as well as `swossym.h`, a C++ header file containing exported ASM symbols that need to be
+accessed from C++. To speed up the build process 8 assembly files are generated, `swos-01.asm` to `swos-08.asm`.
 
 One problem of the current build is that debug version will try to use release version of `ida2asm`, since it runs
 much faster. I was unable to find a way to make Visual Studio aware of this, so unfortunately debug build will
@@ -57,6 +83,11 @@ This is the main project, on top of the dependency chain. Source files are locat
 assembly files, encoded SWOS menus from `mnu2h` with C++ files and libraries to build a final executable of the
 game.
 
+Generated assembly files get assembled with MASM in this phase.
+
+Visual Studio project files are in `vc-proj` directory, and the main solution file for the project is
+`swos-port.sln`.
+
 ## `sdl-address-table-fetcher`
 
 This is a prerequisite for tests, it builds a small DLL which will gain access to SDL's dynamic table of functions
@@ -67,7 +98,7 @@ There is nothing unusual about the build.
 ## `tests`
 
 This project contains simple testing framework and unit tests for `swos-port`. It is made dependant of main project
-because it requires same compiled menus. Repeating all the custom build commands in this project would result in
+because it requires the same compiled menus. Repeating all the custom build commands in this project would result in
 significant duplication. This is another problem of the current build.
 
 Tests are only built, but not ran.

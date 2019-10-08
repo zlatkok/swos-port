@@ -5,6 +5,7 @@
 #include "wavFormat.h"
 #include "mockSdlMixer.h"
 #include "mockUtil.h"
+#include "mockLog.h"
 
 using namespace SWOS;
 
@@ -25,7 +26,7 @@ static void setupKeeperClaimedComment()
 
 static void setupHeaderComment()
 {
-    TeamGeneralInfo team;
+    static TeamGeneralInfo team;
     team.playerNumber = 1;
     A6 = &team;
 }
@@ -366,12 +367,12 @@ void CommentaryTest::finish()
 
 const char *CommentaryTest::name() const
 {
-    return "commentaries";
+    return "commentary";
 }
 
 const char *CommentaryTest::displayName() const
 {
-    return "commentaries";
+    return "commentary";
 }
 
 auto CommentaryTest::getCases() -> CaseList
@@ -401,7 +402,7 @@ static int m_currentFileSlot = 0;
 
 static void addFakeSampleFile(MockFileList& fakeFiles, const char *path)
 {
-    auto baseName = getBaseName(path);
+    auto baseName = getBasename(path);
     assert(strlen(baseName) < kFilenameAreaSize);
     assert(m_currentFileSlot < kNumFileDataSlots);
 
@@ -519,7 +520,7 @@ static void addFakeCustomComments()
         if (!fakeFile.data) {
             auto ext = getFileExtension(fakeFile.path);
             if (ext) {
-                fakeFile.data = getBaseName(fakeFile.path);
+                fakeFile.data = getBasename(fakeFile.path);
                 fakeFile.size = strlen(fakeFile.data) + 1;
             }
         }
@@ -536,9 +537,13 @@ static void loadFakeCustomSamples()
     addFakeCustomComments();
     clearSampleCache();
 
-    AssertSilencer silencer;
+    AssertSilencer assertSilencer;
+    LogSilencer logSilencer;
+
     LoadCommentary();
     LoadSoundEffects();
+
+    setStrictLogMode(true);
 }
 
 void CommentaryTest::setupCustomSamplesLoadingTest()
@@ -583,7 +588,9 @@ static void testCustomSfx()
     // test the missing ones
     using namespace SWOS_UnitTest;
 
-    AssertSilencer silencer;
+    AssertSilencer assertSilencer;
+    LogSilencer logSilencer;
+
     resetMockSdlMixer();
 
     PlayHomeGoalSample();
@@ -682,6 +689,8 @@ static void testEmptyCategories()
     };
 
     for (const auto data : kEmptyDirsData) {
+        LogSilencer logSilencer;
+
         if (data.setupFunc)
             data.setupFunc();
 
@@ -704,6 +713,8 @@ static void testCustomCommentary()
 
 void CommentaryTest::testCustomSamples()
 {
+    LogSilencer logSilencer;
+
     testCustomSfx();
     testCustomCommentary();
 }
@@ -772,14 +783,16 @@ void CommentaryTest::setupHandlingBadFileTest()
         { "audio\\commentary\\good_play\\extraordinary.mp3", "A", 2 },
         { "audio\\commentary\\good_play\\exceptional.mp3", "B", 2 },
         { "audio\\commentary\\good_play\\fantastic.mp3", "C", 2 },
-        { "audio\\commentary\\good_play\\dissapointing_x4.mp3", "D", 2 },
+        { "audio\\commentary\\good_play\\disappointing_x4.mp3", "D", 2 },
     };
 
     resetFakeFiles();
     addFakeFiles(fakeFiles);
-    setFileAsCorrupted("audio\\commentary\\good_play\\dissapointing_x4.mp3");
+    setFileAsCorrupted("audio\\commentary\\good_play\\disappointing_x4.mp3");
 
-    SWOS_UnitTest::AssertSilencer silencer;
+    SWOS_UnitTest::AssertSilencer assertSilencer;
+    LogSilencer logSilencer;
+
     clearSampleCache();
     LoadCommentary();
 }
@@ -1001,7 +1014,7 @@ void CommentaryTest::testResultChants()
                 assertEqual(playedChunks.size(), numSampledPlayed);
 
                 auto expectedSamplePath = resultChantFilenames[index];
-                auto expectedBasename = getBaseName(expectedSamplePath);
+                auto expectedBasename = getBasename(expectedSamplePath);
 
                 auto chunk = playedChunks.front();
                 assert(chunk->alen > kSizeofWaveHeader);
@@ -1044,7 +1057,7 @@ void CommentaryTest::testEndGameCrowdSample()
         assertEqual(playedChunks.size(), 2);
 
         auto expectedSamplePath = endGameCrowdSamples[testData.index];
-        auto expectedBasename = getBaseName(expectedSamplePath);
+        auto expectedBasename = getBasename(expectedSamplePath);
 
         auto chunk = playedChunks.front();
         assert(chunk->alen > kSizeofWaveHeader);
@@ -1083,7 +1096,7 @@ void CommentaryTest::testEndGameComment()
             assertEqual(playedChunks.size(), 2);
 
             auto expectedSamplePath = kEndGameComments[index];
-            auto expectedBasename = getBaseName(expectedSamplePath);
+            auto expectedBasename = getBasename(expectedSamplePath);
 
             auto chunk = playedChunks.back();
             assert(chunk->alen > kSizeofWaveHeader);

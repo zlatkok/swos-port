@@ -4,6 +4,11 @@
 
 namespace SWOS_UnitTest
 {
+    using MenuCallback = std::function<bool ()>;
+
+    void setMenuCallback(MenuCallback callback);
+    bool exitMenuProc();
+
     namespace Detail {
         template<typename T1, typename T2>
         bool different(const T1& t1, const T2& t2) {
@@ -34,13 +39,17 @@ namespace SWOS_UnitTest
     void assertNumItemsImp(int num, const char *numStr, const char *file, int line);
     void assertItemIsNumberImp(int index, const char *indexStr, int value, const char *file, int line);
     void assertItemIsVisibleImp(int index, const char *indexStr, bool visible, const char *file, int line);
+    void assertItemIsVisibleImp(const MenuEntry *entry, const char *, bool visible, const char *file, int line);
     void assertItemEnabledImp(int index, const char *indexStr, bool enabled, const char *file, int line);
     void assertItemIsStringImp(int index, const char *indexStr, const char *value, const char *file, int line);
+    void assertItemIsStringImp(const MenuEntry *entry, const char *, const char *value, const char *file, int line);
+    void assertItemIsStringImp(const MenuEntry *entry, const char *, const std::string& value, const char *file, int line);
     void assertItemIsStringTableImp(int index, const char *indexStr, const char *value, const char *file, int line);
     void assertItemIsSpriteImp(int index, const char *indexStr, int spriteIndex, const char *spriteIndexStr, const char *file, int line);
     void assertItemHasColorImp(int index, const char *indexStr, int color, const char *colorStr, const char *file, int line);
     void assertItemHasTextColorImp(int index, const char *indexStr, int color, const char *colorStr, const char *file, int line);
     void selectItemImp(int index, const char *indexStr, const char *file, int line);
+    void selectItemImp(MenuEntry *entry, const char *entryStr, const char *file, int line);
     void clickItemImp(int index, const char *indexStr, const char *file, int line);
     void setNumericItemValueImp(int index, const char *indexStr, int value, const char *file, int line);
     void sendMouseWheelEventImp(int index, const char *indexStr, int direction, const char *file, int line);
@@ -51,6 +60,7 @@ namespace SWOS_UnitTest
 }
 
 #define assertTrue(e) SWOS_UnitTest::assertTrueImp(e, #e, __FILE__, __LINE__)
+#define assertFalse(e) SWOS_UnitTest::assertTrueImp(!(e), #e, __FILE__, __LINE__)
 #define assertEqual(v1, v2) SWOS_UnitTest::assertEqualImp(true, v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertNotEqual(v1, v2) SWOS_UnitTest::assertEqualImp(false, v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertStringEqualCaseInsensitive(s1, s2) SWOS_UnitTest::assertStringEqualImp(s1, s2, #s1, #s2, __FILE__, __LINE__)

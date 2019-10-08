@@ -73,7 +73,7 @@ std::string formatNumberWithCommas(int64_t num)
     if (neg)
         result += '-';
 
-    std::reverse(result.begin(), result.end());;
+    std::reverse(result.begin(), result.end());
 
     return result;
 }

@@ -40,22 +40,23 @@ Menu selectFilesMenu
         beforeDraw: drawDescription
     }
 
-    export kFirstEntry = @currentOrd + 1
+    export kFirstFileEntry = @currentOrd + 1
 
 #repeat kMaxColumns => column
     #repeat kMaxEntriesPerColumn => row
         Entry #join(fileEntry_, #{column * kMaxEntriesPerColumn + row}:02) {
             height: kFilenameHeight
 
-            leftEntry: #{column ? kFirstEntry + (column - 1) * kMaxEntriesPerColumn + row : -1}
-            rightEntry: #{column < kMaxColumns - 1 ? kFirstEntry + (column + 1) * kMaxEntriesPerColumn + row : -1}
-            upEntry: #{row > 0 ? kFirstEntry + column * kMaxEntriesPerColumn + row - 1 : -1}
-            downEntry: #{row < kMaxEntriesPerColumn - 1 ? kFirstEntry + column * kMaxEntriesPerColumn + row + 1 : -1}
+            leftEntry: #{column ? kFirstFileEntry + (column - 1) * kMaxEntriesPerColumn + row : -1}
+            rightEntry: #{column < kMaxColumns - 1 ? kFirstFileEntry + (column + 1) * kMaxEntriesPerColumn + row : -1}
+            upEntry: #{row > 0 ? kFirstFileEntry + column * kMaxEntriesPerColumn + row - 1 : -1}
+            downEntry: #{row < kMaxEntriesPerColumn - 1 ? kFirstFileEntry + column * kMaxEntriesPerColumn + row + 1 : -1}
 
-            skipLeft: #{column == 0 && row > 0 ? kFirstEntry + kMaxEntriesPerColumn - 1 : -1}
+            skipLeft: #{column == 0 && row > 0 ? kFirstFileEntry + kMaxEntriesPerColumn - 1 : -1}
             directionLeft: #{column == 0 && row > 0 ? @kUp : -1}
-            skipRight: #{column == kMaxColumns - 1 && row > 0 ? kFirstEntry + (column + 1) * kMaxEntriesPerColumn - 1 : -1}
-            directionRight: #{column == kMaxColumns - 1 && row > 0 ? @kUp : -1}
+
+            skipRight: #{column && row > 1 ? kFirstFileEntry + (column + 1) * kMaxEntriesPerColumn - 1 : -1}
+            directionRight: #{column && row > 1 ? @kUp : -1}
         }
     #endRepeat
 #endRepeat
@@ -99,7 +100,7 @@ Menu selectFilesMenu
         color: @kLightBlue
         text: @kAlloc
 
-        upEntry: #{kFirstEntry + ((kMaxColumns - 1) / 2 + 1) * kMaxEntriesPerColumn - 1}
+        upEntry: #{kFirstFileEntry + ((kMaxColumns - 1) / 2 + 1) * kMaxEntriesPerColumn - 1}
         downEntry: saveLabel
 
         onSelect: inputFilenameToSave
@@ -115,8 +116,8 @@ Menu selectFilesMenu
         color: @kGreen
         text: aSave
 
-        leftEntry: kFirstEntry + kMaxEntriesPerColumn - 1
-        rightEntry: kFirstEntry + kMaxColumns * kMaxEntriesPerColumn - 1
+        leftEntry: kFirstFileEntry + kMaxEntriesPerColumn - 1
+        rightEntry: kFirstFileEntry + kMaxColumns * kMaxEntriesPerColumn - 1
         upEntry: inputSaveFilename
         downEntry: abort
 
@@ -136,10 +137,12 @@ Menu selectFilesMenu
         rightEntry: saveLabel.rightEntry
         upEntry: saveLabel
 
-        onSelect: abortSaveFile
+        onSelect: abortSelectFile
     }
 
-    defaultX: @kScreenWidth - kScrollArrowWidth - 14
+    export kDefaultArrowX = @kScreenWidth - kScrollArrowWidth - 14
+
+    defaultX: kDefaultArrowX
     defaultWidth: kScrollArrowWidth
     defaultHeight: kScrollArrowHeight
 

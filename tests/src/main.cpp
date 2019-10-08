@@ -1,8 +1,8 @@
-#include <iostream>
 #include "sdlProcs.h"
 #include "BaseTest.h"
 #include "file.h"
 #include "bmpWriter.h"
+#include <iostream>
 #include <experimental/filesystem>
 
 static const char kSnapshotDir[] = "snapshots";

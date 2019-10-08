@@ -4,7 +4,7 @@
 
 class ControlOptionsMenuTest : public BaseTest
 {
-    void init() override {};
+    void init() override;
     void finish() override {};
     void defaultCaseInit() override {};
     const char *name() const override;

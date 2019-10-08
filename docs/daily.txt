@@ -1675,3 +1675,54 @@ earlier:
 - fixed single column with long filenames sticking to the right (since there's only 2 columns it can only pick
   leftmost or rightmost)
 - wrote initial version of build description document
+26.09.2019.
+- did something but fell asleep and now can't remember what it was
+27.09.2019.
+- did some nice refactoring
+- writing tests for select files menu, and caught one bug! even being boring to exhaustion and slow to write, tests
+  are a really great asset
+28.09.2019.
+- adapted C++ style guide to use with the SWOS port
+- wrote bulk of initial version of ida2asm documentation
+29.09.2019.
+- finished entry transition test for select files menu and fixed bugs found during the writing
+- added abort button press test for select files menu
+30.09.2019.
+- worked on selecting file test in select files menu
+01.10.2019.
+- finish() hook in tests wasn't called at all, whoops!
+- fixed yellow "please wait" test in video options menu
+- finished selecting file test in select files menu and fixed some bugs that were discovered
+02.10.2019.
+- implementing scrolling files test
+03.10.2019.
+- finished scrolling files test, now debugging it, but it's still not working properly
+04.10.2019.
+- scrolling files test is passing! :)
+- load competition test is passing as well!
+- spotted a bug, loaded highlight name gets forgotten upon reentering the menu
+05.10.2019.
+- fixed yesterday's bug and added a test case, easy peasy
+- fixed top scroll arrow overlapping with files if it's a full list with in a save dialog
+- some tests are failing in release mode :O and they are flaky no less -_-
+    edit: EditTactis() needed a safe call macro, but it somehow worked in debug version,
+    and the flakiness came from returning address of local TeamGeneralInfo variable, IDIOT :S
+    can't believe there was no warning about this, maybe because I was assigning it to a Register class and
+    its voodoo template magic mesmerized the compiler
+- [tests] added assert when warning or error are logged (can be turned off), it's too dangerous when those
+    things go unnoticed
+- [tests] fixed not reporting case name of the test that failed
+- [tests] fixed some hideous examples of illiteracy
+- [tests] fixed names of bitmap screenshots (much nicer now)
+- fixed wrongly matching file extension if first 3 characters match (but not the rest) & wrote a test for it
+06.10.2019.
+- refactored mouse handler in menus into its own module
+- sped up scrolling when arrow is clicked and mouse button held; while doing it found out that menu entry
+  functions were getting called without safe call, preservation of 68k registers and setting A5 to entry
+  pointer... yikes, how did that even work so far
+07.10.2019.
+- [mnu2h] fixed unary +/- applied to a variable
+- finished initial version of ida2asm document
+- strange, I'm getting some test failures after a reboot, there could be some timing problems
+08.10.2019.
+- fixed tests, luckily there were no timing problems, just a side effect of new speed scrolling on click

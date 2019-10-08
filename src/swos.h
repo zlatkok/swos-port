@@ -38,6 +38,7 @@ struct StringTable {
     int16_t *index;
     int16_t initialValue;
     // followed by string pointers
+
     StringTable(int16_t *index, int16_t initialValue) : index(index), initialValue(initialValue) {}
     char **getStringTable() const {
         return (char **)((char *)this + sizeof(*this));
@@ -104,6 +105,15 @@ struct MenuEntry {
     void (*beforeDraw)();
     void (*afterDraw)();
 
+    enum Direction {
+        kInitialDirection,
+        kUp = 0,
+        kRight,
+        kDown,
+        kLeft,
+        kNumDirections,
+    };
+
     const char *typeToString() const {
         switch (type2) {
         case kEntryNoForeground: return "empty";
@@ -133,25 +143,40 @@ struct MenuEntry {
     void setVisible(bool visible) {
         invisible = !visible;
     }
+
+    char *string() {
+        assert(type2 == kEntryString);
+        return u2.string;
+    }
+
+    const char *string() const {
+        assert(type2 == kEntryString);
+        return u2.string;
+    }
+
+    void setString(char *str) {
+        assert(type2 == kEntryString);
+        u2.string = str;
+    }
 };
 
 constexpr int kStdMenuTextSize = 70;
 
 /* sprite graphics structure - from *.dat files */
 struct SpriteGraphics {
-    char *data;        /* pointer to actual graphics                       */
-    char unk1[6];      /* unknown                                          */
+    char *data;         /* pointer to actual graphics                       */
+    char unk1[6];       /* unknown                                          */
     int16_t width;      /* width                                            */
-    int16_t nlines;     /* height                                           */
+    int16_t height;     /* height                                           */
     int16_t wquads;     /* (number of bytes / 8) in one line                */
     int16_t centerX;    /* center x coordinate                              */
     int16_t centerY;    /* center y coordinate                              */
     byte unk2;          /* unknown                                          */
-    byte nlinesDiv4;    /* nlines / 4                                       */
+    byte nlinesDiv4;    /* height / 4                                       */
     short ordinal;      /* ordinal number in sprite.dat                     */
 
     int size() const {
-        return sizeof(SpriteGraphics) + nlines * wquads * 8;
+        return sizeof(SpriteGraphics) + height * wquads * 8;
     }
 
     SpriteGraphics *next() const {
@@ -410,11 +435,13 @@ static_assert(sizeof(TeamGeneralInfo) == 145, "TeamGeneralInfo is invalid");
 #pragma pack(pop)
 
 enum SpriteIndices {
-    SPR_SQUARE_GRID_FOR_RESULT = 252,
-    SPR_BIG_0 = 287,
-    SPR_2BIG_0 = 297,
-    SPR_BIG_DASH = 309,
-    SPR_REPLAY_FRAME_00 = 1209,
+    kUpArrowSpriteIndex = 183,
+    kDownArrowSpriteIndex = 184,
+    kSquareGridForResultSpriteIndex = 252,
+    kBigZeroSpriteIndex = 287,
+    kBigZero2SpriteIndex = 297,
+    kBigDashSpriteIndex = 309,
+    kReplayFrame00SpriteIndex = 1209,
 };
 
 enum GameTypes {
@@ -544,6 +571,8 @@ enum Tactics {
 
 constexpr int kMenuScreenWidth = 320;
 constexpr int kGameScreenWidth = 384;
+
+constexpr int kVirtualScreenSize = 65'536;
 
 // can't keep this a constexpr in C++17 anymore, sigh...
 #if _HAS_CXX17

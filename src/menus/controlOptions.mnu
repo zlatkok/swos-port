@@ -6,7 +6,7 @@
 
 Menu controlOptionsMenu
 {
-    x: -8           // must be set to -8 to get the calculations right
+    x: -kMenuOffset     // offset the +8 that SWOS adds to menu coordinates to set the calculations straight
     kStartY = 28
     kNextPartGap = 14
 

@@ -106,7 +106,7 @@ void getStringLength(char *str, int *w, int *h, bool align, bool big)
             if (spr == 255)
                 continue;
             dx = spritesIndex[spr]->width;
-            dy = spritesIndex[spr]->nlines;
+            dy = spritesIndex[spr]->height;
             len += dx + 2 * big + 1;
         }
     }
@@ -207,7 +207,7 @@ void printString(char *str, int x, int y, int color, bool big /* = false */, int
             break;
         default:   /* draw character */
             dx = spritesIndex[c]->width;
-            dy = spritesIndex[c]->nlines;
+            dy = spritesIndex[c]->height;
 
             D0 = vsPtr + y * kGameScreenWidth + x;
             D4 = spritesIndex[c]->wquads * 16;

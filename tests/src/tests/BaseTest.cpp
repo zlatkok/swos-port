@@ -115,9 +115,9 @@ auto BaseTest::doRunTests(const TestOptions &options, const TestNamesSet& testLi
             for (auto& k = test->m_currentDataIndex = 0; k < testCase.numTests; k++) {
                 auto addFailureMessage = [test, &failures, &testCase, &k](const std::string& errorMessage) {
                     if (!failures.empty() && failures.back().test == test)
-                        failures.back().failures.emplace_back(k, errorMessage);
+                        failures.back().failures.emplace_back(testCase.name, k, errorMessage);
                     else
-                        failures.emplace_back(test, k, errorMessage);
+                        failures.emplace_back(test, testCase.name, k, errorMessage);
                 };
 
                 packCurrentTest(i, j, k);
@@ -128,6 +128,8 @@ auto BaseTest::doRunTests(const TestOptions &options, const TestNamesSet& testLi
                     return { numTestsRan, failures };
             }
         }
+
+        test->finish();
         std::cout << '\n';
     }
 
@@ -229,11 +231,11 @@ void BaseTest::runTestCase(BaseTest *test, const Case& testCase, size_t i, const
     }
 
     if (options.doSnapshots && testCase.allowScreenshots)
-        takeSnapshot(options.snapshotsDir, test->name(), testCase.name, i);
+        takeSnapshot(options.snapshotsDir, testCase.id, i);
 }
 
 template <typename Time>
-void BaseTest::showReport(int numTestsRan, const FailureList &failures, Time startTime)
+void BaseTest::showReport(int numTestsRan, const FailureList& failures, Time startTime)
 {
     if (numTestsRan) {
         std::cout << '\n';
@@ -245,10 +247,17 @@ void BaseTest::showReport(int numTestsRan, const FailureList &failures, Time sta
 
             std::cout << numFailedTests << " failed test" << (numFailedTests > 1 ? "s" : "") << ":\n";
 
+            std::string lastTestCaseName;
+
             for (const auto failedTest : failures) {
                 std::cout << "  " << failedTest.test->displayName() << ":\n";
-                for (const auto& failure : failedTest.failures)
-                    std::cout << "    [" << failure.caseIndex << "] " << failure.error << '\n';
+                for (const auto& failure : failedTest.failures) {
+                    if (failure.testCaseName != lastTestCaseName) {
+                        std::cout << "    " << failure.testCaseName << ":\n";
+                        lastTestCaseName = failure.testCaseName;
+                    }
+                    std::cout << "      [" << failure.dataIndex << "] " << failure.error << '\n';
+                }
             }
         } else {
             std::cout << "All tests passed!\n";
@@ -286,7 +295,13 @@ static RgbQuad *getMenuPalette()
     return s_menuPalette;
 }
 
-void BaseTest::takeSnapshot(const char *snapshotDir, const char *testName, const char *caseName, int caseInstanceIndex)
+static void sanitizePath(std::string& path)
+{
+    for (auto c : "/:")
+        std::replace(path.begin(), path.end(), c, '-');
+}
+
+void BaseTest::takeSnapshot(const char *snapshotDir, const char *caseId, int caseInstanceIndex)
 {
     static std::vector<std::future<void>> forgottenFutures; // it's not stupid if it works ;)
 
@@ -301,8 +316,9 @@ void BaseTest::takeSnapshot(const char *snapshotDir, const char *testName, const
     snprintf(buf, sizeof(buf), "%03d", caseInstanceIndex);
 
     auto filename = new std::string;
-    *filename = joinPaths(snapshotDir, testName);
-    filename->append("-").append(caseName).append("-").append(buf).append(".bmp");
+    *filename = joinPaths(snapshotDir, caseId);
+    filename->append("-").append(buf).append(".bmp");
+    sanitizePath(*filename);
 
     std::replace(filename->begin(), filename->end(), ' ', '-');
 

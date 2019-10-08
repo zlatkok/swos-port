@@ -190,15 +190,15 @@ void hilDrawResult()
     auto leftScoreDigit2 = leftScoreDigits.rem;
 
     if (leftScoreDigit1) {
-        drawSprite16Pixels(leftScoreDigit1 + SPR_BIG_0, x, y);
+        drawSprite16Pixels(leftScoreDigit1 + kBigZeroSpriteIndex, x, y);
         x += 12;
     }
 
-    drawSprite16Pixels(leftScoreDigit2 + SPR_BIG_0, x, y);
+    drawSprite16Pixels(leftScoreDigit2 + kBigZeroSpriteIndex, x, y);
 
     x += 15;
     y += 8;
-    drawSprite16Pixels(SPR_BIG_DASH, x, y);
+    drawSprite16Pixels(kBigDashSpriteIndex, x, y);
 
     x += 8;
     y -= 8;
@@ -208,11 +208,11 @@ void hilDrawResult()
     auto rightScoreDigit2 = rightScoreDigits.rem;
 
     if (rightScoreDigit1) {
-        drawSprite16Pixels(rightScoreDigit1 + SPR_2BIG_0, x, y);
+        drawSprite16Pixels(rightScoreDigit1 + kBigZero2SpriteIndex, x, y);
         x += 12;
     }
 
-    drawSprite16Pixels(rightScoreDigit2 + SPR_2BIG_0, x, y);
+    drawSprite16Pixels(rightScoreDigit2 + kBigZero2SpriteIndex, x, y);
 }
 
 void SWOS::ReplaySegment()
@@ -274,7 +274,7 @@ void SWOS::ReplaySegment()
 
     if (!noBigReplayLetter) {
         deltaColor = 0x70;
-        drawSprite16Pixels(((stoppageTimer >> 1) & 0x1f) + SPR_REPLAY_FRAME_00, 11, 14);
+        drawSprite16Pixels(((stoppageTimer >> 1) & 0x1f) + kReplayFrame00SpriteIndex, 11, 14);
         deltaColor = 0;
     } else {
         hilDrawResult();
@@ -409,7 +409,7 @@ static void drawSprites(bool saveHihglightCoordinates = true)
         int x = player->x - sprite->centerX - cameraX;
         int y = player->y - sprite->centerY - cameraY - player->z;
 
-        if (x < 336 && y < 200 && x > -sprite->width && y > -sprite->nlines) {
+        if (x < 336 && y < 200 && x > -sprite->width && y > -sprite->height) {
             if (saveHihglightCoordinates && player != &big_S_Sprite && player->teamNumber)
                 saveCoordinatesForHighlights(player->pictureIndex, x, y);
 
@@ -418,8 +418,8 @@ static void drawSprites(bool saveHihglightCoordinates = true)
             if (player == &big_S_Sprite)
                 deltaColor = 0x70;
 
-            if (player->pictureIndex == SPR_SQUARE_GRID_FOR_RESULT)
-                darkenRectangle(SPR_SQUARE_GRID_FOR_RESULT, x, y);
+            if (player->pictureIndex == kSquareGridForResultSpriteIndex)
+                darkenRectangle(kSquareGridForResultSpriteIndex, x, y);
             else
                 drawSprite16Pixels(player->pictureIndex, x, y);
         } else {

@@ -566,11 +566,10 @@ class Parser:
         tokenizer = tokenizer or self.tokenizer
 
         result = ''
-        kOperands = '+-*/%&|^()'
-
-        isOperand = lambda token: token is None or token.string not in kOperands
-
         singleOperand = True
+
+        kOperators = '+-*/%&|^()'
+        isOperand = lambda token: token is None or token.string not in kOperators
 
         if not tokenizer.gotTokensLeft():
             tokenizer.getNextToken('expression start')
@@ -652,10 +651,10 @@ class Parser:
         assert callable(isOperand)
         assert isinstance(tokenizer, Tokenizer)
 
-        if self.isNegativeNumber(token, tokenizer):
+        unaryOp = None
+        if token.string in ('+', '-', '~', '!'):
+            unaryOp = token.string
             token = tokenizer.getNextToken()
-            result = Util.formatToken(result, f'-{token.string}')
-            return result
 
         if not isOperand(token):
             self.error(f"operand expected, got `{token.string}'", token)
@@ -685,23 +684,12 @@ class Parser:
                 value = self.handleStringIndexing(value, token, tokenizer)
 
         result = Util.formatToken(result, value)
+
+        if unaryOp:
+            # add parentheses to prevent double minus from turning into increment
+            result = '(' + unaryOp + result.rstrip() + ')'
+
         return result
-
-    @staticmethod
-    def isNegativeNumber(token, tokenizer):
-        assert isinstance(token, Token)
-        assert isinstance(tokenizer, Tokenizer)
-
-        if token.string == '-':
-            nextToken = tokenizer.peekNextToken()
-            if nextToken:
-                try:
-                    int(nextToken.string)
-                    return True
-                except ValueError:
-                    pass
-
-        return False
 
     def handleStringFunction(self, value, token, tokenizer):
         assert isinstance(value, (int, str))
@@ -1156,6 +1144,8 @@ class Parser:
             # this shouldn't happen
             if entryName not in menu.entries:
                 self.error(f"menu `{menu.name}' does not have entry `{entryName}'", token)
+
+            value = value.strip('()')
 
             entry = menu.entries[entryName]
             if not hasattr(entry, property):

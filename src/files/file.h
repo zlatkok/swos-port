@@ -21,5 +21,5 @@ bool isFileSystemCaseInsensitive();
 std::string joinPaths(const char *path1, const char *path2);
 bool dirExists(const char *path);
 const char *getFileExtension(const char *path);
-const char *getBaseName(const char *path);
+const char *getBasename(const char *path);
 FoundFileList findFiles(const char *extension, const char **allowedExtensions = nullptr, size_t numAllowedExtensions = 0);

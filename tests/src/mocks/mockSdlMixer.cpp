@@ -58,8 +58,10 @@ int Mix_PlayChannelTimed(int channel, Mix_Chunk *chunk, int loops, int ticks)
             channel = it - m_channels.begin();
     }
 
-    if (channel < 0 || channel >= static_cast<int>(m_channels.size()))
+    if (channel < 0 || channel >= static_cast<int>(m_channels.size())) {
+        assert(false);
         return -1;
+    }
 
     m_channels[channel] = chunk;
     m_lastPlayedChunks.push_back(chunk);

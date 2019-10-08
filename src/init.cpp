@@ -162,11 +162,11 @@ static bool initIntroAnimation()
     resetGameAudio();
 
     soccerBinPtr = dosMemLinAdr;
-    introCurrentSoundBuffer = dosMemLinAdr + 65536;
+    introCurrentSoundBuffer = dosMemLinAdr + kVirtualScreenSize;
     soccerBinSoundChunkBuffer = introCurrentSoundBuffer + 47628;
     introCurrentSoundBufferChunk = soccerBinSoundChunkBuffer;
     soccerBinSoundDataPtr = soccerBinSoundChunkBuffer + 47628;
-    introScreenBuffer = linAdr384k + 65536;
+    introScreenBuffer = linAdr384k + kVirtualScreenSize;
     introAborted = 0;
 
     do {

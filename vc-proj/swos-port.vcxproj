@@ -166,6 +166,7 @@
     <ClCompile Include="..\src\log.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\menus\menu.cpp" />
+    <ClCompile Include="..\src\menus\menuMouse.cpp" />
     <ClCompile Include="..\src\options.cpp" />
     <ClCompile Include="..\src\pitch.cpp" />
     <ClCompile Include="..\src\stdinc.cpp">
@@ -198,6 +199,8 @@
     <ClInclude Include="..\src\files\selectFilesMenu.h" />
     <ClInclude Include="..\src\log.h" />
     <ClInclude Include="..\src\menus\menu.h" />
+    <ClInclude Include="..\src\menus\menuCodes.h" />
+    <ClInclude Include="..\src\menus\menuMouse.h" />
     <ClInclude Include="..\src\options.h" />
     <ClInclude Include="..\src\stdinc.h" />
     <ClInclude Include="..\src\swos.h" />

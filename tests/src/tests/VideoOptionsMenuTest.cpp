@@ -3,6 +3,8 @@
 #include "mockRender.h"
 #include "sdlProcs.h"
 #include "controls.h"
+#include "mockLog.h"
+#include "menuMouse.h"
 
 #define SWOS_STUB_MENU_DATA
 #include "videoOptions.mnu.h"
@@ -47,6 +49,9 @@ void VideoOptionsMenuTest::init()
     takeOverInput();
     killDelay();
 
+    auto hook = std::bind(&VideoOptionsMenuTest::verifyYellowPleaseWaitTextPresence, this);
+    setUpdateHook(hook);
+
     for (int i = 0; i < kNumDisplayListsForScrollTesting; i++) {
         auto modes(kDisplayModes);
         modes.resize(5 * i);
@@ -58,6 +63,7 @@ void VideoOptionsMenuTest::init()
 void VideoOptionsMenuTest::finish()
 {
     restoreRealDisplayModes();
+    setUpdateHook(nullptr);
 }
 
 void VideoOptionsMenuTest::defaultCaseInit()
@@ -109,6 +115,7 @@ void VideoOptionsMenuTest::setupWindowSizeTest()
     setWindowSize(width, height);
     setWindowResizable(windowResizable);
 
+    LogSilencer logSilencer;
     showVideoOptionsMenu();
 }
 
@@ -133,6 +140,9 @@ void VideoOptionsMenuTest::setupVariousResolutionLists()
     else
         setIsInFullScreenMode(true);
 
+    m_verifyYellowText = true;
+
+    LogSilencer logSilencer;
     showVideoOptionsMenu();
 }
 
@@ -161,7 +171,6 @@ void VideoOptionsMenuTest::testVariousResolutionLists()
         assertItemIsString(fullScreen, "FULL SCREEN UNAVAILABLE");
     }
     assertItemEnabled(fullScreen, !m_displayModeList.empty());
-    assertEqual(m_displayModeList.size() > 20, isYellowPleaseWaitTextShown());
 }
 
 void VideoOptionsMenuTest::setupModeSwitchingTest()
@@ -200,6 +209,7 @@ void VideoOptionsMenuTest::setupResolutionListScrollingTest()
     setFakeDisplayModesForced(displayModes);
     resetSdlInput();
 
+    LogSilencer logSilencer;
     showVideoOptionsMenu();
 }
 
@@ -244,7 +254,6 @@ void VideoOptionsMenuTest::scrollAndVerifyTwoStepsForwardOneStepBack(int linesTo
 
 void VideoOptionsMenuTest::scrollResolutionListOneLine(int direction, ScrollMethod method, const DisplayModeList& displayModes)
 {
-
     switch (method) {
     case kArrowClick:
     case kArrowMouseWheel:
@@ -274,12 +283,15 @@ void VideoOptionsMenuTest::scrollResolutionListOneLine(int direction, ScrollMeth
     SWOS::MenuProc();   // twice to get around too-fast-clicking protection ;)
     DrawMenu();
     resetSdlInput();
+    updateMouse();      // to register mouse button up and go out of scrolling mode
+    pl1LastFired = 0;   // don't allow any fire from this cycle to turn into long fire
 }
 
 void VideoOptionsMenuTest::verifyResolutionListStrings(const DisplayModeList& displayModes, int scrollOffset /* = 0 */)
 {
     assert(scrollOffset >= 0);
     assert(scrollOffset <= std::max(0, static_cast<int>(displayModes.size()) - kNumResolutionFields));
+
     for (int i = 0; i < std::min(kNumResolutionFields, static_cast<int>(displayModes.size()) - scrollOffset); i++) {
         int entryIndex = resolutionField0 + i;
         assertItemIsVisible(entryIndex);
@@ -343,6 +355,8 @@ void VideoOptionsMenuTest::setupResolutionSwitchFailureTest()
 
 void VideoOptionsMenuTest::testResolutionSwitchFailure()
 {
+    LogSilencer logSilencer;
+
     selectItem(resolutionField4);
     DrawMenu();
 
@@ -385,10 +399,16 @@ void VideoOptionsMenuTest::setFakeDisplayModesForced(const DisplayModeList& disp
     setWindowDisplayIndex(getWindowDisplayIndex() + 1);
 }
 
-bool VideoOptionsMenuTest::isYellowPleaseWaitTextShown()
+// We must jump on the update hook since the text will be erased by an intermediate call to DrawMenu().
+// That's why we also have to ignore subsequent calls.
+void VideoOptionsMenuTest::verifyYellowPleaseWaitTextPresence()
 {
-    auto numYellowPixels = std::count(linAdr384k, linAdr384k + kVgaScreenSize, kYellowText);
-    return numYellowPixels > 300;
+    if (m_verifyYellowText) {
+        auto numYellowPixels = std::count(linAdr384k, linAdr384k + kVgaScreenSize, kYellowText);
+        assertEqual(m_displayModeList.size() > 20, numYellowPixels > 300);
+    }
+
+    m_verifyYellowText = false;
 }
 
 void VideoOptionsMenuTest::setUpMode(size_t mode)
