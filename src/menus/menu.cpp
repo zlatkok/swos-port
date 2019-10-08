@@ -270,7 +270,7 @@ void SWOS::PrepareMenu()
     auto currentEntry = reinterpret_cast<uint32_t>(currentMenu->selectedEntry);
 
     if (currentEntry <= 0xffff)
-        currentMenu->selectedEntry = getMenuEntryAddress(currentEntry);
+        currentMenu->selectedEntry = getMenuEntry(currentEntry);
 
     if (currentMenu->onInit) {
         A6 = g_currentMenu;
@@ -340,7 +340,7 @@ static MenuEntry *findNextEntry(byte nextEntryIndex, int nextEntryDirection)
     auto currentMenu = getCurrentMenu();
 
     while (nextEntryIndex != 255) {
-        auto nextEntry = getMenuEntryAddress(nextEntryIndex);
+        auto nextEntry = getMenuEntry(nextEntryIndex);
 
         if (!nextEntry->disabled && nextEntry->visible())
             return nextEntry;

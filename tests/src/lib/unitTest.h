@@ -6,7 +6,7 @@ namespace SWOS_UnitTest
 {
     using MenuCallback = std::function<bool ()>;
 
-    void setMenuCallback(MenuCallback callback);
+    void setMenuCallback(MenuCallback callback = nullptr);
     bool exitMenuProc();
 
     namespace Detail {
@@ -60,7 +60,7 @@ namespace SWOS_UnitTest
 }
 
 #define assertTrue(e) SWOS_UnitTest::assertTrueImp(e, #e, __FILE__, __LINE__)
-#define assertFalse(e) SWOS_UnitTest::assertTrueImp(!(e), #e, __FILE__, __LINE__)
+#define assertFalse(e) SWOS_UnitTest::assertTrueImp(!(e), "!(" #e ")", __FILE__, __LINE__)
 #define assertEqual(v1, v2) SWOS_UnitTest::assertEqualImp(true, v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertNotEqual(v1, v2) SWOS_UnitTest::assertEqualImp(false, v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertStringEqualCaseInsensitive(s1, s2) SWOS_UnitTest::assertStringEqualImp(s1, s2, #s1, #s2, __FILE__, __LINE__)

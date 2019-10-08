@@ -92,13 +92,13 @@ static void setupPlayerControlEntries(PlayerNumber player)
     int numJoypads = SDL_NumJoysticks();
 
     bool showScrollArrows = numJoypads > (player == kPlayer1 ? 2 : 1);
-    getMenuEntryAddress(scrollUp)->setVisible(showScrollArrows);
-    getMenuEntryAddress(scrollDown)->setVisible(showScrollArrows);
+    getMenuEntry(scrollUp)->setVisible(showScrollArrows);
+    getMenuEntry(scrollDown)->setVisible(showScrollArrows);
 
     if (!showScrollArrows || *scrollOffset > numJoypads - initiallyVisisbleJoypadEntries)
         *scrollOffset = 0;
 
-    auto baseEntry = getMenuEntryAddress(baseControlsEntryIndex);
+    auto baseEntry = getMenuEntry(baseControlsEntryIndex);
 
     static const char *kFixedEntries[] = { aNone, aKeyboard, aMouse };
     static const Controls kFixedEntryControls[] = { kNone, kKeyboard1, kMouse };
@@ -171,7 +171,7 @@ static void highlightSelectedControlEntries()
             auto joypadIndex = std::get<3>(entry);
 
             if (plControls == entryControls && (entryControls != kJoypad || entryJoypadIndex == joypadIndex))
-                getMenuEntryAddress(baseEntry + i)->u1.entryColor = kPurple;
+                getMenuEntry(baseEntry + i)->u1.entryColor = kPurple;
         }
     }
 }
@@ -192,8 +192,8 @@ static void enableControlConfigButtons()
         auto selectJoypadEntryIndex = std::get<1>(entry);
         auto controls = std::get<2>(entry);
 
-        auto redefineEntry = getMenuEntryAddress(redefineEntryIndex);
-        auto selectJoypadEntry = getMenuEntryAddress(selectJoypadEntryIndex);
+        auto redefineEntry = getMenuEntry(redefineEntryIndex);
+        auto selectJoypadEntry = getMenuEntry(selectJoypadEntryIndex);
 
         if (controls == kJoypad || controls == kKeyboard1 || controls == kKeyboard2) {
             redefineEntry->u1.entryColor = kGreen;

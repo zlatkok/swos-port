@@ -433,6 +433,6 @@ void SWOS::SWOS()
 
 #ifndef SWOS_TEST
     logInfo("Going to main menu");
-    SAFE_INVOKE(MainMenu);
+    MainMenu();
 #endif
 }

@@ -227,6 +227,7 @@
     <ClInclude Include="..\src\mocks\mockUtil.h" />
     <ClInclude Include="..\src\sdlProcs.h" />
     <ClInclude Include="..\src\tests\BaseTest.h" />
+    <ClInclude Include="..\src\tests\canada.diy.h" />
     <ClInclude Include="..\src\tests\CommentaryTest.h" />
     <ClInclude Include="..\src\tests\ControlOptionsMenuTest.h" />
     <ClInclude Include="..\src\tests\EditTacticsMenuTest.h" />

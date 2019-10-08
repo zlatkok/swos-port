@@ -49,6 +49,6 @@ void EditTacticsMenuTest::showTacticsMenu()
     char expectedMenuName[32];
     snprintf(expectedMenuName, sizeof(expectedMenuName), "EDIT TACTICS (%s)", tacticName);
 
-    auto actualMenuName = getMenuEntryAddress(1)->u2.string;
+    auto actualMenuName = getMenuEntry(1)->u2.string;
     assertEqual(actualMenuName, expectedMenuName);
 }

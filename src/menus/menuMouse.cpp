@@ -194,11 +194,11 @@ static void performMouseWheelAction(const MenuEntry& entry, int scrollValue)
             assert(scrollDownEntry >= 0 && scrollDownEntry < 256);
 
             if (scrollValue > 0) {
-                assert(getMenuEntryAddress(scrollUpEntry)->onSelect);
-                getMenuEntryAddress(scrollUpEntry)->onSelect();
+                assert(getMenuEntry(scrollUpEntry)->onSelect);
+                getMenuEntry(scrollUpEntry)->onSelect();
             } else {
-                assert(getMenuEntryAddress(scrollDownEntry)->onSelect);
-                getMenuEntryAddress(scrollDownEntry)->onSelect();
+                assert(getMenuEntry(scrollDownEntry)->onSelect);
+                getMenuEntry(scrollDownEntry)->onSelect();
             }
 
             break;

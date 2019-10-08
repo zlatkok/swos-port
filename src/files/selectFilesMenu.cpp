@@ -233,7 +233,7 @@ static void copyStringUntilDot(char *dest, const char *src)
 static void setSaveFilename()
 {
     if (m_saving) {
-        auto saveFilenameEntry = getMenuEntryAddress(inputSaveFilename);
+        auto saveFilenameEntry = getMenuEntry(inputSaveFilename);
 
         assert(!m_saveFilename || strlen(m_saveFilename) < kMenuStringLength);
 
@@ -243,7 +243,7 @@ static void setSaveFilename()
         saveFilenameEntry->show();
 
         if (m_saveFilename && *m_saveFilename)
-            getMenuEntryAddress(saveLabel)->show();
+            getMenuEntry(saveLabel)->show();
     }
 }
 
@@ -302,7 +302,7 @@ static void setScrollArrowsNextEntries(MenuEntry *scrollUpArrow, MenuEntry *scro
 
     auto getVisibleEntryOrdinalAtCoordinates = [](int i, int j) {
         int entryIndex = kFirstFileEntry + i * kMaxEntriesPerColumn + j;
-        auto entry = getMenuEntryAddress(entryIndex);
+        auto entry = getMenuEntry(entryIndex);
         return entry->visible() ? entry->ordinal : -1;
     };
 
@@ -323,7 +323,7 @@ static void setLastFilenameColumnNextEntries()
 {
     for (int i = 0; i < kMaxEntriesPerColumn; i++) {
         int entryIndex = kFirstFileEntry + kMaxEntriesPerColumn + i;
-        auto entry = getMenuEntryAddress(entryIndex);
+        auto entry = getMenuEntry(entryIndex);
 
         if (m_numColumns == kMaxColumns)
             entry->rightEntry = entryIndex + kMaxEntriesPerColumn;
@@ -340,7 +340,7 @@ static int findArrowsX()
         return x;
 
     auto widthPerItem = m_longNames ? kLongNameFullWidth : kShortNameFullWidth;
-    auto entry = getMenuEntryAddress(kFirstFileEntry);
+    auto entry = getMenuEntry(kFirstFileEntry);
 
     for (int i = 0; i < kNumFilenameItems; i++, entry++) {
         if (entry->visible() && entry->x + widthPerItem >= kDefaultArrowX) {
@@ -354,7 +354,7 @@ static int findArrowsX()
 
 static std::pair<int, int> getFilenameAreaVerticalBounds()
 {
-    auto entry = getMenuEntryAddress(kFirstFileEntry);
+    auto entry = getMenuEntry(kFirstFileEntry);
     auto topY = entry->y;
     auto bottomY = entry->y + entry->height;
 
@@ -376,8 +376,8 @@ static void updateScrollArrows(int startY, int verticalSize, int verticalSlack)
         return numItemsInColumn > kMaxEntriesPerColumn;
     });
 
-    auto scrollUpArrow = getMenuEntryAddress(arrowUp);
-    auto scrollDownArrow = getMenuEntryAddress(arrowDown);
+    auto scrollUpArrow = getMenuEntry(arrowUp);
+    auto scrollDownArrow = getMenuEntry(arrowDown);
 
     scrollUpArrow->setVisible(showArrows);
     scrollDownArrow->setVisible(showArrows);
@@ -404,7 +404,7 @@ static std::tuple<int, int, int> repositionFilenameEntries()
 {
     assert(!m_numEntriesPerColumn.empty());
 
-    auto titleEntry = getMenuEntryAddress(title);
+    auto titleEntry = getMenuEntry(title);
 
     int startY = titleEntry->y;
     if (titleEntry->visible())
@@ -416,11 +416,11 @@ static std::tuple<int, int, int> repositionFilenameEntries()
     constexpr int kTotalFilenameHeight = kFilenameHeight + kVerticalMargin;
     auto verticalSize = maxEntriesPerColumn * kTotalFilenameHeight;
 
-    auto lastEntry = getMenuEntryAddress(m_saving ? inputSaveFilename : SelectFilesMenu::abort);
+    auto lastEntry = getMenuEntry(m_saving ? inputSaveFilename : SelectFilesMenu::abort);
     int verticalSlack = (lastEntry->y - startY - verticalSize) / 2;
     startY += verticalSlack;
 
-    auto filenameEntry = getMenuEntryAddress(fileEntry_00);
+    auto filenameEntry = getMenuEntry(fileEntry_00);
     auto totalWidthPerItem = (m_longNames ? kLongNameFullWidth : kShortNameFullWidth) + kMarginWidth;
     int xOffset = m_longNames && m_numColumns == 1 ? -totalWidthPerItem / 2 : 0;
 
@@ -448,7 +448,7 @@ static void assignFilenamesToEntries()
 
     size_t numShownEntries = 0;
 
-    auto entry = getMenuEntryAddress(fileEntry_00);
+    auto entry = getMenuEntry(fileEntry_00);
     int entryIndex = 0;
     int fileIndex = m_scrollOffset;
 
@@ -488,7 +488,7 @@ static void assignFilenamesToEntries()
 static void selectFilesOnReturn()
 {
     auto titleString = const_cast<char *>(m_menuTitle);
-    getMenuEntryAddress(title)->setString(titleString);
+    getMenuEntry(title)->setString(titleString);
 
     setSaveFilename();
     splitIntoColumns();
@@ -555,7 +555,7 @@ static void drawDescription()
         auto ext = file.name.c_str() + file.extensionOffset;
         auto fileType = getFileTypeFromExtension(ext);
 
-        auto descEntry = getMenuEntryAddress(description);
+        auto descEntry = getMenuEntry(description);
         descEntry->u2.constString = fileType;
 
         descEntry->x = entry->x + entry->width + kTypeFieldMargin;
@@ -596,15 +596,20 @@ static void inputFilenameToSave()
     auto entryString = entry->string();
 
     if (inputText(entryString, kMaxSaveFilenameChars, true)) {
-        assert(m_saveFilename);
-        if (m_saveFilename)
+        assert(m_saveFilename && m_saving);
+
+        if (m_saveFilename) {
             copyStringUntilDot(m_saveFilename, entryString);
+            m_selectedFilename = m_saveFilename;
+        }
+
+        SetExitMenuFlag();
     }
 }
 
 static void saveFileSelected()
 {
-    auto inputFilenameEntry = getMenuEntryAddress(inputSaveFilename);
+    auto inputFilenameEntry = getMenuEntry(inputSaveFilename);
     m_selectedFilename = inputFilenameEntry->string();
 
     if (m_saving && m_saveFilename)

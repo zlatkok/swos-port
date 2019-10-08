@@ -144,6 +144,10 @@ struct MenuEntry {
         invisible = !visible;
     }
 
+    bool isString() const {
+        return type2 == kEntryString;
+    }
+
     char *string() {
         assert(type2 == kEntryString);
         return u2.string;

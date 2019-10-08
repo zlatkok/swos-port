@@ -29,6 +29,9 @@
     <Filter Include="Source Files\lib">
       <UniqueIdentifier>{3ebd6a1a-d5bd-4c33-b52a-084450159766}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tests\data">
+      <UniqueIdentifier>{e4eb1364-0e4b-4afc-b3c1-0e0ea29cfd2e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -201,7 +204,6 @@
     <ClInclude Include="..\src\mocks\mockFile.h">
       <Filter>Source Files\mocks</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\mocks\mockSdlMixer.h" />
     <ClInclude Include="..\src\mocks\mockUtil.h">
       <Filter>Source Files\mocks</Filter>
     </ClInclude>
@@ -216,6 +218,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\menus\menuMouse.h">
       <Filter>Source Files\project-files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mocks\mockSdlMixer.h">
+      <Filter>Source Files\mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tests\canada.diy.h">
+      <Filter>Source Files\tests\data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

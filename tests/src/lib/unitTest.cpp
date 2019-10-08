@@ -14,7 +14,7 @@ static MenuEntry *getVerifiedEntry(int index, const char *indexStr, const char *
     if (index < 0 || index > 256)
         throw SWOS_UnitTest::InvalidEntryIndexException(index, indexStr, file, line);
     
-    return getMenuEntryAddress(index);
+    return getMenuEntry(index);
 }
 
 static void verifyNumericItem(const MenuEntry *entry, const char *file, int line)
@@ -23,7 +23,7 @@ static void verifyNumericItem(const MenuEntry *entry, const char *file, int line
         throw SWOS_UnitTest::InvalidEntryTypeException(entry, "number", file, line);
 }
 
-void SWOS_UnitTest::setMenuCallback(MenuCallback callback)
+void SWOS_UnitTest::setMenuCallback(MenuCallback callback /* = nullptr */)
 {
     m_menuCallback = callback;
 }
@@ -144,7 +144,7 @@ int SWOS_UnitTest::numItems()
 
 bool SWOS_UnitTest::isItemVisible(int ordinal)
 {
-    return !getMenuEntryAddress(ordinal)->invisible;
+    return !getMenuEntry(ordinal)->invisible;
 }
 
 bool SWOS_UnitTest::queueKeys(const std::vector<SDL_Scancode>& keys)

@@ -6,6 +6,7 @@
 #include "menu.h"
 #include "controls.h"
 #include "sdlProcs.h"
+#include "data/canada.diy.h"
 #include <initializer_list>
 
 #define SWOS_STUB_MENU_DATA
@@ -181,7 +182,8 @@ auto SelectFilesMenuTest::getCases() -> CaseList
         { "test scrolling", "select-files-scroll", nullptr, bind(&SelectFilesMenuTest::testScrolling), },
         { "test abort save", "select-files-abort-save", nullptr, bind(&SelectFilesMenuTest::testAbortSave) },
         { "test save button show/hide", "select-files-show-save-button", nullptr, bind(&SelectFilesMenuTest::testSaveButtonShowHide) },
-        { "test save with long extensions", "select-files-long-extension-save", nullptr, bind(&SelectFilesMenuTest::testLongExtensions) },
+        { "test list with long extensions", "select-files-long-extension-list", nullptr, bind(&SelectFilesMenuTest::testLongExtensions) },
+        { "test save competition", "select-files-save-competition", nullptr, bind(&SelectFilesMenuTest::testSaveCompetition) },
     };
 }
 
@@ -207,7 +209,7 @@ void SelectFilesMenuTest::setupLoadCompetitionTest()
 
 void SelectFilesMenuTest::testLoadCompetition()
 {
-    auto entry = getMenuEntryAddress(kFirstFileEntry);
+    auto entry = getMenuEntry(kFirstFileEntry);
 
     for (int i = 0; i < kMaxColumns; i++) {
         int numVisibleColumns = 0;
@@ -335,7 +337,7 @@ void SelectFilesMenuTest::testLayout()
             showSelectFilesMenu("LAYOUT TEST", filenames, save, nullptr);
 
             ColumnInfo columnInfo(numFiles, useLongNames);
-            auto entry = getMenuEntryAddress(kFirstFileEntry);
+            auto entry = getMenuEntry(kFirstFileEntry);
 
             if (numFiles <= 8) {
                 int middleColumn = columnInfo.numColumns / 2;
@@ -406,7 +408,7 @@ int findNextRightEntry(int i, int j, const MenuEntry *entry)
 
     if (nextEntryOrdinal == entry->ordinal) {
         auto arrowOrdinal = j >= kMaxEntriesPerColumn / 2 ? arrowDown : arrowUp;
-        auto arrowEntry = getMenuEntryAddress(arrowOrdinal);
+        auto arrowEntry = getMenuEntry(arrowOrdinal);
         if (arrowEntry->visible())
             nextEntryOrdinal = arrowOrdinal;
     }
@@ -421,7 +423,7 @@ int findNextTopEntry(int, int j, const MenuEntry *entry)
     if (j > 0)
         return entry[-1].ordinal;
 
-    if (getMenuEntryAddress(arrowUp)->visible())
+    if (getMenuEntry(arrowUp)->visible())
         return arrowUp;
 
     return nextEntryOrdinal;
@@ -432,7 +434,7 @@ int findNextBottomEntry(int, int j, const MenuEntry *entry)
     if (j < kMaxEntriesPerColumn - 1 && entry[1].visible())
         return entry[1].ordinal;
 
-    if (getMenuEntryAddress(inputSaveFilename)->visible())
+    if (getMenuEntry(inputSaveFilename)->visible())
         return inputSaveFilename;
 
     return SelectFilesMenu::abort;
@@ -475,7 +477,7 @@ void SelectFilesMenuTest::testArrowBackground(const MenuEntry *arrowEntry)
 void SelectFilesMenuTest::checkArrowsOverlap()
 {
     for (auto arrowIndex : { arrowUp, arrowDown }) {
-        auto arrowEntry = getMenuEntryAddress(arrowIndex);
+        auto arrowEntry = getMenuEntry(arrowIndex);
         if (arrowEntry->invisible)
             continue;
 
@@ -488,7 +490,7 @@ void SelectFilesMenuTest::checkArrowsOverlap()
             return p >= p1 && p < p2;
         };
 
-        auto entry = getMenuEntryAddress(0);
+        auto entry = getMenuEntry(0);
 
         for (int i = 0; i < getCurrentMenu()->numEntries; i++, entry++) {
             if (entry->visible() && i != arrowIndex) {
@@ -507,7 +509,7 @@ void SelectFilesMenuTest::testEntryTransitions()
     // should be a test on its own, but it's much faster if we do it here
     checkArrowsOverlap();
 
-    auto entry = getMenuEntryAddress(kFirstFileEntry);
+    auto entry = getMenuEntry(kFirstFileEntry);
 
     for (int i = 0; i < kMaxColumns; i++) {
         for (int j = 0; j < kMaxEntriesPerColumn; j++, entry++) {
@@ -560,7 +562,7 @@ static int getNumberOfShownFileItems()
 {
     int numShownItems = 0;
 
-    for (auto entry = getMenuEntryAddress(kFirstFileEntry); entry->ordinal < kFirstFileEntry + kNumFilenameItems; entry++)
+    for (auto entry = getMenuEntry(kFirstFileEntry); entry->ordinal < kFirstFileEntry + kNumFilenameItems; entry++)
         numShownItems += entry->visible() == true;
 
     return numShownItems;
@@ -593,7 +595,7 @@ void SelectFilesMenuTest::testSelectingFiles()
             int numColumns = ColumnInfo::getNumColumns(useLongNames);
             int numScrollClicks = (kNumFiles + numColumns - 1) / numColumns - kMaxEntriesPerColumn;
 
-            auto entry = getMenuEntryAddress(currentEntryIndex);
+            auto entry = getMenuEntry(currentEntryIndex);
 
             while (entry->invisible) {
                 currentEntryIndex++;
@@ -664,7 +666,7 @@ static void verifyEntries(const FoundFileList& filenames, const ColumnInfo& colu
     assert(scrollOffset >= 0);
 
     int columnStart = scrollOffset;
-    auto entry = getMenuEntryAddress(kFirstFileEntry);
+    auto entry = getMenuEntry(kFirstFileEntry);
 
     for (int i = 0; i < columnInfo.numColumns; i++, entry++) {
         for (int j = 0; j < kMaxEntriesPerColumn - 1; j++, entry++) {
@@ -790,7 +792,7 @@ void SelectFilesMenuTest::testLongExtensions()
 
     SWOS::SelectFileToSaveDialog();
 
-    auto beginEntry = getMenuEntryAddress(kFirstFileEntry);
+    auto beginEntry = getMenuEntry(kFirstFileEntry);
     auto endEntry = beginEntry + kNumFilenameItems;
     auto firstFileEntry = std::find_if(beginEntry, endEntry, [](const auto& entry) {
         return entry.visible();
@@ -809,4 +811,72 @@ void SelectFilesMenuTest::testLongExtensions()
     });
 
     assertTrue(noMoreFiles);
+}
+
+static MenuEntry *findEntry(const char *text)
+{
+    auto menu = getCurrentMenu();
+    auto entry = getMenuEntry(0);
+    auto entrySentinel = entry + menu->numEntries;
+
+    for (; entry < entrySentinel; entry++)
+        if (entry->isString() && !strcmp(entry->string(), text))
+            return entry;
+
+    assertFalse("Failed to find entry with given text");
+    return entry - 1;
+}
+
+void SelectFilesMenuTest::testSaveCompetition()
+{
+    resetFakeFiles();
+
+    auto root = rootDir();
+    addFakeDirectory(root.c_str());
+
+    auto path = joinPaths(root.c_str(), "canada.diy");
+    MockFile canadaDiy(path.c_str(), kCanadaDiyData, kCanadaDiySize);
+    addFakeFile(canadaDiy);
+
+    SWOS::InitMainMenu();
+    SWOS::MenuProc();
+
+    SWOS_UnitTest::setMenuCallback([] {
+        auto menu = getCurrentMenu();
+        auto entry = menu->selectedEntry;
+
+        assertItemIsString(entry, "CANADA");
+        selectItem(entry);
+
+        SWOS_UnitTest::setMenuCallback([] {
+            auto exitEntry = findEntry("EXIT");
+            selectItem(exitEntry);
+
+            SWOS_UnitTest::setMenuCallback();
+            return false;
+        });
+
+        return false;
+    });
+
+    SAFE_INVOKE(LoadOldCompetitionMenu);
+
+    SWOS_UnitTest::setMenuCallback([] {
+        auto entry = getMenuEntry(inputSaveFilename);
+        assertItemIsString(entry, "CANADA");
+
+        queueSdlKeyDown(SDL_SCANCODE_Z);
+        queueSdlKeyDown(SDL_SCANCODE_RETURN);
+        menuCycleTimer = 2;
+        selectItem(entry);
+
+        return false;
+    });
+
+    auto menu = getCurrentMenu();
+    auto entry = findEntry("SAVE CANADA ROGERS CUP");
+    selectItem(entry);
+
+    auto savedDiyPath = joinPaths(root.c_str(), "CANADAZ.DIY");
+    assertTrue(fakeFilesEqualByContent(path.c_str(), savedDiyPath.c_str()));
 }

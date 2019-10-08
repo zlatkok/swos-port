@@ -44,7 +44,7 @@ static void updateDeadZonePercentageEntry(int entryIndex, int& percentageValue, 
     else
         percentageValue = (-value * 100 + std::abs(SDL_JOYSTICK_AXIS_MIN + 1)) / std::abs(SDL_JOYSTICK_AXIS_MIN);
 
-    auto entry = getMenuEntryAddress(entryIndex);
+    auto entry = getMenuEntry(entryIndex);
     assert(entry->type2 == kEntryString);
 
     auto str = entry->string();
@@ -87,7 +87,7 @@ static void updateModifiableValues()
     for (const auto& entryValue : kJoypadModifiableValues) {
         auto entryIndex = entryValue.first;
         auto value = entryValue.second;
-        getMenuEntryAddress(entryIndex)->u2.number = value;
+        getMenuEntry(entryIndex)->u2.number = value;
     }
 }
 
@@ -97,14 +97,14 @@ static void fillJoypadInfo()
 
     const auto& joypad = getJoypad();
 
-    auto nameStr = getMenuEntryAddress(name)->string();
+    auto nameStr = getMenuEntry(name)->string();
     auto joypadName = SDL_JoystickName(joypad.handle);
 
     strncpy_s(nameStr, kStdMenuTextSize, joypadName, _TRUNCATE);
     toUpper(nameStr);
     elideString(nameStr, strlen(nameStr), kInfoFieldWidth - 2);
 
-    auto guidStr = getMenuEntryAddress(guid)->string();
+    auto guidStr = getMenuEntry(guid)->string();
     SDL_JoystickGetGUIDString(joypad.config.guid, guidStr, kStdMenuTextSize);
     toUpper(guidStr);
 
@@ -118,7 +118,7 @@ static void fillJoypadInfo()
         auto index = entryInfo.first;
         auto value = entryInfo.second;
 
-        auto entry = getMenuEntryAddress(index);
+        auto entry = getMenuEntry(index);
         entry->u2.number = value;
 
         int numDigits = 0;
@@ -132,7 +132,7 @@ static void fillJoypadInfo()
         entry->width = std::max(8, getStringPixelLength(buf));
     }
 
-    auto powerLevelDest = getMenuEntryAddress(powerLevel)->string();
+    auto powerLevelDest = getMenuEntry(powerLevel)->string();
     auto powerLevel = SDL_JoystickCurrentPowerLevel(joypad.handle);
     const char *powerLevelDesc = "UNKNOWN";
 
@@ -183,8 +183,8 @@ static void updateJoypadValues()
 
     const auto& joypadValues = getJoypadValues();
 
-    getMenuEntryAddress(rawX)->u2.number = joypadValues.x;
-    getMenuEntryAddress(rawY)->u2.number = joypadValues.y;
+    getMenuEntry(rawX)->u2.number = joypadValues.x;
+    getMenuEntry(rawY)->u2.number = joypadValues.y;
 }
 
 static void fillRectangle(int x1, int y1, int x2, int y2, int color)
@@ -423,14 +423,14 @@ static void enterDeadZoneYNeg()
 
 static void setDeadZoneValueAndPropagate(int entryIndex, int value)
 {
-    getMenuEntryAddress(entryIndex)->u2.number = value;
+    getMenuEntry(entryIndex)->u2.number = value;
     propagateJoypadConfig(m_joypadIndex);
 }
 
 template <typename Op, int fullRange>
 static void changeDeadZonePercentage(int percentageEntryIndex, int absoluteValueEntryIndex, int& percentageValue, int& value)
 {
-    auto percentageEntry = getMenuEntryAddress(percentageEntryIndex);
+    auto percentageEntry = getMenuEntry(percentageEntryIndex);
     assert(percentageEntry->type2 == kEntryString);
 
     auto str = percentageEntry->string();
@@ -442,7 +442,7 @@ static void changeDeadZonePercentage(int percentageEntryIndex, int absoluteValue
         percentageValue = newPercentageValue;
         value = percentageValue * fullRange / 100;
 
-        auto absoluteValueEntry = getMenuEntryAddress(absoluteValueEntryIndex);
+        auto absoluteValueEntry = getMenuEntry(absoluteValueEntryIndex);
         assert(absoluteValueEntry->type2 == kEntryNumber);
         absoluteValueEntry->u2.number = value;
 

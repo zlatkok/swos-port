@@ -2,6 +2,8 @@
 
 struct MockFile {
     MockFile(const char *path, const char *data, size_t size) : path(path), data(data), size(size) {}
+    MockFile(const char *path, unsigned const char *data, size_t size)
+        : path(path), data(reinterpret_cast<const char *>(data)), size(size) {}
     MockFile(const char *path) : path(path) {}
     const char *path;
     const char *data = nullptr;
@@ -17,3 +19,4 @@ void addFakeFile(const MockFile& file);
 void addFakeDirectory(const char *path);
 bool deleteFakeFile(const char *path);
 bool setFileAsCorrupted(const char *path, bool corrupted = true);
+bool fakeFilesEqualByContent(const char *path1, const char *path2);

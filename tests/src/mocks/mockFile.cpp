@@ -231,6 +231,28 @@ bool setFileAsCorrupted(const char *path, bool corrupted /* = true */)
     return m_nodes[nodeIndex].isBad = true;
 }
 
+bool fakeFilesEqualByContent(const char *path1, const char *path2)
+{
+    auto node1Index = findNode(path1);
+    if (node1Index < 0)
+        return false;
+
+    auto node2Index = findNode(path2);
+    if (node2Index < 0)
+        return false;
+
+    const auto& node1 = m_nodes[node1Index];
+    const auto& node2 = m_nodes[node2Index];
+
+    if (node1.isBad || !node1.isFile() || node2.isBad || !node2.isFile())
+        return false;
+
+    if (node1.size != node2.size && memcmp(node1.data, node2.data, node1.size))
+        return false;
+
+    return true;
+}
+
 DIR *opendir(const char *dirName)
 {
     auto nodeIndex = findNode(dirName);
@@ -277,6 +299,11 @@ dirent *readdir(DIR *dirp)
 }
 
 
+#define WriteFile WriteFile_REAL
+namespace SWOS {
+    void WriteFile_REAL();
+}
+
 #define dirExists dirExists_REAL
 std::string pathInRootDir_REAL(const char *filename);
 #define pathInRootDir pathInRootDir_REAL
@@ -290,6 +317,7 @@ FILE *openFile_REAL(const char *path, const char *mode = "rb");
 #undef loadFile
 #undef openFile
 #undef pathInRootDir
+#undef WriteFile
 
 bool dirExists(const char *path)
 {
@@ -347,4 +375,21 @@ std::pair<char *, size_t> loadFile(const char *path, size_t bufferOffset /* = 0 
     memcpy(buf + bufferOffset, node.data, node.size);
 
     return { buf, node.size + bufferOffset };
+}
+
+void writeFakeFile()
+{
+    auto path = joinPaths(rootDir().c_str(), A0.asPtr());
+    MockFile mockFile(path.c_str(), A1.asPtr(), D1);
+    addFakeFile(mockFile);
+    D0 = 0;
+}
+
+void __declspec(naked) SWOS::WriteFile()
+{
+    _asm {
+        call writeFakeFile
+        xor eax, eax
+        retn
+    }
 }

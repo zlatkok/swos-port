@@ -25,10 +25,10 @@ static void updateDisplayedWindowSize()
     int width, height;
     std::tie(width, height) = getWindowSize();
 
-    auto widthEntry = getMenuEntryAddress(customWidth);
+    auto widthEntry = getMenuEntry(customWidth);
     widthEntry->u2.number = width;
 
-    auto heightEntry = getMenuEntryAddress(customHeight);
+    auto heightEntry = getMenuEntry(customHeight);
     heightEntry->u2.number = height;
 
     m_windowResizable = getWindowResizable();
@@ -92,11 +92,11 @@ static void fillResolutionListUi()
     int currentEntry = getCurrentEntryOrdinal();
 
     for (int i = resolutionField0; i < resolutionField0 + kNumResolutionFields; i++)
-        getMenuEntryAddress(i)->hide();
+        getMenuEntry(i)->hide();
 
     int visibleFields = m_resolutions.size() - m_resListOffset;
     for (int i = m_resListOffset; i < m_resListOffset + std::min(visibleFields, kNumResolutionFields); i++) {
-        auto entry = getMenuEntryAddress(resolutionField0 + i - m_resListOffset);
+        auto entry = getMenuEntry(resolutionField0 + i - m_resListOffset);
         entry->show();
 
         auto width = m_resolutions[i].first;
@@ -109,13 +109,13 @@ static void fillResolutionListUi()
     }
 
     for (int i = resolutionField0; i < resolutionField0 + kNumResolutionFields; i++)
-        if (i == currentEntry && getMenuEntryAddress(i)->invisible)
+        if (i == currentEntry && getMenuEntry(i)->invisible)
             setCurrentEntry(VideoOptionsMenu::exit);
 }
 
 static void updateFullScreenAvailability()
 {
-    auto fullScreenEntry = getMenuEntryAddress(fullScreen);
+    auto fullScreenEntry = getMenuEntry(fullScreen);
     bool fullScreenAvailable = !m_resolutions.empty();
 
     strcpy(fullScreenEntry->string(), "FULL SCREEN:");
@@ -124,7 +124,7 @@ static void updateFullScreenAvailability()
 
     fullScreenEntry->disabled = !fullScreenAvailable;
 
-    auto fullScreenArrowEntry = getMenuEntryAddress(fullScreenArrow);
+    auto fullScreenArrowEntry = getMenuEntry(fullScreenArrow);
     fullScreenArrowEntry->setVisible(getWindowMode() == kModeFullScreen && fullScreenAvailable);
 }
 
@@ -147,7 +147,7 @@ static void updateScrollArrows()
     int selectedEntry = getCurrentEntryOrdinal();
 
     for (auto i : { scrollUpArrow, scrollDownArrow }) {
-        auto entry = getMenuEntryAddress(i);
+        auto entry = getMenuEntry(i);
         entry->setVisible(show);
 
         if (!show && i == selectedEntry)
@@ -228,12 +228,12 @@ static void inputWindowHeight()
 
 static void setWindowedFieldsColor(bool selected)
 {
-    getMenuEntryAddress(windowed)->textColor = selected ? kSelectedColor : kWhiteText;
+    getMenuEntry(windowed)->textColor = selected ? kSelectedColor : kWhiteText;
 }
 
 static void setBorderlessFieldsColor(bool selected)
 {
-    getMenuEntryAddress(VideoOptionsMenu::borderlessMaximized)->textColor = selected ? kSelectedColor : kWhiteText;
+    getMenuEntry(VideoOptionsMenu::borderlessMaximized)->textColor = selected ? kSelectedColor : kWhiteText;
 }
 
 static void setFullScreenFieldsColor(bool selected)
@@ -242,7 +242,7 @@ static void setFullScreenFieldsColor(bool selected)
     if (m_resolutions.empty())
         textColor = kGrayText;
 
-    getMenuEntryAddress(fullScreen)->textColor = textColor;
+    getMenuEntry(fullScreen)->textColor = textColor;
 }
 
 static void highlightCurrentMode()
@@ -252,7 +252,7 @@ static void highlightCurrentMode()
     };
 
     for (int index : kHighlightArrows)
-        getMenuEntryAddress(index)->hide();
+        getMenuEntry(index)->hide();
 
     int showArrowIndex = customSizeArrow;
     bool windowedSelected = false, borderlessSelected = false, fullScreenSelected = false;
@@ -277,7 +277,7 @@ static void highlightCurrentMode()
         assert(false);
     }
 
-    getMenuEntryAddress(showArrowIndex)->show();
+    getMenuEntry(showArrowIndex)->show();
 
     setWindowedFieldsColor(windowedSelected);
     setBorderlessFieldsColor(borderlessSelected);

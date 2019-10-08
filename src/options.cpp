@@ -233,7 +233,7 @@ void exitOptions()
         SetExitMenuFlag();
         saveOptions();
     } else if (controlsStatus == 0x30 && ++showPrereleaseCounter == 15) {
-        auto entry = getMenuEntryAddress(OptionsMenu::Entries::secret);
+        auto entry = getMenuEntry(OptionsMenu::Entries::secret);
         entry->show();
     }
 }

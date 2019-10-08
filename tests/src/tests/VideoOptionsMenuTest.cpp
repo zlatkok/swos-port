@@ -536,7 +536,7 @@ void VideoOptionsMenuTest::verifyFullScreenMode()
 
 void VideoOptionsMenuTest::verifyResolutionListColors(const char *current /* = nullptr */)
 {
-    auto entry = getMenuEntryAddress(resolutionField0);
+    auto entry = getMenuEntry(resolutionField0);
     auto visible = !entry->invisible;
 
     for (int i = 0; i < kNumResolutionFields; i++, entry++) {
@@ -569,7 +569,7 @@ void VideoOptionsMenuTest::switchToMode(size_t mode)
             auto resolutionString = getResolutionString(width, height);
 
             int item = resolutionField0;
-            if (!strcmp(getMenuEntryAddress(resolutionField0)->u2.string, resolutionString))
+            if (!strcmp(getMenuEntry(resolutionField0)->u2.string, resolutionString))
                 item++;
 
             assertItemIsVisible(item);

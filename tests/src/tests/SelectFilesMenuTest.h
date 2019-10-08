@@ -25,6 +25,7 @@ private:
     void testAbortSave();
     void testSaveButtonShowHide();
     void testLongExtensions();
+    void testSaveCompetition();
 
     void testArrowBackground(const MenuEntry *arrowEntry);
     void checkArrowsOverlap();

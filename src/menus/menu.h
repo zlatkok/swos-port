@@ -32,7 +32,7 @@ static inline Menu *getCurrentMenu()
     return reinterpret_cast<Menu *>(g_currentMenu);
 }
 
-static inline MenuEntry *getMenuEntryAddress(int ordinal)
+static inline MenuEntry *getMenuEntry(int ordinal)
 {
     assert(ordinal >= 0 && ordinal < 255);
 
@@ -118,7 +118,7 @@ static inline void selectEntry(int ordinal)
     assert(ordinal >= 0 && ordinal < 255 && ordinal < getCurrentMenu()->numEntries);
 
     if (ordinal >= 0 && ordinal < 255) {
-        auto entry = getMenuEntryAddress(ordinal);
+        auto entry = getMenuEntry(ordinal);
         selectEntry(entry);
     }
 }
@@ -131,7 +131,7 @@ static inline void highlightEntry(MenuEntry *entry)
 
 static inline void highlightEntry(int ordinal)
 {
-    auto entry = getMenuEntryAddress(ordinal);
+    auto entry = getMenuEntry(ordinal);
     highlightEntry(entry);
 }
 
@@ -140,7 +140,10 @@ static inline bool inputText(char *destBuffer, int maxLength, bool allowExtraCha
     A0 = destBuffer;
     D0 = maxLength;
     g_allowExtraCharsFlag = allowExtraChars;
+
     SAFE_INVOKE(InputText);
+
+    return D0.asWord() == 0;
 }
 
 int getStringPixelLength(const char *str, bool bigText = false);
