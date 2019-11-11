@@ -2,7 +2,7 @@
 #include "menuMouse.h"
 
 constexpr auto kSelectedColor = kSoftBlueText;
-constexpr int kShowPleaseWaitLimit = 20;
+constexpr int kPleaseWaitLimitMs = 333;
 
 static bool m_menuShown;
 static int16_t m_windowResizable = 1;
@@ -46,10 +46,8 @@ static DisplayModeList getDisplayModes(int displayIndex)
     else
         logInfo("Enumerating display modes, %d found", numModes);
 
-    if (numModes > kShowPleaseWaitLimit) {
-        drawMenuText(55, 80, "PLEASE WAIT, ENUMERATING GRAPHICS MODES...", kYellowText);
-        updateScreen();
-    }
+    auto startTicks = SDL_GetTicks();
+    bool shownWarning = false;
 
     DisplayModeList result;
 
@@ -57,6 +55,12 @@ static DisplayModeList getDisplayModes(int displayIndex)
         SDL_DisplayMode mode;
         if (!SDL_GetDisplayMode(displayIndex, i, &mode)) {
             logInfo("  %2d %d x %d, format: %x, refresh rate: %d", i, mode.w, mode.h, mode.format, mode.refresh_rate);
+
+            if (!shownWarning && SDL_GetTicks() > startTicks + kPleaseWaitLimitMs) {
+                drawMenuText(55, 80, "PLEASE WAIT, ENUMERATING GRAPHICS MODES...", kYellowText);
+                updateScreen();
+                shownWarning = true;
+            }
 
             // disallow any silly display mode
             switch (mode.format) {
@@ -165,9 +169,11 @@ static void changeResolutionSelected()
     if (i < 0 || i >= static_cast<int>(m_resolutions.size()))
         return;
 
-    auto currentResolution = getFullScreenDimensions();
-    if (currentResolution == m_resolutions[i])
-        return;
+    if (isInFullScreenMode()) {
+        auto currentResolution = getFullScreenDimensions();
+        if (currentResolution == m_resolutions[i])
+            return;
+    }
 
     char buffer[64];
 

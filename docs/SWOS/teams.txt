@@ -304,15 +304,19 @@ offset:  size:  desc.
                 bits 5, 6 and 7 represent degree of injury, and based on their
                 value player speed value gets handicapped via the table:
                 0, -96, -128, -160, -192, -224, -256, -288
-  36       1    [0,1,2] if a player entered the game it's almost always 2,
-                sometimes 1 (but that can mean he played and got substituted),
-                and zero if he ended the game on the bench (sometimes it's 1 in
-                this case too)
-                in 1st and 46th minute: if player has 0 or 1 yellow cards, and
-                this field isn't 2, write 1
-                at half-time and full-time: if a player has 0 or 1 yellow
-                cards, and if this field is 1, write 2
-                seems to be number of half in which player played
+  36       1    seems to be the number of the half in which the player was
+                substituted, values can be [0, 1, 2]:
+                0 = wasn't substituted
+                1 = first half
+                2 = second half (or even later)
+                - these values change by the following algorithm:
+                  initialized before the game starts: 0
+                  at minute 1 and 46: if (value != 2) value = 1
+                  at minute 45 and 90: if (value == 1) value = 2
+                - they are only changed if player has less than 2 cards.
+                - fresh played entering the game starts from value 0.
+                - this interpretation makes sense only for players from the
+                  starting 11
   37       1    player face index [0,1,2,3]
   38      23    full name of the player
 

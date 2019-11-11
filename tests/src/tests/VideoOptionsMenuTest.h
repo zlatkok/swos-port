@@ -18,6 +18,7 @@ private:
     void testWindowSize();
     void setupVariousResolutionLists();
     void testVariousResolutionLists();
+    void finalizeVariousResolutionsList();
     void setupModeSwitchingTest();
     void testModeSwitching();
 

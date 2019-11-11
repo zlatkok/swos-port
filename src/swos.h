@@ -190,6 +190,10 @@ struct SpriteGraphics {
     byte nlinesDiv4;    /* height / 4                                       */
     short ordinal;      /* ordinal number in sprite.dat                     */
 
+    int bytesPerLine() const {
+        return wquads * 8;
+    }
+
     int size() const {
         return sizeof(SpriteGraphics) + height * wquads * 8;
     }
@@ -199,7 +203,7 @@ struct SpriteGraphics {
     }
 };
 
-struct Player {
+struct Sprite {
     word teamNumber;    // 1 or 2 for player controls, 0 for CPU
     word shirtNumber;   // 1-11 for players, 0 for other sprites
     word frameOffset;
@@ -229,7 +233,7 @@ struct Player {
     int16_t destY;
     byte unk003[6];
     word visible;           // skip it when rendering if false
-    int16_t pictureIndex;   // -1 if none
+    int16_t spriteIndex;    // -1 if none
     word saveSprite;
     dword ballDistance;
     word unk004;
@@ -381,12 +385,12 @@ struct TeamGeneralInfo {
     TeamGame *inGameTeamPtr;
     TeamStatsData *teamStatsPtr;
     word teamNumber;
-    Player *(*players)[11];
+    Sprite *(*players)[11];
     void *someTablePtr;
     word tactics;
     word tensTimer;
-    Player *controlledPlayerSprite;
-    Player *passToPlayerPtr;
+    Sprite *controlledPlayerSprite;
+    Sprite *passToPlayerPtr;
     word playerHasBall;
     word playerHadBall;
     word currentAllowedDirection;
@@ -410,7 +414,7 @@ struct TeamGeneralInfo {
     byte ballAbove17;
     byte prevPlVeryCloseToBall;
     word ofs70;
-    Player *lastHeadingPlayer;
+    Sprite *lastHeadingPlayer;
     word goalkeeperSavedCommentTimer;
     word ofs78;
     word goalkeeperJumpingRight;
@@ -425,7 +429,7 @@ struct TeamGeneralInfo {
     word ballX;
     word ballY;
     word passKickTimer;
-    Player *passingKickingPlayer;
+    Sprite *passingKickingPlayer;
     word ofs108;
     word ballCanBeControlled;
     word ballControllingPlayerDirection;
@@ -450,16 +454,20 @@ static_assert(sizeof(TeamGeneralInfo) == 145, "TeamGeneralInfo is invalid");
 #pragma pack(pop)
 
 enum SpriteIndices {
-    kUpArrowSpriteIndex = 183,
-    kDownArrowSpriteIndex = 184,
-    kSquareGridForResultSpriteIndex = 252,
-    kBigZeroSpriteIndex = 287,
-    kBigZero2SpriteIndex = 297,
-    kTeam1NameSpriteIndex = 307,
-    kTeam2NameSpriteIndex = 308,
-    kBigDashSpriteIndex = 309,
-    kReplayFrame00SpriteIndex = 1209,
-    kEndSpriteIndex = 1334,
+    kUpArrowSprite = 183,
+    kDownArrowSprite = 184,
+    kSquareGridForResultSprite = 252,
+    kBigZeroSprite = 287,
+    kBigZero2Sprite = 297,
+    kTeam1NameSprite = 307,
+    kTeam2NameSprite = 308,
+    kBigDashSprite = 309,
+    kTimeSprite8Mins = 328,
+    kTimeSprite88Mins = 329,
+    kTimeSprite118Mins = 330,
+    kBigTimeDigitSprite0 = 331,
+    kReplayFrame00Sprite = 1209,
+    kEndSprite = 1334,
 };
 
 enum GameTypes {
@@ -586,6 +594,13 @@ enum Tactics {
     kTacticUserE = 16,
     kTacticUserF = 17,
     kTacticImported = 1000,
+};
+
+enum class GameState : word {
+    kGameStarting = 0,
+    kInProgress = 100,
+    kStopped = 101,
+    kWaitingOnPlayer = 102,
 };
 
 constexpr int kMenuScreenWidth = 320;

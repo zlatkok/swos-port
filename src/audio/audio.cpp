@@ -98,8 +98,11 @@ static void channelFinished(int channel)
 
 void SWOS::StopAudio()
 {
-    Mix_HaltChannel(-1);
-    Mix_HaltMusic();
+    // SDL_mixer will crash if we call these before it's initialized
+    if (Mix_QuerySpec(nullptr, nullptr, nullptr)) {
+        Mix_HaltChannel(-1);
+        Mix_HaltMusic();
+    }
 }
 
 int playIntroSample(void *buffer, int size, int volume, int loopCount)

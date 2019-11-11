@@ -14,8 +14,14 @@ static Uint32 m_mouseButtonFlags;
 
 static SDL_Scancode m_scancodes[SDL_NUM_SCANCODES];
 
+static int m_getTicksDelta;
+static Uint32 m_lastGetTicks;
+static bool m_timeFrozen;
+
 static void SDL_Delay_NOP(Uint32) {}
 static int SDL_PeepEvents_NOP(SDL_Event *, int, SDL_eventaction, Uint32) { return 0; }
+
+static int dummyIntProc(int) { return 0; }
 
 struct EnvSetter {
     EnvSetter() {
@@ -26,11 +32,21 @@ struct EnvSetter {
 // set SDL environment variable before any SDL function gets called to make sure it will load our DLL
 static EnvSetter e;
 
+// Hooks all functions that might change state of the system.
+static void mockFunctions()
+{
+    setSdlProc(SDL_SetCursorIndex, dummyIntProc);
+}
+
 bool initSdlApiTable()
 {
     m_table = GetFunctionTable(&m_tableSize);
-    if (m_table)
+    if (m_table) {
         m_originalTable = std::make_unique<void *[]>(m_tableSize);
+        memcpy(m_originalTable.get(), m_table, m_tableSize * sizeof(void *));
+        mockFunctions();
+    }
+
     return m_table != nullptr;
 }
 
@@ -53,9 +69,15 @@ void *setSdlProc(SdlApiIndex index, void *hook)
     return nullptr;
 }
 
-void restoreOriginalTable()
+void restoreSdlProc(SdlApiIndex index)
 {
-    memcpy(m_table, m_originalTable.get(), m_tableSize);
+    if (m_originalTable && index < m_tableSize)
+        m_table[index] = m_originalTable[index];
+}
+
+void restoreOriginalSdlFunctionTable()
+{
+    memcpy(m_table, m_originalTable.get(), m_tableSize * sizeof(void *));
 }
 
 static int getEventFromQueue(SDL_Event *event)
@@ -215,7 +237,7 @@ void resetSdlInput()
     m_mouseY = 0;
 }
 
-void killDelay()
+void killSdlDelay()
 {
     m_table[SDL_DelayIndex] = SDL_Delay_NOP;
 }
@@ -251,4 +273,32 @@ void restoreRealDisplayModes()
         m_table[SDL_GetNumDisplayModesIndex] = m_originalTable[SDL_GetNumDisplayModesIndex];
         m_table[SDL_GetDisplayModeIndex] = m_originalTable[SDL_GetDisplayModeIndex];
     }
+}
+
+static Uint32 getFakeTicks()
+{
+    if (m_timeFrozen) {
+        return 0;
+    } else {
+        m_lastGetTicks += m_getTicksDelta;
+        return m_lastGetTicks;
+    }
+}
+
+void setSetTicksDelta(int delta)
+{
+    m_getTicksDelta = delta;
+    m_timeFrozen = false;
+
+    if (m_table)
+        m_table[SDL_GetTicksIndex] = getFakeTicks;
+}
+
+void freezeSdlTime()
+{
+    m_timeFrozen = true;
+    killSdlDelay();
+
+    if (m_table)
+        m_table[SDL_GetTicksIndex] = getFakeTicks;
 }

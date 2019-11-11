@@ -12,14 +12,14 @@ constexpr char *kAudioDir = "audio";
 
 int getMusicVolume();
 
-void saveAudioOptions(CSimpleIni& ini);
-void loadAudioOptions(const CSimpleIniA& ini);
-
 void initAudio();
 void finishAudio();
 void initGameAudio();
 void resetGameAudio();
 void ensureMenuAudioFrequency();
 int playIntroSample(void *buffer, int size, int volume, int loopCount);
+
+void saveAudioOptions(CSimpleIni& ini);
+void loadAudioOptions(const CSimpleIniA& ini);
 
 void showAudioOptionsMenu();

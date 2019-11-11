@@ -3,6 +3,7 @@
 #include "render.h"
 #include "swossym.h"
 #include "options.h"
+#include "game.h"
 #include "util.h"
 
 enum InputEventBits {
@@ -528,34 +529,6 @@ static void setMouseControlWord(Sint32 xrel, Sint32 yrel, Uint32 state)
         m_mouseControlWord |= kSecondaryFire;
         m_mouseControlWord &= ~kFire;
         m_mouseControlWord &= ~kSpecialFire;
-    }
-}
-
-static void checkKeyboardShortcuts(SDL_Scancode scanCode, bool pressed)
-{
-    static bool altDown, shiftDown;
-
-    switch (scanCode) {
-    case SDL_SCANCODE_LALT:
-    case SDL_SCANCODE_RALT:
-        altDown = pressed;
-        break;
-    case SDL_SCANCODE_LSHIFT:
-    case SDL_SCANCODE_RSHIFT:
-        shiftDown = pressed;
-        break;
-    case SDL_SCANCODE_F1:
-        // preserve alt-F1, ultra fast exit from SWOS (actually meant for invoking the debugger ;))
-        if (pressed && altDown) {
-            logInfo("Shutting down via keyboard shortcut...");
-            std::exit(EXIT_SUCCESS);
-        }
-        break;
-    case SDL_SCANCODE_RETURN:
-    case SDL_SCANCODE_KP_ENTER:
-        if (pressed && altDown)
-            shiftDown ? toggleFullScreenMode() : toggleBorderlessMaximizedMode();
-        break;
     }
 }
 

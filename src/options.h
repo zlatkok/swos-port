@@ -40,4 +40,5 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv);
 void normalizeOptions();
 bool disableIntro();
 bool disableImageReels();
+bool doNotPauseLoadingScreen();
 int midiBankNumber();

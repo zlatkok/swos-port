@@ -198,16 +198,12 @@ static void setWindowMode(WindowMode newMode)
     switch (newMode) {
     case kModeWindow:
         success = SDL_SetWindowFullscreen(m_window, 0) == 0;
-        if (success) {
-            SDL_ShowCursor(SDL_ENABLE);
+        if (success)
             SDL_SetWindowSize(m_window, m_windowWidth, m_windowHeight);
-        }
         break;
 
     case kModeBorderlessMaximized:
         success = SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP) == 0;
-        if (success && isMatchRunning() && !gotMousePlayer())
-            SDL_ShowCursor(SDL_DISABLE);
         mode = "borderless maximized";
         break;
 
@@ -596,7 +592,10 @@ void makeScreenshot()
     char filename[256];
 
     auto t = time(nullptr);
-    strftime(filename, sizeof(filename), "screenshot-%Y-%m-%d-%H-%M-%S.png", localtime(&t));
+    auto len = strftime(filename, sizeof(filename), "screenshot-%Y-%m-%d-%H-%M-%S-", localtime(&t));
+
+    auto ms = SDL_GetTicks() % 1'000;
+    sprintf(filename + len, "%03d.png", ms);
 
     const auto& screenshotsPath = ensureScreenshotsDirectory();
     const auto& path = joinPaths(screenshotsPath.c_str(), filename);

@@ -203,6 +203,7 @@
     <ClInclude Include="..\src\debug\dump.h" />
     <ClInclude Include="..\src\files\file.h" />
     <ClInclude Include="..\src\files\selectFilesMenu.h" />
+    <ClInclude Include="..\src\game.h" />
     <ClInclude Include="..\src\log.h" />
     <ClInclude Include="..\src\menus\menu.h" />
     <ClInclude Include="..\src\menus\menuCodes.h" />

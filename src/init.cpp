@@ -114,7 +114,7 @@ static bool showImageReel(const char **imageList)
     memset(imageBuffer, 0, 3 * kVgaScreenSize);
 
     // first image palette is used for all scrolling images
-    if (loadFile(*imageList, currentImageBuffer, false) != k256ImageSize)
+    if (loadFile(*imageList, currentImageBuffer, -1, false) != k256ImageSize)
         return true;
 
     setPalette(currentImageBuffer + kVgaScreenSize);
@@ -139,7 +139,7 @@ static bool showImageReel(const char **imageList)
             if (*++imageList == (const char *)-1)
                 return true;
 
-            if (loadFile(*imageList, currentImageBuffer, false) == k256ImageSize)
+            if (loadFile(*imageList, currentImageBuffer, -1, false) == k256ImageSize)
                 break;
         }
     } while (true);

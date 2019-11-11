@@ -11,6 +11,8 @@
 
 using namespace VideoOptionsMenu;
 
+constexpr size_t kSlowResolutionsListSize = 20;
+
 static VideoOptionsMenuTest t;
 
 const std::vector<std::tuple<int, int, int>> kTestWindowSizeData = {
@@ -47,7 +49,7 @@ const std::tuple<int, int, std::vector<SDL_Scancode>, std::vector<SDL_Scancode>,
 void VideoOptionsMenuTest::init()
 {
     takeOverInput();
-    killDelay();
+    freezeSdlTime();
 
     auto hook = std::bind(&VideoOptionsMenuTest::verifyYellowPleaseWaitTextPresence, this);
     setUpdateHook(hook);
@@ -62,7 +64,7 @@ void VideoOptionsMenuTest::init()
 
 void VideoOptionsMenuTest::finish()
 {
-    restoreRealDisplayModes();
+    restoreOriginalSdlFunctionTable();
     setUpdateHook(nullptr);
 }
 
@@ -91,20 +93,21 @@ auto VideoOptionsMenuTest::getCases() -> CaseList
         { "test window dimensions", "win-dimensions", bind(&VideoOptionsMenuTest::setupWindowSizeTest),
             bind(&VideoOptionsMenuTest::testWindowSize), kTestWindowSizeData.size(), },
         { "test various resolution lists", "res-lists", bind(&VideoOptionsMenuTest::setupVariousResolutionLists),
-            bind(&VideoOptionsMenuTest::testVariousResolutionLists), kDisplayModes.size() + 1, },
+            bind(&VideoOptionsMenuTest::testVariousResolutionLists), kDisplayModes.size() + 1, true,
+            bind(&VideoOptionsMenuTest::finalizeVariousResolutionsList) },
         { "test window mode switching", "mode-switching", bind(&VideoOptionsMenuTest::setupModeSwitchingTest),
             bind(&VideoOptionsMenuTest::testModeSwitching), kNumWindowModes },
         { "test resolution scrolling", "res-list-scrolling", bind(&VideoOptionsMenuTest::setupResolutionListScrollingTest),
             bind(&VideoOptionsMenuTest::testResolutionListScrolling), m_testScrollingData.size() },
         { "test custom window size", "custom-win-size", bind(&VideoOptionsMenuTest::setupCustomWindowSizeTest),
             bind(&VideoOptionsMenuTest::testCustomWindowSize), std::size(kTestCustomSizeData) },
-        { "test exit button", "vid-opt-exit", nullptr, bind(&VideoOptionsMenuTest::testExitButton)},
+        { "test exit button", "vid-opt-exit", nullptr, bind(&VideoOptionsMenuTest::testExitButton) },
         { "test resolution switch fail", "res-fail", bind(&VideoOptionsMenuTest::setupResolutionSwitchFailureTest),
-            bind(&VideoOptionsMenuTest::testResolutionSwitchFailure)},
+            bind(&VideoOptionsMenuTest::testResolutionSwitchFailure) },
         { "test trying to set the same resolution", "dont-switch-current-res", nullptr,
-            bind(&VideoOptionsMenuTest::testTryingToSetCurrentResolution)},
+            bind(&VideoOptionsMenuTest::testTryingToSetCurrentResolution) },
         { "test resolution list caching per screen", "res-list-caching", nullptr,
-            bind(&VideoOptionsMenuTest::testResolutionListRebuildWhenChangingScreen)},
+            bind(&VideoOptionsMenuTest::testResolutionListRebuildWhenChangingScreen) },
     };
 }
 
@@ -140,6 +143,7 @@ void VideoOptionsMenuTest::setupVariousResolutionLists()
     else
         setIsInFullScreenMode(true);
 
+    setSetTicksDelta(m_displayModeList.size() > kSlowResolutionsListSize ? 500 : 1);
     m_verifyYellowText = true;
 
     LogSilencer logSilencer;
@@ -171,6 +175,11 @@ void VideoOptionsMenuTest::testVariousResolutionLists()
         assertItemIsString(fullScreen, "FULL SCREEN UNAVAILABLE");
     }
     assertItemEnabled(fullScreen, !m_displayModeList.empty());
+}
+
+void VideoOptionsMenuTest::finalizeVariousResolutionsList()
+{
+    freezeSdlTime();
 }
 
 void VideoOptionsMenuTest::setupModeSwitchingTest()
@@ -368,13 +377,27 @@ void VideoOptionsMenuTest::testTryingToSetCurrentResolution()
 {
     setFullScreenResolution(kDisplayModes[0].w, kDisplayModes[0].h);
     setFakeDisplayModesForced(kDisplayModes);
+
     showVideoOptionsMenu();
-    switchToWindow();
     selectItem(resolutionField0);
-    assertEqual(getWindowMode(), kModeWindow);
-    selectItem(resolutionField1);
-    assertEqual(getWindowMode(), kModeFullScreen);
-    assertEqual(getFullScreenDimensions(), std::make_pair(kDisplayModes[1].w, kDisplayModes[1].h));
+
+    // make sure we can get back to full screen by selecting both previous and different resolution
+    for (auto i : { 0, 1 }) {
+        switchToWindow();
+        showVideoOptionsMenu();
+
+        auto currentEntry = resolutionField0 + i;
+
+        // make sure selecting it twice doesn't change anything
+        for (int j = 0; j < 2; j++) {
+            selectItem(currentEntry);
+            assertEqual(getWindowMode(), kModeFullScreen);
+            assertEqual(getFullScreenDimensions(), std::make_pair(kDisplayModes[i].w, kDisplayModes[i].h));
+
+            showVideoOptionsMenu();
+            assertItemHasColor(currentEntry, kPurple);
+        }
+    }
 }
 
 void VideoOptionsMenuTest::testResolutionListRebuildWhenChangingScreen()
@@ -405,7 +428,7 @@ void VideoOptionsMenuTest::verifyYellowPleaseWaitTextPresence()
 {
     if (m_verifyYellowText) {
         auto numYellowPixels = std::count(linAdr384k, linAdr384k + kVgaScreenSize, kYellowText);
-        assertEqual(m_displayModeList.size() > 20, numYellowPixels > 300);
+        assertEqual(m_displayModeList.size() > kSlowResolutionsListSize, numYellowPixels > 300);
     }
 
     m_verifyYellowText = false;

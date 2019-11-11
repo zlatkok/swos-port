@@ -38,10 +38,10 @@ static void drawSpriteToBuffer(int spriteIndex, char *buf)
 
 void SelectFilesMenuTest::init()
 {
-    assert(spritesIndex[kUpArrowSpriteIndex]->width == kArrowWidth && spritesIndex[kUpArrowSpriteIndex]->height == kArrowHeight);
+    assert(spritesIndex[kUpArrowSprite]->width == kArrowWidth && spritesIndex[kUpArrowSprite]->height == kArrowHeight);
 
-    drawSpriteToBuffer(kUpArrowSpriteIndex, upArrowBuffer);
-    drawSpriteToBuffer(kDownArrowSpriteIndex, downArrowBuffer);
+    drawSpriteToBuffer(kUpArrowSprite, upArrowBuffer);
+    drawSpriteToBuffer(kDownArrowSprite, downArrowBuffer);
 
     takeOverInput();
 }

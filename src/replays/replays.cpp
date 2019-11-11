@@ -217,15 +217,15 @@ static void drawResult()
     auto leftScoreDigit2 = leftScoreDigits.rem;
 
     if (leftScoreDigit1) {
-        drawSprite(leftScoreDigit1 + kBigZeroSpriteIndex, x, y);
+        drawSprite(leftScoreDigit1 + kBigZeroSprite, x, y);
         x += 12;
     }
 
-    drawSprite(leftScoreDigit2 + kBigZeroSpriteIndex, x, y);
+    drawSprite(leftScoreDigit2 + kBigZeroSprite, x, y);
 
     x += 15;
     y += 8;
-    drawSprite(kBigDashSpriteIndex, x, y);
+    drawSprite(kBigDashSprite, x, y);
 
     x += 8;
     y -= 8;
@@ -235,11 +235,11 @@ static void drawResult()
     auto rightScoreDigit2 = rightScoreDigits.rem;
 
     if (rightScoreDigit1) {
-        drawSprite(rightScoreDigit1 + kBigZero2SpriteIndex, x, y);
+        drawSprite(rightScoreDigit1 + kBigZero2Sprite, x, y);
         x += 12;
     }
 
-    drawSprite(rightScoreDigit2 + kBigZero2SpriteIndex, x, y);
+    drawSprite(rightScoreDigit2 + kBigZero2Sprite, x, y);
 }
 
 static void replayPausedLoop()
@@ -527,7 +527,7 @@ static std::pair<dword *, dword> handleSprites(dword *p, dword d)
 static void drawBigRotatingLetterR()
 {
     deltaColor = 0x70;
-    drawSprite(((stoppageTimer >> 1) & 0x1f) + kReplayFrame00SpriteIndex, 11, 14);
+    drawSprite(((stoppageTimer >> 1) & 0x1f) + kReplayFrame00Sprite, 11, 14);
     deltaColor = 0;
 }
 

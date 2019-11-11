@@ -24,6 +24,7 @@ protected:
         CaseProc proc;
         size_t numTests = 1;
         bool allowScreenshots = true;
+        CaseProc finalize = nullptr;
     };
     using CaseList = std::vector<Case>;
 

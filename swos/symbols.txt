@@ -184,6 +184,14 @@ SetDefaultNameAndSurname
 InitHighestScorersTable
 InitUserTactics
 SetHilFileHeader
+InitDisplaySprites
+EndFirstHalf
+BumpAllPlayersLastPlayedHalfAtGameStart
+BumpAllPlayersLastPlayedHalfPostGame
+EndOfGame
+EndFirstExtraTime
+StartPenalties
+StartFirstExtraTime
 
 
 #
@@ -377,7 +385,7 @@ SortSprites, function
 InitSavedSprites, function
 numSpritesToRender, word
 spritesIndex, array SpriteGraphics *
-sortedSprites, array Player * [79]
+sortedSprites, array Sprite * [79]
 numSpritesSaved, word
 spriteGraphicsPtr, array SpriteGraphics *(*)
 spriteFixupFlag, word
@@ -590,12 +598,16 @@ normalReplayRunning, word
 deltaColor, byte
 gameAborted, word
 teamDataPtr, TeamGeneralInfo *
-big_S_Sprite, Player
+big_S_Sprite, Sprite
 playGame, word
 team1Goals, word
 team2Goals, word
 statsTeam1Goals, word
 statsTeam2Goals, word
+statsTeam1GoalsCopy, word
+statsTeam2GoalsCopy, word
+team1GoalsFirstLeg, word
+team2GoalsFirstLeg, word
 smallCharsTable, CharTable
 bigCharsTable, CharTable
 twoPlayers, word
@@ -617,6 +629,9 @@ importTacticsFilename, array char[14]
 chooseTacticsTeamPtr, void *
 leftTeamIngame, TeamGame
 rightTeamIngame, TeamGame
+leftTeamData, TeamGeneralInfo
+rightTeamData, TeamGeneralInfo
+lastTeamPlayed, TeamGeneralInfo *
 g_trainingGame, word
 team1GoalsDigit2, word
 team2GoalsDigit2, word
@@ -634,6 +649,32 @@ PlayMatchSelected, function
 playerNumThatStarted, word
 pl1IsntPlayer, word
 
+BumpAllPlayersLastPlayedHalfAtGameStart, function
+BumpAllPlayersLastPlayedHalfPostGame, function
+StartPenalties, function
+gameStatePl, GameState
+playingPenalties, word
+stateGoal, word
+secondLeg, word
+playing2ndGame, word
+winningTeamPtr, TeamGame *
+ballSprite, Sprite
+
+# time
+InitDisplaySprites, function
+EndFirstHalf, function
+EndFirstExtraTime, function
+EndOfGame, function
+StartFirstExtraTime, function
+currentTimeSprite, Sprite
+timerDifference, word
+timeDelta, word
+copyTimeSprite, word
+extraTimeState, word
+gameSeconds, int16_t
+endGameCounter, int16_t
+secondsSwitchAccumulator, int16_t
+gameTime, array byte[4]
 
 ### tester
 chosenTactics, word
@@ -654,6 +695,7 @@ FadeOutToBlack
 HandleInstantReplayStateSwitch
 GameOver
 MainKeysCheck
+ShowStadiumInit
 
 
 #
@@ -668,9 +710,12 @@ MainKeysCheck
 
 @insert-hook
 AdjustPlayerSkills, 246, FixTwoCPUsGameCrash
+
 # TODO: remove this when bench routines are converted
 BenchCheckControls, 444, @remove
+
 CheckIfBallOutOfPlay, 251, FixPenaltyBug
+GameLoop, 92, InsertPauseBeforeTheGameIfNeeded
 GameLoop, 224, LoadCrowdChantSampleIfNeeded
 GameLoop, 346, GameEnded
 InputText, 23, AbortTextInputOnEscapeAndRightMouseClick
@@ -710,6 +755,7 @@ ShowMenu
 # sprites
 DrawSpriteInCameraView
 DrawSprite16Pixels
+CopySprite
 
 SetPrevVideoModeEndProgram
 ReadPitchFile
@@ -797,3 +843,5 @@ ReplayExitMenuAfterFriendly
 Int2Ascii
 ExitEuropeanChampionshipMenu
 #DrawBenchAndSubsMenu
+ResetTime
+UpdateTime

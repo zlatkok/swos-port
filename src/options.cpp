@@ -12,6 +12,7 @@
 enum SoundEnabledState { kUnspecified, kOn, kOff, } static m_soundState;
 static bool m_noIntro;
 static bool m_noReels;
+static bool m_noLoadPause;
 static int m_bankNo;
 
 using OptionalControls = std::pair<bool, Controls>;
@@ -125,6 +126,7 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
     const char kSound[] = "--sound=";
     const char kNoIntro[] = "--no-intro";
     const char kNoReels[] = "--no-image-reels";
+    const char kNoLoadPause[] = "--no-load-pause";
     const char kMaxBank[] = "--max-bank";
     const char kBankNum[] = "--bank-number=";
     const char kPl1Controls[] = "--pl1controls=";
@@ -146,6 +148,8 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
             m_noIntro = true;
         } else if (!strcmp(argv[i], kNoReels)) {
             m_noReels = true;
+        } else if (!strcmp(argv[i], kNoLoadPause)) {
+            m_noLoadPause = true;
         } else if (!strcmp(argv[i], kMaxBank)) {
             log(std::string("Maximum bank number is ") + std::to_string(adl_getBanksCount() - 1), kInfo);
         } else if (strstr(argv[i], kBankNum) == argv[i]) {
@@ -209,6 +213,11 @@ bool disableIntro()
 bool disableImageReels()
 {
     return m_noReels;
+}
+
+bool doNotPauseLoadingScreen()
+{
+    return m_noLoadPause;
 }
 
 int midiBankNumber()

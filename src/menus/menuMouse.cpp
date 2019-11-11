@@ -71,7 +71,7 @@ static bool isEntryScroller(const MenuEntry& entry)
         return true;
 
     if (wheelData.globalHandlerActive() && entry.type2 == kEntrySprite2 &&
-        (entry.u2.spriteIndex == kUpArrowSpriteIndex || entry.u2.spriteIndex == kDownArrowSpriteIndex))
+        (entry.u2.spriteIndex == kUpArrowSprite || entry.u2.spriteIndex == kDownArrowSprite))
         return true;
 
     // also quicken +/- fields

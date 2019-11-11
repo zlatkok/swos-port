@@ -2,11 +2,15 @@
 #include "render.h"
 #include "util.h"
 
+static SpriteGraphics *getSprite(int index)
+{
+    assert(index >= 0 && index < kEndSprite);
+    return spritesIndex[index];
+}
+
 SpriteClipper::SpriteClipper(int spriteIndex, int x, int y)
 {
-    assert(spriteIndex >= 0 && spriteIndex < kEndSpriteIndex);
-
-    const auto sprite = spritesIndex[spriteIndex];
+    auto sprite = getSprite(spriteIndex);
     init(sprite, x, y);
 }
 
@@ -55,7 +59,7 @@ bool SpriteClipper::clip()
 
 void drawTeamNameSprites(int spriteIndex, int x, int y)
 {
-    assert(spriteIndex == kTeam1NameSpriteIndex || spriteIndex == kTeam2NameSpriteIndex);
+    assert(spriteIndex == kTeam1NameSprite || spriteIndex == kTeam2NameSprite);
 
     constexpr int k2ndTeamOffset = 1'536;
     constexpr int kNumLines = 11;
@@ -64,7 +68,7 @@ void drawTeamNameSprites(int spriteIndex, int x, int y)
     int fieldWidth = getVisibleFieldWidth();
 
     auto src = dosMemOfs4fc00h + kVirtualScreenSize;
-    if (spriteIndex == kTeam2NameSpriteIndex)
+    if (spriteIndex == kTeam2NameSprite)
         src += k2ndTeamOffset;
 
     auto dest = vsPtr + fieldWidth * y + x;
@@ -109,7 +113,7 @@ static char *drawPixelRow(SpriteClipper& p, char *dest, int spriteDelta, int fie
 void drawSprite(int spriteIndex, int x, int y, bool saveSpritePixelsFlag /* = true */)
 {
     // TODO: remove this
-    if (spriteIndex == kTeam1NameSpriteIndex || spriteIndex == kTeam2NameSpriteIndex) {
+    if (spriteIndex == kTeam1NameSprite || spriteIndex == kTeam2NameSprite) {
         drawTeamNameSprites(spriteIndex, x, y);
         return;
     }
@@ -160,7 +164,7 @@ void SWOS::DrawSpriteInCameraView()
     int x = D1.asWord();
     int y = D2.asWord();
 
-    const auto sprite = spritesIndex[spriteIndex];
+    const auto sprite = getSprite(spriteIndex);
     x -= sprite->centerX + g_cameraX;
     y -= sprite->centerY + g_cameraY;
 
@@ -170,4 +174,45 @@ void SWOS::DrawSpriteInCameraView()
 void SWOS::DrawSprite16Pixels()
 {
     drawSprite(D0.asWord(), D1.asWord(), D2.asWord());
+}
+
+void copySprite(int sourceSpriteIndex, int destSpriteIndex, int xOffset, int yOffset)
+{
+    auto srcSprite = getSprite(sourceSpriteIndex);
+    auto dstSprite = getSprite(destSpriteIndex);
+
+    assert(xOffset + srcSprite->width <= dstSprite->width);
+    assert(yOffset + srcSprite->height <= dstSprite->height);
+
+    auto src = srcSprite->data;
+    auto dst = dstSprite->data + yOffset * dstSprite->bytesPerLine() + xOffset / 2;
+
+    for (int i = 0; i < srcSprite->height; i++) {
+        for (int j = 0; j < srcSprite->width; j++) {
+            int index = j / 2;
+            dst[index] = src[index] & 0xf0;
+
+            if (++j >= srcSprite->width)
+                break;
+
+            dst[index] |= src[index] & 0x0f;
+        }
+
+        src += srcSprite->bytesPerLine();
+        dst += dstSprite->bytesPerLine();
+    }
+}
+
+// Copies source sprite into destination sprite with x and y offsets. Destination sprite must be big enough.
+// in:
+//      D0 = src sprite
+//      D1 = x offset in dest sprite
+//      D2 = y offset in dest sprite
+//      D3 = dest sprite
+//
+// Note: x offset can only start from even number (rounded down).
+//
+void SWOS::CopySprite()
+{
+    copySprite(D0.asWord(), D3.asWord(), D1.asInt16(), D2.asInt16());
 }

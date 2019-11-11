@@ -1838,3 +1838,24 @@ earlier:
   SaveHighlightPointers() first, which could happen in case numReplaysInHilFile was 0, which I have no idea
   why would be 0...) but I never managed to reproduce it so it might have been something temporary; will
   maybe try some more later... pheww.....
+06.11.2019.
+- fixed glitch that was preventing startup in release mode (failing to read one.256)
+- "please wait" text when enumerating video modes will now only appear if it takes longer than 333ms
+- hid mouse cursor when playing the game full screen
+- fixed crash at the start of the game, not sure if it's the same thing as yesterday, this was when the
+  sound was off but StopAudio() was called which called Mix_HaltChannel and apparently SDL_mixer doesn't
+  like that when it's not initialized
+- fixed text alignment in video options menu
+- added pause at stadium loading screen (can be disabled via command line)
+07.11.2019.
+- working on converting UpdateTime
+08.11.2019.
+- -//-
+09.11.2019.
+- -//-
+10.11.2019.
+- finally finished converting UpdateTime! it took longer than expected, in the future conversions like this
+  should best be avoided (even though it is the ultimate goal, but it's just so error prone that it
+  shouldn't go into any build that has to be bug free)
+- making two screenshots in succession (same second) would result in 2nd overwriting 1st; added milliseconds
+  to the filename to fix that (if you do make two in the same millisecond you're out of luck)

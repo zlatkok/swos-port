@@ -117,8 +117,9 @@ Menu videoOptionsMenu
     Entry resizable {
         x: kColumn2X + 10
         y: kCustomSizeY + kRowHeight
-        width: @kTextWidth + 3
+        width: @kTextWidth + 4
 
+        textFlags: @kCenterAligned
         text: "RESIZABLE"
 
         onSelect: ~toggleWindowResizable
@@ -155,8 +156,9 @@ Menu videoOptionsMenu
 
     Entry borderlessMaximized {
         x: kColumn2X
-        width: @kTextWidth + 3
+        width: @kTextWidth + 5
 
+        textFlags: @kCenterAligned
         text: "BORDERLESS MAXIMIZED"
 
         onSelect: ~switchToBorderlessMaximized

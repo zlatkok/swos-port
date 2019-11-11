@@ -211,6 +211,8 @@ void BaseTest::runTestCase(BaseTest *test, const Case& testCase, size_t i, const
     try {
         initTestCase(test, testCase);
         testCase.proc();
+        if (testCase.finalize)
+            testCase.finalize();
         std::cout << '.';
     } catch (const BaseException& e) {
         auto errorMessage = e.error();
