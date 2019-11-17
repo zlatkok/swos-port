@@ -58,7 +58,7 @@ static DisplayModeList getDisplayModes(int displayIndex)
 
             if (!shownWarning && SDL_GetTicks() > startTicks + kPleaseWaitLimitMs) {
                 drawMenuText(55, 80, "PLEASE WAIT, ENUMERATING GRAPHICS MODES...", kYellowText);
-                updateScreen();
+                updateScreen_MenuScreen();
                 shownWarning = true;
             }
 

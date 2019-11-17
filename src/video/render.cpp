@@ -1,9 +1,28 @@
 #include "render.h"
+#include "log.h"
 #include "util.h"
 #include "file.h"
 #include "controls.h"
 #include "dump.h"
+#include "options.h"
 #include <SDL_image.h>
+
+int kVgaWidth = 320;
+int kVgaHeight = 200;
+int kVgaScreenSize = kVgaWidth * kVgaHeight;
+
+int kVgaWidthAdder      = kVgaWidth - kMenuScreenWidth;
+int kVgaHeightAdder     = kVgaHeight - kMenuScreenHeight;
+int kVgaWidthAdderHalf  = kVgaWidthAdder  / 2;
+int kVgaHeightAdderHalf = kVgaHeightAdder / 2;
+
+int kWindowWidth = 4 * kVgaWidth;
+int kWindowHeight = 4 * kVgaHeight;
+
+int kMenuScreenWidth = 320;
+int kGameScreenWidth = 384;
+int kMenuScreenHeight = 200;
+int DrawPatternVerticalCount = 2;
 
 static SDL_Window *m_window;
 static SDL_Renderer *m_renderer;
@@ -12,7 +31,7 @@ static SDL_PixelFormat *m_pixelFormat;
 
 constexpr int kNumColors = 256;
 constexpr int kPaletteSize = 3 * kNumColors;
-static uint8_t m_palette[kPaletteSize];
+uint8_t m_palette[kPaletteSize];
 
 static Uint64 m_lastRenderStartTime;
 static Uint64 m_lastRenderEndTime;
@@ -46,6 +65,11 @@ const char kFieldHeightKey[] = "fieldHeight";
 const char kWindowResizable[] = "windowResizable";
 const char kFullScreenWidth[] = "fullScreenWidth";
 const char kFullScreenHeight[] = "fullScreenHeight";
+
+uint8_t AB_FlagTable[200 * 320];
+uint8_t AB_FlagTable2[200 * 320];
+char AB_OldVideoMemory[200 * 320];
+RGBStruct AB_RGBTable[200 * 320];
 
 std::pair<int, int> getWindowSize()
 {
@@ -373,8 +397,10 @@ void initRendering()
     if (m_windowResizable)
         flags |= SDL_WINDOW_RESIZABLE;
 
-    logInfo("Creating %dx%d window, flags: %d", m_windowWidth, m_windowHeight, flags);
-    m_window = SDL_CreateWindow("SWOS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_windowWidth, m_windowHeight, flags);
+    uint8_t _gap = 0;
+    if (kVgaWidth == 480) _gap = 1;
+    logInfo("Creating %dx%d window, flags: %d", m_windowWidth, m_windowHeight-_gap*2, flags);
+    m_window = SDL_CreateWindow("SWOS", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_windowWidth, m_windowHeight-_gap * 2, flags);
     if (!m_window)
         sdlErrorExit("Could not create window");
 
@@ -385,7 +411,7 @@ void initRendering()
         sdlErrorExit("Could not create renderer");
 
     auto format = SDL_PIXELFORMAT_RGBA8888;
-    m_texture = SDL_CreateTexture(m_renderer, format, SDL_TEXTUREACCESS_STREAMING, kVgaWidth, kVgaHeight);
+	m_texture = SDL_CreateTexture(m_renderer, format, SDL_TEXTUREACCESS_STREAMING, kVgaWidth, kVgaHeight-_gap * 2);
     if (!m_texture)
         sdlErrorExit("Could not create surface");
 
@@ -394,7 +420,7 @@ void initRendering()
         sdlErrorExit("Could not allocate pixel format");
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-    SDL_RenderSetLogicalSize(m_renderer, kVgaWidth, kVgaHeight);
+    SDL_RenderSetLogicalSize(m_renderer, kVgaWidth, kVgaHeight-_gap * 2);
 }
 
 void finishRendering()
@@ -510,6 +536,342 @@ void updateScreen(const char *inData /* = nullptr */, int offsetLine /* = 0 */, 
     determineIfDelayNeeded();
 }
 
+void updateScreen_MenuScreen(const char *inData /* = nullptr */, int offsetLine /* = 0 */, int numLines /* = kVgaHeight */)
+{
+    assert(offsetLine >= 0 && offsetLine <= kVgaHeight);
+    assert(numLines >= 0 && numLines <= kVgaHeight);
+    assert(offsetLine + numLines <= kVgaHeight);
+
+    m_lastRenderStartTime = SDL_GetPerformanceCounter();
+
+    auto data = reinterpret_cast<const uint8_t *>(inData ? inData : (vsPtr ? vsPtr : linAdr384k));
+
+#ifdef DEBUG
+    if (screenWidth == kGameScreenWidth)
+        dumpVariables();
+#endif
+
+    requestPixelAccess([&](Uint32 *pixels, int pitch) {
+		for (int y = 0; y < kMenuScreenHeight; y++) {
+        	for (int x = 0; x < kMenuScreenWidth; x++) {
+				//if (AB_FlagTable[y * kMenuScreenWidth + x] == 0 || AB_FlagTable2[y * kMenuScreenWidth + x] == 0) {
+				if (AB_FlagTable[y * kMenuScreenWidth + x] == 0) {
+					auto color = &m_palette[data[y * kMenuScreenWidth + x] * 3];
+				    pixels[(y + kVgaHeightAdderHalf) * pitch / sizeof(Uint32) + (x + kVgaWidthAdderHalf)] =
+						SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
+				}
+				else {
+					/*
+					auto color_old = &m_palette[AB_OldVideoMemory[y * kMenuScreenWidth + x] * 3];
+					auto color_new = &m_palette[data[y * kMenuScreenWidth + x] * 3];
+
+					// If background not changed, draw Alpha-blending pixels
+					if (color_old[0] == color_new[0] && color_old[1] == color_new[1] && color_old[2] == color_new[2]) {
+						RGBStruct ab;
+						uint8_t color[3];
+
+						ab = AB_RGBTable[y * kMenuScreenWidth + x];
+						color[0] = ab.r;
+						color[1] = ab.g;
+						color[2] = ab.b;
+						pixels[(y + kVgaHeightAdderHalf) * pitch / sizeof(Uint32) + (x + kVgaWidthAdderHalf)] =
+							SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
+					}
+					// If background changed, draw latest from latest video memory
+					else {
+						auto color = &m_palette[data[y * kMenuScreenWidth + x] * 3];
+
+						pixels[(y + kVgaHeightAdderHalf) * pitch / sizeof(Uint32) + (x + kVgaWidthAdderHalf)] =
+							SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
+					}
+					*/
+
+					///*
+					auto color = &m_palette[data[y * kMenuScreenWidth + x] * 3];
+
+					if (
+						(color[0] == 255 && color[1] == 255 && color[2] == 255) ||
+						(color[0] ==  36 && color[1] ==  36 && color[2] ==  36) ||
+						(color[0] == 182 && color[1] == 182 && color[2] == 182)
+						) {
+						pixels[(y + kVgaHeightAdderHalf) * pitch / sizeof(Uint32) + (x + kVgaWidthAdderHalf)] =
+							SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
+					}
+					else {
+						RGBStruct ab;
+						uint8_t _color[3];
+
+						ab = AB_RGBTable[y * kMenuScreenWidth + x];
+						_color[0] = ab.r;
+						_color[1] = ab.g;
+						_color[2] = ab.b;
+						pixels[(y + kVgaHeightAdderHalf) * pitch / sizeof(Uint32) + (x + kVgaWidthAdderHalf)] =
+							SDL_MapRGBA(m_pixelFormat, _color[0], _color[1], _color[2], 255);
+					}
+					//*/
+				}
+			}
+    	}
+    });
+
+    SDL_RenderCopy(m_renderer, m_texture, nullptr, nullptr);
+    SDL_RenderPresent(m_renderer);
+
+    m_lastRenderEndTime = SDL_GetPerformanceCounter();
+
+    determineIfDelayNeeded();
+}
+
+void putPixel(Uint32 *pixels, int pitch, uint8_t *data, int x, int y, int p)
+{
+    auto color = &m_palette[p * 3];
+    pixels[y * pitch / sizeof(Uint32) + x] = SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
+}
+
+
+void putDarkenPixel(Uint32 *pixels, int pitch, uint8_t *data, int x, int y)
+{
+    int p = data[y * kGameScreenWidth + x];
+    int p2 = 0;
+
+    if (p < 128) {
+        p2 = p + 128;
+    }
+	else {
+		p2 = p;
+	}
+
+	/*
+    if (p == 2) p2 = 2;
+    if (p == 160) p2 = 160;
+    if (p == 81) p2 = 81;
+
+	if (p == 101) p2 = 101;
+	if (p == 189) p2 = 189;
+	*/
+    auto color = &m_palette[p2 * 3];
+    pixels[y * pitch / sizeof(Uint32) + x] = SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
+}
+
+
+void drawHorzLine(Uint32 *pixels, int pitch, uint8_t *data, int x, int y, int w, int p)
+{
+    int i;
+    for (i = 0; i <= w; i++) {
+        putPixel(pixels, pitch, data, x + i, y, p);
+    }
+}
+
+
+void drawVertLine(Uint32 *pixels, int pitch, uint8_t *data, int x, int y, int h, int p)
+{
+    int i;
+    for (i = 0; i <= h; i++) {
+        putPixel(pixels, pitch, data, x, y + i, p);
+    }
+}
+
+
+void drawBox(Uint32 *pixels, int pitch, uint8_t *data, int x, int y, int w, int h, int p)
+{
+    drawHorzLine(pixels, pitch, data, x, y,     w, p);
+    drawHorzLine(pixels, pitch, data, x, y + h, w, p);
+    drawVertLine(pixels, pitch, data, x, y,     h, p);
+    drawVertLine(pixels, pitch, data, x + w, y, h, p);
+}
+
+
+void drawFillBox(Uint32 *pixels, int pitch, uint8_t *data, int x, int y, int w, int h, int p)
+{
+    int i;
+    for (i = 0; i <= h; i++) {
+        drawHorzLine(pixels, pitch, data, x, y + i, w, p);
+    }
+}
+
+
+void drawDarkenRect(Uint32 *pixels, int pitch, uint8_t *data, int x, int y, int w, int h)
+{
+    int i, j;
+    for (j = y; j <= y + h; j++) {
+        for (i = x; i <= x + w; i++) {
+            putDarkenPixel(pixels, pitch, data, i, j);
+        }
+    }
+}
+
+
+int getRandomInt(int a, int b)
+{
+    return a + (std::rand() % (b - a + 1));
+}
+
+char *uniform0[8] = {
+    "........",
+    ".12221..",
+    ".12221+.",
+    "..222++.",
+    "..333+..",
+    "..333+..",
+    "...+++..",
+    "........",
+};
+char *uniform1[8] = {
+    "........",
+    ".12221..",
+    ".12221+.",
+    "..222++.",
+    "..333+..",
+    "..333+..",
+    "...+++..",
+    "........",
+};
+char *uniform2[8] = {
+    "........",
+    ".12121..",
+    ".12121+.",
+    "..212++.",
+    "..333+..",
+    "..333+..",
+    "...+++..",
+    "........",
+};
+char *uniform3[8] = {
+    "........",
+    ".11111..",
+    ".12221+.",
+    "..111++.",
+    "..333+..",
+    "..333+..",
+    "...+++..",
+    "........",
+};
+
+
+void showUniform(Uint32 *pixels, int pitch, uint8_t *data, int mode, int x, int y, int scale)
+{
+    int i, j, _i, _j;
+    char c;
+    int col;
+    TeamGame team;
+    
+    if (mode == 0) {
+        team = leftTeamIngame;
+    }
+    else {
+        team = rightTeamIngame;
+    }
+
+    for (j = 0; j <= 7 * scale; j++) {
+        for (i = 0; i <= 7 * scale; i++) {
+            _j = j / scale;
+            _i = i / scale;
+
+            if (team.prShirtType == 0) {
+                c = uniform0[_j][_i];
+            }
+            else if (team.prShirtType == 1) {
+                c = uniform1[_j][_i];
+            }
+            else if (team.prShirtType == 2) {
+                c = uniform2[_j][_i];
+            }
+            else if (team.prShirtType == 3) {
+                c = uniform3[_j][_i];
+            }
+
+            col = -1;
+            if (c == '1') {
+                col = team.prShirtCol;
+            }
+            else if (c == '2') {
+                col = team.prStripesCol;
+            }
+            else if (c == '3') {
+                col = team.prShortsCol;
+            }
+            else if (c == '+') {
+                col = 3; //50; //80;
+            }
+            if (col != -1) putPixel(pixels, pitch, data, x + i, y + j, col);
+        }
+    }
+}
+
+extern word g_scoresMode;
+extern int g_replayViewLoop;
+int showTeamIcons(Uint32 *pixels, int pitch, uint8_t *data) 
+{
+    //drawDarkenRect(pixels, pitch, data, 0, 100, 100, 50 * (g_viewLoop + 1));
+    if (g_replayViewLoop == 1) return 0;
+    if (g_scoresMode == 1 || g_scoresMode == 2) {
+        if (resultTimer != 0) return 0;
+    }
+    if (replayState != 0) return 0;
+    if (g_scoresMode == dseg_168941) return 0;
+
+    int ox, oy, x, y;
+
+    if (g_scoresMode == 4) {
+        ox = 10;             oy = 5;
+    }
+    else if (g_scoresMode == 1) {
+        ox = 10;             oy = kVgaHeight - 5 - 8;
+    }
+    else if (g_scoresMode == 2) {
+        ox = kVgaWidth - 10 - 70;  oy = kVgaHeight - 5 - 8;
+    }
+    else if (g_scoresMode == 3) {
+        ox = kVgaWidth - 10 - 70;  oy = 5;
+    }
+    
+    drawDarkenRect(pixels, pitch, data, ox, oy, 70, 8);
+
+    x = ox + 23; y = oy + 1;
+    showUniform(pixels, pitch, data, 0, x, y, 1);   
+    x = ox + 63; y = oy + 1;
+    showUniform(pixels, pitch, data, 1, x, y, 1);
+
+    return -1;
+}
+
+
+void updateScreen_GameScreen(const char *inData /* = nullptr */, int offsetLine /* = 0 */, int numLines /* = kVgaHeight */)
+{
+    assert(offsetLine >= 0 && offsetLine <= kVgaHeight);
+    assert(numLines >= 0 && numLines <= kVgaHeight);
+    assert(offsetLine + numLines <= kVgaHeight);
+
+    m_lastRenderStartTime = SDL_GetPerformanceCounter();
+
+
+#ifdef DEBUG
+    if (screenWidth == kGameScreenWidth)
+        dumpVariables();
+#endif
+
+    requestPixelAccess([&](Uint32 *pixels, int pitch) {
+		uint8_t *data;
+    	data = (uint8_t *)vsPtr;		
+		uint8_t _gap = 0;
+	    if (kVgaWidth == 480) _gap = 1;
+    	for (int y = offsetLine+_gap; y < numLines-_gap; y++) {
+        	for (int x = 0; x < kVgaWidth; x++) {
+            	auto color = &m_palette[data[y * kGameScreenWidth + x] * 3];
+            	pixels[(y-_gap) * pitch / sizeof(Uint32) + x] = SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
+        	}
+    	}
+		showTeamIcons(pixels, pitch, data);
+	});
+
+    SDL_RenderCopy(m_renderer, m_texture, nullptr, nullptr);
+    SDL_RenderPresent(m_renderer);
+
+    m_lastRenderEndTime = SDL_GetPerformanceCounter();
+
+    determineIfDelayNeeded();
+}
+
 void frameDelay(double factor /* = 1.0 */)
 {
     timerProc();
@@ -519,7 +881,8 @@ void frameDelay(double factor /* = 1.0 */)
         return;
     }
 
-    constexpr double kTargetFps = 70;
+    double kTargetFps = 70;
+	if (getGameStyle() == 1) kTargetFps = 50;
 
     if (factor > 1.0) {
         // don't use busy wait in menus
@@ -575,7 +938,15 @@ void timerProc()
 void fadeIfNeeded()
 {
     if (!skipFade) {
-        FadeIn();
+        SWOS::FadeIn();
+        skipFade = -1;
+    }
+}
+
+void fadeIfNeeded2()
+{
+    if (!skipFade) {
+        SWOS::FadeIn2();
         skipFade = -1;
     }
 }
@@ -633,5 +1004,194 @@ void SWOS::Flip()
 {
     updateControls();
     frameDelay();
-    updateScreen();
+    updateScreen_GameScreen();
 }
+
+void drawEmptyMenuItemOriginal()
+{
+	word x, y, width, height, color;
+	word xi, yi;
+	dword w, h, ww;
+	char c; //, c0, c2;
+	word i, j;
+	word index;
+	dword where_index, fill_index;
+	char* fill256 = (char*)linAdr384k + 65536;
+
+	x = (word)D0;
+	y = (word)D1;
+	width = (word)D2;
+	height = (word)D3;
+	color = (word)D4;
+
+	if ((width == 1) || (height == 1)) {
+		ww = 320 - width;
+		h = height;
+		c = color - deltaColor;
+
+		index = y * 320 + x;
+		for (j = 0; j <= height - 1; j++) {
+			for (i = 0; i <= width - 1; i++) {
+				linAdr384k[index] = c;
+				index++;
+			}
+			index += ww;
+		}
+	}
+	else {
+		color = menuItemColorTable[color];
+		where_index = y * 320 + x;
+		fill_index = y * 320 + x;;
+
+		ww = 320 - width;
+		w = width;
+		h = height;
+
+		for (j = 0; j <= h - 1; j++) {
+			for (i = 0; i <= w - 1; i++) {
+				xi = x + i;
+				yi = y + j;
+
+				c = fill256[fill_index];
+				c += color;
+
+				linAdr384k[where_index] = c;
+
+				where_index++;
+				fill_index++;
+			}
+			where_index += ww;
+			fill_index += ww;
+		}
+	}
+}
+
+void drawEmptyMenuItemAlphaBlending()
+{
+	word x, y, width, height, color;
+	word xi, yi;
+	dword w, h, ww;
+	byte c;
+	char backColor, foreColor;
+	word i, j;
+	word index;
+	dword where_index, fill_index;
+	char* fill256 = (char*)linAdr384k + 65536;
+	byte ab_ratio;
+	
+	ab_ratio = getAlphaBlendingMenu();
+
+	x = (word)D0;
+	y = (word)D1;
+	width = (word)D2;
+	height = (word)D3;
+	color = (word)D4;
+
+	if ((width == 1) || (height == 1)) {
+		ww = 320 - width;
+		h = height;
+		c = color - deltaColor;
+
+		index = y * 320 + x;
+		for (j = 0; j <= height - 1; j++) {
+			for (i = 0; i <= width - 1; i++) {
+				linAdr384k[index] = c;
+				index++;
+			}
+			index += ww;
+		}
+	}
+	else {
+		color = menuItemColorTable[color];
+		where_index = y * 320 + x;
+		fill_index = y * 320 + x;;
+
+		ww = 320 - width;
+		w = width;
+		h = height;
+
+		for (j = 0; j <= h - 1; j++) {
+			for (i = 0; i <= w - 1; i++) {
+				if (j > 0 && j <= h - 2 && i > 0 && i <= w - 2) {
+					AB_FlagTable[where_index] = 1;
+					//AB_FlagTable2[where_index] = 1;
+				}
+
+				RGBStruct f, b, ab;
+
+				xi = x + i;
+				yi = y + j;
+
+				// Get RGB color of background (image)
+				backColor = linAdr384k[where_index];
+				auto color_b = &m_palette[linAdr384k[where_index] * 3];
+				b.r = color_b[0];
+				b.g = color_b[1];
+				b.b = color_b[2];
+
+				// Get RGB color of foreground (menu item)
+				c = fill256[fill_index];
+				c += color;
+				foreColor = c;
+				//foreColor = color;
+				linAdr384k[where_index] = foreColor;
+				AB_OldVideoMemory[where_index] = foreColor;
+				auto color_f = &m_palette[linAdr384k[where_index] * 3];
+				f.r = color_f[0];
+				f.g = color_f[1];
+				f.b = color_f[2];
+
+				// Make alpha blending
+				ab.r = (uint8_t) (b.r * (100. - ab_ratio) / 100. + f.r * ab_ratio / 100.);
+				ab.g = (uint8_t) (b.g * (100. - ab_ratio) / 100. + f.g * ab_ratio / 100.);
+				ab.b = (uint8_t) (b.b * (100. - ab_ratio) / 100. + f.b * ab_ratio / 100.);
+
+				//ab.r = 128;
+				//ab.g = 128;
+				//ab.b = 128;
+
+				// Put RGB Table
+				AB_RGBTable[where_index] = ab;
+
+				where_index++;
+				fill_index++;
+			}
+			where_index += ww;
+			fill_index += ww;
+		}
+	}
+}
+
+void SWOS::DrawEmptyMenuItem()
+{
+	if (!isAlphaBlendingMenu()) {
+		SAFE_INVOKE(drawEmptyMenuItemOriginal);
+	}
+	else {
+		SAFE_INVOKE(drawEmptyMenuItemAlphaBlending);
+	}
+}
+
+void SWOS::DrawMenu_1()
+{
+	int i, j;
+	for (j = 0; j <= 199; j++) {
+		for (i = 0; i <= 319; i++) {
+			AB_FlagTable[j * 320 + i] = 0;
+		}
+	}
+	int k = 0;
+}
+
+/*
+void SWOS::DrawMenuItem_1()
+{
+	int i, j;
+	for (j = 0; j <= 199; j++) {
+		for (i = 0; i <= 319; i++) {
+			AB_FlagTable2[j * 320 + i] = 0;
+		}
+	}
+	int k = 0;
+}
+*/

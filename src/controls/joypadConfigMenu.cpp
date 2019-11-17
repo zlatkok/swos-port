@@ -297,7 +297,7 @@ static bool selectButton(int& button, int& otherButton, const char *buttonName)
 
     redrawMenuBackground();
 
-    constexpr int kCenterX = kMenuScreenWidth / 2;
+    int kCenterX = kMenuScreenWidth / 2;
     constexpr int kLine1Y = 40;
     constexpr int kLine2Y = 50;
     constexpr int kAbortY = 150;

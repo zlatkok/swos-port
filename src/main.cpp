@@ -32,6 +32,10 @@ int main(int argc, char **argv)
 
     atexit(saveOptions);
     loadOptions();
+	if (isGameStyleParam()) {
+		setGameStyle(getGameStyleParam());
+		setGameStyleVariables();
+	}
 
     atexit(finishRendering);
     initRendering();

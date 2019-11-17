@@ -14,7 +14,7 @@ void SWOS::ReadPitchFile()
     // also note that screen pitch is changed by this point
     memcpy(linAdr384k, linAdr384k + 2 * kVgaScreenSize, kVgaScreenSize);
     for (int i = 0; i < kVgaHeight; i++)
-        memcpy(linAdr384k + i * screenWidth, linAdr384k + 2 * kVgaScreenSize + i * kVgaWidth, kVgaWidth);
+        memcpy(linAdr384k + i * kVgaWidth, linAdr384k + 2 * kVgaScreenSize + i * kVgaWidth, kVgaWidth);
 
     memset(g_pitchDatBuffer, 0, sizeof(g_pitchDatBuffer));
     memset(g_currentMenu, 0, skillsPerQuadrant - g_currentMenu);
@@ -59,11 +59,11 @@ void SWOS::DrawBackPattern()
 
     auto base = reinterpret_cast<char **>(g_pitchDatBuffer);
     auto src = base[44 * yTile + xTile];
-    auto dst = linAdr384k + 16 * (384 * yScreenTile + xScreenTile);
+    auto dst = linAdr384k + 16 * (kGameScreenWidth * yScreenTile + xScreenTile);
 
     for (int i = 0; i < 16; i++) {
         memcpy(dst, src, 16);
-        dst += 384;
+        dst += kGameScreenWidth;
         src += 16;
     }
 }

@@ -597,14 +597,37 @@ enum Tactics {
 };
 
 enum class GameState : word {
-    kGameStarting = 0,
-    kInProgress = 100,
-    kStopped = 101,
-    kWaitingOnPlayer = 102,
+	kGameStarting = 0,
+	kInProgress = 100,
+	kStopped = 101,
+	kWaitingOnPlayer = 102,
+	kStartingGame = 21,
+	kPlayersGoingToShower = 24,
+	kResultOnHalfTime = 25,
+	kResultAfterTheGame = 26,
+	kGameEnded = 30,
 };
 
-constexpr int kMenuScreenWidth = 320;
-constexpr int kGameScreenWidth = 384;
+extern int kMenuScreenWidth;
+extern int kGameScreenWidth;
+extern int kMenuScreenHeight;
+
+//constexpr int ST_STARTING_GAME = 21;
+//constexpr int ST_PLAYERS_GOING_TO_SHOWER = 24;
+//constexpr int ST_RESULT_AFTER_THE_GAME = 26;
+//constexpr int ST_RESULT_ON_HALFTIME = 25;
+//constexpr int ST_GAME_ENDED = 30;
+//constexpr int ST_GAME_IN_PROGRESS = 100;
+
+constexpr int KEY_F4 = 0x3E;
+constexpr int KEY_F5 = 0x3F;
+constexpr int KEY_F6 = 0x40;
+constexpr int KEY_F7 = 0x41;
+constexpr int KEY_F8 = 0x42;
+constexpr int KEY_F9 = 0x43;
+constexpr int KEY_F10 = 0x44;
+constexpr int KEY_PAGE_UP = 0x49;
+constexpr int KEY_PAGE_DOWN = 0x51;
 
 constexpr int kVirtualScreenSize = 65'536;
 
@@ -618,3 +641,39 @@ static
 constexpr
 #endif
 char *kSentinel = reinterpret_cast<char *>(-1);
+
+struct leagueItem {
+	byte Teams;		// Number of Teams (IMPORTANT VARIABLE TO BE CHANGED!!!)
+	byte Prom;		// Promoted
+	byte PromPo;	// Promoted by Play-off
+	byte Rel;		// Relegated
+	byte RelPO;		// Relagated by Play-off
+	byte Dummy;
+};
+
+struct League {
+	byte Compet;	// Competition Number
+	byte Type;		// (Always 0)
+	byte TeamNr;	// Team Number XXX: TEAM.XXX
+	byte BMonth;	// Begin Month = BMonth / 8
+	byte EMonth;    // End Month = EMonth / 8
+	byte Dummy[4];
+	byte Leagues;	// Number of Leagues Type (1 to 4)
+	byte MatEach;	// Match Each Time
+	byte pts;		// Points for Win
+	byte mSub;		// Possible Subs = mSub \ 16, Reserves = mSub % 16
+
+	leagueItem league[4];
+};
+
+struct LeagueCup {
+	byte Compet;	// Competition Number (Not confirmed)
+	byte Type;		// (Always 0) (Not confirmed)
+	byte TeamNr;	// Team Number XXX: TEAM.XXX (Not confirmed)
+	byte BMonth;	// Begin Month = BMonth / 8
+	byte EMonth;    // End Month = EMonth / 8
+};
+
+struct NumLeagues {
+	byte num[6];
+};

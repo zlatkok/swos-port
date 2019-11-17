@@ -16,7 +16,7 @@
 void SWOS::FlipInMenu()
 {
     frameDelay(2);
-    updateScreen();
+    updateScreen_MenuScreen();
 }
 
 // this is actually a debugging function, but used by everyone to quickly exit SWOS :) (it even got into manual)
@@ -482,6 +482,7 @@ static void highlightEntry(Menu *currentMenu, MenuEntry *entry)
 
 void SWOS::MenuProc()
 {
+    clearScreen();
     updateMouse();
 
     g_videoSpeedIndex = 50;     // just in case
@@ -778,7 +779,7 @@ static void quitMenuOnInit()
 {
     FadeOutToBlack();
     DrawMenu();     // redraw menu so it's ready for the fade-in
-    FadeIn();
+    SWOS::FadeIn();
     skipFade = -1;
 }
 

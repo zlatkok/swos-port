@@ -1,4 +1,4 @@
-#ifndef NDEBUG
+//#ifndef NDEBUG
 
 #include "dump.h"
 #include "render.h"
@@ -229,11 +229,13 @@ void printString(char *str, int x, int y, int color, bool big /* = false */, int
 
 void dumpVariables()
 {
+	/*
     if (m_debugOutput) {
         char buf[256];
         snprintf(buf, sizeof(buf), "%hd", animPatternsState);
         printString(buf, 0, 16, kYellowText, false, ALIGN_LEFT);
     }
+	*/
 }
 
 void toggleDebugOutput()
@@ -241,4 +243,93 @@ void toggleDebugOutput()
     m_debugOutput ^= 1;
 }
 
-#endif
+void printStringEx(char *str, int x, int y, int color, int width, bool big /* = false */, int align /* = NO_ALIGNMENT */)
+{
+    uchar c;
+    int dx, dy, xorig, xalign, yalign, anchor = 0;
+
+    if ((align >> ALIGN_LEFT_BIT & 1) + (align >> ALIGN_RIGHT_BIT & 1) +
+        (align >> ALIGN_CENTERX_BIT & 1) > 1) {
+        logWarn("PrintString: Invalid flags for x alignment: 0x%x", align);
+        return;
+    }
+
+    if ((align >> ALIGN_UP_BIT & 1) + (align >> ALIGN_DOWN_BIT & 1) +
+        (align >> ALIGN_CENTERY_BIT & 1) > 1) {
+        logWarn("PrintString: Invalid flags for y alignment: 0x%x", align);
+        return;
+    }
+
+    int a = kVgaWidth;
+    getStringLength(str, &dx, &dy, (align & ALIGN_CENTERX) != 0, big);
+    dx = std::min(dx, width);
+    dy = std::min(dy, kVgaHeight);
+
+    xalign = align & (ALIGN_RIGHT | ALIGN_LEFT | ALIGN_CENTERX);
+    if (xalign == ALIGN_RIGHT)
+        x = width - dx;
+    else if (xalign == ALIGN_LEFT)
+        x = width;
+    else if (xalign == ALIGN_CENTERX)
+        x = (width - dx) / 2;
+
+    yalign = align & (ALIGN_UP | ALIGN_DOWN | ALIGN_CENTERY);
+    if (yalign == ALIGN_UP)
+        y = 0;
+    else if (yalign == ALIGN_DOWN)
+        y = (kVgaHeight + kVgaHeightAdder) - dy;
+    else if (yalign == ALIGN_CENTERY)
+        y = ((kVgaHeight + kVgaHeightAdder) - dy) / 2;
+
+    xorig = x;
+    for (c = char2Sprite(*str, big); *str; c = char2Sprite(*++str, big)) {
+        switch (c) {
+        case  253: /* space */
+                   //x += big ? 6 : 4;
+            x += big ? 1 : 1;
+            break;
+        case  254: /* new line */
+            y += dy + (big ? 2 : 1);
+            if (xalign & ALIGN_CENTERX) {
+                getStringLength(str + 1, &dx, &dy, true, big);
+                dx = std::min(dx, width);
+                x = (width - dx) / 2;
+            }
+            else
+                x = xorig + anchor;
+            anchor = 0;
+            break;
+        case 255:  /* can't draw this */
+            logWarn("Can't draw this character: 0x%02x", *str);
+            continue;
+        case 252:  /* horizontal tab */
+            x += big ? 64 : 32;
+            x &= big ? ~63 : ~31;
+            break;
+        case 251:  /* vertical tab */
+            y += 2 * (big ? 8 : 6);
+            break;
+        case 250:  /* anchor */
+            anchor = x - xorig;
+            break;
+        default:   /* draw character */
+            dx = spritesIndex[c]->width;
+            dy = spritesIndex[c]->height;
+
+            D0 = vsPtr + y * kGameScreenWidth + x;
+            D4 = spritesIndex[c]->wquads * 16;
+            D5 = dy;
+            SavePixelsBehindSprite();
+
+            D0 = c;
+            D1 = x;
+            D2 = y;
+            D3 = color;
+            DrawSpriteInColor();
+
+            x += dx + 0;  // Original: x += dx + 1;
+        }
+    }
+}
+
+//#endif

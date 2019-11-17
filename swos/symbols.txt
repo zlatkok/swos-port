@@ -156,6 +156,7 @@ importTacticsFilename, 256 dup(0)
 #
 
 @save-regs
+GameLoop
 DrawSprite
 DrawSpriteCentered
 DrawSpriteInColor
@@ -163,7 +164,7 @@ DrawMenu
 MainKeysCheck
 HandleInstantReplayStateSwitch
 RestoreCameraPosition
-FadeIn
+#FadeIn
 InitSavedSprites
 InitBackground
 ScrollToCurrent
@@ -202,6 +203,139 @@ StartFirstExtraTime
 #
 
 @export
+# for MenuItem
+menuItemColorTable, array const char
+
+# for MainKeysCheck
+showingStats, word
+#g_inSubstitutesMenu, word
+SaveHighlightsPointers, function
+nullsub_F10, function
+bench2Called, word
+#gameStatePl, word
+AllowStatistics, function
+StatisticsOff, function
+gameState, GameState
+stateGoal, word
+extraTimeState, word
+gameCanceled, word
+AssignFakeGoalsToScorers, function
+statsTeam1GoalsCopy, word
+statsTeam2GoalsCopy, word
+spaceReplayTimer, word
+bench1Called, word
+#leftTeamData, TeamGeneralInfo *
+#rightTeamData, TeamGeneralInfo *
+
+# for scrolling routine
+cameraCoordinatesInvalid, word
+vscreenDeltaX, word
+vscreenDeltaY, dword
+scrollTileX, word
+scrollTileY, word
+scrollTileOffsetX, word
+scrollTileOffsetY, word
+copyFirstXTile, word
+copyFirstYTile, word
+xPitchDatOffset, word
+yPitchDatOffset, word
+
+# for Screen mode
+SM_0_0_64,    dword
+SM_0_26_26,   dword
+SM_4_3_3,     dword
+SM_8_10_10,   dword
+SM_10_36_36,  dword
+SM_12_20_20,  dword
+SM_16_16_88,  dword
+SM_18_22_22,  dword
+SM_19_35_35,  dword
+SM_20_22_31,  dword
+SM_23_39_39,  dword
+SM_24_25_34,  dword
+SM_39_55_55,  dword
+SM_40_44_62,  dword
+SM_60_66_93,  dword
+SM_63_66_93,  dword
+SM_64_67_94,  dword
+SM_80_80_152, dword
+
+SM_100_136_136, dword	
+SM_128_136_208, dword
+SM_143_151_223, dword
+SM_150_158_230, dword
+SM_152_160_240, dword
+SM_157_165_237, dword
+SM_160_168_240, dword
+SM_160_176_176, dword
+SM_163_171_243, dword
+SM_165_173_245, dword
+SM_176_168_96,  dword
+SM_179_261_261, dword
+SM_192_200_272, dword
+SM_200_272_272, dword
+SM_211_211_291, dword
+SM_240_256_328, dword
+SM_241_305_305, dword
+SM_246_310_310, dword
+SM_248_264_408, dword
+SM_249_313_313, dword
+SM_263_327_327, dword
+SM_285_301_445, dword
+SM_288_304_304, dword
+SM_310_326_470, dword
+SM_320_320_320, dword
+SM_320_336_480, dword
+SM_336_256_256, dword
+SM_336_336_416, dword
+SM_339_303_303, dword
+SM_359_323_323, dword
+SM_352_336_192, dword
+SM_368_384_528, dword
+SM_384_400_544, dword
+SM_590_590_670, dword
+SM_616_544_544, dword
+SM_664_592_592, dword
+SM_680_608_608, dword
+	
+SM_1040_1144_1612, dword
+SM_6144_6400_8704, dword
+	
+# for Game style	
+GS_27_22, int16_t
+GS_54_49, int16_t
+GS_55_50, int16_t
+	
+GS_110_100, int16_t
+GS_385_350, int16_t
+GS_550_500, int16_t
+GS_660_600, int16_t
+GS_825_750, int16_t
+
+keeperSaveDistance, word
+ballGroundConstant, word
+ballAirConstant, word
+pitchBallSpeedInfluence, array int16_t
+gravityConstant, dword
+
+#secondsSwitchAccumulator, word
+penaltiesTimer, int16_t
+stoppageEventTimer, int16_t
+stoppageTimerActive, int16_t
+ballOutOfGameTimer, int16_t
+stoppageTimerTotal, int16_t
+ballDefensiveZ, int16_t
+
+# for New scoreboard
+dseg_168941, word
+#team1Goals, word
+#team2Goals, word
+resultTimer, word
+team1StatsData, TeamStatsData
+team2StatsData, TeamStatsData
+#gameTime, array byte
+#currentTimeSprite, Player
+currentPlayerNameSprite, Sprite
 
 # controls
 CheckControls, function
@@ -428,7 +562,7 @@ aNotAHighlights, array const char
 # camera
 MoveView, function
 RestoreCameraPosition, function
-ScrollToCurrent, function
+#ScrollToCurrent, function
 g_cameraX, word
 g_cameraY, word
 g_oldCameraX, word
@@ -530,7 +664,7 @@ g_benchTeam, TeamGeneralInfo *
 
 # fades & palettes
 FadeOutToBlack, function
-FadeIn, function
+#FadeIn, function
 skipFade, word
 g_fadePalette, array char[768]
 g_workingPalette, array char[768]
@@ -554,7 +688,7 @@ ChainFont, function
 Randomize2, function
 ClearBackground, function
 ReadTimerDelta, function
-MainKeysCheck, function
+#MainKeysCheck, function
 InitBackground, function
 DrawAnimatedPatterns, function
 DarkenRectangle, function
@@ -604,8 +738,8 @@ team1Goals, word
 team2Goals, word
 statsTeam1Goals, word
 statsTeam2Goals, word
-statsTeam1GoalsCopy, word
-statsTeam2GoalsCopy, word
+#statsTeam1GoalsCopy, word
+#statsTeam2GoalsCopy, word
 team1GoalsFirstLeg, word
 team2GoalsFirstLeg, word
 smallCharsTable, CharTable
@@ -654,7 +788,7 @@ BumpAllPlayersLastPlayedHalfPostGame, function
 StartPenalties, function
 gameStatePl, GameState
 playingPenalties, word
-stateGoal, word
+#stateGoal, word
 secondLeg, word
 playing2ndGame, word
 winningTeamPtr, TeamGame *
@@ -670,7 +804,7 @@ currentTimeSprite, Sprite
 timerDifference, word
 timeDelta, word
 copyTimeSprite, word
-extraTimeState, word
+#extraTimeState, word
 gameSeconds, int16_t
 endGameCounter, int16_t
 secondsSwitchAccumulator, int16_t
@@ -682,10 +816,95 @@ chosenTactics, word
 ### debug dump
 breakCameraMode, word
 
+# for Fade function
+FadeOut, function
 
 #
 # at the beginning of each listed proc Foo insert a call to external Foo_OnEnter
 #
+
+# league structures
+albanian_league, League
+austrian_league, League
+belgian_league, League
+
+bulgarian_league, League
+croatian_league, League
+cypriot_league, League
+czech_league, League
+danish_league, League
+english_leagues, League
+estonian_league, League
+faroe_isles_league, League
+finnish_league, League
+frenche_leagues, League
+german_leagues, League
+greek_league, League
+hungarian_league, League
+icelandic_league, League
+irish_league, League 
+israeli_league, League
+italian_leagues, League
+latvian_league, League
+lithuanian_league, League
+luxembourg_league, League
+maltese_league, League
+dutch_leagues, League
+northern_irish_league, League
+norwegian_league, League
+polish_league, League
+portugese_league, League
+romanian_league, League
+russian_league, League
+san_marino_league, League
+scotland_leagues, League
+slovenian_league, League
+spanish_leagues, League
+swedish_league, League
+swiss_league, League
+turkish_league, League
+ukrainian_league, League
+welsh_league, League
+yugoslavian_league, League
+
+algerian_league, League
+argentinian_league, League
+australian_leagues, League
+bolivian_league, League
+brasilian_league, League
+chilean_league, League
+colombian_league, League
+ecuador_league, League
+el_salvador_leagues, League
+japan_leagues, League
+mexican_leagues, League
+new_zealand_leagues, League
+paraguayan_league, League
+peruvian_league, League
+surinam_league, League
+taiwanese_league, League
+south_african_league, League
+uruguayan_league, League
+customsLeague, League
+american_league, League
+
+indian_league, League
+belarussian_league, League
+venezuelan_league, League
+slovakian_league, League
+ghana_league, League
+
+greek_cup, LeagueCup
+
+russian_cup, LeagueCup
+san_marino_cup, LeagueCup
+japanese_cup, LeagueCup
+japanese_emperors_cup, LeagueCup
+taiwanese_cup, LeagueCup
+
+# for crowd animation
+animPatternsRandomTable, array byte[94]
+
 
 @on-enter
 DoUnchainSpriteInMenus
@@ -709,6 +928,15 @@ ShowStadiumInit
 #
 
 @insert-hook
+# for Alpha blending menu
+DrawMenu, 1
+#DrawMenuItem, 1
+#ShowMenu, 2
+
+# for New scoreboard
+#UpdateTime, 385
+SetCurrentPlayerName, 163
+
 AdjustPlayerSkills, 246, FixTwoCPUsGameCrash
 
 # TODO: remove this when bench routines are converted
@@ -732,6 +960,9 @@ SetupPlayers, 160, PreventPlayer1FireLockout
 #
 
 @import
+# for New scoreboard
+ShowClockAndScores
+
 SWOS
 ToMainGameLoop
 
@@ -845,3 +1076,18 @@ ExitEuropeanChampionshipMenu
 #DrawBenchAndSubsMenu
 ResetTime
 UpdateTime
+
+# for FadeIn
+FadeIn
+FadeIn2
+
+# for Scrolling
+UpdateVisibleScreenPtr
+ScrollToCurrent
+ScrollPitch
+
+# for MainKeysCheck
+MainKeysCheck
+
+# for DrawMenu
+DrawEmptyMenuItem

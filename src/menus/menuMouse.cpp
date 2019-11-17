@@ -117,6 +117,8 @@ static bool mapCoordinatesToGameArea()
         std::tie(windowWidth, windowHeight) = getFullScreenDimensions();
         m_x = m_x * kVgaWidth / windowWidth;
         m_y = m_y * kVgaHeight / windowHeight;
+		m_x -= kVgaWidthAdderHalf;
+		m_y -= kVgaHeightAdderHalf;
         return true;
     }
 
@@ -143,6 +145,8 @@ static bool mapCoordinatesToGameArea()
 
     m_x = (m_x - slackWidth) * kVgaWidth / (windowWidth - 2 * slackWidth);
     m_y = (m_y - slackHeight) * kVgaHeight / (windowHeight - 2 * slackHeight);
+	m_x -= kVgaWidthAdderHalf;
+	m_y -= kVgaHeightAdderHalf;
 
     return true;
 }

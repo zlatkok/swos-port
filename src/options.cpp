@@ -15,6 +15,15 @@ static bool m_noReels;
 static bool m_noLoadPause;
 static int m_bankNo;
 
+static bool m_newScoreboard = false;
+static bool m_isCareerCrashFix = false;
+static int m_careerCrashFix[4] = { 0, 0, 0, 0 };
+static bool m_isGameStyleParam = false;
+static int m_gameStyleParam = 0;
+static int m_screenMode = 0;
+static bool m_isAlphaBlendingMenu = false;
+static int m_AlphaBlendingMenu = 60;
+
 using OptionalControls = std::pair<bool, Controls>;
 using OptionalJoypadGuid = std::pair<bool, std::string>;
 
@@ -24,10 +33,24 @@ OptionalControls m_pl2Controls;
 OptionalJoypadGuid m_pl1Joypad;
 OptionalJoypadGuid m_pl2Joypad;
 
-static int16_t m_gameStyle;         // 0 = PC, 1 = Amiga
+static int16_t m_gameStyle = 0;         // 0 = PC, 1 = Amiga
 
 static constexpr char kIniFilename[] = "swos.ini";
 static constexpr char kStandardSection[] = "standard-options";
+
+void setGameStyleVariables();
+void setScreenModeVariables();
+
+extern short patternTableHorz[48];
+extern short patternTableVert[32];
+extern short patternTableHorz_PCscreen[32];
+extern short patternTableVert_PCscreen[32];
+extern short patternTableHorz_Amigascreen[32];
+extern short patternTableVert_Amigascreen[32];
+extern short patternTableHorz_Widescreen[48];
+extern short patternTableVert_Widescreen[32];
+extern int PatternHorzNum_plus4;
+extern int PatternVertNum_plus5;
 
 static const std::array<Option<int16_t>, 9> kStandardOptions = {
     "gameLength",  &g_gameLength, 0, 3, 0,
@@ -133,6 +156,12 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
     const char kPl2Controls[] = "--pl2controls=";
     const char kPl1Joypad[] = "--pl1joypad=";
     const char kPl2Joypad[] = "--pl2joypad=";
+	
+	const char kNewScoreboard[] = "--new-scoreboard";
+	const char kCareerCrashFix[] =  "--career-crash-fix=";
+	const char kGameStyle[] = "--game-style=";
+	const char kScreenMode[] = "--screen-mode=";
+	const char kAlphaBlendingMenu[] = "--alpha-blending-menu=";
 
     auto log = [&commandLineWarnings](const std::string& str, LogCategory category = kWarning) {
         commandLineWarnings.emplace_back(category, str);
@@ -185,10 +214,53 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
                 joypad.first = true;
                 joypad.second = joypadStr;
             }
+		}
+
+		else if (!strcmp(argv[i], kNewScoreboard)) {
+			m_newScoreboard = true;
+			if (m_newScoreboard == true) {
+				dseg_168941 = 3;
+			}
+			else {
+				dseg_168941 = 4;
+			}
+		}
+		else if (strstr(argv[i], kCareerCrashFix) == argv[i]) {
+			m_isCareerCrashFix = true;
+			for (int j = 0; j <= 3; j++) {
+				m_careerCrashFix[j] = 0;
+			}
+			for (int j = 0; j <= 3; j++) {
+				if (argv[i][19 + j] == '1') {
+					m_careerCrashFix[j] = 1;
+				}
+			}
+		}
+		else if (strstr(argv[i], kGameStyle) == argv[i]) {
+			m_isGameStyleParam = true;
+			m_gameStyleParam = 0;
+			if (argv[i][13] == '1') m_gameStyleParam = 1;
+			m_gameStyle = m_gameStyleParam;
+		}
+		else if (strstr(argv[i], kScreenMode) == argv[i]) {
+			m_screenMode = 0;
+			if (argv[i][14] == '1') m_screenMode = 1;
+			if (argv[i][14] == '2') m_screenMode = 2;
+		}
+		else if (strstr(argv[i], kAlphaBlendingMenu) == argv[i]) {
+			m_isAlphaBlendingMenu = true;
+			char ratio[32] = { 0, };
+			int len = strlen(argv[i]);
+			for (int j = 0; j <= len - 23; j++) {
+				ratio[j] = argv[i][22 + j];
+			}
+			m_AlphaBlendingMenu = atoi(ratio);
         } else {
             log(std::string("Unknown option ignored: ") + argv[i]);
         }
     }
+	setGameStyleVariables();
+	setScreenModeVariables();	
 
     return commandLineWarnings;
 }
@@ -223,6 +295,56 @@ bool doNotPauseLoadingScreen()
 int midiBankNumber()
 {
     return m_bankNo;
+}
+
+bool isNewScoreboard()
+{
+	return m_newScoreboard;
+}
+
+bool isCareerCrashFix()
+{
+	return m_isCareerCrashFix;
+}
+
+int getCareerCrashFix(int i)
+{
+	return m_careerCrashFix[i];
+}
+
+bool isGameStyleParam()
+{
+	return m_isGameStyleParam;
+}
+
+int getGameStyleParam()
+{
+	return m_gameStyleParam;
+}
+
+void setGameStyle(int gs)
+{
+	m_gameStyle = m_gameStyleParam;
+}
+
+int getGameStyle()
+{
+	return m_gameStyle;
+}
+
+int getScreenMode()
+{
+	return m_screenMode;
+}
+
+bool isAlphaBlendingMenu()
+{
+	return m_isAlphaBlendingMenu;
+}
+
+int getAlphaBlendingMenu()
+{
+	return m_AlphaBlendingMenu;
 }
 
 //
@@ -272,8 +394,10 @@ static void showGameplayOptions()
 
 static void changeGameStyle()
 {
-    logInfo("Game style changed to %s", m_gameStyle ? "AMIGA" : "PC");
     m_gameStyle = !m_gameStyle;
+	logInfo("Game style changed to %s", m_gameStyle ? "AMIGA" : "PC");
+
+	setGameStyleVariables();
 }
 
 static void initGamePlayOptions()
@@ -286,4 +410,310 @@ static void toggleAutoSaveReplays()
 {
     setAutoSaveReplays(!getAutoSaveReplays());
     initGamePlayOptions();
+}
+
+void setGameStyleVariables()
+{
+	if (m_gameStyle == 0) {
+		keeperSaveDistance = 16;
+		ballGroundConstant = 13;
+		ballAirConstant = 4;
+		// -3, 4, 1, 0, 0, -1, -1
+		pitchBallSpeedInfluence[0] = -3; 
+		pitchBallSpeedInfluence[1] =  4; 
+		pitchBallSpeedInfluence[2] =  1; 
+		pitchBallSpeedInfluence[3] =  0; 
+		pitchBallSpeedInfluence[4] =  0; 
+		pitchBallSpeedInfluence[5] = -1; 
+		pitchBallSpeedInfluence[6] = -1;
+		gravityConstant = 3291;
+	}
+	else {
+		keeperSaveDistance = 24;
+		ballGroundConstant = 16;
+		ballAirConstant = 10;
+		// -2, 2, 3, 0, 0, -1, -1
+		pitchBallSpeedInfluence[0] = -2; 
+		pitchBallSpeedInfluence[1] =  2; 
+		pitchBallSpeedInfluence[2] =  3; 
+		pitchBallSpeedInfluence[3] =  0; 
+		pitchBallSpeedInfluence[4] =  0; 
+		pitchBallSpeedInfluence[5] = -1; 
+		pitchBallSpeedInfluence[6] = -1;
+		gravityConstant = 4608;		
+	}
+	
+	if (keeperSaveDistance == 16) {		
+	//if (keeperSaveDistance == 24) {
+		GS_27_22 = 27;
+		GS_54_49 = 54;
+		GS_55_50 = 55;
+
+		GS_110_100 = 110;
+		GS_385_350 = 385;
+		GS_550_500 = 550;
+		GS_660_600 = 660;
+		GS_825_750 = 825;
+	}
+	else {
+		GS_27_22 = 22;
+		GS_54_49 = 49;
+		GS_55_50 = 50;
+
+		GS_110_100 = 100;
+		GS_385_350 = 350;
+		GS_550_500 = 500;
+		GS_660_600 = 600;
+		GS_825_750 = 750;
+	}	
+}
+
+void setScreenModeVariables()
+{
+	int i;
+
+	if (m_screenMode == 0) {
+		// Original PC Screen
+		kVgaWidth = 320;
+		kVgaHeight = 200;
+		kGameScreenWidth = 384;
+		
+		PatternHorzNum_plus4 = 24;
+		PatternVertNum_plus5 = 18;
+		
+		for (i = 0; i <= 31; i++) {
+			patternTableHorz[i] = patternTableHorz_PCscreen[i];
+		}
+		for (i = 0; i <= 31; i++) {
+			patternTableVert[i] = patternTableVert_PCscreen[i];
+		}
+		DrawPatternVerticalCount = 2;
+		animPatternsRandomTable[63] = 0;
+
+		SM_0_0_64    = 0;
+		SM_0_26_26   = 0;
+		SM_4_3_3     = 4;
+		SM_8_10_10   = 8;
+		SM_10_36_36  = 10;
+		SM_12_20_20  = 12;
+		SM_16_16_88  = 16;
+		SM_18_22_22  = 18;
+		SM_19_35_35  = 19;
+		SM_20_22_31  = 20;
+		SM_23_39_39  = 23;
+		SM_24_25_34  = 24;
+		SM_39_55_55  = 39;
+		SM_40_44_62  = 40;
+		SM_60_66_93  = 60;
+		SM_63_66_93  = 63;		
+		SM_64_67_94  = 64;
+		SM_80_80_152 = 80;
+
+        SM_100_136_136 = 100;
+		SM_128_136_208 = 128;
+		SM_143_151_223 = 143;
+		SM_150_158_230 = 150;
+		SM_152_160_240 = 152;
+		SM_157_165_237 = 157;
+		SM_160_168_240 = 160;
+		SM_160_176_176 = 160;
+		SM_163_171_243 = 163;
+		SM_165_173_245 = 165;
+		SM_176_168_96  = 176;
+		SM_179_261_261 = 179;
+		SM_192_200_272 = 192;
+		SM_200_272_272 = 200;
+		SM_211_211_291 = 211;
+		SM_240_256_328 = 240;
+		SM_241_305_305 = 241;
+		SM_246_310_310 = 246;
+		SM_248_264_408 = 248;
+		SM_249_313_313 = 249;
+		SM_263_327_327 = 263;
+		SM_285_301_445 = 285;
+		SM_288_304_304 = 288;
+		SM_310_326_470 = 310;
+		SM_320_320_320 = 320;
+		SM_320_336_480 = 320;
+		SM_336_256_256 = 336;		
+		SM_336_336_416 = 336;
+		SM_339_303_303 = 339;
+		SM_359_323_323 = 359;
+		SM_352_336_192 = 352;
+		SM_368_384_528 = 368;
+		SM_384_400_544 = 384;
+		SM_590_590_670 = 590;
+		SM_616_544_544 = 616;
+		SM_664_592_592 = 664;
+		SM_680_608_608 = 680;
+
+		SM_1040_1144_1612 = 1040;
+		SM_6144_6400_8704 = 6144;
+	}
+	else if (m_screenMode == 1) {
+		// Original Amiga Screen
+		kVgaWidth = 336;
+		kVgaHeight = 272;
+		kGameScreenWidth = 400;
+		
+		PatternHorzNum_plus4 = 25;
+		PatternVertNum_plus5 = 22;
+
+		for (i = 0; i <= 31; i++) {
+			patternTableHorz[i] = patternTableHorz_Amigascreen[i];
+		}
+		for (i = 0; i <= 31; i++) {
+			patternTableVert[i] = patternTableVert_Amigascreen[i];
+		}
+		DrawPatternVerticalCount = 2;
+		animPatternsRandomTable[66] = 0;
+
+		SM_0_0_64   = 0;
+		SM_0_26_26  = 26;
+		SM_4_3_3    = 3;
+		SM_8_10_10  = 10;
+		SM_10_36_36 = 36;
+		SM_12_20_20 = 20;
+		SM_16_16_88 = 16;
+		SM_18_22_22 = 22;
+		SM_19_35_35 = 35;
+		SM_20_22_31 = 22;		
+		SM_23_39_39 = 39;
+		SM_24_25_34 = 25;
+		SM_39_55_55 = 55;
+		SM_40_44_62 = 44;
+		SM_60_66_93 = 66;
+		SM_63_66_93 = 66;		
+		SM_64_67_94 = 67;
+		SM_80_80_152 = 80;
+
+        SM_100_136_136 = 136;
+		SM_128_136_208 = 136;
+		SM_143_151_223 = 151;
+		SM_150_158_230 = 158;
+		SM_152_160_240 = 160;
+		SM_157_165_237 = 165;
+		SM_160_168_240 = 168;
+		SM_160_176_176 = 176;
+		SM_163_171_243 = 171;
+		SM_165_173_245 = 173;
+		SM_176_168_96  = 168;
+		SM_179_261_261 = 261;
+		SM_192_200_272 = 200;
+		SM_200_272_272 = 272;
+		SM_211_211_291 = 211;
+		SM_240_256_328 = 256;
+		SM_241_305_305 = 305;
+		SM_246_310_310 = 310;
+		SM_248_264_408 = 264;
+		SM_249_313_313 = 313;
+		SM_263_327_327 = 327;
+		SM_285_301_445 = 301;
+		SM_288_304_304 = 304;
+		SM_310_326_470 = 326;
+		SM_320_320_320 = 320;
+		SM_320_336_480 = 336;
+		SM_336_256_256 = 256;		
+		SM_336_336_416 = 336;
+		SM_339_303_303 = 303;
+		SM_359_323_323 = 323;
+		SM_352_336_192 = 336;
+		SM_368_384_528 = 384;
+		SM_384_400_544 = 400;
+		SM_590_590_670 = 590;
+		SM_616_544_544 = 544;
+		SM_664_592_592 = 592;
+		SM_680_608_608 = 608;
+
+		SM_1040_1144_1612 = 1144;
+		SM_6144_6400_8704 = 6400;
+	}
+	else if (m_screenMode == 2) {
+		// Widecreen
+		kVgaWidth = 480;
+		kVgaHeight = 272;
+		kGameScreenWidth = 544;
+		
+		PatternHorzNum_plus4 = 34;
+		PatternVertNum_plus5 = 22;
+
+		for (i = 0; i <= 47; i++) {
+			patternTableHorz[i] = patternTableHorz_Widescreen[i];
+		}
+		for (i = 0; i <= 31; i++) {
+			patternTableVert[i] = patternTableVert_Widescreen[i];
+		}
+		DrawPatternVerticalCount = 3;
+		animPatternsRandomTable[93] = 0;
+
+		SM_0_0_64   = 64;
+		SM_0_26_26  = 26;
+		SM_4_3_3    = 3;
+		SM_8_10_10  = 10;
+		SM_10_36_36 = 36;
+		SM_12_20_20 = 20;
+		SM_16_16_88 = 88;
+		SM_18_22_22 = 22;
+		SM_19_35_35 = 35;
+		SM_20_22_31 = 31;		
+		SM_23_39_39 = 39;
+		SM_24_25_34 = 34;
+		SM_39_55_55 = 55;
+		SM_40_44_62 = 62;
+		SM_60_66_93 = 93;
+		SM_63_66_93 = 93;		
+		SM_64_67_94 = 94;
+		SM_80_80_152 = 152;
+
+        SM_100_136_136 = 136;
+		SM_128_136_208 = 208;
+		SM_143_151_223 = 223;
+		SM_150_158_230 = 230;
+		SM_152_160_240 = 240;
+		SM_157_165_237 = 237;
+		SM_160_168_240 = 240;
+		SM_160_176_176 = 176;
+		SM_163_171_243 = 243;
+		SM_165_173_245 = 245;
+		SM_176_168_96  = 96;
+		SM_179_261_261 = 261;
+		SM_192_200_272 = 272;
+		SM_200_272_272 = 272;
+		SM_211_211_291 = 291;
+		SM_240_256_328 = 328;
+		SM_241_305_305 = 305;
+		SM_246_310_310 = 310;
+		SM_248_264_408 = 408;
+		SM_249_313_313 = 313;
+		SM_263_327_327 = 327;
+		SM_285_301_445 = 445;
+		SM_288_304_304 = 304;
+		SM_310_326_470 = 470;
+		SM_320_320_320 = 320;
+		SM_320_336_480 = 480;
+		SM_336_256_256 = 256;		
+		SM_336_336_416 = 416;
+		SM_339_303_303 = 303;
+		SM_359_323_323 = 323;
+		SM_352_336_192 = 192;
+		SM_368_384_528 = 528;
+		SM_384_400_544 = 544;
+		SM_590_590_670 = 670;
+		SM_616_544_544 = 544;
+		SM_664_592_592 = 592;
+		SM_680_608_608 = 608;
+
+		SM_1040_1144_1612 = 1612;
+		SM_6144_6400_8704 = 8704;
+	}
+	
+	kVgaScreenSize = kVgaWidth * kVgaHeight;
+	
+	kVgaWidthAdder      = kVgaWidth - kMenuScreenWidth;
+	kVgaHeightAdder     = kVgaHeight - kMenuScreenHeight;
+	kVgaWidthAdderHalf  = kVgaWidthAdder  / 2;
+	kVgaHeightAdderHalf = kVgaHeightAdder / 2;
+	
+	kWindowWidth = 4 * kVgaWidth;
+	kWindowHeight = 4 * kVgaHeight;	
 }

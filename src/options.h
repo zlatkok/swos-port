@@ -42,3 +42,15 @@ bool disableIntro();
 bool disableImageReels();
 bool doNotPauseLoadingScreen();
 int midiBankNumber();
+
+bool isNewScoreboard();
+bool isCareerCrashFix();
+int getCareerCrashFix(int i);
+bool isGameStyleParam();
+int getGameStyleParam();
+void setGameStyle(int gs);
+int getGameStyle();
+int getScreenMode();
+void setGameStyleVariables();
+bool isAlphaBlendingMenu();
+int getAlphaBlendingMenu();

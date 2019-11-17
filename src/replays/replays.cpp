@@ -24,6 +24,7 @@ static bool m_playing;
 static int m_fastReplay;
 
 static void autoSaveReplay();
+extern int g_replayViewLoop;
 
 void initReplays()
 {
@@ -121,7 +122,7 @@ static void highlightsPausedLoop()
 {
     while (paused) {
         SWOS::GetKey();
-        MainKeysCheck();
+        SWOS::MainKeysCheck();
         SWOS::PlayEnqueuedSamples();
     }
 }
@@ -197,14 +198,14 @@ static void initInstantReplayFrame(dword packedCoordinates)
 
     InitSavedSprites();
     InitBackground();
-    ScrollToCurrent();
+    SWOS::ScrollToCurrent();
 
     clearHiBit(packedCoordinates);
 
     g_cameraX = loWord(packedCoordinates);
     g_cameraY = hiWord(packedCoordinates);
 
-    ScrollToCurrent();
+    SWOS::ScrollToCurrent();
 }
 
 static void drawResult()
@@ -248,7 +249,7 @@ static void replayPausedLoop()
         SWOS::GetKey();
         if (!skipFade)
             break;
-        MainKeysCheck();
+        SWOS::MainKeysCheck();
     }
 }
 
@@ -391,6 +392,7 @@ void SWOS::SaveCoordinatesForHighlights()
 
 void SWOS::PlayInstantReplayLoop()
 {
+    g_replayViewLoop = 1;
     while (true) {
         ReadTimerDelta();
 
@@ -427,18 +429,20 @@ void SWOS::PlayInstantReplayLoop()
 
         Flip();
 
-        fadeIfNeeded();
+        fadeIfNeeded2();
     }
 
     SAFE_INVOKE(FadeOutToBlack);
     SAFE_INVOKE(ClearBackground);
     RestoreCameraPosition();
+    g_replayViewLoop = 0;	
 }
 
 // Takes over highlights rendering to avoid clearing background last frame before fade,
 // which was causing players to disappear.
 void SWOS::PlayHighlightsLoop()
 {
+    g_replayViewLoop = 1;
     int drawFrame = 1;
 
     while (true) {
@@ -459,7 +463,7 @@ void SWOS::PlayHighlightsLoop()
             if (replayState != kNotReplaying) {
                 if (drawFrame ^= m_fastReplay)
                     Flip();
-                fadeIfNeeded();
+                fadeIfNeeded2();
                 continue;
             } else {
                 SAFE_INVOKE(FadeOutToBlack);
@@ -476,6 +480,7 @@ void SWOS::PlayHighlightsLoop()
 
     RestoreHighlightPointers();
     paused = 0;
+    g_replayViewLoop = 0;	
 }
 
 // Handles initial frame stuff: camera coordinates, result and animated patterns.

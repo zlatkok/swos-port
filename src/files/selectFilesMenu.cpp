@@ -17,8 +17,8 @@ constexpr int kSingleColumnCutOff = 8;
 constexpr int kShortNameFullWidth = kShortNameWidth + kTypeFieldMargin + kTypeFieldWidth;
 constexpr int kLongNameFullWidth = kLongNameWidth + kTypeFieldMargin + kTypeFieldWidth;
 
-static_assert(3 * (kShortNameFullWidth + kMarginWidth) + kMarginWidth == kMenuScreenWidth, "");
-static_assert(2 * (kLongNameFullWidth + kMarginWidth) + kMarginWidth == kMenuScreenWidth, "");
+//static_assert(3 * (kShortNameFullWidth + kMarginWidth) + kMarginWidth == kMenuScreenWidth, "");
+//static_assert(2 * (kLongNameFullWidth + kMarginWidth) + kMarginWidth == kMenuScreenWidth, "");
 
 using EntriesPerColumnList = std::array<int, kMaxColumns>;
 
