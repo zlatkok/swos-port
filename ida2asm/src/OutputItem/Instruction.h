@@ -34,6 +34,7 @@ public:
     String prefix() const;
     Token::Type type() const;
     bool isBranch() const;
+    bool isShiftRotate() const;
     OperandSizes operandSizes() const;
     OperandTypes operandTypes() const;
     size_t numOperands() const;
@@ -45,7 +46,15 @@ public:
         Operand(CToken *token) {
             assert(token && token->textLength);
             Util::assignSize(m_length, token->textLength);
+
             m_type = token->type;
+
+            if (token->category == Token::Category::Register)
+                m_type |= kRegisterBit;
+
+            if (token->category == Token::Category::Number)
+                m_type |= kNumericConstantBit;
+
             token->copyText(textPtr());
         }
         static size_t requiredSize(CToken *token) {
@@ -56,12 +65,21 @@ public:
             return { textPtr(), m_length };
         }
         Token::Type type() const {
-            return m_type;
+            return m_type & ~(kRegisterBit | kNumericConstantBit);
+        }
+        bool isRegister() const {
+            return (m_type & kRegisterBit) != 0;
+        }
+        bool isNumber() const {
+            return (m_type & kNumericConstantBit) != 0;
         }
         const Operand *next() const {
             return reinterpret_cast<Operand *>(textPtr() + m_length);
         }
     private:
+        static constexpr int kRegisterBit = 1 << ((sizeof(Token::Type) * 8) - 1);
+        static constexpr int kNumericConstantBit = kRegisterBit / 2;
+
         char *textPtr() const {
             return (char *)(this + 1);
         }
@@ -92,6 +110,11 @@ private:
     Operand *op2Data() const;
     Operand *op3Data() const;
 
+    enum Flags {
+        kBranch = 1,
+        kShiftRotate = 2,
+    };
+
     Token::Type m_prefixType = Token::T_NONE;
     Token::Type m_type;
     OperandTypes m_operands;
@@ -99,7 +122,7 @@ private:
     OperandSizes m_operandDataSizes;
     uint8_t m_instructionTextLength;
     uint8_t m_prefixLength;
-    uint8_t m_isBranch;
+    uint8_t m_instructionType;
     // followed by instruction text, prefix, then by operands, each one is a byte length, two byte enum, then a string
 
     static constexpr size_t kMaxLen = std::numeric_limits<decltype(m_operandDataSizes)::value_type>::max();

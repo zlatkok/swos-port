@@ -5,7 +5,6 @@
 #include "Util.h"
 
 constexpr int kDefinesCapacity = 45'000;
-constexpr auto kDefsFilename = "defs.inc";
 
 AsmConverter::AsmConverter(const char *inputPath, const char *outputPath, const char *symbolsFile,
     const char *swosHeaderFile, const char *format, int numFiles)
@@ -73,10 +72,24 @@ std::pair<const char *, String> AsmConverter::findCodeDataStart() const
     return { p, commonPrefix };
 }
 
+const char *AsmConverter::skipBom(int& length)
+{
+    auto data = m_data.get();
+
+    if (length >= 3 && !memcmp(data, "\xef\xbb\xbf", 3)) {
+        data += 3;
+        length -= 3;
+    }
+
+    return data;
+}
+
 size_t AsmConverter::parseCommonPart(int length)
 {
+    auto data = skipBom(length);
+
     Tokenizer tokenizer;
-    auto limits = tokenizer.tokenize(m_data.get(), length);
+    auto limits = tokenizer.tokenize(data, length);
 
     auto symbolTableCopy = new SymbolTable(m_symFileParser.symbolTable());
     IdaAsmParser parser(m_symFileParser, *symbolTableCopy, tokenizer, m_structs, m_defines);
@@ -194,7 +207,7 @@ void AsmConverter::output(const String& commonPrefix, const AllowedChunkList& ac
     // put 1st chunk externs in the same segment to avoid implicit far jump/call error
     CToken *openSegment = m_workers[0]->parser().firstSegment();
     CToken *externDefSegment{};
-    std::string prefix = commonPrefix.string() + "include " + kDefsFilename + Util::kNewLineString() + Util::kNewLineString();
+    std::string prefix = commonPrefix.string() + Util::kNewLineString();
 
     for (size_t i = 0; i < m_futures.size(); i++) {
         if (!activeChunks[i])
@@ -233,7 +246,7 @@ void AsmConverter::checkForOutputErrors()
 
     for (auto worker : m_workers) {
         if (!worker->outputOk()) {
-            std::cout << "Error in output file " << worker->filename() << ":\n" << worker->outputError() << '\n';
+            std::cout << "Error in output file " << worker->filename() << ":\n" << worker->getOutputError() << '\n';
             failed = true;
         }
     }
@@ -310,25 +323,13 @@ void AsmConverter::checkForUnusedSymbols()
     }
 }
 
-std::string AsmConverter::formOutputFilename() const
-{
-    auto outputFilePath = Util::getBasePath(m_outputPath);
-
-    if (outputFilePath.back() != '\\')
-        outputFilePath += '\\';
-    outputFilePath += kDefsFilename;
-
-    return outputFilePath;
-}
-
 void AsmConverter::outputStructsAndDefines()
 {
-    auto outputFilePath = formOutputFilename();
-    m_outputWriter = OutputFactory::create(m_format, outputFilePath.c_str(), m_symFileParser, m_structs, m_defines,
+    m_outputWriter = OutputFactory::create(m_format, m_outputPath, m_symFileParser, m_structs, m_defines,
         References(), OutputItemStream());
 
     if (!m_outputWriter->output(OutputWriter::kStructs | OutputWriter::kDefines))
-        Util::exit("Error writing %s.", EXIT_FAILURE, Util::getFilename(outputFilePath.c_str()));
+        Util::exit("Error writing %s.", EXIT_FAILURE, Util::getFilename(m_outputPath));
 }
 
 void AsmConverter::waitForWorkers()

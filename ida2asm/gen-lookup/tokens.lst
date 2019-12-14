@@ -240,7 +240,7 @@ lock     Instruction    PrefixInstruction
 lods     Instruction
 lodsb    Instruction
 lodsw    Instruction
-loop     Instruction
+loop     Instruction    BranchInstruction
 loope    Instruction    BranchInstruction
 loopew   Instruction    BranchInstruction
 loopne   Instruction    BranchInstruction

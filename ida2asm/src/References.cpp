@@ -83,6 +83,21 @@ bool References::hasPublic(const String& str) const
     return label && label->pub;
 }
 
+auto References::getType(const String& str) const -> std::pair<ReferenceType, String>
+{
+    auto ref = m_references.get(str);
+
+    auto type = kUnknown;
+    String userType;
+
+    if (ref) {
+        type = ref->type;
+        userType = ref->structName();
+    }
+
+    return { type, userType };
+}
+
 void References::setIgnored(const String& str, Util::hash_t hash)
 {
     for (auto ref : m_references.getAll(str, hash))
@@ -179,7 +194,7 @@ auto References::externs() const -> std::vector<std::tuple<String, ReferenceType
 bool References::isReference(const String& str)
 {
     return str != '$' && str != ')' && !str.contains(':') && str != "st" &&
-        !str.startsWith("st(") && str != "offset" && amigaRegisterToIndex(str) < 0;
+        str != "offset" && amigaRegisterToIndex(str) < 0;
 }
 
 bool References::addAmigaRegister(CToken *reference)

@@ -156,8 +156,6 @@ importTacticsFilename, 256 dup(0)
 #
 
 @save-regs
-DrawSprite
-DrawSpriteCentered
 DrawSpriteInColor
 DrawMenu
 MainKeysCheck
@@ -712,17 +710,17 @@ ShowStadiumInit
 AdjustPlayerSkills, 246, FixTwoCPUsGameCrash
 
 # TODO: remove this when bench routines are converted
-BenchCheckControls, 444, @remove
+LeaveSubsMenu, 1, @remove
 
-CheckIfBallOutOfPlay, 251, FixPenaltyBug
+CheckIfBallOutOfPlay, 252, FixPenaltyBug
 GameLoop, 92, InsertPauseBeforeTheGameIfNeeded
 GameLoop, 224, LoadCrowdChantSampleIfNeeded
 GameLoop, 346, GameEnded
-InputText, 23, AbortTextInputOnEscapeAndRightMouseClick
-PlayerDoingHeader, 157, PlayHeaderComment
+InputTextKeyLoop, 3, AbortTextInputOnEscapeAndRightMouseClick
+PlayerDoingHeader, 161, PlayHeaderComment
 PlayerTackled, 59, PlayInjuryComment
-RunStoppageEventsAndSetAnimationTables, 320, EnqueueCrowdChantsReload
-SetupPlayers, 160, PreventPlayer1FireLockout
+RunStoppageEventsAndSetAnimationTables, 339, EnqueueCrowdChantsReload
+SetupPlayers, 161, PreventPlayer1FireLockout
 
 
 #

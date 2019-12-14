@@ -86,13 +86,15 @@ DataItem::Element::Element(CToken *token, bool isOffset, int offset, size_t dup)
     case Token::T_HEX:
     case Token::T_NUM:
     case Token::T_BIN:
-        value = token->parseInt();
+        m_value = token->parseInt();
         if (token->type == Token::T_HEX)
             m_type = kHex;
         else if (token->type == Token::T_NUM)
             m_type = kDec;
         else
             m_type = kBin;
+
+        m_type |= kIsNumber;
         break;
 
     case Token::T_STRING:
@@ -137,6 +139,16 @@ String DataItem::Element::text() const
     return { textPtr(), m_textLength };
 }
 
+int DataItem::Element::value() const
+{
+    return m_value;
+}
+
+bool DataItem::Element::isNumber() const
+{
+    return (m_type & kIsNumber) != 0;
+}
+
 size_t DataItem::Element::dup() const
 {
     return m_dup;
@@ -144,7 +156,12 @@ size_t DataItem::Element::dup() const
 
 auto DataItem::Element::type() const -> ElementType
 {
-    return m_type;
+    return m_type & kTypeMask;
+}
+
+bool DataItem::Element::isOffset() const
+{
+    return (m_type & kIsOffsetFlag) != 0;
 }
 
 int DataItem::Element::offset() const

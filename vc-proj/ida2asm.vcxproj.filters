@@ -115,6 +115,9 @@
     <ClCompile Include="..\ida2asm\src\InputSymbols\SymbolTable.cpp">
       <Filter>Source Files\InputSymbols</Filter>
     </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\COutput.cpp">
+      <Filter>Source Files\OutputWriter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ida2asm\src\AsmConverter.h">
@@ -218,6 +221,9 @@
     </ClInclude>
     <ClInclude Include="..\ida2asm\src\InputSymbols\SymbolAction.h">
       <Filter>Source Files\InputSymbols</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\COutput.h">
+      <Filter>Source Files\OutputWriter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,11 +1,12 @@
 #include "OutputFactory.h"
 #include "VerbatimOutput.h"
 #include "MasmOutput.h"
+#include "COutput.h"
 
 enum OutputFormatEnum {
     kVerbatim,
     kMasm,
-    kYasm,
+    kC,
     kNumFormats
 };
 
@@ -17,7 +18,7 @@ const struct OutputFormat {
 std::array<OutputFormat, kNumFormats> kFormats = {
     "verbatim", kVerbatim,
     "MASM", kMasm,
-    "YASM", kYasm,
+    "C", kC,
 };
 
 std::string OutputFactory::getSupportedFormats()
@@ -52,9 +53,11 @@ std::unique_ptr<OutputWriter> OutputFactory::create(const char *formatStr, const
 
     switch (format->type) {
     case kVerbatim:
-        return std::make_unique<VerbatimOutput>(path, structs, defines, outputItems);
+        return std::make_unique<VerbatimOutput>(path, symFileParser, structs, defines, outputItems);
     case kMasm:
         return std::make_unique<MasmOutput>(path, symFileParser, structs, defines, references, outputItems);
+    case kC:
+        return std::make_unique<COutput>(path, symFileParser, structs, defines, references, outputItems);
     default:
         assert(false);
         return nullptr;

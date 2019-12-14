@@ -23,11 +23,10 @@ int out(const std::string str)
     return str.length();
 }
 
-
 template<>
 int out(String str)
 {
-    assert(str.length() < 160);
+    assert(str.length() < 160 || std::count(str.str(), str.str() + str.length(), '\n') > 1);
     assert(m_outPtr + str.length() < m_outBuffer.get() + m_outBufferSize);
 
     if (str.length()) {
@@ -79,12 +78,12 @@ int out(size_t num)
 {
     auto start = m_outPtr;
 
-    while (num) {
+    do {
         assert(m_outPtr + 1 < m_outBuffer.get() + m_outBufferSize);
         auto res = std::div(num, 10);
         *m_outPtr++ = res.rem + '0';
         num = res.quot;
-    }
+    } while (num);
 
     std::reverse(start, m_outPtr);
     return m_outPtr - start;

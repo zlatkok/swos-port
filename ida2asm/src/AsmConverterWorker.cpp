@@ -93,9 +93,9 @@ std::string AsmConverterWorker::limitsError() const
     return m_limitsError;
 }
 
-std::string AsmConverterWorker::outputError() const
+std::string AsmConverterWorker::getOutputError() const
 {
-    return m_outputWriter->outputError();
+    return m_outputWriter->getOutputError();
 }
 
 std::string AsmConverterWorker::filename() const

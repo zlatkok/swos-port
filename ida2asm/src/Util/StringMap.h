@@ -61,6 +61,7 @@ public:
             m_nodes[i].node = reinterpret_cast<Node *>(reinterpret_cast<char *>(m_nodes[i].node) + ptrDiff);
     }
     size_t size() const { return m_data.spaceUsed(); }
+    size_t reserved() const { return m_data.reserved(); }
     size_t count() const { return m_count; }
     bool empty() const { return size() != 0; }
     Iterator begin() const {

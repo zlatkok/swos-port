@@ -22,7 +22,7 @@ public:
     std::pair<bool, bool> noBreakTagState() const;
     bool outputOk() const;
     std::string limitsError() const;
-    std::string outputError() const;
+    std::string getOutputError() const;
     std::string filename() const;
     const IdaAsmParser& parser() const;
     IdaAsmParser& parser();

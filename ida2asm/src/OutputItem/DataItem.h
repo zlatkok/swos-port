@@ -25,8 +25,10 @@ public:
         kString,
         kStructInit,
         kUninitialized,
-        kHasAddressOffset = 64,
-        kIsOffsetFlag = 128,
+        kTypeMask = 31,
+        kHasAddressOffset = 32,
+        kIsOffsetFlag = 64,
+        kIsNumber = 128,
     };
 
     class Element
@@ -35,8 +37,11 @@ public:
         Element(CToken *token, bool isOffset, int offset, size_t dup);
         const Element *next() const;
         String text() const;
+        int value() const;
+        bool isNumber() const;
         size_t dup() const;
         ElementType type() const;
+        bool isOffset() const;
         int offset() const;
         void increaseDup();
 
@@ -44,7 +49,7 @@ public:
         char *textPtr() const;
         int *offsetPtr() const;
 
-        int value = 0;
+        int m_value = 0;
         uint32_t m_dup;
         ElementType m_type;
         uint8_t m_textLength;

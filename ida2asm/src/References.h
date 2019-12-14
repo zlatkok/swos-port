@@ -1,7 +1,6 @@
 #pragma once
 
 #include "StringMap.h"
-#include "StringSet.h"
 #include "Tokenizer.h"
 #include "AmigaRegs.h"
 #include "Util.h"
@@ -13,7 +12,7 @@ class References
 {
 public:
     enum ReferenceType : uint8_t {
-        kNone, kNear, kProc, kByte, kWord, kDword, kQWord, kTbyte, kUser, kIgnore,
+        kNone, kNear, kProc, kByte, kWord, kDword, kQWord, kTbyte, kUser, kUnknown, kIgnore,
     };
 
     References();
@@ -27,6 +26,7 @@ public:
     void markExport(const String& str);
     bool hasReference(const String& str) const;
     bool hasPublic(const String& str) const;
+    std::pair<ReferenceType, String> getType(const String& str) const;
 
     void setIgnored(const String& str, Util::hash_t hash);
 

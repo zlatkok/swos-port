@@ -1,5 +1,6 @@
 #include "String.h"
 #include "Tokenizer.h"
+#include "StringView.h"
 
 String::String(CToken *token)
 {
@@ -96,6 +97,15 @@ int String::indexOf(const String& str) const
     return substr != m_str + m_length ? substr - m_str : -1;
 }
 
+bool String::startsWith(const char *str) const
+{
+    for (size_t i = 0; i < m_length && *str; i++, str++)
+        if (*str != m_str[i])
+            break;
+
+    return !*str;
+}
+
 bool String::startsWith(const String& str) const
 {
     return m_length >= str.m_length && !memcmp(m_str, str.m_str, str.m_length);
@@ -116,10 +126,30 @@ bool String::endsWith(char c) const
     return m_length > 0 && m_str[m_length - 1] == c;
 }
 
+char String::first() const
+{
+    return m_length > 0 ? m_str[0] : '\0';
+}
+
+char String::last() const
+{
+    return m_length > 0 ? m_str[m_length - 1] : '\0';
+}
+
 String String::withoutLast() const
 {
     assert(m_length > 0);
     return substr(0, m_length - 1);
+}
+
+int String::toInt() const
+{
+    int result = 0;
+
+    for (size_t i = 0; i < m_length; i++)
+        result += result * 10 + m_str[i] - '0';
+
+    return result;
 }
 
 String String::substr(int from, int len) const
@@ -149,6 +179,23 @@ bool String::operator==(const String& rhs) const
 bool String::operator==(char c) const
 {
     return m_length == 1 && c == m_str[0];
+}
+
+bool String::operator==(const char *str) const
+{
+    size_t i = 0;
+
+    for (; *str && i < m_length; i++, str++) {
+        if (m_str[i] != *str)
+            return false;
+    }
+
+    return i >= m_length && !*str;
+}
+
+bool String::operator<(const String& rhs) const
+{
+    return std::lexicographical_compare(m_str, m_str + m_length, rhs.m_str, rhs.m_str + rhs.m_length);
 }
 
 char String::operator[](size_t index) const

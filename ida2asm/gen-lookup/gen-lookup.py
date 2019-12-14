@@ -29,7 +29,8 @@ def getMutualPrefixLength(str1, str2):
 def specialTokens():
     # keep T_ID first
     return ('T_ID', 'T_STRING', 'T_DUP_QMARK', 'T_DUP_STRUCT_INIT', 'T_COMMENT', 'T_NL', 'T_COMMA',
-        'T_LBRACKET', 'T_RBRACKET', 'T_PLUS', 'T_MINUS', 'T_MULT', 'T_HEX', 'T_NUM', 'T_BIN', 'T_EOF')
+        'T_LPAREN', 'T_RPAREN', 'T_LBRACKET', 'T_RBRACKET', 'T_PLUS', 'T_MINUS',
+        'T_MULT', 'T_HEX', 'T_NUM', 'T_BIN', 'T_EOF')
 
 def outputEnum(tokens):
     for token in tokens:
@@ -52,7 +53,8 @@ static inline bool isNumberStart(char c)
 
 static inline bool isDelimiter(char c)
 {
-    return Util::isSpace(c) || c == ',' || c == '[' || c == '+' || c == '-' || c == '*' || c == ']' || c == '\'';
+    return Util::isSpace(c) || c == ',' || c == '[' || c == '+' || c == '-' || c == '*' || c == ']' || c == '\''
+        || c == '(' || c == ')';
 }''')
 
 # keep this synced with Util::hash()
@@ -86,6 +88,8 @@ const char *Token::typeToString(Token::Type type)
         case T_COMMA: return "comma (,)";
         case T_LBRACKET: return "left bracket ([)";
         case T_RBRACKET: return "right bracket (])";
+        case T_LPAREN: return "left parenthesis '('";
+        case T_RPAREN: return "right parenthesis ')'";
         case T_PLUS: return "plus operator (+)";
         case T_MINUS: return "minus operator (-)";
         case T_MULT: return "multiply operator (*)";
@@ -105,14 +109,20 @@ static const char *filterComment(const char *src, Token& token)
 
     for (size_t i = 0; i < token.textLength; i++, src++) {
         // be careful with comparing high raw hex constants, if it goes out of signed char range it compares false
-        if (*src == '\x18' || *src == '\x19')
+        if (*src == '\x18' || *src == '\x19') {
             dest[i] = '|';
-        else if (*src == '\xcd' || *src == '\xcb')
+        } else if (*src == '\xcd' || *src == '\xcb') {
             dest[i] = '=';
-        else if (*src == '\x10')
+        } else if (*src == '\xe2' && src[1] == '\x86' && (src[2] == '\x91' || src[2] == '\x93')) {
+            // unicode up/down arrows
+            memcpy(dest + i, src, 3);
+            i += 2;
+            src += 2;
+        } else if (*src == '\x10') {
             dest[i] = '>';
-        else if (*src < 0)
+        } else if (*src < 0) {
             dest[i] = '_';
+        }
     }
 
     // leave final \n
@@ -269,6 +279,10 @@ static const char *parseDup(const char *src, char *dst, Token& token)
     src += 4;
     token.category = Token::Dup;
 
+    // IDA 7.0 adds spaces sometimes
+    while (Util::isSpace(*src))
+        src++;
+
     if (isDigit(*src) || (*src == '+' || *src == '-') && isDigit(src[1])) {
         src = parseNumber(src, dst, token);
     } else if (*src == '\'') {
@@ -367,7 +381,7 @@ def lookupTokenPrologue():
         token.textLength = p - start;
         token.category = Token::Whitespace;
         return filterComment(start, token);''' + \
-    op('[', 'T_LBRACKET') + op(']', 'T_RBRACKET') + r'''
+    op('[', 'T_LBRACKET') + op(']', 'T_RBRACKET') + op('(', 'T_LPAREN') + op(')', 'T_RPAREN') + r'''
     } else if (*p == '+') {
         // to disambiguate uses of + we will have to regard it as binary operator always, and numbers can't start with it
         token.textLength = 1;
@@ -650,6 +664,12 @@ def testLookupEpilogue(specificPart):
             break;
         case ']':
             token.type = Token::T_RBRACKET;
+            break;
+        case '(':
+            token.type = Token::T_LPAREN;
+            break;
+        case ')':
+            token.type = Token::T_RPAREN;
             break;
         case ',':
             token.type = Token::T_COMMA;
@@ -951,7 +971,7 @@ def createTestbed(outputDir, tokens, tokenSet, testPerformance):
             idLen = random.randint(1, 25)
 
             # what if randomly generated string is equal to an existing reserved word?! ;)
-            characterSet = string.ascii_letters + string.digits + '!#$%&()./:<=>?@^_`{|}~'
+            characterSet = string.ascii_letters + string.digits + '!#$%&./:<=>?@^_`{|}~'
             while True:
                 randomId = ''.join(random.choice(characterSet) for i in range(idLen))
                 if randomId not in tokenSet:
@@ -990,7 +1010,7 @@ def createTestbed(outputDir, tokens, tokenSet, testPerformance):
             ('ebx', 'T_EBX', 'Register'), (',', 'T_COMMA', 'Operator'), ('eax', 'T_EAX', 'Register'), ('[', 'T_LBRACKET', 'Operator'),
             ('eax', 'T_EAX', 'Register'), ('+', 'T_PLUS', 'Operator'), ('ebx', 'T_EBX', 'Register'), ('*', 'T_MULT', 'Operator'),
             ('ecx', 'T_ECX', 'Register'), ('-', 'T_MINUS', 'Operator'), ('edx', 'T_EDX', 'Register'), (']', 'T_RBRACKET', 'Operator'),
-            ('esi', 'T_ESI', 'Register'))
+            ('esi', 'T_ESI', 'Register'), ('(', 'T_LPAREN', 'Operator'), ('edi', 'T_EDI', 'Register'), (')', 'T_RPAREN', 'Operator'))
 
         for token in testDelimiters:
             delimitersString += token[0]
@@ -1026,9 +1046,9 @@ def createTestbed(outputDir, tokens, tokenSet, testPerformance):
         # dup test cases
         dupTokens = (('dup(56)', 'T_NUM'), ('dup(-10)', 'T_NUM'), ('dup(0aa7h)', 'T_HEX'), ('dup(110101b)', 'T_BIN'),
             ("dup('IRBT')", 'T_STRING'), ('dup(?)', 'T_DUP_QMARK'), ('dup(<0>)', 'T_DUP_STRUCT_INIT'), ('dup(blabla)', 'T_ID'),
-            ('dup(-moar)', 'T_ID'), ('dup(fo+ul+l)', 'T_ID'))
+            ('dup(-moar)', 'T_ID'), ('dup(fo+ul+l)', 'T_ID'), ('dup(    3)', 'T_NUM'))
         for token in dupTokens:
-            cleanId = token[0][4:-1]
+            cleanId = token[0][4:-1].strip()
             addDup(cleanId, token[1])
             if token[1] == 'T_ID':
                 testTokens[-1]['id'] = token[0]

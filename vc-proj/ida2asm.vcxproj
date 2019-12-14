@@ -27,6 +27,7 @@
     <ClCompile Include="..\ida2asm\src\OutputItem\Proc.cpp" />
     <ClCompile Include="..\ida2asm\src\OutputItem\Segment.cpp" />
     <ClCompile Include="..\ida2asm\src\OutputItem\StackVariable.cpp" />
+    <ClCompile Include="..\ida2asm\src\OutputWriter\COutput.cpp" />
     <ClCompile Include="..\ida2asm\src\OutputWriter\MasmOutput.cpp" />
     <ClCompile Include="..\ida2asm\src\OutputWriter\OutputFactory.cpp" />
     <ClCompile Include="..\ida2asm\src\OutputWriter\OutputWriter.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="..\ida2asm\src\OutputItem\Proc.h" />
     <ClInclude Include="..\ida2asm\src\OutputItem\Segment.h" />
     <ClInclude Include="..\ida2asm\src\OutputItem\StackVariable.h" />
+    <ClInclude Include="..\ida2asm\src\OutputWriter\COutput.h" />
     <ClInclude Include="..\ida2asm\src\OutputWriter\MasmOutput.h" />
     <ClInclude Include="..\ida2asm\src\OutputWriter\OutputFactory.h" />
     <ClInclude Include="..\ida2asm\src\OutputWriter\OutputWriter.h" />

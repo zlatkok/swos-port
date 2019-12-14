@@ -18,6 +18,7 @@ public:
 private:
     void loadFile(const char *path);
     std::pair<const char *, String> findCodeDataStart() const;
+    const char *skipBom(int& length);
     size_t parseCommonPart(int length);
     size_t parse(int commonPartLength, int blockSize);
     void checkForParsingErrors(size_t lineNo);
@@ -31,7 +32,6 @@ private:
     void output(const String& commonPrefix, const AllowedChunkList& activeChunks);
     void checkForOutputErrors();
     void checkForUnusedSymbols();
-    std::string formOutputFilename() const;
     void outputStructsAndDefines();
     void waitForWorkers();
     void error(const std::string& desc, size_t lineNo);

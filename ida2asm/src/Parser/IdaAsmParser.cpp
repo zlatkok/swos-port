@@ -327,7 +327,6 @@ CToken *IdaAsmParser::parseInstruction(CToken *token, TokenList& comments)
             // opSizes[operandNo] = 4;
             addOperandToken();
             addReference(token, sizeOperator);
-
             break;
 
         case Token::T_SHORT:
@@ -373,12 +372,24 @@ CToken *IdaAsmParser::parseInstruction(CToken *token, TokenList& comments)
             addOperandToken();
             break;
 
+        case Token::T_OFFSET:
+            // if we have an offset other operand must be a pointer
+            if (operandNo) {
+                assert(!opSizes[operandNo - 1] || opSizes[operandNo - 1] == 4);
+                if (!opSizes[operandNo - 1])
+                    opSizes[operandNo - 1] = 4;
+            }
+
+            addOperandToken();
+            break;
+
         case Token::T_SIZE:
             sizeOperator = true;
             // assume fall-through
         case Token::T_PLUS:
         case Token::T_MULT:
-        case Token::T_OFFSET:
+        case Token::T_LPAREN:
+        case Token::T_RPAREN:
         case Token::T_STRING:
         case Token::T_SMALL:
         case Token::T_LARGE:
@@ -976,7 +987,7 @@ CToken *IdaAsmParser::outputSaveCppRegistersInstructions(CToken *token)
 
     for (const auto instructionToken : instructionTokens)
         m_outputItems.addInstruction(instructionToken == instructionTokens[0] ? comments : TokenList{}, {}, {}, instructionToken,
-            {}, { Instruction::kRegister }, { instructionToken->next(), instructionToken->next()->next() });
+            {4}, { Instruction::kRegister }, { instructionToken->next(), instructionToken->next()->next() });
 
     return token;
 }
@@ -1003,7 +1014,7 @@ void IdaAsmParser::outputRestoreCppRegistersInstructions()
     };
 
     for (const auto instructionToken : instructionTokens)
-        m_outputItems.addInstruction({}, {}, {}, instructionToken, {}, { Instruction::kRegister },
+        m_outputItems.addInstruction({}, {}, {}, instructionToken, {4}, { Instruction::kRegister },
             { instructionToken->next(), instructionToken->next()->next() });
 }
 
@@ -1231,8 +1242,15 @@ void IdaAsmParser::unexpected(CToken *token)
 
 void IdaAsmParser::verifyHookLine(CToken *token)
 {
-    if (m_currentHookLine >= 0)
-        error("insertion point for call passed", token);
+    if (m_currentHookLine >= 0) {
+        auto errorDesc = std::string("insertion point for call passed");
+
+        const auto& hookName = ProcHookList::getCurrentHookProc(m_currentProcHook);
+        if (!hookName.empty())
+            errorDesc += " while looking for " + hookName.string();
+
+        error(errorDesc, token);
+    }
 }
 
 std::string IdaAsmParser::tokenToString(CToken *token)

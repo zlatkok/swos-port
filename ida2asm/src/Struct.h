@@ -27,9 +27,9 @@ public:
     bool operator==(const String& str) const;
 
     struct Field {
-        Field(CToken *name, size_t fieldLength, CToken *comment, CToken *type, CToken *dup) {
+        Field(CToken *name, size_t byteSize, CToken *comment, CToken *type, CToken *dup) {
             m_size = requiredSize(name, comment, type, dup);
-            Util::assignSize(m_fieldLength, fieldLength);
+            Util::assignSize(m_fieldLength, byteSize);
 
             constexpr size_t kMax = std::numeric_limits<decltype(m_nameLength)>::max();
             m_nameLength = 0;
@@ -68,7 +68,7 @@ public:
             return sizeof(Field) + nameLength + commentLength + typeLength + dupLength;
         }
 
-        size_t fieldLength() const { return m_fieldLength; }
+        size_t byteSize() const { return m_fieldLength; }
         Field *next() const { return reinterpret_cast<Field *>((char *)this + m_size); }
         String name() const { return { namePtr(), m_nameLength }; }
         String comment() const { return { commentPtr(), m_commentLength }; }
@@ -121,6 +121,7 @@ public:
     StructStream();
     size_t count() const;
     size_t size() const;
+    bool empty() const;
     void addStruct(CToken *name, const TokenList& leadingComments, CToken *lineComment, bool isUnion);
     void addField(CToken *name, size_t fieldLenght, CToken *comment, CToken *type, CToken *dup);
     void addComment(CToken *token);

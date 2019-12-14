@@ -34,7 +34,9 @@ public:
 
     StringSet(size_t initialCapacity);
     void add(CToken *token);
+    void add(const String& str);
     void add(const char *str, size_t len);
+    bool present(const String& str) const;
     bool present(const char *str, size_t len) const;
     void seal();
     Iterator::Iterator<Node> begin() const;

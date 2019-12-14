@@ -9,7 +9,7 @@ Instruction::Instruction(CToken *prefix, CToken *instructionToken, const Operand
     assert(instructionToken->category == Token::Instruction);
 
     m_type = instructionToken->type;
-    m_isBranch = instructionToken->instructionType == Token::BranchInstruction;
+    m_instructionType = instructionToken->instructionType;
 
     Util::assignSize(m_instructionTextLength, instructionToken->textLength);
     instructionToken->copyText(instructionTextPtr());
@@ -57,7 +57,12 @@ Token::Type Instruction::type() const
 
 bool Instruction::isBranch() const
 {
-    return m_isBranch != 0;
+    return m_instructionType == Token::BranchInstruction;
+}
+
+bool Instruction::isShiftRotate() const
+{
+    return m_instructionType == Token::ShiftRotateInstruction;
 }
 
 auto Instruction::operandSizes() const -> OperandSizes

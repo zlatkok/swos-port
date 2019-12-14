@@ -1859,3 +1859,108 @@ earlier:
   shouldn't go into any build that has to be bug free)
 - making two screenshots in succession (same second) would result in 2nd overwriting 1st; added milliseconds
   to the filename to fix that (if you do make two in the same millisecond you're out of luck)
+11.11.2019.
+- not much, but explored the idea of C output writer, and wrote some skeleton files
+12.11.2019.
+/
+13.11.2019.
+- generated struct & define file in C ;) some stuff is hard-coded assuming ASM file will be generated, so
+  fixing that is gonna be the next goal
+14.11.2019.
+- fixed ASM assumption stuff, started crunching the instructions, finished push/pop instructions
+15.11.2019.
+- suddenly started getting some garbage in tokens in ida2asm, thought it's some new gruesome bug, but it
+  turned out that IDA 7.0 (to which I upgraded ;)) adds BOM to exported ASM
+- new IDA adds Unicode symbols for up/down arrows, copied those into output, it's looking nicer now ;)
+- implemented cbw/cwde/conditional jumps
+- need to figure out a good way to fetch operands generically for all instructions, it would make things lot
+  easier afterwards
+16.11.2019.
+- still fighting with mov instruction, it's quite nasty
+- added original instruction as a comment, it's pretty useful for debugging
+17.11.2019.
+- testing initial decomposition of instruction parameters (addressing modes & stuff),
+- extended tokenizer to recognize parentheses as delimiters, to avoid "(offset" ending up as one token
+  (thank goodness for tests, otherwise I don't think it would be possible); comparing generated assembly,
+  seems the same, hope it didn't break anything :)
+- phew, 1st phase of parameter parsing is OK, source and destination are extracted, now to generate C code
+  properly out of those data
+18.11.2019.
+- some very nice progress! mov instruction seems to be outputting just fine, and added an OR instruction
+  output together with setting flags
+19.11.2019.
+- found out that instruction operand sizes haven't been set correctly in some cases, they weren't used much
+  before (or at all) so it slipped through the cracks; fixing it as we go
+- working on making CMP instruction reality, detecting flag conditions was annoying but I think I got it
+20.11.2019.
+- handled global level instructions - have put them into automatically generated function (with name
+  containing auto incrementing integer)
+- handled lookup of variable size (needed for cases like: cmp g_gameType, 4), also added lookup when structs
+  are used without size prefix (e.g. cmp [esi+MenuEntry.entryType2], NO_FOREGROUND)
+- CMP is almost there! (+ refactored and fixed bunch of stuff that lead to it)
+- CMP done! + did a bunch of small things
+21.11.2019.
+- implemented INC, AND, XCHG, SUB, ADD
+- now new line is properly inserted after a label, but not if it's already there (say from goto)
+22.11.2019.
+- implemented MUL, DEC, MOVZX
+23.11.2019.
+- implemented DIV, TEST, JNB
+24.11.2019.
+/
+25.11.2019.
+- implemented JA, SHL
+26.11.2019.
+- implemented SHR, XOR
+27.11.2019.
+/
+28.11.2019.
+/
+29.11.2019.
+/
+30.11.2019.
+/
+01.12.2019.
+/
+02.12.2019.
+/
+03.12.2019.
+/
+04.12.2019.
+- implemented rotate instructions, INT, NEG, LOOP, MOVSX, JL, JLE, IMUL
+- oops, it seems that loop wasn't flagged as a branch instruction in the tokens list
+05.12.2019.
+- implemented IDIV, PUSHA, SAR, MOVSD, CDQ, NOT, POPA, MOVSB, OUT, STOSB/D, STC, CLC, IN, CLI, STI, POPF,
+  CLD, SETZ, STOSW, MOVSW, probably missed some...
+- but finally all the instructions are handled!!
+07.12.2019.
+- got some initial version of data output, but it's probably lacking badly
+- trying to compile, but there are a lot of errors, fixing
+- currently ran into a problem with accessing labels before the definition point
+08.12.2019.
+- did an extra first pass and forward declared all the data and functions and also fixed a bunch of
+  compiling errors
+09.12.2019.
+- classified labels properly, no more errors there, fixed bunch of other compiling errors, error count is now
+  at 20-30ish with only 2 knows cases to fix (albeit a bit tricky)
+- I slipped with failing to mark some static buffers used by multiple threads as thread local, and was
+  getting weird random null bytes in output, but always at numeric offsets converted from struct fields,
+  it looked pretty funny ;)
+10.12.2019.
+- implemented horrible hack for switch in ConvertMenu, I simply didn't see any other way that wouldn't
+  include extremely time consuming implementation of flow analysis (let's not go there)
+- fixed bad generated code for add/sub/cmp
+- fixed bunch of small issues
+- getting close to clean compile, but still there are some errors to fix
+11.12.2019.
+- fixed a bunch of stuff... can't remember which... battery low... but the thing is not far from finish,
+  I see the same errors related to struct access that plagued assembly output writer as well
+12.12.2019.
+- out() wasn't outputting a number if it's a zero... what a shameful mistake all this time >_<
+- fixed struct variables problem, another gross hack
+- implemented local variables and fixed some more stuff I can't remember now
+- errors shrank even more, really hoping to finish it tomorrow or the day after
+13.12.2019.
+- only one file left to clean... ONE... unless I die first
+- and the damned C converter is finally done, 2.3k lines and about 4x the size of the ASM counterpart
+- only one crash with changes this big... not bad ;)

@@ -11,6 +11,11 @@ void StringSet::add(CToken *token)
     add(token->text(), token->textLength, token->hash);
 }
 
+void StringSet::add(const String& str)
+{
+    add(str.str(), str.length(), Util::hash(str.str(), str.length()));
+}
+
 void StringSet::add(const char *str, size_t len)
 {
     add(str, len, Util::hash(str, len));
@@ -23,6 +28,11 @@ void StringSet::add(const char *str, size_t len, Util::hash_t hash)
     auto node = new (buf) Node(str, len, hash);
 
     m_count++;
+}
+
+bool StringSet::present(const String& str) const
+{
+    return present(str.str(), str.length());
 }
 
 bool StringSet::present(const char *str, size_t len) const

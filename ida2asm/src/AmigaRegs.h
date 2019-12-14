@@ -19,7 +19,6 @@ inline int amigaRegisterToIndex(const String& str)
     return -1;
 }
 
-
 inline String indexToAmigaRegister(int index)
 {
     static const char kAmigaRegisterNames[] = "D0D1D2D3D4D5D6D7A0A1A2A3A4A5A6";

@@ -193,6 +193,11 @@ size_t StructStream::size() const
     return m_structs.spaceUsed();
 }
 
+bool StructStream::empty() const
+{
+    return size() <= 0;
+}
+
 void StructStream::addStruct(CToken *name, const TokenList& leadingComments, CToken *lineComment, bool isUnion)
 {
     assert(name);
@@ -205,13 +210,13 @@ void StructStream::addStruct(CToken *name, const TokenList& leadingComments, CTo
     m_lastField = nullptr;
 }
 
-void StructStream::addField(CToken *name, size_t fieldLength, CToken *comment, CToken *type, CToken *dup)
+void StructStream::addField(CToken *name, size_t byteSize, CToken *comment, CToken *type, CToken *dup)
 {
     assert(m_lastStruct);
 
     auto size = Struct::Field::requiredSize(name, comment, type, dup);
     auto buf = m_structs.add(size);
-    m_lastField = new (buf) Struct::Field(name, fieldLength, comment, type, dup);
+    m_lastField = new (buf) Struct::Field(name, byteSize, comment, type, dup);
     m_lastStruct->increaseSize(size);
 }
 

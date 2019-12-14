@@ -34,20 +34,26 @@ public:
     bool contains(const String& str) const;
     int indexOf(char c) const;
     int indexOf(const String& str) const;
+    bool startsWith(const char *str) const;
     bool startsWith(const String& str) const;
     bool startsWith(char c) const;
     bool endsWith(const String& str) const;
     bool endsWith(char c) const;
+    char first() const;
+    char last() const;
     String substr(int from, int len = -1) const;
     String withoutLast() const;
+    int toInt() const;
 
     void removeLast();
     void clear();
 
     bool operator==(const String& rhs) const;
     bool operator==(char c) const;
+    bool operator==(const char *str) const;
     bool operator!=(const String& rhs) const { return !operator==(rhs); }
     bool operator!=(char c) const { return !operator==(c); }
+    bool operator<(const String& rhs) const;
     char operator[](size_t index) const;
     operator std::string() const { return { m_str, m_length }; }
     std::string string() const;

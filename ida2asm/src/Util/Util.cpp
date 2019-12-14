@@ -47,6 +47,16 @@ std::string Util::getBasePath(const char *path)
         return { path, filename };
 }
 
+std::string Util::joinPaths(const std::string& path1, const char *path2)
+{
+    auto result = path1;
+
+    if (result.back() != '/')
+        result += '/';
+
+    return result + path2;
+}
+
 std::pair<const char *, long> Util::loadFile(const char *path, bool forceLastNewLine)
 {
     // load as binary to avoid text conversion (we're gonna parse it anyway)

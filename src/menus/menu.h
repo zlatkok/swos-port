@@ -73,12 +73,14 @@ static inline void drawMenuTextCentered(int x, int y, const char *text, int colo
     SAFE_INVOKE(DrawMenuTextCentered);
 }
 
+#include "sprites.h"
 static inline void drawMenuSprite(int x, int y, int index)
 {
     D0 = index;
     D1 = x;
     D2 = y;
-    DrawSprite();
+//    SAFE_INVOKE(DrawSprite);
+    drawSprite(index, x, y);
 }
 
 static inline void redrawMenuBackground()

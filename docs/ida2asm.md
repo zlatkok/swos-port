@@ -271,3 +271,7 @@ data and the given interface to generate a valid assembly file.
 
 `VerbatimOutput` is an example output class that will output all the input "as is". It's a very useful
 tool for testing and can be a good place to start when trying to figure out how things work.
+
+For portability do not output new line directly. Use `out(Util::kNewLine)` instead. Use `out(kIndent)` to
+start an indented line. Base class will handle the rest, as well as tabs.
+

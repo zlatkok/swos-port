@@ -2,14 +2,12 @@
 
 constexpr int kExpectedPrefixSize = 300;
 
-VerbatimOutput::VerbatimOutput(const char *path, const StructStream& structs, const DefinesMap& defines, const OutputItemStream& outputItems)
-    : OutputWriter(path), m_structs(structs), m_defines(defines), m_outputItems(outputItems)
+VerbatimOutput::VerbatimOutput(const char *path, const SymbolFileParser& symFileParser, const StructStream& structs,
+    const DefinesMap& defines, const OutputItemStream& outputItems)
+:
+    OutputWriter(path, symFileParser, structs, defines, References(), outputItems)
 {
     m_outputPrefix.reserve(kExpectedPrefixSize);
-
-    // this is probably an overstatement, but the real size should surely be less (I hope!)
-    auto size = m_structs.size() + m_defines.size() + m_outputItems.size();
-    openOutputFile(size);
 }
 
 void VerbatimOutput::setOutputPrefix(const std::string& prefix)
@@ -26,11 +24,14 @@ void VerbatimOutput::setDisassemblyPrefix(const std::string& prefix)
 
 bool VerbatimOutput::output(OutputFlags flags, CToken *)
 {
-    if (!isOutputFileOpen())
+    if (!openOutputFile(flags))
         return false;
 
     if (!flags)
         return true;
+
+    if (!(flags & (kStructs | kDefines)))
+        out("include defs.inc", Util::kNewLine, Util::kNewLine);
 
     if (flags & kStructs)
         outputStructs();
@@ -47,6 +48,11 @@ bool VerbatimOutput::output(OutputFlags flags, CToken *)
     closeOutputFile();
 
     return result;
+}
+
+const char *VerbatimOutput::getDefsFilename() const
+{
+    return "defs.inc";
 }
 
 std::string VerbatimOutput::segmentDirective(const TokenRange& range) const
@@ -87,7 +93,7 @@ void VerbatimOutput::outputStruct(const Struct& struc)
         if (!field.type().empty()) {
             column += out(field.type(), ' ');
         } else {
-            auto fieldSize = dataSizeSpecifier(field.fieldLength());
+            auto fieldSize = dataSizeSpecifier(field.byteSize());
             column += out(fieldSize, ' ');
         }
 
