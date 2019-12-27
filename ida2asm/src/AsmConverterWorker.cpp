@@ -3,12 +3,15 @@
 #include "DefinesMap.h"
 #include "DataItem.h"
 
+constexpr int kFirstStructFieldsCapacity = 786;
+constexpr int kStructVarsCapacity = 3'300;
+
 AsmConverterWorker::AsmConverterWorker(int index, const char *data, int dataLength,
     int chunkOffset, int chunkLength, const SymbolFileParser& symFileParser, SymbolTable& symbolTable)
 :
     m_index(index), m_data(data), m_dataLength(dataLength), m_offset(chunkOffset), m_chunkLength(chunkLength),
     m_symFileParser(symFileParser), m_defines(0), m_tokenizer(),
-    m_parser(symFileParser, symbolTable, m_tokenizer, m_structs, m_defines)
+    m_parser(symFileParser, symbolTable, m_tokenizer, m_structs, m_defines), m_structVars(kStructVarsCapacity)
 {
 }
 
@@ -46,6 +49,7 @@ void AsmConverterWorker::output(const char *format, const char *path, const Stru
 
     m_outputWriter->setCImportSymbols(m_cImportSymbols);
     m_outputWriter->setCExportSymbols(m_cExportSymbols);
+    m_outputWriter->setGlobalStructVars(m_globalStructVars);
 
     if (openingSegments.second) {
         const auto& range = m_segments->segmentRange(openingSegments.first);
@@ -69,6 +73,7 @@ void AsmConverterWorker::resolveReferences(const std::vector<const AsmConverterW
             m_parser.references().resolve(worker->m_parser.references());
 
     ignoreContiguousTableExterns(workers);
+    gatherStructVars(structs);
 }
 
 void AsmConverterWorker::setCImportSymbols(const StringList& syms)
@@ -79,6 +84,11 @@ void AsmConverterWorker::setCImportSymbols(const StringList& syms)
 void AsmConverterWorker::setCExportSymbols(const StringList& syms)
 {
     m_cExportSymbols = &syms;
+}
+
+void AsmConverterWorker::setGlobalStructVarsTable(const StringMap<PascalString> *structVars)
+{
+    m_globalStructVars = structVars;
 }
 
 std::pair<bool, bool> AsmConverterWorker::noBreakTagState() const
@@ -109,6 +119,11 @@ std::string AsmConverterWorker::filename() const
 const IdaAsmParser& AsmConverterWorker::parser() const
 {
     return m_parser;
+}
+
+const StringMap<PascalString>& AsmConverterWorker::structVars() const
+{
+    return m_structVars;
 }
 
 IdaAsmParser& AsmConverterWorker::parser()
@@ -151,7 +166,7 @@ void AsmConverterWorker::ignoreContiguousTableExterns(const std::vector<const As
     auto ignoreExtern = [this](const DataItem *dataItem) {
         const auto& name = dataItem->name();
         if (!name.empty()) {
-            auto hash = Util::hash(name.str(), name.length());
+            auto hash = Util::hash(name.data(), name.length());
             m_parser.references().setIgnored(name, hash);
         }
     };
@@ -178,6 +193,77 @@ void AsmConverterWorker::ignoreContiguousTableExterns(const std::vector<const As
             }
         }
     }
+}
+
+void AsmConverterWorker::gatherStructVars(const StructStream& structs)
+{
+    if (!m_symFileParser.cOutput())
+        return;
+
+    const auto& firstMembersMap = getFirstMembersStructMap(structs);
+
+    for (const auto& item : m_parser.outputItems()) {
+        if (item.type() != OutputItem::kDataItem)
+            continue;
+
+        auto dataItem = item.getItem<DataItem>();
+        if (dataItem->name().empty())
+            continue;
+
+        const auto& comment = item.comment();
+        int semiColonIndex = comment.indexOf(';');
+
+        if (semiColonIndex >= 0 && comment.length() - semiColonIndex > 1) {
+            auto p = comment.data() + semiColonIndex + 1;
+            auto sentinel = comment.data() + comment.length();
+
+            while (p < sentinel && Util::isSpace(*p))
+                p++;
+
+            // handle advertIngameSprites which is an array, and has a "[0].teamNumber" comment
+            if (*p == '[') {
+                p++;
+                while (p < sentinel && Util::isDigit(*p))
+                    p++;
+                if (p < sentinel && *p == ']')
+                    p++;
+                if (p < sentinel && *p == '.')
+                    p++;
+            }
+
+            String trimmedComment(p, comment.length() - (p - comment.data()));
+
+            if (!trimmedComment.empty())
+                if (auto structName = firstMembersMap.get(trimmedComment))
+                    m_structVars.add(dataItem->name(), structName->data(), structName->length());
+        }
+    }
+
+    m_structVars.seal();
+    assert(!m_structVars.hasDuplicates());
+}
+
+StringMap<PascalString> AsmConverterWorker::getFirstMembersStructMap(const StructStream& structs)
+{
+    constexpr int kFirstMemmbersMapCapacity = 1'200;
+    static const String kBlackListedMembers[] = { "headerSize", "driver" };
+
+    StringMap<PascalString> firstMembers(kFirstMemmbersMapCapacity);
+
+    for (const auto& struc : structs) {
+        auto firstField = struc.begin();
+
+        auto it = std::find(std::begin(kBlackListedMembers), std::end(kBlackListedMembers), firstField->name());
+        if (it != std::end(kBlackListedMembers))
+            continue;
+
+        firstMembers.add(firstField->name(), struc.name());
+    }
+
+    firstMembers.seal();
+    assert(!firstMembers.hasDuplicates());
+
+    return firstMembers;
 }
 
 std::string AsmConverterWorker::segmentsOutput(CToken *openSegment)

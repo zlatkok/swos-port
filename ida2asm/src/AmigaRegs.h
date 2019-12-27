@@ -5,7 +5,7 @@ constexpr int kNumAmigaRegisters = 15;
 inline int amigaRegisterToIndex(const String& str)
 {
     if (str.length() == 2) {
-        auto text = str.str();
+        auto text = str.data();
 
         if (text[0] == 'D') {
             if (text[1] >= '0' && text[1] <= '7')

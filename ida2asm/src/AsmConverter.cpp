@@ -5,12 +5,14 @@
 #include "Util.h"
 
 constexpr int kDefinesCapacity = 45'000;
+constexpr int kStructVarsCapacity = 3'300;
 
 AsmConverter::AsmConverter(const char *inputPath, const char *outputPath, const char *symbolsFile,
     const char *swosHeaderFile, const char *format, int numFiles)
 :
     m_inputPath(inputPath), m_outputPath(outputPath), m_headerPath(swosHeaderFile), m_format(format),
-    m_numFiles(numFiles), m_symFileParser(symbolsFile, swosHeaderFile, outputPath), m_defines(kDefinesCapacity)
+    m_numFiles(numFiles), m_symFileParser(symbolsFile, swosHeaderFile, outputPath), m_defines(kDefinesCapacity),
+    m_structVars(kStructVarsCapacity)
 {
     if (!OutputFactory::formatSupported(format))
         Util::exit("Unsupported format: %s, supported formats: %s", 1, format, OutputFactory::getSupportedFormats().c_str());
@@ -34,11 +36,9 @@ void AsmConverter::convert()
     checkForParsingErrors(lineNo);
     auto workersToOutput = connectRanges();
     resolveExterns(workersToOutput);
+    gatherStructVariables();
     output(commonPrefix, workersToOutput);
-
-    if (m_symFileParser.cOutput())
-        outputContiguousTablesHeader();
-
+    outputContiguousTablesHeader();
     checkForUnusedSymbols();
 }
 
@@ -193,6 +193,21 @@ void AsmConverter::resolveExterns(const AllowedChunkList& allowedChunks)
     waitForWorkers();
 }
 
+void AsmConverter::gatherStructVariables()
+{
+    if (!m_symFileParser.cOutput())
+        return;
+
+    for (auto worker : m_workers) {
+        const auto& localStructVars = worker->structVars();
+        for (const auto& node : localStructVars)
+            m_structVars.add(node.text, node.cargo->data(), node.cargo->length());
+    }
+
+    m_structVars.seal();
+    assert(!m_structVars.hasDuplicates());
+}
+
 void AsmConverter::collectSegments()
 {
     for (auto worker : m_workers) {
@@ -230,6 +245,7 @@ void AsmConverter::output(const String& commonPrefix, const AllowedChunkList& ac
 
         m_workers[i]->setCImportSymbols(m_symFileParser.imports());
         m_workers[i]->setCExportSymbols(m_symFileParser.exports());
+        m_workers[i]->setGlobalStructVarsTable(&m_structVars);
 
         auto future = std::async(std::launch::async, &AsmConverterWorker::output, m_workers[i], m_format, m_outputPath,
             std::ref(m_structs), std::ref(m_defines), std::cref(prefix), std::make_pair(openSegment, i == 0));
@@ -245,6 +261,9 @@ void AsmConverter::output(const String& commonPrefix, const AllowedChunkList& ac
 
 void AsmConverter::outputContiguousTablesHeader()
 {
+    if (!m_symFileParser.cOutput())
+        return;
+
     const auto& outputBasePath = Util::getBasePath(m_outputPath);
     const auto& headerPath = Util::joinPaths(outputBasePath, Util::kTablesHeaderName);
 

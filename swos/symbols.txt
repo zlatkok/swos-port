@@ -196,7 +196,7 @@ StartFirstExtraTime
 # list of symbols to export to header so they can be accessible from C++
 # inside ASM files they will be prefixed with underscore, and made public
 # syntax for generating SWOS C++ header files is:
-# <symbol> [, prefix <prefix>][, function |, (array | pointer | ptr | functionPointer) <type>['['<size>']'] |, <type>]
+# <symbol> [, function |, (array | pointer | ptr | functionPointer) <type>['['<size>']'] |, <type>]
 #
 
 @export

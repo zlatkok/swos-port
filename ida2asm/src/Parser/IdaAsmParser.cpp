@@ -932,7 +932,7 @@ CToken *IdaAsmParser::checkProcHookInsertion(CToken *token)
 bool IdaAsmParser::isLocalVariable(const char *str, size_t len)
 {
     for (const auto& localVar : m_localVars)
-        if (localVar.length() == len && !memcmp(localVar.str(), str, len))
+        if (localVar.length() == len && !memcmp(localVar.data(), str, len))
             return true;
 
     return false;

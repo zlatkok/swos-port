@@ -26,13 +26,12 @@ public:
     const StringList& imports() const;
 
     bool cOutput() const;
-    String exportedType(const String& var) const;
+    std::tuple<String, size_t, size_t> exportedType(const String& var) const;
 
 private:
 #pragma pack(push, 1)
     struct ExportEntry {
         String symbol;
-        String prefix;
         String type;
         String arraySize;
         bool function = false;
@@ -46,8 +45,8 @@ private:
     void outputExports();
     void outputImports();
     void outputContiguousCTableInclude();
-    template <typename F> void getExportFunctionDeclaration(const ExportEntry& exp, F write);
-    template <typename F> void getExportVariableDeclaration(const ExportEntry& exp, F write);
+    template <typename F> size_t getExportFunctionDeclaration(const ExportEntry& exp, F write);
+    template <typename F> size_t getExportVariableDeclaration(const ExportEntry& exp, F write);
 
     void parseSymbolFile();
     static const char *parseComment(const char *p);
@@ -110,7 +109,7 @@ private:
     };
 #pragma pack(pop)
 
-    enum KeywordType { kNotKeyword, kPrefix, kFunction, kFunctionPointer, kPointer, kPtr, kArray };
+    enum KeywordType { kNotKeyword, kFunction, kFunctionPointer, kPointer, kPtr, kArray };
 
     std::pair<KeywordType, const char *> lookupKeyword(const char *p, const char *limit);
 
@@ -133,5 +132,28 @@ private:
     SymbolTable m_symbolTable;
     ProcHookList m_procHookList;
 
-    StringMap<PascalString> m_exportTypes;
+#pragma pack(push, 1)
+    class ExportType {
+    public:
+        ExportType(const char *buf, size_t bufLen, size_t varOffset, size_t varLen) : m_str(bufLen) {
+            assert(bufLen >= varLen);
+            Util::assignSize(m_varOffset, varOffset);
+            Util::assignSize(m_varLen, varLen);
+            memcpy(m_str.data(), buf, bufLen);
+        }
+        static size_t requiredSize(const char *, size_t bufLen, size_t, size_t varLen) {
+            return sizeof(ExportType) + bufLen;
+        }
+
+        String str() const { return { m_str.data(), m_str.length() }; }
+        size_t varOffset() const { return m_varOffset; }
+        size_t varLen() const { return m_varLen; }
+    private:
+        uint8_t m_varOffset;
+        uint8_t m_varLen;
+        PascalString m_str;
+    };
+#pragma pack(pop)
+
+    StringMap<ExportType> m_exportTypes;
 };

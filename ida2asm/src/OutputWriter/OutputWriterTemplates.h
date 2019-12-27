@@ -26,7 +26,7 @@ int out(const std::string str)
 template<>
 int out(String str)
 {
-    assert(str.length() < 160 || std::count(str.str(), str.str() + str.length(), '\n') > 1);
+    assert(str.length() < 160 || std::count(str.data(), str.data() + str.length(), '\n') > 1);
     assert(m_outPtr + str.length() < m_outBuffer.get() + m_outBufferSize);
 
     if (str.length()) {

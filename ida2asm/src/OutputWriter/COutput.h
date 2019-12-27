@@ -26,6 +26,7 @@ private:
     void outputStructs();
     void outputStruct(Struct& struc);
     void outputTableStructs();
+    void outputStructVarCppDefines(const std::vector<std::tuple<String, String, size_t, size_t>>& cppDefines, int tableIndex);
 
     bool outputExterns();
 
@@ -41,7 +42,7 @@ private:
     String getDataItemName(const DataItem *item, char *nameBuff);
     const OutputItem *findLastBelongingItem(const OutputItem *item);
     size_t getDataItemArraySize(const OutputItem *first, const OutputItem *last);
-    bool outputDataItemType(const DataItem *dataItem, DataItemOutputFormat format, const String& name, size_t arraySize, bool isOffset);
+    void outputDataItemType(const DataItem *dataItem, DataItemOutputFormat format, const String& name, size_t arraySize, bool isOffset);
     void outputDataItemValue(const OutputItem *item, const OutputItem *lastItem, bool isOffset);
     bool isZeroInitArray(const OutputItem *item);
     bool canConsumeItem(size_t size, const OutputItem *item) const;
@@ -148,7 +149,7 @@ private:
     size_t getStructVariableSize(const String& structName, const String& fieldName) const;
     String expandStructField(Iterator::Iterator<const Instruction::Operand>& op, OperandInfo& opInfo,
         char *dest, bool forceSearch = false) const;
-    bool isSpriteVar(const String& str);
+    size_t getStructFieldSize(const PascalString& structName, const String& field) const;
     size_t getNextAutoVar(char *destBuffer);
 
     struct TypeInfo {
@@ -184,8 +185,6 @@ private:
 
     StringMap<StructFieldInfoHolder> m_structMap;
     StringSet m_inProcLabels;
-
-    static const std::vector<String> m_spriteStructVars;
 
     std::vector<std::pair<const OutputItem *, const OutputItem *>> m_tableVarRanges;
 };

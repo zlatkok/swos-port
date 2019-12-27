@@ -112,7 +112,7 @@ bool SegmentSet::isSegment(CToken *token) const
 bool SegmentSet::isSegment(const String& str) const
 {
     auto it = std::find_if(m_segments.begin(), m_segments.end(), [&str](const auto& segRange) {
-        return segRange.first->textLength == str.length() && !memcmp(segRange.first->text(), str.str(), str.length());
+        return segRange.first->textLength == str.length() && !memcmp(segRange.first->text(), str.data(), str.length());
     });
 
     return it != m_segments.end();

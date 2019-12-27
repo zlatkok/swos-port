@@ -4,12 +4,12 @@ void ProcHookList::add(const String& procName, const String& hookName, int line,
 {
     ProcHookItemInternal item;
     auto procLen = std::min(procName.length(), kProcNameLength - 1);
-    memcpy(item.procName, procName.str(), procLen);
+    memcpy(item.procName, procName.data(), procLen);
     item.procName[procLen] = '\0';
     item.procNameLen = procLen;
 
     auto hookLen = std::min(hookName.length(), kProcNameLength - 1);
-    memcpy(item.hookName, hookName.str(), hookLen);
+    memcpy(item.hookName, hookName.data(), hookLen);
     item.hookName[hookLen] = '\0';
     item.hookNameLen = hookLen;
 
@@ -48,19 +48,19 @@ String ProcHookList::encodeProcHook(const ProcHookItem *begin, const ProcHookIte
 
 int ProcHookList::getCurrentHookLine(String& procHook)
 {
-    auto hookList = (PackedProcHookList *)procHook.str();
+    auto hookList = (PackedProcHookList *)procHook.data();
     return hookList->getCurrentLine();
 }
 
 String ProcHookList::getCurrentHookProc(String& procHook)
 {
-    auto hookList = (PackedProcHookList *)procHook.str();
+    auto hookList = (PackedProcHookList *)procHook.data();
     return hookList->getCurrentHookProc();
 }
 
 bool ProcHookList::moveToNextHook(String& procHook)
 {
-    auto hookList = (PackedProcHookList *)procHook.str();
+    auto hookList = (PackedProcHookList *)procHook.data();
     return hookList->moveToNextHook();
 }
 

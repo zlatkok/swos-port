@@ -13,7 +13,7 @@ void StringSet::add(CToken *token)
 
 void StringSet::add(const String& str)
 {
-    add(str.str(), str.length(), Util::hash(str.str(), str.length()));
+    add(str.data(), str.length(), Util::hash(str.data(), str.length()));
 }
 
 void StringSet::add(const char *str, size_t len)
@@ -32,7 +32,7 @@ void StringSet::add(const char *str, size_t len, Util::hash_t hash)
 
 bool StringSet::present(const String& str) const
 {
-    return present(str.str(), str.length());
+    return present(str.data(), str.length());
 }
 
 bool StringSet::present(const char *str, size_t len) const

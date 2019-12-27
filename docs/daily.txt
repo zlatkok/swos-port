@@ -2033,3 +2033,17 @@ earlier:
 25.12.2019.
 - put 68k registers near x86 ones to improve cache coherency
 - implemented multi-line array collapsing into one line, but the menu is still messed up :(
+26.12.2019.
+- found out why the menu text is messed up, char tables have a struct in C++, but not in ASM, since IDA
+  doesn't declare structure instances properly, it just lists the fields as if they were consecutive
+  variables, this'll be tough to cure
+- current solution is to just leave struct variables with their ASM type, but cast them inside C++-facing
+  define, tried as I might, but had to leave it for tomorrow :/
+27.12.2019.
+- found out that prefix feature in symbols.txt wasn't used (woops) and removed it (this simplified things a
+  bit); it was used in SWOS++ but the things worked differently there: based on map file assembly file was
+  generated with symbols corresponding to offsets, so we could practically generate any symbol as long as it
+  had a correct offset to match the original SWOS variable in memory
+- going crazy with all the typecasts (from ASM to C++ types in defines for structs vars)
+- fixed text output in menus!! hallelujah! still, keyboard isn't working and menu items aren't rendered
+  properly :D

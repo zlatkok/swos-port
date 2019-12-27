@@ -18,7 +18,7 @@ void StringList::add(const char *begin, const char *end)
 
 void StringList::add(const String& str)
 {
-    add(str.str(), str.end());
+    add(str.data(), str.end());
 }
 
 bool StringList::empty() const

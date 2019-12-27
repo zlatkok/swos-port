@@ -47,8 +47,27 @@ public:
     };
 
     StringMap(size_t initialCapacity) : m_data(initialCapacity) {}
-    StringMap(const StringMap& rhs) : m_data(rhs.m_data), m_count(rhs.m_count), m_nodes(rhs.m_nodes) {
+    StringMap(const StringMap& rhs) : m_data(rhs.m_data) {
+        copy(rhs);
+    }
+    StringMap(StringMap&& rhs) : m_data(std::move(rhs.m_data)) {
+        m_count = std::exchange(rhs.m_count, 0);
+        m_nodes = std::exchange(rhs.m_nodes, nullptr);
+        m_end = std::exchange(rhs.m_end, nullptr);
+    }
+    StringMap& operator=(const StringMap& rhs) {
+        m_data = rhs.m_data;
+        copy(rhs);
+        return *this;
+    }
+    void copy(const StringMap& rhs) {
+        if (this == &rhs)
+            return;
+
         assert(rhs.m_nodes && rhs.m_end);
+
+        m_count = rhs.m_count;
+        m_nodes = rhs.m_nodes;
 
         auto endOffset = reinterpret_cast<char *>(rhs.m_end) - rhs.m_data.begin();
         auto nodesOffset = reinterpret_cast<char *>(rhs.m_nodes) - rhs.m_data.begin();
@@ -65,6 +84,9 @@ public:
     size_t count() const { return m_count; }
     bool empty() const { return size() != 0; }
     Iterator begin() const {
+        if (!m_count)
+            return end();
+
         auto node = reinterpret_cast<Node *>(m_data.begin());
 
         while (node->removed())
@@ -79,7 +101,7 @@ public:
 
     template<typename... Args>
     void add(const String& str, Args... args) {
-        add(str.str(), str.length(), Util::hash(str.str(), str.length()), args...);
+        add(str.data(), str.length(), Util::hash(str.data(), str.length()), args...);
     }
 
     template<typename... Args>
@@ -111,11 +133,11 @@ public:
     }
 
     T *get(const String& str) const {
-        return get(str, Util::hash(str.str(), str.length()));
+        return get(str, Util::hash(str.data(), str.length()));
     }
 
     T *get(const String& str, Util::hash_t hash) const {
-        return get(str.str(), str.length(), hash);
+        return get(str.data(), str.length(), hash);
     }
 
     T *get(CToken *token) const {
@@ -145,11 +167,11 @@ public:
     }
 
     std::vector<T *> getAll(const String& str, Util::hash_t hash) const {
-        return getAll(str.str(), str.length(), hash);
+        return getAll(str.data(), str.length(), hash);
     }
 
     std::vector<T *> getAll(const String& str) const {
-        return getAll(str.str(), str.length(), Util::hash(str.str(), str.length()));
+        return getAll(str.data(), str.length(), Util::hash(str.data(), str.length()));
     }
 
     std::vector<T *> getAll(CToken *token) const {
@@ -238,6 +260,7 @@ private:
             Util::assignSize(m_textLength, len);
             memcpy(textPtr(), str, len);
         }
+        Node(const Node&) = delete;
         static size_t requiredSize(size_t len) {
             return sizeof(Node) + len;
         }

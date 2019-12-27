@@ -52,7 +52,7 @@ void References::addReference(CToken *ref)
 void References::addReference(const String& str)
 {
     if (isReference(str))
-        m_references.add(str.str(), str.length());
+        m_references.add(str.data(), str.length());
 }
 
 void References::markImport(const String& str)

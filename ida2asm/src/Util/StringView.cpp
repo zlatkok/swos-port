@@ -55,7 +55,7 @@ String& String::operator=(String&& rhs)
     return *this;
 }
 
-const char *String::str() const
+const char *String::data() const
 {
     return m_str;
 }
@@ -159,7 +159,7 @@ int String::toInt() const
 
 String String::substr(int from, int len) const
 {
-    assert(from >= 0 && from < static_cast<int>(m_length) && (len < 0 || from + len <= static_cast<int>(m_length)));
+    assert(from >= 0 && from <= static_cast<int>(m_length) && (len < 0 || from + len <= static_cast<int>(m_length)));
 
     return String(m_str + from, len < 0 ? m_length - from : len);
 }
@@ -235,7 +235,7 @@ void String::swap(String& lhs, String& rhs)
 
 bool operator==(CToken *token, const String& str)
 {
-    return token->type <= Token::T_ID && token->textLength == str.length() && !memcmp(token->text(), str.str(), str.length());
+    return token->type <= Token::T_ID && token->textLength == str.length() && !memcmp(token->text(), str.data(), str.length());
 }
 
 bool operator==(const String& str, CToken *token)

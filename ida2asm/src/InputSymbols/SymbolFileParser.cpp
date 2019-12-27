@@ -127,11 +127,12 @@ bool SymbolFileParser::cOutput() const
     return m_cOutput;
 }
 
-String SymbolFileParser::exportedType(const String& var) const
+std::tuple<String, size_t, size_t> SymbolFileParser::exportedType(const String& var) const
 {
     auto type = m_exportTypes.get(var);
+
     if (type)
-        return { type->data(), type->length() };
+        return { type->str(), type->varOffset(), type->varLen() };
 
     return {};
 }
@@ -150,31 +151,35 @@ void SymbolFileParser::output68kRegisters()
 void SymbolFileParser::outputExports()
 {
     char buf[256];
-    int len = 0;
+    size_t len = 0;
 
     auto write = [&](const String& str) {
         assert(len + str.length() < sizeof(buf));
         str.copy(buf + len);
-        len += str.length();
+        return len += str.length();
     };
 
     for (const auto& exp : m_exportEntries) {
-        if (exp.prefix.length() + exp.type.length() + 20 >= sizeof(buf))
+        if (exp.type.length() + 20 >= sizeof(buf))
             error("export \"" + exp.symbol.string() + "\" too long");
-
-        len = 0;
 
         xfwrite("    extern ");
 
+        size_t varOffset = 0;
+        len = 0;
+
         if (exp.function || exp.functionPointer)
-            getExportFunctionDeclaration(exp, write);
+            varOffset = getExportFunctionDeclaration(exp, write);
         else
-            getExportVariableDeclaration(exp, write);
+            varOffset = getExportVariableDeclaration(exp, write);
+
+        auto varLen = exp.symbol.length();
+        varOffset -= varLen;
 
         xfwrite(buf, len);
 
         if (m_cOutput)
-            m_exportTypes.add(exp.symbol, buf, len);
+            m_exportTypes.add(exp.symbol, buf, len, varOffset, varLen);
 
         xfwrite(";\n");
     }
@@ -218,7 +223,7 @@ void SymbolFileParser::outputContiguousCTableInclude()
 }
 
 template <typename F>
-void SymbolFileParser::getExportFunctionDeclaration(const ExportEntry& exp, F write)
+size_t SymbolFileParser::getExportFunctionDeclaration(const ExportEntry& exp, F write)
 {
     assert(exp.function || exp.functionPointer);
 
@@ -227,18 +232,18 @@ void SymbolFileParser::getExportFunctionDeclaration(const ExportEntry& exp, F wr
     if (exp.functionPointer)
         write("(*");
 
-    if (!exp.prefix.empty())
-        write(exp.prefix);
-    write(exp.symbol);
+    size_t ofs = write(exp.symbol);
 
     if (exp.functionPointer)
         write(")");
 
     write("()");
+
+    return ofs;
 }
 
 template <typename F>
-void SymbolFileParser::getExportVariableDeclaration(const ExportEntry& exp, F write)
+size_t SymbolFileParser::getExportVariableDeclaration(const ExportEntry& exp, F write)
 {
     assert(!exp.function && !exp.functionPointer);
 
@@ -260,9 +265,7 @@ void SymbolFileParser::getExportVariableDeclaration(const ExportEntry& exp, F wr
     if (needsParens)
         write("(*");
 
-    if (!exp.prefix.empty())
-        write(exp.prefix);
-    write(exp.symbol);
+    size_t ofs = write(exp.symbol);
 
     if (needsParens)
         write(")");
@@ -276,6 +279,8 @@ void SymbolFileParser::getExportVariableDeclaration(const ExportEntry& exp, F wr
             write(exp.arraySize);
         write("]");
     }
+
+    return ofs;
 }
 
 void SymbolFileParser::parseSymbolFile()
@@ -632,24 +637,6 @@ const char *SymbolFileParser::addExportEntry(const char *start, const char *p)
 
     if (*p == ',') {
         std::tie(start, p) = getNextToken(p + 1);
-        auto len = p - start;
-
-        if (len >= 6 && (Util::isSpace(start[6]) || start[6] == ',') && !memcmp(start, "prefix", 6)) {
-            std::tie(start, p) = getNextToken(start + 6);
-            e.prefix = { start, p };
-            p = skipWhiteSpace(p);
-
-            if (e.prefix == ',')
-                error("missing prefix");
-
-            if (*p == '\n')
-                return p;
-
-            if (*p != ',')
-                error("expecting comma after prefix");
-
-            std::tie(start, p) = getNextToken(p + 1);
-        }
 
         KeywordType keyword;
         std::tie(keyword, p) = lookupKeyword(start, p);
@@ -861,7 +848,7 @@ void SymbolFileParser::xfwrite(const char *buf, size_t len)
 
 void SymbolFileParser::xfwrite(const String& str)
 {
-    xfwrite(str.str(), str.length());
+    xfwrite(str.data(), str.length());
 }
 
 template <size_t N> void SymbolFileParser::xfwrite(const char (&buf)[N])

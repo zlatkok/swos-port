@@ -104,12 +104,12 @@ void DefinesMap::add(const TokenList& leadingComments, CToken *comment, CToken *
 
 auto DefinesMap::get(const String& str) -> const Define *
 {
-    return get(str, Util::hash(str.str(), str.length()));
+    return get(str, Util::hash(str.data(), str.length()));
 }
 
 auto DefinesMap::get(const String& str, Util::hash_t hash) -> const Define *
 {
-    return m_defines.get(str.str(), str.length(), hash);
+    return m_defines.get(str.data(), str.length(), hash);
 }
 
 void DefinesMap::seal()

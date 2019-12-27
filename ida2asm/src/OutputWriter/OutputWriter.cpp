@@ -13,6 +13,11 @@ OutputWriter::~OutputWriter()
     closeOutputFile();
 }
 
+void OutputWriter::setGlobalStructVars(const StringMap<PascalString> *structVars)
+{
+    m_globalStructVars = structVars;
+}
+
 bool OutputWriter::openOutputFile(OutputFlags flags, int anticipatedSize /* = -1 */)
 {
     const auto& path = getOutputFilename(flags);
@@ -66,7 +71,7 @@ int OutputWriter::outputComment(const String& comment, int column /* = 0 */)
     bool isLeading = column == 0;
 
     for (size_t i = 0; i < comment.length(); i++) {
-        auto c = comment.str()[i];
+        auto c = comment.data()[i];
         if (c == '\t') {
             column = outputTab(column);
         } else {

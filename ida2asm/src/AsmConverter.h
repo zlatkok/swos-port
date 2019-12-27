@@ -27,6 +27,7 @@ private:
 
     AllowedChunkList connectRanges();
     void resolveExterns(const AllowedChunkList& activeChunks);
+    void gatherStructVariables();
 
     void collectSegments();
     void output(const String& commonPrefix, const AllowedChunkList& activeChunks);
@@ -56,4 +57,5 @@ private:
     std::vector<std::future<void>> m_futures;
 
     std::vector<SymbolTable *> m_symbolTables;
+    StringMap<PascalString> m_structVars;
 };

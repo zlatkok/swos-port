@@ -35,12 +35,12 @@ private:
             memcpy(endSymPtr(), endSym, endSymLen);
         }
         SymbolRangeHolder(SymbolAction action, const String& endSym)
-            : SymbolRangeHolder(action, endSym.str(), endSym.length()) {}
+            : SymbolRangeHolder(action, endSym.data(), endSym.length()) {}
         static size_t requiredSize(SymbolAction, const char *, size_t endSymLen) {
             return sizeof(SymbolRangeHolder) + endSymLen;
         }
         static size_t requiredSize(SymbolAction action, const String& endSym) {
-            return requiredSize(action, endSym.str(), endSym.length());
+            return requiredSize(action, endSym.data(), endSym.length());
         }
         SymbolAction action() const { return m_action; }
         void setAction(SymbolAction action) { m_action = action; }

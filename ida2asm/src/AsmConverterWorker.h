@@ -19,12 +19,14 @@ public:
         const StructStream& structs, const DefinesMap& defines);
     void setCImportSymbols(const StringList& syms);
     void setCExportSymbols(const StringList& syms);
+    void setGlobalStructVarsTable(const StringMap<PascalString> *structVars);
     std::pair<bool, bool> noBreakTagState() const;
     bool outputOk() const;
     std::string limitsError() const;
     std::string getOutputError() const;
     std::string filename() const;
     const IdaAsmParser& parser() const;
+    const StringMap<PascalString>& structVars() const;
     IdaAsmParser& parser();
     OutputWriter& outputWriter();
 
@@ -33,6 +35,8 @@ private:
     void resolveImports();
     void resolveStructsAndDefines(const StructStream& structs, const DefinesMap& defines);
     void ignoreContiguousTableExterns(const std::vector<const AsmConverterWorker *>& workers);
+    void gatherStructVars(const StructStream& structs);
+    StringMap<PascalString> getFirstMembersStructMap(const StructStream& structs);
     std::string segmentsOutput(CToken *openSegment);
     int getPreviousNonCommentLine(int offset) const;
     int getPreviousLine(int offset) const;
@@ -62,6 +66,9 @@ private:
     bool m_noBreakOverflow = false;
     bool m_noBreakContinued = false;
     bool m_outputOk = false;
+
+    StringMap<PascalString> m_structVars;
+    const StringMap<PascalString> *m_globalStructVars = nullptr;
 
     const SegmentSet *m_segments{};
 };

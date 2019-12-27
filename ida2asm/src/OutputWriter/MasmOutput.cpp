@@ -121,7 +121,7 @@ bool MasmOutput::outputExterns()
         const auto& refType = std::get<1>(ext);
         const auto& customType = std::get<2>(ext);
 
-        assert(name.length() && name.str());
+        assert(name.length() && name.data());
 
         out("extern ", name, ": ");
 
@@ -319,7 +319,7 @@ int MasmOutput::outputInstruction(const Instruction *instruction)
     auto instructionStart = column;
 
     if (instruction->type() == Token::T_PUSHFW || instruction->type() == Token::T_POPFW || instruction->type() == Token::T_RETFW)
-        column += out(String(instruction->instructionText().str(), instruction->instructionText().length() - 1));
+        column += out(String(instruction->instructionText().data(), instruction->instructionText().length() - 1));
     else
         column += out(instruction->instructionText());
 

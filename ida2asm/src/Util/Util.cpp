@@ -68,12 +68,14 @@ std::pair<const char *, long> Util::loadFile(const char *path, bool forceLastNew
 
     xfseek(f, 0, SEEK_END);
     auto size = ftell(f);
+    if (size < 0)
+        Util::exit("Seek operation failed on file: %s\n", 1, path);
     xfseek(f, 0, SEEK_SET);
 
     auto data = new char[size + 2 + forceLastNewLine];
 
     if (fread((void *)data, size, 1, f) != 1)
-        Util::exit("Error reading file %s", 1, path);
+        Util::exit("Error reading file: %s", 1, path);
 
     fclose(f);
 

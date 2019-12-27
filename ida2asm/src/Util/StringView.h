@@ -24,7 +24,7 @@ public:
     String& operator=(const String& rhs) = default;
     String& operator=(String&& rhs);
 
-    const char *str() const;
+    const char *data() const;
     size_t length() const;
 
     void copy(char *buf) const;
@@ -77,7 +77,7 @@ namespace std {
     template <>
     struct hash<String> {
         std::size_t operator()(const String& str) const {
-            return Util::hash(str.str(), str.length());
+            return Util::hash(str.data(), str.length());
         }
     };
 }

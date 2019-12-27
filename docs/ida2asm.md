@@ -68,7 +68,7 @@ extern "C" {
 C++ via the generated header file. Inside assembly files they will be prefixed with underscore, and made
 public. Syntax for exporting symbols is:
 ```
-<symbol> [, prefix <prefix>][, function |, (array | pointer | ptr | functionPointer) <type>['['<size>']'] |, <type>]
+<symbol> [, function |, (array | pointer | ptr | functionPointer) <type>['['<size>']'] |, <type>]
 ```
 
 SWOS assembly file contains large amount of symbols, and limiting exports to only the used ones helps
