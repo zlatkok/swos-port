@@ -499,7 +499,7 @@ void frameDelay(double factor /* = 1.0 */)
         return;
     }
 
-    constexpr double kTargetFps = 70;
+    constexpr double kTargetFps = 50;
 
     if (factor > 1.0) {
         // don't use busy wait in menus
