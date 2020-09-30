@@ -1,25 +1,11 @@
 #pragma once
 
-#include "swos.h"
-#include "swossym.h"
 #include "menuCodes.h"
 #include "util.h"
 #include "render.h"
 
 constexpr int kMenuStringLength = 70;
 constexpr int kMenuOffset = 8;
-
-static inline void prepareMenu(const BaseMenu& menu)
-{
-    A6 = &menu;
-    SWOS::PrepareMenu();
-}
-
-static inline void showMenu(const BaseMenu& menu)
-{
-    A6 = &menu;
-    SWOS::ShowMenu();
-}
 
 static inline void showError(const char *error)
 {
@@ -30,7 +16,7 @@ static inline void showError(const char *error)
 static inline bool showContinueAbortPrompt(const char *header, const char *continueText,
     const char *abortText, const std::vector<const char *>& message)
 {
-//    assert(message.size() < 7);
+    assert(message.size() < 7);
 
     A0 = header;
     A2 = continueText;
@@ -63,14 +49,14 @@ static inline bool showContinueAbortPrompt(const char *header, const char *conti
 
 static inline Menu *getCurrentMenu()
 {
-    return reinterpret_cast<Menu *>(g_currentMenu);
+    return reinterpret_cast<Menu *>(swos.g_currentMenu);
 }
 
 static inline MenuEntry *getMenuEntry(int ordinal)
 {
     assert(ordinal >= 0 && ordinal < 255);
 
-    auto ptr = g_currentMenu + sizeof(Menu) + ordinal * sizeof(MenuEntry);
+    auto ptr = reinterpret_cast<char *>(swos.g_currentMenu) + sizeof(Menu) + ordinal * sizeof(MenuEntry);
     return reinterpret_cast<MenuEntry *>(ptr);
 }
 
@@ -91,7 +77,7 @@ static inline void drawMenuText(int x, int y, const char *text, int color = kWhi
     D1 = x;
     D2 = y;
     D3 = color;
-    A1 = &smallCharsTable;
+    A1 = &swos.smallCharsTable;
     A0 = text;
     DrawMenuText();
 }
@@ -102,7 +88,7 @@ static inline void drawMenuTextCentered(int x, int y, const char *text, int colo
     D1 = x;
     D2 = y;
     D3 = color;
-    A1 = &smallCharsTable;
+    A1 = &swos.smallCharsTable;
     A0 = text;
     SAFE_INVOKE(DrawMenuTextCentered);
 }
@@ -113,20 +99,19 @@ static inline void drawMenuSprite(int x, int y, int index)
     D0 = index;
     D1 = x;
     D2 = y;
-//    SAFE_INVOKE(DrawSprite);
     drawSprite(index, x, y);
 }
 
 static inline void redrawMenuBackground()
 {
-    memcpy(linAdr384k, linAdr384k + 128 * 1024, 320 * 200);
+    memcpy(swos.linAdr384k, swos.linAdr384k + 128 * 1024, 320 * 200);
 }
 
 static inline void redrawMenuBackground(int lineFrom, int lineTo)
 {
     int offset = lineFrom * kMenuScreenWidth;
     int length = (lineTo - lineFrom) * kMenuScreenWidth;
-    memcpy(linAdr384k + offset, linAdr384k + 128 * 1024 + offset, length);
+    memcpy(swos.linAdr384k + offset, swos.linAdr384k + 128 * 1024 + offset, length);
 }
 
 static inline void selectEntry(MenuEntry *entry)
@@ -174,13 +159,17 @@ static inline bool inputText(char *destBuffer, int maxLength, bool allowExtraCha
 {
     A0 = destBuffer;
     D0 = maxLength;
-    g_allowExtraCharsFlag = allowExtraChars;
+    swos.g_allowExtraCharsFlag = allowExtraChars;
 
     SAFE_INVOKE(InputText);
 
     return D0.asWord() == 0;
 }
 
-int getStringPixelLength(const char *str, bool bigText = false);
-void elideString(char *str, int maxStrLen, int maxPixels, bool bigText = false);
+void showMenu(const BaseMenu& menu);
+void upackMenu(const void *src, char *dst = reinterpret_cast<char *>(swos.g_currentMenu));
+void restoreMenu(const void *menu, int selectedEntry);
+void activateMenu(const void *menu);
+const void *getCurrentPackedMenu();
+
 bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum);

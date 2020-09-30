@@ -250,7 +250,7 @@ Menu videoOptionsMenu
         width: kBigButtonWidth
         height: kBigButtonHeight
         textFlags: 0
-        text: aExit
+        text: swos.aExit
         color: kExitColor
         onSelect: ~SetExitMenuFlag
         upEntry: resolutionField5

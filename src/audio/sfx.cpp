@@ -17,7 +17,7 @@ SfxSamplesArray& sfxSamples()
 
 static int playSfx(SfxSampleIndex index, int volume = MIX_MAX_VOLUME, int loopCount = 0)
 {
-    if (g_soundOff)
+    if (swos.g_soundOff)
         return -1;
 
     assert(index >= 0 && index < kNumSoundEffects);
@@ -48,16 +48,12 @@ void stopBackgroudCrowdNoise()
 
 void SWOS::LoadSoundEffects()
 {
-    if (g_soundOff)
+    if (swos.g_soundOff)
         return;
 
     logInfo("Loading sound effects...");
 
-    goodPassTimer = 0;  // why is this here... >_<
-    playIntroChantSampleOffset = PlayIntroChantSample;
-    playFansChant8lOffset = PlayFansChant8lSample;
-    playFansChant10lOffset = PlayFansChant10lSample;
-    playFansChant4lOffset = PlayFansChant4lSample;
+    swos.goodPassTimer = 0;  // why is this here... >_<
 
     std::string prefix;
     bool hasAudioDir = dirExists(kAudioDir);
@@ -65,11 +61,11 @@ void SWOS::LoadSoundEffects()
         prefix = std::string(kAudioDir) + getDirSeparator();
 
     int i = 0;
-    for (auto p = soundEffectsTable; *p != kSentinel; p++, i++) {
+    for (auto p = swos.soundEffectsTable; *p != kSentinel; p++, i++) {
         if (m_sfxSamples[i].hasData())
             continue;
 
-        auto filename = *p;
+        auto filename = p->asPtr();
         if (hasAudioDir)
             filename += 4;  // skip "sfx\" prefix
 
@@ -84,7 +80,7 @@ void SWOS::PlayCrowdNoiseSample()
     // this is the first audio function to be called right before the game
     initGameAudio();
 
-    if (g_crowdChantsOn)
+    if (swos.g_crowdChantsOn)
         playCrowdNoiseSample();
 }
 

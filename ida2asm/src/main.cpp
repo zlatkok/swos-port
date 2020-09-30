@@ -3,7 +3,9 @@
 // (~2 minutes to process the SWOS ASM file), this one being blazing fast is simply a must!
 
 #include "Util.h"
-#include "AsmConverter.h"
+#include "InputSymbols/SymbolFileParser.h"
+#include "InputConverter.h"
+#include "OutputWriter/OutputFormatResolver.h"
 
 struct CommandLineParameters {
     const char *inputPath;
@@ -12,6 +14,8 @@ struct CommandLineParameters {
     const char *swosHeaderPath;
     const char *format;
     int numOutputFiles;
+    int extraMemorySize;
+    bool disableOptimizations;
 };
 
 constexpr int kMaxOutputFiles = 20;
@@ -19,8 +23,9 @@ constexpr int kMaxOutputFiles = 20;
 static CommandLineParameters getCommandLineParameters(int argc, char **argv)
 {
     if (argc < 2 || !strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))
-        Util::exit("usage: %s <input IDA asm file path> <output asm files path> <input symbols file> <SWOS header path> "
-            "<format> <number of output files>\n", EXIT_SUCCESS, Util::getFilename(argv[0]));
+        Util::exit("usage: %s <input IDA asm file path> <output asm files path> <input symbols file> <SWOS header path>\n"
+            "       <format> <number of output files> [--disable-optimizations] [--extra-memory-size=<int>]\n",
+            EXIT_SUCCESS, Util::getFilename(argv[0]));
 
     if (argc < 3)
         Util::exit("Missing output assembly file path.");
@@ -41,7 +46,21 @@ static CommandLineParameters getCommandLineParameters(int argc, char **argv)
     if (numFiles > kMaxOutputFiles)
         Util::exit("Too many output files given, it should be at most %d files.", EXIT_FAILURE, kMaxOutputFiles);
 
-    return { argv[1], argv[2], argv[3], argv[4], argv[5], numFiles, };
+    int extraMemorySize = 0;
+    bool disableOptimizations = false;
+    for (int i = 7; i < argc; i++) {
+        if (argv[i][0] == '-' && argv[i][1] == '-') {
+            constexpr char kExtraMemorySize[] = "extra-memory-size=";
+            if (!strcmp(argv[i] + 2, "disable-optimizations")) {
+                disableOptimizations = true;
+            } else if (!strncmp(argv[i] + 2, kExtraMemorySize, sizeof(kExtraMemorySize) - 1)) {
+                auto sizePtr = argv[i] + 2 + sizeof(kExtraMemorySize) - 1;
+                extraMemorySize = atoi(sizePtr);
+            }
+        }
+    }
+
+    return { argv[1], argv[2], argv[3], argv[4], argv[5], numFiles, extraMemorySize, disableOptimizations };
 }
 
 static auto start = std::chrono::high_resolution_clock::now();
@@ -51,7 +70,8 @@ int main(int argc, char **argv)
     atexit([]() {
         auto end = std::chrono::high_resolution_clock::now();
         int64_t timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-        std::cout << "Done. Elapsed time: " << Util::formatNumberWithCommas(timeElapsed) << "ms.\n";
+        if (timeElapsed > 3)
+            std::cout << "Done. Elapsed time: " << Util::formatDelimitedNumber(timeElapsed) << "ms.\n";
 #ifndef NDEBUG
         __debugbreak();
 #endif
@@ -59,8 +79,13 @@ int main(int argc, char **argv)
 
     auto params = getCommandLineParameters(argc, argv);
 
-    AsmConverter converter(params.inputPath, params.outputPath, params.symbolFilePath, params.swosHeaderPath,
-        params.format, params.numOutputFiles);
+    auto format = OutputFormatResolver::resolveOutputFormat(params.format);
+    if (format == OutputFormatResolver::kUnknown)
+        Util::exit("Unsupported format: %s, supported formats: [%s]", 1, params.format, OutputFormatResolver::getSupportedFormats().c_str());
+
+    SymbolFileParser symFileParser(params.symbolFilePath, params.swosHeaderPath, params.outputPath);
+    InputConverter converter(params.inputPath, params.outputPath, params.swosHeaderPath, format,
+        params.numOutputFiles, params.extraMemorySize, params.disableOptimizations, symFileParser);
     converter.convert();
 
     return EXIT_SUCCESS;

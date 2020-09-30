@@ -29,7 +29,7 @@ static void updateReplaysAndHighlightsState()
 {
     using namespace ReplaysMenu;
 
-    bool highlightsLoaded = highlightsValid() && hilNumGoals > 0;
+    bool highlightsLoaded = highlightsValid() && swos.hilNumGoals > 0;
     updateButtonState(highlightsLoaded, { viewHighlights, saveHighlights });
     updateButtonState(gotReplay(), { viewReplays, saveReplays });
 }
@@ -44,7 +44,7 @@ static void selectHighlightToLoad()
         if (loadHighlightsFile(selectedFilename.c_str()))
             highlightEntry(ReplaysMenu::viewHighlights);
         else
-            showError(aNotAHighlights);
+            showError(swos.aNotAHighlights);
     }
 
     updateReplaysAndHighlightsState();
@@ -52,9 +52,9 @@ static void selectHighlightToLoad()
 
 static bool saveHighlightsFile()
 {
-    if (hilFilename[0]) {
-        auto fileSize = hilNumGoals * kSingleHighlightBufferSize + kHilHeaderSize;
-        return saveFile(hilFilename, hilFileBuffer, fileSize);
+    if (swos.hilFilename[0]) {
+        auto fileSize = swos.hilNumGoals * kSingleHighlightBufferSize + kHilHeaderSize;
+        return saveFile(swos.hilFilename, swos.hilFileBuffer, fileSize);
     }
 
     return false;
@@ -65,8 +65,8 @@ static void selectHighlightToSave()
     auto files = findFiles(".HIL");
     auto menuTitle = "SAVE HIGHLIGHTS";
 
-    showSelectFilesMenu(menuTitle, files, ".HIL", hilFilename);
-    if (hilFilename[0] && !saveHighlightsFile())
+    showSelectFilesMenu(menuTitle, files, ".HIL", swos.hilFilename);
+    if (swos.hilFilename[0] && !saveHighlightsFile())
         showError("ERROR SAVING HIGHLIGHTS FILE");
 }
 
@@ -75,8 +75,8 @@ static void selectReplayToSave()
     auto files = findFiles(".rpl", ReplayData::kReplaysDir);
     auto menuTitle = "SAVE REPLAYS";
 
-    showSelectFilesMenu(menuTitle, files, ".RPL", hilFilename);
-    if (hilFilename[0] && !saveReplayFile(hilFilename))
+    showSelectFilesMenu(menuTitle, files, ".RPL", swos.hilFilename);
+    if (swos.hilFilename[0] && !saveReplayFile(swos.hilFilename))
         showError("ERROR SAVING REPLAY FILE");
 }
 

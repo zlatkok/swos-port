@@ -234,21 +234,21 @@ static void inputWindowHeight()
 
 static void setWindowedFieldsColor(bool selected)
 {
-    getMenuEntry(windowed)->textColor = selected ? kSelectedColor : kWhiteText;
+    getMenuEntry(windowed)->stringFlags = selected ? kSelectedColor : kWhiteText;
 }
 
 static void setBorderlessFieldsColor(bool selected)
 {
-    getMenuEntry(VideoOptionsMenu::borderlessMaximized)->textColor = selected ? kSelectedColor : kWhiteText;
+    getMenuEntry(VideoOptionsMenu::borderlessMaximized)->stringFlags = selected ? kSelectedColor : kWhiteText;
 }
 
 static void setFullScreenFieldsColor(bool selected)
 {
-    int textColor = selected ? kSelectedColor : kWhiteText;
+    int stringFlags = selected ? kSelectedColor : kWhiteText;
     if (m_resolutions.empty())
-        textColor = kGrayText;
+        stringFlags = kGrayText;
 
-    getMenuEntry(fullScreen)->textColor = textColor;
+    getMenuEntry(fullScreen)->stringFlags = stringFlags;
 }
 
 static void highlightCurrentMode()
@@ -292,7 +292,7 @@ static void highlightCurrentMode()
 
 static void videoOptionsMenuOnDraw()
 {
-    if (g_inputingText)
+    if (swos.g_inputingText)
         return;
 
     static int lastDisplayIndex = -1;

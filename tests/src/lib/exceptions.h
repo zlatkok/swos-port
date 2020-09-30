@@ -17,7 +17,7 @@ namespace SWOS_UnitTest
         }
 
         static std::string getEntryStringWithOrdinal(const MenuEntry *entry) {
-            return std::string("menu entry #") + std::to_string(entry->ordinal);
+            return "menu entry #" + std::to_string(entry->ordinal);
         }
 
     protected:
@@ -27,7 +27,7 @@ namespace SWOS_UnitTest
     struct AssertionException : public BaseException
     {
         AssertionException(const char *assertExpStr, const char *file, int line) : BaseException(file, line) {
-            m_error += std::string("assertion failed: ") + assertExpStr;
+            m_error += "assertion failed: "s + assertExpStr;
         }
     };
 
@@ -127,13 +127,13 @@ namespace SWOS_UnitTest
         static inline std::string stringify(T *t) {
             char buf[32];
             _itoa(reinterpret_cast<int>(t), buf, 16);
-            return std::string("0x") + buf;
+            return "0x"s + buf;
         }
         static inline std::string stringify(char *str) {
-            return std::string("\"") + str + '"';
+            return "\""s + str + '"';
         }
         static inline std::string stringify(const char *str) {
-            return std::string("\"") + str + '"';
+            return "\""s + str + '"';
         }
         static inline std::string stringify(const std::string& str) {
             return '"' + str + '"';
@@ -144,7 +144,7 @@ namespace SWOS_UnitTest
     {
         FailedAssertTrueException(const char *exprStr, const char *file, int line)
             : BaseException(file, line) {
-            m_error += std::string("assert failed, expression ") + exprStr + " is false";
+            m_error += "assert failed, expression "s + exprStr + " is false";
         }
     };
 

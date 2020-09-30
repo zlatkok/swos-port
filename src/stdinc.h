@@ -38,3 +38,10 @@
 # include "vm.h"
 # define __declspec(naked)
 #endif
+
+using namespace std::string_literals;
+
+#ifndef _WIN64
+# define PTR32
+static_assert(sizeof(void *) == 4, "Define pointer size");
+#endif

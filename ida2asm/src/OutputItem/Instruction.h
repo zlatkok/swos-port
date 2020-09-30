@@ -21,6 +21,7 @@ public:
     };
 
     static constexpr int kMaxOperands = 3;
+    static constexpr int kRegSize = 4;
 
     using OperandTokens = std::array<CToken *, kMaxOperands * 2>;
     using OperandSizes = std::array<uint8_t, kMaxOperands>;
@@ -34,6 +35,7 @@ public:
     String prefix() const;
     Token::Type type() const;
     bool isBranch() const;
+    String getBranchTarget() const;
     bool isShiftRotate() const;
     OperandSizes operandSizes() const;
     OperandTypes operandTypes() const;

@@ -30,9 +30,8 @@ public:
         const References& references, const OutputItemStream& outputItems);
     virtual ~OutputWriter();
     virtual void setOutputPrefix(const std::string& prefix) = 0;
-    virtual void setCImportSymbols(const StringList *syms) {}
+    virtual void setCImportSymbols(const StringSet *syms) {}
     virtual void setCExportSymbols(const StringList *syms) {}
-    virtual void setGlobalStructVars(const StringMap<PascalString> *structVars);
     virtual void setDisassemblyPrefix(const std::string& prefix) = 0;
     virtual bool output(OutputFlags flags, CToken *openingSegment = nullptr) = 0;
     virtual const char *getDefsFilename() const = 0;
@@ -66,7 +65,6 @@ protected:
     const DefinesMap& m_defines;
     const References& m_references;
     const OutputItemStream& m_outputItems;
-    const StringMap<PascalString> *m_globalStructVars = nullptr;
 
 #include "OutputWriterTemplates.h"
 

@@ -58,8 +58,8 @@ public:
         // followed by optional text, and optional address offset
     };
 
-    const Element *begin() const;
-    Element *begin();
+    const Element *initialElement() const;
+    Element *initialElement();
 
 private:
     static constexpr int kContiguousDataFlag = 0x80;

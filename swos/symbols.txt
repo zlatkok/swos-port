@@ -21,6 +21,13 @@ OptionsMenuBeforeDraw
 ValidateHilPointerAdd - SaveHighlightsPointers
 ResetAnimatedPatterns
 FindFiles
+ShowRestOfPics - StartingMatch
+InitMenuEntry - Int2Ascii
+DrawTeamNameSprites
+
+# menus
+RestorePreviousMenu
+g_currentMenuPtr
 
 # CD ROM routines
 CDROM_GetInfo - Text2Sprite
@@ -44,7 +51,7 @@ PlayGoodJumpHeaderComment
 cseg_98EFD
 cseg_9A9E1 - dseg
 dataStart - aChairmanScenes
-goalSamples - aSfxPierceM158_
+introTeamChantIndices - aSfxPierceM158_
 headerSamples - PIT_countdown
 aSwos_xmi - timerBoolean
 aAsave_256 - dosMemSegment
@@ -83,6 +90,9 @@ aDemo_dat
 # extend this range when removing options menu
 aDemo1_car - friendlyGameMenu
 optionsMenu - pitchTypeStrTable
+menuX - spriteGraphicsPtr
+menuSize - g_exitMenu
+europeanChampionshipMenu - versusMenu
 
 # highlights
 HighlightsMenu
@@ -131,7 +141,7 @@ PlayChairmanScene
 #
 
 @replace
-# careful when changing strings, as offsets must not change
+# be careful when changing strings, as offsets must not change
 aCommentary, 'COMMENTARY****', 0
 aQuitToDos, 'QUIT TO WINDOWS', 0
 
@@ -242,16 +252,13 @@ DrawMenu, function
 DrawMenuItem, function
 DrawMenuText, function
 DrawMenuTextCentered, function
-SetCurrentEntry, function
-ConvertMenu, function
 CommonMenuExit, function
-RestorePreviousMenu, function
 SetExitMenuFlag, function
 CalcMenuEntryAddress, function
 ShowErrorMenu, function
 DoContinueAbortMenu, function
-g_currentMenu, array char[6500]
-g_currentMenuPtr, BaseMenu *
+# enforce dword alignment
+g_currentMenu, array dword[1625]
 previousMenuItem, MenuEntry *
 g_exitMenu, word
 player1ClearFlag, word
@@ -386,7 +393,7 @@ numSpritesToRender, word
 spritesIndex, array SpriteGraphics *
 sortedSprites, array Sprite * [79]
 numSpritesSaved, word
-spriteGraphicsPtr, array SpriteGraphics *(*)
+spriteGraphicsPtr, SpriteGraphics **
 spriteFixupFlag, word
 aSprite_dat, array const char
 
@@ -394,7 +401,7 @@ aSprite_dat, array const char
 RestoreHighlightPointers, function
 HandleInstantReplayStateSwitch, function
 FadeAndSaveReplay, function
-ViewHighlightsWrapper, function
+ViewHighlights, function
 SetHilFileHeader, function
 hilStartOfGoalsBuffer, array char
 hilFileBuffer, array char
@@ -500,18 +507,13 @@ substituteSampleTimer, int16_t
 tacticsChangedSampleTimer, int16_t
 goalCounter, int16_t
 
-playIntroChantSampleOffset, functionPointer
-playFansChant8lOffset, functionPointer
-playFansChant10lOffset, functionPointer
-playFansChant4lOffset, functionPointer
 goodPassTimer, word
 soundEffectsTable, array const char *
-introTeamChantIndices, array const int8_t[16]
 introTeamChantsTable, array const char *
 loadCrowdChantSampleFlag, word
 
 performingPenalty, word
-penaltiesState, word
+penaltiesState, int16_t
 
 resultChantFilenames, array const char *
 endGameCrowdSamples, array const char *
@@ -617,19 +619,18 @@ fireResetFlag, word
 dseg_10E848, word
 dseg_10E846, word
 dseg_11F41C, word
-dseg_11F41E, word
 coachOrPlayer, word
 plNationality, byte
 competitionOver, word
 g_numSelectedTeams, word
 teamsLoaded, word
 poolplyrLoaded, word
-importTacticsFilename, array char[14]
+importTacticsFilename, array char[256]
 chooseTacticsTeamPtr, void *
 leftTeamIngame, TeamGame
 rightTeamIngame, TeamGame
-leftTeamData, TeamGeneralInfo
-rightTeamData, TeamGeneralInfo
+topTeamData, TeamGeneralInfo
+bottomTeamData, TeamGeneralInfo
 lastTeamPlayed, TeamGeneralInfo *
 g_trainingGame, word
 team1GoalsDigit2, word
@@ -679,7 +680,7 @@ gameTime, array byte[4]
 chosenTactics, word
 
 ### debug dump
-AI_team_num_maybe, word
+AI_attackHalf, word
 
 
 #
@@ -747,9 +748,12 @@ InitMainMenuStuff
 
 # menus
 MenuProc
+ShowMenu
+UnpackMenu
+ActivateMenu
+SetCurrentEntry
 FlipInMenu
 SetPalette
-ShowMenu
 
 # sprites
 DrawSpriteInCameraView
@@ -777,10 +781,10 @@ PlayHighlightsLoop
 ReplayFrame
 PlayInstantReplayLoop
 SaveCoordinatesForHighlights
+ViewHighlightsWrapper
 
 DrawSprites
 OptionsMenuSelected
-PrepareMenu
 
 # commentary/sfx
 LoadCommentary
@@ -844,3 +848,11 @@ ExitEuropeanChampionshipMenu
 #DrawBenchAndSubsMenu
 ResetTime
 UpdateTime
+
+#
+# Let ida2asm know about the sizes of types used in the export section so it can generate offsets properly.
+#
+
+@type-sizes
+PackedMenu, 16
+GameState, 2

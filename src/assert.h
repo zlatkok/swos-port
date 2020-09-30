@@ -16,6 +16,10 @@ namespace SWOS_UnitTest {
 #elif defined(NDEBUG)
 # define assert(e) ((void)0)
 #else
-# define assert(e) \
-    { if (!(e)) { debugBreak(); } }
+template<typename T>
+void assert(T t)
+{
+    if (!t)
+        debugBreak();
+}
 #endif

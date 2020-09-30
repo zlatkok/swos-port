@@ -1,32 +1,188 @@
 #pragma once
 
-typedef uint32_t dword;
-typedef uint16_t word;
-typedef uint8_t byte;
+#include "fetch.h"
+
+using dword = uint32_t;
+using word = uint16_t;
+using byte = uint8_t;
 
 #pragma pack(push, 1)
+#ifdef SWOS_VM
+// dependency cycle breaker
+namespace SwosVM {
+    extern inline dword ptrToOffset(const void *ptr);
+    extern inline char *offsetToPtr(dword offset);
+    using VoidFunction = void(*)();
+    extern VoidFunction fetchProc(int index);
+    extern void invokeProc(int index);
+    enum class Offsets : dword;
+    enum class Procs : int;
+}
+
+template<typename Type>
+class SwosDataPointer
+{
+public:
+    SwosDataPointer(Type *t) {
+        assert(reinterpret_cast<uintptr_t>(&m_offset) % 4 == 0);
+        m_offset = SwosVM::ptrToOffset(t);
+    }
+    constexpr SwosDataPointer(dword offset) : m_offset(offset) {}
+    constexpr SwosDataPointer(SwosVM::Offsets offset) : m_offset(static_cast<dword>(offset)) {}
+    SwosDataPointer& operator=(Type *t) {
+        assert(reinterpret_cast<uintptr_t>(&m_offset) % 4 == 0);
+        m_offset = SwosVM::ptrToOffset(t);
+        return *this;
+    }
+    template<typename PtrType, std::enable_if_t<std::is_pointer<PtrType>::value, int> = 0>
+    void loadFrom(PtrType ptr) {
+        auto offset = fetch((dword *)ptr);
+        assert(offset == -1 || (SwosVM::offsetToPtr(offset), true));
+        store(&m_offset, offset);
+    }
+    void set(dword offset) {
+        assert((SwosVM::offsetToPtr(offset), true));
+        store(&m_offset, offset);
+    }
+    void setRaw(dword val) {
+        store(&m_offset, val);
+    }
+    void set(Type *t) {
+        auto offset = SwosVM::ptrToOffset(t);
+        store(&m_offset, offset);
+    }
+    operator Type *() { return get(); }
+    operator const Type *() const { return get(); }
+    Type *operator->() { return get(); }
+    const Type *operator->() const { return get(); }
+    SwosDataPointer operator++(int) {
+        auto tmp(*this);
+        m_offset += sizeof(Type);
+        assert((SwosVM::offsetToPtr(m_offset), true));
+        return tmp;
+    }
+    SwosDataPointer operator++() {
+        return operator+=(sizeof(Type));
+    }
+    SwosDataPointer& operator--(int) {
+        auto tmp(*this);
+        m_offset -= sizeof(Type);
+        assert((SwosVM::offsetToPtr(m_offset), true));
+        return tmp;
+    }
+    SwosDataPointer& operator--() {
+        return operator+=(-static_cast<int>(sizeof(Type)));
+    }
+    SwosDataPointer& operator+=(int inc) {
+        m_offset += inc;
+        assert((SwosVM::offsetToPtr(m_offset), true));
+        return *this;
+    }
+    SwosDataPointer& operator-=(int inc) {
+        return operator+=(-inc);
+    }
+    template <typename T> T as() { return reinterpret_cast<T>(get()); }
+    template <typename T> T asAligned() const {
+        auto offset = fetch(&m_offset);
+        assert((SwosVM::offsetToPtr(offset), true));
+        return reinterpret_cast<T>(SwosVM::offsetToPtr(offset));
+    }
+    const Type *asConst() const { return get(); }
+    Type *asPtr() const { return (Type *)get(); }
+    const char *asCharPtr() const { return (const char *)get(); }
+    const char *asAlignedConstCharPtr() const { return asAligned<const char *>(); }
+    char *asAlignedCharPtr() { return asAligned<char *>(); }
+    char *asCharPtr() { return (char *)get(); }
+    dword getRaw() const { return m_offset; }
+
+private:
+    Type *get() const {
+        assert(reinterpret_cast<uintptr_t>(&m_offset) % 4 == 0);
+        return reinterpret_cast<Type *>(SwosVM::offsetToPtr(m_offset));
+    }
+
+    dword m_offset;
+};
+
+static_assert(sizeof(SwosDataPointer<char>) == 4, "SWOS VM data pointers must be 32-bit");
+
+class SwosProcPointer
+{
+    int32_t m_index;
+public:
+    SwosProcPointer() {}
+    constexpr SwosProcPointer(int index) : m_index(index) {}
+    constexpr SwosProcPointer(SwosVM::Procs index) : m_index(static_cast<int>(index)) {}
+    int32_t index() const { return m_index; }
+    SwosProcPointer& operator=(const SwosProcPointer *other) {
+        assert(reinterpret_cast<uintptr_t>(&m_index) % 4 == 0);
+        assert(!other || SwosVM::fetchProc(other->m_index));
+        m_index = other ? other->m_index : -1;
+        return *this;
+    }
+    template<typename PtrType, std::enable_if_t<std::is_pointer<PtrType>::value, int> = 0>
+    void loadFrom(PtrType ptr) {
+        auto index = fetch((int *)ptr);
+        assert(SwosVM::fetchProc(index));
+        store(&m_index, index);
+    }
+    void set(int index) {
+        assert(SwosVM::fetchProc(index));
+        store(&m_index, index);
+    }
+    void clearAligned() {
+        store(&m_index, 0);
+    }
+    explicit operator bool() { return m_index && m_index != -1; }
+    void operator()() { SwosVM::invokeProc(m_index); }
+    bool operator==(SwosVM::VoidFunction proc) const {
+        return SwosVM::fetchProc(m_index) == proc;
+    }
+};
+
+#else
+# error "Define SWOS Proc & Data Pointers"
+#endif
+
 struct MenuEntry;
 
 struct BaseMenu {};
-struct PackedMenu : BaseMenu {};
+struct PackedMenu : BaseMenu
+{
+    SwosProcPointer onInit;
+    SwosProcPointer onReturn;
+    SwosProcPointer onDraw;
+    dword initialEntry;
 
-struct Menu {
-    void(*onInit)();
-    void(*onReturn)();
-    void(*onDraw)();
-    MenuEntry *selectedEntry;
-    word numEntries;
-    char *endOfMenuPtr;
+    const int16_t *data() const {
+        return (int16_t *)(this + 1);
+    }
 };
 
-enum MenuEntryBackgroundType : word {
+struct Menu
+{
+    SwosProcPointer onInit;
+    SwosProcPointer onReturn;
+    SwosProcPointer onDraw;
+    SwosDataPointer<MenuEntry> selectedEntry;
+    word numEntries;
+    SwosDataPointer<char> endOfMenuPtr;
+
+    MenuEntry *entries() const {
+        return (MenuEntry *)(this + 1);
+    }
+};
+
+enum MenuEntryBackgroundType : word
+{
     kEntryNoBackground = 0,
     kEntryFunc1 = 1,
     kEntryFrameAndBackColor = 2,
     kEntrySprite1 = 3,
 };
 
-enum MenuEntryContentType : word {
+enum MenuEntryContentType : word
+{
     kEntryNoForeground = 0,
     kEntryFunc2 = 1,
     kEntryString = 2,
@@ -37,24 +193,67 @@ enum MenuEntryContentType : word {
     kEntrySpriteCopy = 7,
 };
 
-struct StringTable {
-    int16_t *index;
+template<typename T>
+const char **getTrailingStrings(const T *t)
+{
+    return (const char **)(t + 1);
+}
+
+struct StringTable
+{
+    SwosDataPointer<int16_t> index;
     int16_t initialValue;
-    // followed by string pointers
+    // followed by char pointers
 
     StringTable(int16_t *index, int16_t initialValue) : index(index), initialValue(initialValue) {}
-    char **getStringTable() const {
-        return (char **)((char *)this + sizeof(*this));
+};
+
+struct StringTableNative
+{
+    union {
+        int16_t *nativeIndex;
+        SwosDataPointer<int16_t> index;
+    };
+    int16_t initialValue;
+    int16_t numPointers;
+    // followed by char pointers
+    // followed by bool array marking which pointer is native
+
+    constexpr StringTableNative(int16_t *indexPtr, int16_t initialValue, int16_t numPointers)
+        : nativeIndex(indexPtr), initialValue(initialValue), numPointers(numPointers) {}
+
+    const char *operator[](size_t index) const {
+        assert(index < static_cast<size_t>(numPointers));
+        return fetch<char *>(getTrailingStrings(this) + index);
     }
-    char *currentString() const {
-        if (!index || *index < 0)
-            return nullptr;
-        else
-            return getStringTable()[*index];
+
+    const bool *getNativeFlags() const {
+        return reinterpret_cast<const bool *>(getTrailingStrings(this) + numPointers);
+    }
+
+    bool isIndexPointerNative() const {
+        return getNativeFlags()[0];
+    }
+
+    bool isNativeString(size_t index) const {
+        assert(index < static_cast<size_t>(numPointers));
+        return getNativeFlags()[index + 1];
     }
 };
 
-struct CharTable {
+struct MultiLineTextNative
+{
+    byte numLines;
+    // followed by char pointers
+
+    const char *operator[](size_t index) const {
+        assert(index < numLines);
+        return fetch<char *>(getTrailingStrings(this) + index);
+    }
+};
+
+struct CharTable
+{
     word unk1;
     word charHeight;
     dword unk2;
@@ -64,7 +263,8 @@ struct CharTable {
     char conversionTable[224];
 };
 
-struct MenuEntry {
+struct MenuEntry
+{
     word drawn;
     word ordinal;
     word invisible;
@@ -86,27 +286,31 @@ struct MenuEntry {
     word width;
     word height;
     MenuEntryBackgroundType type1;
-    union {
-        void (*entryFunc)(word, word);
+    union BackgroundData {
+        BackgroundData() {}
+        SwosProcPointer entryFunc;
         word entryColor;
         word spriteIndex;
     } u1;
     MenuEntryContentType type2;
-    word textColor;
-    union {
-        void (*entryFunc2)(word, word);
-        char *string;
-        const char *constString;
+    word stringFlags;
+    union ContentData {
+        ContentData() {}
+        SwosProcPointer entryFunc2;
+        SwosDataPointer<char> string;
+        SwosDataPointer<const char> constString;
         word spriteIndex;
-        StringTable *stringTable;
-        void *multiLineText;
+        SwosDataPointer<StringTable> stringTable;
+        SwosDataPointer<void> multiLineText;
         word number;
-        void *spriteCopy;
+        SwosDataPointer<void> spriteCopy;
     } u2;
-    void (*onSelect)();
+    SwosProcPointer onSelect;
     int16_t controlMask;
-    void (*beforeDraw)();
-    void (*afterDraw)();
+    SwosProcPointer beforeDraw;
+    SwosProcPointer onReturn;
+
+    MenuEntry() {}
 
     enum Direction {
         kInitialDirection,
@@ -126,7 +330,7 @@ struct MenuEntry {
         case kEntryStringTable: return "string table";
         case kEntryMultiLineText: return "multi-line string";
         case kEntryNumber: return "number";
-        case kEntrySpriteCopy: "sprite copy";
+        case kEntrySpriteCopy: return "sprite copy";
         default: assert(false); return "";
         }
     }
@@ -160,15 +364,15 @@ struct MenuEntry {
     }
     char *string() {
         assert(type2 == kEntryString);
-        return u2.string;
+        return u2.string.asAlignedCharPtr();
     }
     const char *string() const {
         assert(type2 == kEntryString);
-        return u2.string;
+        return u2.string.asAlignedConstCharPtr();
     }
     void setString(char *str) {
         assert(type2 == kEntryString);
-        u2.string = str;
+        u2.string.set(str);
     }
     void setBackgroundColor(int color) {
         u1.entryColor = color;
@@ -179,41 +383,40 @@ constexpr int kStdMenuTextSize = 70;
 
 /* sprite graphics structure - from *.dat files */
 struct SpriteGraphics {
-    char *data;         /* pointer to actual graphics                       */
-    char unk1[6];       /* unknown                                          */
-    int16_t width;      /* width                                            */
-    int16_t height;     /* height                                           */
-    int16_t wquads;     /* (number of bytes / 8) in one line                */
-    int16_t centerX;    /* center x coordinate                              */
-    int16_t centerY;    /* center y coordinate                              */
-    byte unk2;          /* unknown                                          */
-    byte nlinesDiv4;    /* height / 4                                       */
-    short ordinal;      /* ordinal number in sprite.dat                     */
+    SwosDataPointer<char> data; /* pointer to actual graphics                       */
+    char unk1[6];               /* unknown                                          */
+    int16_t width;              /* width                                            */
+    int16_t height;             /* height                                           */
+    int16_t wquads;             /* (number of bytes / 8) in one line                */
+    int16_t centerX;            /* center x coordinate                              */
+    int16_t centerY;            /* center y coordinate                              */
+    byte unk2;                  /* unknown                                          */
+    byte nlinesDiv4;            /* height / 4                                       */
+    int16_t ordinal;            /* ordinal number in sprite.dat                     */
 
     int bytesPerLine() const {
         return wquads * 8;
     }
-
     int size() const {
         return sizeof(SpriteGraphics) + height * wquads * 8;
     }
-
     SpriteGraphics *next() const {
         return reinterpret_cast<SpriteGraphics *>((char *)this + size());
     }
 };
 
-struct Sprite {
+struct Sprite
+{
     word teamNumber;    // 1 or 2 for player controls, 0 for CPU
     word shirtNumber;   // 1-11 for players, 0 for other sprites
     word frameOffset;
-    void *animTablePtr;
+    SwosDataPointer<void> animTablePtr;
     word startingDirection;
     byte playerState;
     byte playerDownTimer;
     word unk001;
     word unk002;
-    void *frameIndicesTable;
+    SwosDataPointer<void> frameIndicesTable;
     word frameIndex;
     word frameDelay;
     word cycleFramesTimer;
@@ -254,7 +457,8 @@ struct Sprite {
     word sentAway;
 };
 
-struct PlayerGame {
+struct PlayerGame
+{
     byte substituted;
     byte index;
     byte goalsScored;
@@ -282,7 +486,8 @@ struct PlayerGame {
     char fullName[23];
 };
 
-struct TeamStatsData {
+struct TeamStatsData
+{
     word ballPossession;
     word cornersWon;
     word foulsConceded;
@@ -292,14 +497,16 @@ struct TeamStatsData {
     word onTarget;
 };
 
-enum TeamControls : byte {
+enum TeamControls : byte
+{
     kTeamNotSelected = 0,
     kComputerTeam = 1,
     kPlayerCoach = 2,
     kCoach = 3,
 };
 
-struct TeamFile {
+struct TeamFile
+{
     byte teamFileNo;
     byte teamOrdinal;
     word globalTeamNumber;
@@ -326,7 +533,8 @@ struct TeamFile {
 
 static_assert(sizeof(TeamFile) == 76, "TeamFile is invalid");
 
-struct PlayerFile {
+struct PlayerFile
+{
     byte nationality;
     byte unk_1;
     byte shirtNumber;
@@ -352,7 +560,8 @@ struct PlayerFileHeader : private TeamFile, public PlayerFile {
 
 static_assert(sizeof(PlayerFileHeader) == sizeof(TeamFile) + sizeof(PlayerFile), "PlayerFileHeader invalid");
 
-struct TeamGame {
+struct TeamGame
+{
     word prShirtType;
     word prShirtCol;
     word prStripesCol;
@@ -377,20 +586,21 @@ struct PlayerGameHeader : private TeamGame, public PlayerGame {
 
 static_assert(sizeof(PlayerGameHeader) == sizeof(TeamGame) + sizeof(PlayerGame), "PlayerGameHeader invalid");
 
-struct TeamGeneralInfo {
-    TeamGeneralInfo *opponentsTeam;
+struct TeamGeneralInfo
+{
+    SwosDataPointer<TeamGeneralInfo> opponentsTeam;
     word playerNumber;
     word plCoachNum;
     word isPlCoach;
-    TeamGame *inGameTeamPtr;
-    TeamStatsData *teamStatsPtr;
+    SwosDataPointer<TeamGame> inGameTeamPtr;
+    SwosDataPointer<TeamStatsData> teamStatsPtr;
     word teamNumber;
-    Sprite *(*players)[11];
-    void *someTablePtr;
+    SwosDataPointer<Sprite[11]> players;
+    SwosDataPointer<void> someTablePtr;
     word tactics;
     word tensTimer;
-    Sprite *controlledPlayerSprite;
-    Sprite *passToPlayerPtr;
+    SwosDataPointer<Sprite> controlledPlayerSprite;
+    SwosDataPointer<Sprite> passToPlayerPtr;
     word playerHasBall;
     word playerHadBall;
     word currentAllowedDirection;
@@ -414,7 +624,7 @@ struct TeamGeneralInfo {
     byte ballAbove17;
     byte prevPlVeryCloseToBall;
     word ofs70;
-    Sprite *lastHeadingPlayer;
+    SwosDataPointer<Sprite> lastHeadingPlayer;
     word goalkeeperSavedCommentTimer;
     word ofs78;
     word goalkeeperJumpingRight;
@@ -429,7 +639,7 @@ struct TeamGeneralInfo {
     word ballX;
     word ballY;
     word passKickTimer;
-    Sprite *passingKickingPlayer;
+    SwosDataPointer<Sprite> passingKickingPlayer;
     word ofs108;
     word ballCanBeControlled;
     word ballControllingPlayerDirection;
@@ -450,12 +660,15 @@ struct TeamGeneralInfo {
     word resetControls;
     byte joy1SecondaryFire;
 };
+constexpr int xsrf = sizeof(TeamGeneralInfo);
 static_assert(sizeof(TeamGeneralInfo) == 145, "TeamGeneralInfo is invalid");
 #pragma pack(pop)
 
-enum SpriteIndices {
+enum SpriteIndices
+{
     kUpArrowSprite = 183,
     kDownArrowSprite = 184,
+    kMaxMenuSprite = 226,
     kSquareGridForResultSprite = 252,
     kBigZeroSprite = 287,
     kBigZero2Sprite = 297,
@@ -467,10 +680,11 @@ enum SpriteIndices {
     kTimeSprite118Mins = 330,
     kBigTimeDigitSprite0 = 331,
     kReplayFrame00Sprite = 1209,
-    kEndSprite = 1334,
+    kNumSprites = 1334,
 };
 
-enum GameTypes {
+enum GameTypes
+{
     kGameTypeNoGame = 0,
     kGameTypeDiyCompetition = 1,
     kGameTypePresetCompetition = 2,
@@ -478,7 +692,8 @@ enum GameTypes {
     kGameTypeSeason = 3,
 };
 
-enum TextColors {
+enum TextColors
+{
     kWhiteText = 0,
     kDarkGrayText = 1,
     kWhiteText2 = 2,
@@ -499,7 +714,8 @@ enum TextColors {
     kBigText = 1 << 4, kBigFont = 1 << 4,
 };
 
-enum MenuEntryBackgrounds {
+enum MenuEntryBackgrounds
+{
     kNoBackground = 0,
     kNoFrame = 0,
     kGray = 7,
@@ -512,7 +728,8 @@ enum MenuEntryBackgrounds {
     kGreen = 14,
 };
 
-enum PCKeys {
+enum PCKeys
+{
     kKeyEscape     = 0x01,
     kKey1          = 0x02,
     kKey2          = 0x03,
@@ -545,7 +762,8 @@ enum PCKeys {
 
 constexpr int kCursorChar = -1;
 
-enum Nationalities {
+enum Nationalities
+{
     kAlb = 0,     kPol = 26,    kSal = 52,    kGuy = 78,    kZim = 104,    kMly = 130,
     kAut = 1,     kPor = 27,    kGua = 53,    kPer = 79,    kEgy = 105,    kSau = 131,
     kBel = 2,     kRom = 28,    kHon = 54,    kAlg = 80,    kTan = 106,    kYem = 132,
@@ -574,7 +792,8 @@ enum Nationalities {
     kNor = 25,    kCrc = 51,    kVen = 77,    kTog = 103,   kVie = 129,
 };
 
-enum Tactics {
+enum Tactics
+{
     kTacticDefault = 0,
     kTactic_541 = 1,
     kTactic_451 = 2,
@@ -596,7 +815,8 @@ enum Tactics {
     kTacticImported = 1000,
 };
 
-enum class GameState : word {
+enum class GameState : word
+{
     kGameStarting = 0,
     kInProgress = 100,
     kStopped = 101,
@@ -612,9 +832,4 @@ static constexpr int kHilHeaderSize = 3'626;
 constexpr int kSingleHighlightBufferSize = 19'000;
 
 // can't keep this a constexpr in C++17 anymore, sigh...
-#if _HAS_CXX17
-static const
-#else
-constexpr
-#endif
-char *kSentinel = reinterpret_cast<char *>(-1);
+static char *kSentinel = reinterpret_cast<char *>(-1);

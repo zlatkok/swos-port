@@ -189,7 +189,7 @@ static void updateJoypadValues()
 
 static void fillRectangle(int x1, int y1, int x2, int y2, int color)
 {
-    auto dest = linAdr384k + y1 * kMenuScreenWidth + x1;
+    auto dest = swos.linAdr384k + y1 * kMenuScreenWidth + x1;
     auto width = x2 - x1 + 1;
 
     for (int y = y1; y <= y2; y++) {
@@ -210,7 +210,7 @@ static void drawDeadZoneBoxBackground()
     auto width = kDeadZoneBoxX2 - kDeadZoneBoxX1 + 1;
     auto insideHeight = kDeadZoneBoxY2 - kDeadZoneBoxY1 - 1;
 
-    auto p = linAdr384k + kMenuScreenWidth * (kDeadZoneBoxY1 + 1) + kDeadZoneBoxX1;
+    auto p = swos.linAdr384k + kMenuScreenWidth * (kDeadZoneBoxY1 + 1) + kDeadZoneBoxX1;
 
     for (int i = 0; i < insideHeight; i++) {
         memset(p + 1, kInactiveGreenColor, width - 2);
@@ -258,10 +258,10 @@ static void drawDeadZoneBoxFrame()
     auto width = kDeadZoneBoxX2 - kDeadZoneBoxX1 + 1;
     auto insideHeight = kDeadZoneBoxY2 - kDeadZoneBoxY1 - 1;
 
-    memset(linAdr384k + kMenuScreenWidth * kDeadZoneBoxY1 + kDeadZoneBoxX1, kFrameColor, width);
-    memset(linAdr384k + kMenuScreenWidth * kDeadZoneBoxY2 + kDeadZoneBoxX1, kFrameColor, width);
+    memset(swos.linAdr384k + kMenuScreenWidth * kDeadZoneBoxY1 + kDeadZoneBoxX1, kFrameColor, width);
+    memset(swos.linAdr384k + kMenuScreenWidth * kDeadZoneBoxY2 + kDeadZoneBoxX1, kFrameColor, width);
 
-    auto p = linAdr384k + kMenuScreenWidth * (kDeadZoneBoxY1 + 1) + kDeadZoneBoxX1;
+    auto p = swos.linAdr384k + kMenuScreenWidth * (kDeadZoneBoxY1 + 1) + kDeadZoneBoxX1;
 
     for (int i = 0; i < insideHeight; i++) {
         *p = kFrameColor;
@@ -270,7 +270,7 @@ static void drawDeadZoneBoxFrame()
         p += kMenuScreenWidth;
     }
 
-    auto middleLine = linAdr384k + (kDeadZoneBoxY1 + (kDeadZoneBoxY2 - kDeadZoneBoxY1 + 1) / 2) * kMenuScreenWidth + kDeadZoneBoxX1 + 1;
+    auto middleLine = swos.linAdr384k + (kDeadZoneBoxY1 + (kDeadZoneBoxY2 - kDeadZoneBoxY1 + 1) / 2) * kMenuScreenWidth + kDeadZoneBoxX1 + 1;
     memset(middleLine, kFrameColor, width - 2);
 }
 
@@ -326,7 +326,7 @@ static bool selectButton(int& button, int& otherButton, const char *buttonName)
         updateControls();
         SWOS::GetKey();
 
-        if (SDL_GetMouseState(nullptr, nullptr) || lastKey == kKeyEscape)
+        if (SDL_GetMouseState(nullptr, nullptr) || swos.lastKey == kKeyEscape)
             break;
 
         if (joypadDisconnected())

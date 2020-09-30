@@ -46,7 +46,7 @@ kTestData = (
                 x: 49
                 y: 158
                 color: 11
-                stringTable: [ start, "HOLD", 'ME', "NOW" ]
+                stringTable: [ $.start, "HOLD", 'ME', "NOW" ]
             }
             Entry {
                 customDrawForeground: drawYellow
@@ -66,6 +66,9 @@ kTestData = (
                 rightEntry: CasaNostra
                 downEntry: CasaNostra
                 upEntry: CasaNostra
+            }
+            Entry MoreThanMeetsTheEye {
+                text: $.aMenuMusic
             }
         }
         Menu Bravo {
@@ -108,6 +111,10 @@ kTestData = (
                 directionRight: 1
                 skipRight: 0
             }
+
+            Entry {
+                stringTable: $.SmoothJazz101DaPierre
+            }
         }
         Menu Delta {}
     ''', {
@@ -117,7 +124,7 @@ kTestData = (
         ),
         'menus': ['Charlie', 'Bravo', 'Tango', 'Delta'],
         'stringTables': ((1, 3), (
-            ('Charlie_CasaNostra', 'start', '0', '"HOLD"', '"ME"', '"NOW"'),
+            ('Charlie_CasaNostra', 'swos.start', '0', '"HOLD"', '"ME"', '"NOW"'),
             ('Bravo_00', 'mirror', '0', '"WARM"', 'MY', '"HEART"'),
             ('Tango_30000', 'Indianapolis', '2002', '"1"'),
         )),
@@ -167,7 +174,11 @@ kTestData = (
                 {'id': 'eosfm02', 'type': 'EntryOnSelectFunctionWithMask', 'params': ['pumpItUp', '0x15']},
                 {'id': 'ebdf02', 'type': 'EntryBeforeDrawFunction', 'params': ['prepareWell']},
                 {'id': 'eadf02', 'type': 'EntryOnReturnFunction', 'params': ['returnOfThePhantom']},
-                {'id': 'ee02',   'type': 'EntryEnd',    'params': []},
+                {'id': 'ee02',   'type': 'EntryEnd',              'params': [], },
+
+                {'id': 'eb03',   'type': 'Entry',       'params': ['79', '188', '99', '17']},
+                {'id': 'et03',   'type': 'EntryText',   'params': ['0', 'swos.aMenuMusic']},
+                {'id': 'ee03',   'type': 'EntryEnd',    'params': []},
 
                 {'id': 'menuEnd', 'type': 'MenuEnd',    'params': []},
             ],
@@ -195,6 +206,11 @@ kTestData = (
                 {'id': 'ers01',   'type': 'EntryRightSkip', 'params': ['0', '1']},
                 {'id': 'ee01',    'type': 'EntryEnd',   'params': []},
 
+                {'id': 'eb02',    'type': 'Entry',      'params': ['0', '0', '0', '0']},
+                {'id': 'est02',   'type': 'EntryStringTable', 'params': [
+                    '0', 'reinterpret_cast<StringTable *>(&swos.SmoothJazz101DaPierre)']},
+                {'id': 'ee02',    'type': 'EntryEnd',   'params': []},
+
                 {'id': 'menuEnd', 'type': 'MenuEnd',    'params': []},
             ],
             'Delta': [
@@ -210,8 +226,10 @@ kOutputFile = 'Khaldun'
 
 kMenuRegex = re.compile(r'''
     struct\s+SWOS_Menu_(?P<name>\w+)\s* : \s*public\s+BaseMenu\b\s*
-    (?P<contents>{.*?})
-    \s*static\s+const\s+(?P<declarationName>\w+);
+    (?P<contents>{.*?}[^;]).*?
+    \#ifndef\s+SWOS_STUB_MENU_DATA
+    \s*static\s+const\s+(?P<declarationName>\w+)\n
+    \#endif\n;\n
     \s*namespace\s+(?P<enumName>\w+)NS\s*{\s*
     enum\s+Entries\s*{
     (?P<enumEntries>[^}]+)}\s*;
@@ -353,7 +371,8 @@ class TestCodeGenerator(unittest.TestCase):
                 strings = stringTableContent[3:]
                 length = len(stringTableContent) - 3
 
-                self.assertNotEqual(output.find(f'extern int16_t {controlVar}'), -1)
+                if not controlVar.startswith('swos.'):
+                    self.assertNotEqual(output.find(f'extern int16_t {controlVar}'), -1)
 
                 stringTablePattern = rf'StringTable{length}\s+{name}_stringTable\s+{{\s*&\s*{controlVar}\s*,\s*{initialValue}\s*,\s*'
                 for string in strings:
@@ -511,7 +530,7 @@ class TestCodeGenerator(unittest.TestCase):
         kRegexStateChange = (
             # regex, other fields contain booleans for expected & new values for inMenu & inEntry (if changing)
             (r'struct\s+SWOS_Menu_\w+\s*:\s*public\s*BaseMenu', False, False, True,  None),
-            (r'}\s*static\s+const\s+\w+\s*;',                   True,  False, False, None),
+            (r'#ifndef SWOS_STUB_MENU_DATA',                    True,  False, False, None),
             (r'Entry\s+\w+\s*{[^}]+}\s*;',                      True,  False, None,  True),
             (r'EntryEnd\s+\w+\s*{\s*}\s*;',                     True,  True,  None,  False),
             (r'static\s+void\s+\w+\(\)',                        False, False, None,  None),

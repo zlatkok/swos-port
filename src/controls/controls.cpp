@@ -131,15 +131,15 @@ struct ControlState {
 
 static ControlState& getControlState(PlayerNumber player)
 {
-    return reinterpret_cast<ControlState&>(player == kPlayer1 ? pl1LastFired : pl2LastFired);
+    return reinterpret_cast<ControlState&>(player == kPlayer1 ? swos.pl1LastFired : swos.pl2LastFired);
 }
 
 static void resetFireVariables()
 {
-    controlWord = m_pl2ControlWord = 0;
-    shortFire = 0;
-    pl1ShortFire = 0;
-    pl2ShortFire = 0;
+    swos.controlWord = m_pl2ControlWord = 0;
+    swos.shortFire = 0;
+    swos.pl1ShortFire = 0;
+    swos.pl2ShortFire = 0;
 }
 
 static const char *controlsToString(Controls controls)
@@ -348,7 +348,7 @@ bool anyInputActive()
 
 static void setControlWord(word& controlWord, const ScanCodes& scanCodes)
 {
-    auto sc = g_scanCode;
+    auto sc = swos.g_scanCode;
     auto cw = controlWord;
 
     if (!(sc & kReleased)) {
@@ -403,7 +403,7 @@ static void setControlWord(word& controlWord, const ScanCodes& scanCodes)
 
 static void setControlWords()
 {
-    setControlWord(controlWord, m_pl1ScanCodes);
+    setControlWord(swos.controlWord, m_pl1ScanCodes);
     setControlWord(m_pl2ControlWord, m_pl2ScanCodes);
 }
 
@@ -412,10 +412,10 @@ static void registerKey(uint8_t pcScanCode, bool pressed)
     if (!pressed)
         pcScanCode |= kReleased;
 
-    g_scanCode = pcScanCode;
+    swos.g_scanCode = pcScanCode;
 
-    if (pressed && keyCount < 9)
-        keyBuffer[keyCount++] = pcScanCode;
+    if (pressed && swos.keyCount < 9)
+        swos.keyBuffer[swos.keyCount++] = pcScanCode;
 
     setControlWords();
 }
@@ -438,7 +438,7 @@ static byte getFireScanCode()
 void pressFire()
 {
     auto fireScanCode = getFireScanCode();
-    if (keyCount < sizeof(keyBuffer) - 1 && (!keyCount || (keyBuffer[0] & ~kReleased) != fireScanCode))
+    if (swos.keyCount < sizeof(swos.keyBuffer) - 1 && (!swos.keyCount || (swos.keyBuffer[0] & ~kReleased) != fireScanCode))
         registerKey(fireScanCode, true);
 }
 
@@ -463,7 +463,7 @@ void clearKeyInput()
     do {
         updateControls();
         SWOS::GetKey();
-    } while (lastKey);
+    } while (swos.lastKey);
 }
 
 void clearPlayer1State()
@@ -619,7 +619,7 @@ void updateControls()
     while (SDL_PollEvent(&event))
         processEvent(event);
 
-    if (paused)
+    if (swos.paused)
         SDL_Delay(15);
 }
 
@@ -662,7 +662,7 @@ void initGameControls()
     m_joy2Status = 0;
     m_mouseControlWord = 0;
 
-    memset(&pl1LastFired, 0, reinterpret_cast<byte *>(&pl2ShortFireCounter) - &pl1LastFired + sizeof(pl2ShortFireCounter));
+    memset(&swos.pl1LastFired, 0, reinterpret_cast<byte *>(&swos.pl2ShortFireCounter) - &swos.pl1LastFired + sizeof(swos.pl2ShortFireCounter));
 }
 
 void finishGameControls()
@@ -678,7 +678,7 @@ void updateMatchControls()
 
     m_matchControlsFiring.clear();
 
-    if (controlWord & kFire)
+    if (swos.controlWord & kFire)
         m_matchControlsFiring.push_back(kKeyboard1);
 
     if (m_pl2ControlWord & kFire)
@@ -727,7 +727,7 @@ int matchControlsSelected()
         auto playerNo = controlInfo.second;
 
         if (*controls == kNone) {
-            if (otherControls != kKeyboard1 && (controlWord & kFire) && !wereControlsFiring(kKeyboard1)) {
+            if (otherControls != kKeyboard1 && (swos.controlWord & kFire) && !wereControlsFiring(kKeyboard1)) {
                 *controls = kKeyboard1;
             } else if (otherControls != kKeyboard2 && (m_pl2ControlWord & kFire) && !wereControlsFiring(kKeyboard2)) {
                 *controls = kKeyboard2;
@@ -772,7 +772,7 @@ bool gotMousePlayer()
 // Returns true if last pressed key belongs to selected keys of any currently active player.
 bool testForPlayerKeys()
 {
-    byte key = static_cast<byte>(lastKey);
+    byte key = static_cast<byte>(swos.lastKey);
 
     return m_pl1GameControls == kKeyboard1 && m_pl1ScanCodes.has(key) ||
         m_pl2GameControls == kKeyboard2 && m_pl2ScanCodes.has(key);
@@ -794,14 +794,14 @@ void SWOS::GetKey()
 {
     updateControls();
 
-    convertedKey = 0;
-    lastKey = 0;
+    swos.convertedKey = 0;
+    swos.lastKey = 0;
 
-    if (keyCount) {
-        lastKey = keyBuffer[0];
-        memmove(keyBuffer, keyBuffer + 1, sizeof(keyBuffer) - 1);
-        keyCount--;
-        convertedKey = convertKeysTable[lastKey];
+    if (swos.keyCount) {
+        swos.lastKey = swos.keyBuffer[0];
+        memmove(swos.keyBuffer, swos.keyBuffer + 1, sizeof(swos.keyBuffer) - 1);
+        swos.keyCount--;
+        swos.convertedKey = swos.convertKeysTable[swos.lastKey];
     }
 }
 
@@ -809,7 +809,7 @@ __declspec(naked) void SWOS::JoyKeyOrCtrlPressed()
 {
 #ifdef SWOS_VM
     auto result = anyInputActive();
-    g_flags.zero = result;
+    SwosVM::flags.zero = result;
 #else
     __asm {
         push ecx
@@ -913,7 +913,7 @@ static void gatherPlayerInput(PlayerNumber player)
 
     switch (inputSource) {
     case kKeyboard1:
-        setControlState(state, controlWord);
+        setControlState(state, swos.controlWord);
         break;
 
     case kKeyboard2:
@@ -962,7 +962,7 @@ void SWOS::Player2StatusProc()
     if (!isMatchRunning() && m_pl1Controls != kKeyboard1 && m_pl2Controls != kKeyboard2) {
         // combine keyboard and whatever controls are selected
         static ControlState keyboardState;
-        setControlState(keyboardState, controlWord);
+        setControlState(keyboardState, swos.controlWord);
         pl2State += keyboardState;
     }
 

@@ -11,7 +11,8 @@
 #include "render.h"
 #include "controls.h"
 
-enum ReplayState {
+enum ReplayState
+{
     kNotReplaying = 0,
     kFadingIn = 1,
     kReplaying = 2,
@@ -65,7 +66,7 @@ void startReplay()
     m_replayData.replayStarting();
     showHighlights();
 
-    hilNumGoals = 0;
+    swos.hilNumGoals = 0;
 
     logInfo("Replay done");
 }
@@ -92,7 +93,7 @@ bool saveReplayFile(const char *path, bool overwrite /* = true */)
 
 bool loadHighlightsFile(const char *path)
 {
-    return m_hilValid = loadFile(path, hilFileBuffer, -1, 0, false) != -1;
+    return m_hilValid = loadFile(path, swos.hilFileBuffer, -1, 0, false) != -1;
 }
 
 static void autoSaveReplay()
@@ -119,7 +120,7 @@ void saveCoordinatesForHighlights(int spriteIndex, int x, int y)
 
 static void highlightsPausedLoop()
 {
-    while (paused) {
+    while (swos.paused) {
         SWOS::GetKey();
         MainKeysCheck();
         SWOS::PlayEnqueuedSamples();
@@ -128,19 +129,19 @@ static void highlightsPausedLoop()
 
 static bool highlightsAborted()
 {
-    if (!skipFade)
+    if (!swos.skipFade)
         return false;
 
     SWOS::Player1StatusProc();
-    if (!pl1Fire) {
+    if (!swos.pl1Fire) {
         SWOS::Player2StatusProc();
-        if (!pl2Fire)
+        if (!swos.pl2Fire)
             return false;
     }
 
-    statsFireExit = 1;
-    replayState = kNotReplaying;
-    paused = 0;
+    swos.statsFireExit = 1;
+    swos.replayState = kNotReplaying;
+    swos.paused = 0;
     SAFE_INVOKE(FadeOutToBlack);
     RestoreCameraPosition();
 
@@ -149,21 +150,21 @@ static bool highlightsAborted()
 
 static void highlightsMoveToNextScene()
 {
-    goalBasePtr = reinterpret_cast<dword *>(hilStartOfGoalsBuffer + hilSceneNumber * kSingleHighlightBufferSize);
-    currentHilPtr = goalBasePtr - 1;
-    nextGoalPtr = reinterpret_cast<dword *>(reinterpret_cast<char *>(goalBasePtr) + kSingleHighlightBufferSize);
+    swos.goalBasePtr = reinterpret_cast<dword *>(swos.hilStartOfGoalsBuffer + swos.hilSceneNumber * kSingleHighlightBufferSize);
+    swos.currentHilPtr = swos.goalBasePtr - 1;
+    swos.nextGoalPtr = reinterpret_cast<dword *>(swos.goalBasePtr.asCharPtr() + kSingleHighlightBufferSize);
 
     HandleInstantReplayStateSwitch();
 }
 
 dword *validateHilPointerAdd(dword *ptr)
 {
-    if (ptr >= nextGoalPtr) {
+    if (ptr >= swos.nextGoalPtr) {
         // if we are recording the game, do not save the buffer when it overflows
         // during instant replays (when the player presses 'R')
-        if (m_playing || replayState == kNotReplaying)
+        if (m_playing || swos.replayState == kNotReplaying)
             m_replayData.handleHighglightsBufferOverflow(ptr, m_playing);
-        ptr = goalBasePtr;
+        ptr = swos.goalBasePtr;
     }
 
     return ptr;
@@ -171,8 +172,8 @@ dword *validateHilPointerAdd(dword *ptr)
 
 dword *validateHilPointerSub(dword *ptr)
 {
-    if (ptr < goalBasePtr)
-        ptr = nextGoalPtr;
+    if (ptr < swos.goalBasePtr)
+        ptr = swos.nextGoalPtr;
 
     return ptr;
 }
@@ -180,18 +181,18 @@ dword *validateHilPointerSub(dword *ptr)
 // Initializes things to start in-game replay, if it was in initializing state.
 static void initInstantReplayFrame(dword packedCoordinates)
 {
-    if (replayState != kFadingIn)
+    if (swos.replayState != kFadingIn)
         return;
 
-    replayState = kReplaying;
+    swos.replayState = kReplaying;
 
-    savedCameraX = g_cameraX;
-    savedCameraY = g_cameraY;
+    swos.savedCameraX = swos.g_cameraX;
+    swos.savedCameraY = swos.g_cameraY;
 
-    g_oldCameraX = 0;
-    g_cameraX = 176;
-    g_oldCameraY = 0;
-    g_cameraY = 349;
+    swos.g_oldCameraX = 0;
+    swos.g_cameraX = 176;
+    swos.g_oldCameraY = 0;
+    swos.g_cameraY = 349;
 
     SWOS::ResetAnimatedPatternsForBothTeams();
 
@@ -201,8 +202,8 @@ static void initInstantReplayFrame(dword packedCoordinates)
 
     clearHiBit(packedCoordinates);
 
-    g_cameraX = loWord(packedCoordinates);
-    g_cameraY = hiWord(packedCoordinates);
+    swos.g_cameraX = loWord(packedCoordinates);
+    swos.g_cameraY = hiWord(packedCoordinates);
 
     ScrollToCurrent();
 }
@@ -212,7 +213,7 @@ static void drawResult()
     int x = 13;
     int y = 13;
 
-    auto leftScoreDigits = std::div(hilLeftTeamGoals, 10);
+    auto leftScoreDigits = std::div(swos.hilLeftTeamGoals, 10);
     auto leftScoreDigit1 = leftScoreDigits.quot;
     auto leftScoreDigit2 = leftScoreDigits.rem;
 
@@ -230,7 +231,7 @@ static void drawResult()
     x += 8;
     y -= 8;
 
-    auto rightScoreDigits = std::div(hilRightTeamGoals, 10);
+    auto rightScoreDigits = std::div(swos.hilRightTeamGoals, 10);
     auto rightScoreDigit1 = rightScoreDigits.quot;
     auto rightScoreDigit2 = rightScoreDigits.rem;
 
@@ -244,9 +245,9 @@ static void drawResult()
 
 static void replayPausedLoop()
 {
-    while (paused) {
+    while (swos.paused) {
         SWOS::GetKey();
-        if (!skipFade)
+        if (!swos.skipFade)
             break;
         MainKeysCheck();
     }
@@ -256,29 +257,29 @@ static bool instantReplayAborted()
 {
     int checkWhichPlayerFire = 1 + 2;
 
-    if (!userRequestedReplay) {
-        if (!teamDataPtr)
+    if (!swos.userRequestedReplay) {
+        if (!swos.teamDataPtr)
             return false;
 
-        if (teamDataPtr->playerNumber == 1)
+        if (swos.teamDataPtr->playerNumber == 1)
             checkWhichPlayerFire = 1;
-        else if (teamDataPtr->playerNumber == 2)
+        else if (swos.teamDataPtr->playerNumber == 2)
             checkWhichPlayerFire = 2;
-        else if (teamDataPtr->plCoachNum == 1)
+        else if (swos.teamDataPtr->plCoachNum == 1)
             checkWhichPlayerFire = 1;
-        else if (teamDataPtr->plCoachNum == 2)
+        else if (swos.teamDataPtr->plCoachNum == 2)
             checkWhichPlayerFire = 2;
     }
 
     if (checkWhichPlayerFire & 1) {
         SWOS::Player1StatusProc();
-        if (pl1Fire)
+        if (swos.pl1Fire)
             return true;
     }
 
     if (checkWhichPlayerFire & 2) {
         SWOS::Player2StatusProc();
-        if (pl2Fire)
+        if (swos.pl2Fire)
             return true;
     }
 
@@ -287,9 +288,9 @@ static bool instantReplayAborted()
 
 static void registerPackedCoordinates(dword packedCoordinates)
 {
-    *currentHilPtr = packedCoordinates;
+    *swos.currentHilPtr = packedCoordinates;
     if (packedCoordinates != -1)
-        currentHilPtr = validateHilPointerAdd(currentHilPtr + 1);
+        swos.currentHilPtr = validateHilPointerAdd(swos.currentHilPtr + 1);
 }
 
 // Must do this in order to accept fire to abort highlight replay.
@@ -301,45 +302,44 @@ static void setGameControls()
 
 void showHighlights()
 {
-    assert(hilNumGoals > 0);
+    assert(swos.hilNumGoals > 0);
 
     m_playing = true;
     m_fastReplay = 0;
 
-    hilStarted = 1;
-    gameMaxSubstitutes = hilMaxSubstitutes;
-    teamsLoaded = 0;
-    poolplyrLoaded = 0;
+    swos.hilStarted = 1;
+    swos.gameMaxSubstitutes = swos.hilMaxSubstitutes;
+    swos.teamsLoaded = 0;
+    swos.poolplyrLoaded = 0;
 
     SAFE_INVOKE(CopyTeamsAndHeader);
 
     setGameControls();
 
-    if (g_menuMusic)
+    if (swos.g_menuMusic)
         safeInvokeWithSaved68kRegisters(StopMidi);
 
     safeInvokeWithSaved68kRegisters([] {
-        showMenu(stadiumMenu);
+        showMenu(swos.stadiumMenu);
     });
 
-    SAFE_INVOKE(ViewHighlightsWrapper);
-
+    SWOS::ViewHighlightsWrapper();
     SWOS::InitMenuMusic();
 
-    if (g_menuMusic)
+    if (swos.g_menuMusic)
         TryMidiPlay();
 
     SAFE_INVOKE(LoadFillAndSwtitle);
-    vsPtr = linAdr384k;
-    screenWidth = kMenuScreenWidth;
-    g_cameraX = 0;
-    g_cameraY = 0;
+    swos.vsPtr = swos.linAdr384k;
+    swos.screenWidth = kMenuScreenWidth;
+    swos.g_cameraX = 0;
+    swos.g_cameraY = 0;
 
     resetMatchControls();
 
     m_playing = false;
 
-    menuFade = 1;
+    swos.menuFade = 1;
     DrawMenu();
 }
 
@@ -352,7 +352,19 @@ void toggleFastReplay()
 static bool inSubstitutes()
 {
     // without goToSubsTimer, cutout is too sharp
-    return !goToSubsTimer && g_inSubstitutesMenu;
+    return !swos.goToSubsTimer && swos.g_inSubstitutesMenu;
+}
+
+void SWOS::ViewHighlightsWrapper()
+{
+    save68kRegisters();
+    auto currentMenu = getCurrentPackedMenu();
+    auto currentEntry = getCurrentMenu()->selectedEntry->ordinal;
+
+    SAFE_INVOKE(ViewHighlights);
+    restore68kRegisters();
+
+    restoreMenu(currentMenu, currentEntry);
 }
 
 void SWOS::SaveCoordinatesForHighlights()
@@ -378,11 +390,11 @@ void SWOS::SaveCoordinatesForHighlights()
         dword packedCoordinates = (y << 16) | x | 0x80000000;
         registerPackedCoordinates(packedCoordinates);
 
-        dword packedGoals = (team2Goals << 16) | team1Goals;
+        dword packedGoals = (swos.team2Goals << 16) | swos.team1Goals;
         registerPackedCoordinates(packedGoals);
 
         // repeated two times, probably to keep it aligned
-        dword packedAnimPatternsState = (animPatternsState << 16) | animPatternsState;
+        dword packedAnimPatternsState = (swos.animPatternsState << 16) | swos.animPatternsState;
         registerPackedCoordinates(packedAnimPatternsState);
 
         registerPackedCoordinates(-1);
@@ -397,32 +409,32 @@ void SWOS::PlayInstantReplayLoop()
         replayPausedLoop();
 
         SWOS::GetKey();
-        if (skipFade)
+        if (swos.skipFade)
             MainKeysCheck();
 
-        if (replayState == kNotReplaying)
+        if (swos.replayState == kNotReplaying)
             return;
 
-        if (skipFade && instantReplayAborted()) {
-            statsFireExit = 1;
-            replayState = kNotReplaying;
+        if (swos.skipFade && instantReplayAborted()) {
+            swos.statsFireExit = 1;
+            swos.replayState = kNotReplaying;
             break;
         }
 
         SAFE_INVOKE(ClearBackground);
         ReplayFrame();
 
-        if (replayState == kNotReplaying)
+        if (swos.replayState == kNotReplaying)
             break;
 
-        if (fadeAndSaveReplay) {
+        if (swos.fadeAndSaveReplay) {
             FadeAndSaveReplay();
-            fadeAndSaveReplay = 0;
+            swos.fadeAndSaveReplay = 0;
         }
 
-        if (instantReplayFlag) {
+        if (swos.instantReplayFlag) {
             HandleInstantReplayStateSwitch();
-            instantReplayFlag = 0;
+            swos.instantReplayFlag = 0;
         }
 
         Flip();
@@ -449,14 +461,14 @@ void SWOS::PlayHighlightsLoop()
         GetKey();
         MainKeysCheck();
 
-        if (replayState != kNotReplaying) {
+        if (swos.replayState != kNotReplaying) {
             if (highlightsAborted())
                 break;
 
             SAFE_INVOKE(ClearBackground);
             ReplayFrame();
 
-            if (replayState != kNotReplaying) {
+            if (swos.replayState != kNotReplaying) {
                 if (drawFrame ^= m_fastReplay)
                     Flip();
                 fadeIfNeeded();
@@ -464,18 +476,18 @@ void SWOS::PlayHighlightsLoop()
             } else {
                 SAFE_INVOKE(FadeOutToBlack);
                 RestoreCameraPosition();
-                paused = 0;
+                swos.paused = 0;
             }
         }
 
-        if (++hilSceneNumber == numReplaysInHilFile)
+        if (++swos.hilSceneNumber == swos.numReplaysInHilFile)
             break;
 
         highlightsMoveToNextScene();
     }
 
     RestoreHighlightPointers();
-    paused = 0;
+    swos.paused = 0;
 }
 
 // Handles initial frame stuff: camera coordinates, result and animated patterns.
@@ -492,13 +504,13 @@ static std::pair<dword *, dword> handleCameraPositionAndResult(dword *p, dword d
         d = *p++;
         p = validateHilPointerAdd(p);
 
-        hilLeftTeamGoals = loWord(d);
-        hilRightTeamGoals = hiWord(d);
+        swos.hilLeftTeamGoals = loWord(d);
+        swos.hilRightTeamGoals = hiWord(d);
 
         d = *p++;
         p = validateHilPointerAdd(p);
 
-        animPatternsState = hiWord(d);
+        swos.animPatternsState = hiWord(d);
 
         invokeWithSaved68kRegisters(DrawAnimatedPatterns);
 
@@ -526,14 +538,14 @@ static std::pair<dword *, dword> handleSprites(dword *p, dword d)
 
 static void drawBigRotatingLetterR()
 {
-    deltaColor = 0x70;
-    drawSprite(((stoppageTimer >> 1) & 0x1f) + kReplayFrame00Sprite, 11, 14);
-    deltaColor = 0;
+    swos.deltaColor = 0x70;
+    drawSprite(((swos.stoppageTimer >> 1) & 0x1f) + kReplayFrame00Sprite, 11, 14);
+    swos.deltaColor = 0;
 }
 
 void SWOS::ReplayFrame()
 {
-    auto p = currentGoalPtr;
+    auto p = swos.currentGoalPtr.asPtr();
     auto d = *p++;
 
     initInstantReplayFrame(d);
@@ -542,20 +554,20 @@ void SWOS::ReplayFrame()
         std::tie(p, d) = func(p, d);
 
         if (d == -1) {
-            replayState = kNotReplaying;
+            swos.replayState = kNotReplaying;
             return;
         }
     }
 
     p = validateHilPointerSub(p - 1);
-    currentGoalPtr = p;
+    swos.currentGoalPtr = p;
 
-    if (!normalReplayRunning)
+    if (!swos.normalReplayRunning)
         drawBigRotatingLetterR();
     else
         drawResult();
 
-    if (replayState == kSlowMotionPlayback && !paused) {
+    if (swos.replayState == kSlowMotionPlayback && !swos.paused) {
         frameDelay();
         skipFrameUpdate();
     }

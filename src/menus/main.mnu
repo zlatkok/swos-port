@@ -5,7 +5,7 @@
 Menu mainMenu
 {
     y: 1
-    onInit: ~SWOSMainMenuInit
+    onInit: swos.SWOSMainMenuInit
     initialEntry: friendly
 
     kButtonWidth = 150
@@ -38,8 +38,8 @@ Menu mainMenu
         downEntry: editCustomTeams
         rightEntry: friendly
 
-        text: aEditTactics
-        onSelect: ~EditTacticsMenu
+        text: swos.aEditTactics
+        onSelect: swos.EditTacticsMenu
     }
 
     Entry editCustomTeams {
@@ -49,8 +49,8 @@ Menu mainMenu
         downEntry: replays
         rightEntry: diyCompetition
 
-        text: aEditCustomTeam
-        onSelect: ~EditCustomTeamMenu
+        text: swos.aEditCustomTeam
+        onSelect: swos.EditCustomTeamMenu
     }
 
     Entry replays {
@@ -71,7 +71,7 @@ Menu mainMenu
         downEntry: career
         rightEntry: season
 
-        text: aOptions
+        text: swos.aOptions
         onSelect: ~"SWOS::OptionsMenuSelected"
     }
 
@@ -90,8 +90,8 @@ Menu mainMenu
         downEntry: diyCompetition
         leftEntry: editTactics
 
-        text: aFriendly
-        onSelect: ~FriendlyMenu
+        text: swos.aFriendly
+        onSelect: swos.FriendlyMenu
     }
 
     Entry diyCompetition {
@@ -101,8 +101,8 @@ Menu mainMenu
         downEntry: presetCompetition
         leftEntry: editCustomTeams
 
-        text: aDiyCompetition
-        onSelect: ~DIYCompetitionMenu
+        text: swos.aDiyCompetition
+        onSelect: swos.DIYCompetitionMenu
     }
 
     Entry presetCompetition {
@@ -112,8 +112,8 @@ Menu mainMenu
         downEntry: season
         leftEntry: replays
 
-        text: aPresetCompetit
-        onSelect: ~PresetCompetitionMenu
+        text: swos.aPresetCompetit
+        onSelect: swos.PresetCompetitionMenu
     }
 
     Entry season {
@@ -123,8 +123,8 @@ Menu mainMenu
         downEntry: career
         leftEntry: options
 
-        text: aSeason
-        onSelect: ~SeasonMenu
+        text: swos.aSeason
+        onSelect: swos.SeasonMenu
     }
 
     Entry career {
@@ -134,8 +134,8 @@ Menu mainMenu
         upEntry: season
         downEntry: continueContest
 
-        text: aCareer
-        onSelect: ~CareerMenu
+        text: swos.aCareer
+        onSelect: swos.CareerMenu
     }
 
     x: 0
@@ -155,7 +155,7 @@ Menu mainMenu
         downEntry: saveContest
 
         text: @kAlloc
-        onSelect: ~StartContest
+        onSelect: swos.StartContest
     }
 
     Entry saveContest {
@@ -166,8 +166,8 @@ Menu mainMenu
         upEntry: continueContest
         downEntry: loadOldCompetition
 
-        text: saveFileTitle
-        onSelect: ~SaveContest
+        text: swos.saveFileTitle
+        onSelect: swos.SaveContest
     }
 
     Entry loadOldCompetition {
@@ -179,8 +179,8 @@ Menu mainMenu
         downEntry: exit
         leftEntry: exit
 
-        text: aLoadOldCompeti
-        onSelect: ~LoadOldCompetitionMenu
+        text: swos.aLoadOldCompeti
+        onSelect: swos.LoadOldCompetitionMenu
     }
 
     Entry exit {

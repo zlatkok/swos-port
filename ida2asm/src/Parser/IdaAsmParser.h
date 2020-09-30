@@ -40,6 +40,8 @@ private:
     CToken *parseProc(CToken *token, TokenList& comments);
     CToken *parseEndProc(CToken *token, TokenList& comments);
     CToken *parseDataItem(CToken *token, TokenList& comments, Token::NoBreakStatus noBreakStatus);
+    CToken *parseDataItemElements(CToken *token);
+    CToken *parseReplacementDataItemElements(const String& dataReplacement, CToken *token);
     CToken *parseStackVariable(CToken *token, TokenList& comments);
     CToken *ignoreLine(CToken *token);
     CToken *handleSymbolActions(SymbolAction action, const String& rangeEnd, CToken *token);

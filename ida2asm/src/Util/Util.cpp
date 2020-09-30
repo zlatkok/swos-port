@@ -95,7 +95,73 @@ bool Util::endsWith(const std::string& base, const std::string& suffix)
     return base.size() >= suffix.size() && !base.compare(base.size() - suffix.size(), suffix.size(), suffix);
 }
 
-std::string Util::formatNumberWithCommas(int64_t num)
+
+int Util::parseInt(const char *str, size_t len)
+{
+    assert(str && len > 0);
+
+    int value;
+
+    auto p = str;
+    bool neg = false;
+
+    if (*p == '+' || *p == '-') {
+        neg = *p++ == '-';
+        len--;
+    }
+
+    if ((p[len - 1] | 0x20) == 'h')
+        value = parseHex(p, len);
+    else if ((str[len - 1] | 0x20) == 'b')
+        value = parseBin(p, len);
+    else
+        value = parseDec(p, len);
+
+    return neg ? -value : value;
+}
+
+int Util::parseDec(const char *str, size_t len)
+{
+    int value = 0;
+
+    for (auto p = str; p < str + len; p++)
+        value = value * 10 + *p - '0';
+
+    return value;
+}
+
+int Util::parseHex(const char *str, size_t len)
+{
+    assert(str && len && tolower(str[len - 1]) == 'h');
+
+    int value = 0;
+
+    for (auto p = str; p < str + len - 1; p++) {
+        int c;
+
+        if (*p >= '0' && *p <= '9')
+            c = *p - '0';
+        else
+            c = 10 + (*p | 0x20) - 'a';
+
+        value = value * 16 + c;
+    }
+
+    return value;
+}
+
+int Util::parseBin(const char *str, size_t len)
+{
+    int value = 0;
+
+    assert(str && len && tolower(str[len - 1]) == 'b');
+    for (auto p = str; p < str + len - 1; p++)
+        value = value * 2 + *p - '0';
+
+    return value;
+}
+
+std::string Util::formatDelimitedNumber(int64_t num, char delimiter /* = ',' */)
 {
     std::string result;
 
@@ -110,7 +176,7 @@ std::string Util::formatNumberWithCommas(int64_t num)
         auto quoteRem = std::div(num, 10ll);
         num = quoteRem.quot;
         if (i++ == 3) {
-            result += ',';
+            result += delimiter;
             i = 1;
         }
         result += static_cast<char>(quoteRem.rem) + static_cast<int64_t>('0');

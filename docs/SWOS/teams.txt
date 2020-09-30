@@ -384,13 +384,12 @@ offset:  size:  desc.
   50       1    fire, = -1 as long as it's pressed, 0 when released
   51       1    current fire, set to 1 very shortly (for one frame)
                 set from pl1ShortFire, joystick fire but only in this cycle
-  52       2    ??? (UpdatePlayers ga setuje) (za vreme utakmice nula)
-                ako je razlicito od nule, resetuj joy1_short_fire_counter na
-                nulu (za CPU tim)
-                mislim da je true ako igrac udara glavom
+  52       2    ??? (UpdatePlayers sets it) (zero during the game)
+                if non-zero, reset pl1ShortFireCounter to zero (for CPU team)
+                I think it might be true if player is heading
   54       2    fire counter; increases while fire is held, resets when not
                 no limitations it seems
-  56       2    pravac igraca koji kontrolise loptu:
+  56       2    direction of the player controlling the ball:
                         0
                     7   |   1
                       \ | /
@@ -398,13 +397,12 @@ offset:  size:  desc.
                       / | \
                     5   |   3
                         4
-                (menja se samo dok igrac zaista kontrolise loptu)
-  58       2    setuje se kada se sutne lopta, i resetuje se tek kada se pusti
-                pucanje
+                (only updates while the player really controls the ball)
+  58       2    gets set when the ball is kicked, and reset only when the fire
+                button is depressed
   60       1    ???
-                na ovo se dodaje proizvod rezultata iz ofs56 tablice i
-
-                rezultata iz ofs118 tablice
+                this gets incremented by product of results from ofs56 table
+                and results from ofs118 table
   61       1    true ako je kontrolisani igrac vrlo blizu lopte (d <= 32u)
   62       1    true ako je kontrolisani igrac blizu lopte (32u < d <= 72u)
   63       1    true ako je kontrolisani igrac nije mnogo daleko od lopte

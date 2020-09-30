@@ -64,7 +64,7 @@ void finishMusic()
 
 static bool noMusic()
 {
-    return g_soundOff || g_musicOff || !g_menuMusic;
+    return swos.g_soundOff || swos.g_musicOff || !swos.g_menuMusic;
 }
 
 static void setAdlFadeOutData(Uint32 start, Uint32 length)
@@ -381,8 +381,8 @@ static void playMenuSong()
     m_menuMusic = playMixSong("menu", true, m_menuMusic);
 
     if (!m_menuMusic) {
-        if (loadXmi(aMenu_xmi, true)) {
-            logInfo("Playing menu music \"%s\"", aMenu_xmi);
+        if (loadXmi(swos.aMenu_xmi, true)) {
+            logInfo("Playing menu music \"%s\"", swos.aMenu_xmi);
             m_state = State::kPlayingMenuSong;
             playXmi();
         } else {
@@ -414,7 +414,7 @@ void restartMusic()
     if (noMusic())
         return;
 
-    g_midiPlaying = 0;
+    swos.g_midiPlaying = 0;
 
     if (m_state != State::kPlayingMenuSong)
         m_titleSongDone = true;

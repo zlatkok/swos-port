@@ -1,6 +1,6 @@
+#include "StringView.h"
 #include "String.h"
 #include "Tokenizer.h"
-#include "StringView.h"
 
 String::String(CToken *token)
 {
@@ -44,12 +44,12 @@ void String::assign(const char *begin, const char *end)
     m_length = end - begin;
 }
 
-String::String(String&& rhs)
+String::String(String&& rhs) noexcept
 {
     swap(*this, rhs);
 }
 
-String& String::operator=(String&& rhs)
+String& String::operator=(String&& rhs) noexcept
 {
     swap(*this, rhs);
     return *this;
@@ -70,6 +70,12 @@ void String::copy(char *buf) const
     memcpy(buf, m_str, m_length);
 }
 
+bool String::writeToFile(FILE *f) const
+{
+    assert(f && m_length);
+    return fwrite(m_str, m_length, 1, f) == 1;
+}
+
 bool String::empty() const
 {
     return !m_length;
@@ -85,15 +91,19 @@ bool String::contains(const String& str) const
     return indexOf(str) >= 0;
 }
 
-int String::indexOf(char c) const
+int String::indexOf(char c, size_t start /* = 0 */) const
 {
-    char *p = (char *)memchr(m_str, c, m_length);
+    assert(!m_length || start < m_length);
+
+    char *p = (char *)memchr(m_str + start, c, m_length);
     return p ? p - m_str : -1;
 }
 
-int String::indexOf(const String& str) const
+int String::indexOf(const String& str, size_t start /* = 0 */) const
 {
-    auto substr = std::search(m_str, m_str + m_length, str.m_str, str.m_str + str.m_length);
+    assert(!m_length || start < m_length);
+
+    auto substr = std::search(m_str + start, m_str + m_length, str.m_str, str.m_str + str.m_length);
     return substr != m_str + m_length ? substr - m_str : -1;
 }
 
@@ -147,14 +157,22 @@ String String::withoutLast() const
     return substr(0, m_length - 1);
 }
 
+String String::trimmed() const
+{
+    auto p = m_str;
+    while (p < end() && Util::isSpace(*p))
+        p++;
+
+    auto q = end();
+    while (q > p && Util::isSpace(q[-1]))
+        q--;
+
+    return String(p, q - p);
+}
+
 int String::toInt() const
 {
-    int result = 0;
-
-    for (size_t i = 0; i < m_length; i++)
-        result = result * 10 + m_str[i] - '0';
-
-    return result;
+    return Util::parseInt(m_str, m_length);
 }
 
 String String::substr(int from, int len) const
@@ -203,10 +221,15 @@ bool String::operator<(const String& rhs) const
     return std::lexicographical_compare(m_str, m_str + m_length, rhs.m_str, rhs.m_str + rhs.m_length);
 }
 
-char String::operator[](size_t index) const
+const char& String::operator[](size_t index) const
 {
     assert(index < m_length);
     return m_str[index];
+}
+
+String::operator bool() const
+{
+    return !empty();
 }
 
 std::string String::string() const

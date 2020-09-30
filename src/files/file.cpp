@@ -73,9 +73,9 @@ int loadFile(const char *path, void *buffer, int maxSize /* = -1 */, size_t skip
             return -1;
     }
 
-    auto savedSelTeamsPtr = selTeamsPtr;    // why should a load file routine do this?!?!
+    auto volatile savedSelTeamsPtr = swos.selTeamsPtr;  // why should a load file routine do this?!?!
     auto result = doLoadFile(path, buffer, maxSize, skipBytes, required);
-    selTeamsPtr = savedSelTeamsPtr;
+    swos.selTeamsPtr = savedSelTeamsPtr;
 
     return result;
 }
@@ -136,7 +136,7 @@ __declspec(naked) int SWOS::LoadFile()
 #ifdef SWOS_VM
     loadFileImp();
     D0 = 0;
-    g_flags.zero = true;
+    SwosVM::flags.zero = true;
     return 0;
 #else
     __asm {
@@ -186,7 +186,7 @@ __declspec(naked) int SWOS::WriteFile()
 {
 #ifdef SWOS_VM
     auto result = writeFileImp();
-    g_flags.zero = result != 0;
+    SwosVM::flags.zero = result != 0;
     D0 = !result;
     return 0;
 #else
@@ -298,7 +298,7 @@ FoundFileList findFiles(const char *extension, const char *dirName /* = nullptr 
     if (!dir)
         sdlErrorExit("Couldn't open %s directory", dirName ? dirName : "SWOS root");
 
-    bool acceptAll = extension[0] == '\0' || extension[1] == '*';
+    bool acceptAll = extension && (extension[0] == '\0' || extension[1] == '*');
 
     for (dirent *entry; entry = readdir(dir); ) {
         if (!entry->d_namlen)

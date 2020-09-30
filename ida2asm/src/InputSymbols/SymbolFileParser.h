@@ -7,6 +7,7 @@
 #include "SymbolAction.h"
 #include "SymbolTable.h"
 #include "PascalString.h"
+#include "StringSet.h"
 
 class SymbolFileParser
 {
@@ -16,6 +17,7 @@ public:
 
     SymbolFileParser(const char *symbolsFilePath, const char *headerFilePath, const char *outputPath);
     SymbolFileParser(const SymbolFileParser& other);
+    SymbolFileParser& operator=(const SymbolFileParser&) = delete;
 
     SymbolTable& symbolTable();
     const SymbolTable& symbolTable() const;
@@ -23,13 +25,19 @@ public:
     void outputHeaderFile(const char *path);
 
     const StringList& exports() const;
-    const StringList& imports() const;
+    const StringSet& imports() const;
+    int getTypeSize(const String& type) const;
 
-    bool cOutput() const;
-    std::tuple<String, size_t, size_t> exportedType(const String& var) const;
+    bool isImport(const String& var) const;
+    void traverseExportedProcs(std::function<void(const String& name)> f) const;
+    void traverseExports(std::function<bool(const String& symbol, const String& type, const String& arraySize,
+        bool function, bool functionPointer, bool array)> process, std::function<size_t(const String&)> write) const;
+    void traverseExportedArrays(std::function<void(const String&, const String&, int)> process) const;
+
+    bool cppOutput() const;
+    std::tuple<String, String, int> exportedDeclaration(const String& var) const;
 
 private:
-#pragma pack(push, 1)
     struct ExportEntry {
         String symbol;
         String type;
@@ -39,14 +47,13 @@ private:
         bool array = false;
         bool trailingArray = false;
     };
-#pragma pack(pop)
 
     void output68kRegisters();
     void outputExports();
     void outputImports();
-    void outputContiguousCTableInclude();
-    template <typename F> size_t getExportFunctionDeclaration(const ExportEntry& exp, F write);
-    template <typename F> size_t getExportVariableDeclaration(const ExportEntry& exp, F write);
+    void outputSizeAssertations();
+    template <typename F> void getExportFunctionDeclaration(const ExportEntry& exp, F write) const;
+    template <typename F> void getExportVariableDeclaration(const ExportEntry& exp, F write) const;
 
     void parseSymbolFile();
     static const char *parseComment(const char *p);
@@ -57,6 +64,7 @@ private:
     void parseRemoveAndNullLine(SymbolAction action, const char *symStart, const char *symEnd, const char *start, const char *end);
     static bool isRemoveHook(const char *start, const char *end);
     void addHookProcs();
+    void parseTypeSize(const char *symStart, const char *symEnd, const char *start, const char *end);
 
     const char *addExportEntry(const char *start, const char *p);
     const char *addImportEntry(const char *start, const char *p);
@@ -117,43 +125,35 @@ private:
 
     const char *m_path;
     const char *m_headerPath;
-    bool m_cOutput;
+    bool m_cppOutput;
     std::unique_ptr<const char[]> m_data;
     size_t m_dataSize = 0;
     size_t m_lineNo = 1;
     FILE *m_headerFile = nullptr;
 
     StringList m_exports;
-    StringList m_imports;
+    StringSet m_imports;
 
     std::vector<ExportEntry> m_exportEntries;
     BlockList<ImportEntry> m_importEntries;
 
     SymbolTable m_symbolTable;
     ProcHookList m_procHookList;
+    StringMap<int> m_typeSizes;
 
-#pragma pack(push, 1)
-    class ExportType {
-    public:
-        ExportType(const char *buf, size_t bufLen, size_t varOffset, size_t varLen) : m_str(bufLen) {
-            assert(bufLen >= varLen);
-            Util::assignSize(m_varOffset, varOffset);
-            Util::assignSize(m_varLen, varLen);
-            memcpy(m_str.data(), buf, bufLen);
+    struct ExportTypeData {
+        ExportTypeData(const char *str, size_t len, const String& baseType, int arraySize)
+            : type(str, len), arraySize(arraySize) {
+            new (baseTypePtr()) PascalString(baseType);
         }
-        static size_t requiredSize(const char *, size_t bufLen, size_t, size_t varLen) {
-            return sizeof(ExportType) + bufLen;
+        static size_t requiredSize(const char *, size_t len, const String& baseType, int) {
+            return sizeof(ExportTypeData) + len + PascalString::requiredSize(baseType);
         }
-
-        String str() const { return { m_str.data(), m_str.length() }; }
-        size_t varOffset() const { return m_varOffset; }
-        size_t varLen() const { return m_varLen; }
-    private:
-        uint8_t m_varOffset;
-        uint8_t m_varLen;
-        PascalString m_str;
+        PascalString *baseTypePtr() const { return (PascalString *)((char *)(this + 1) + type.length()); }
+        const PascalString& baseType() const { return *baseTypePtr(); }
+        int arraySize;
+        PascalString type;
+        // baseType follows
     };
-#pragma pack(pop)
-
-    StringMap<ExportType> m_exportTypes;
+    StringMap<ExportTypeData> m_exportTypes;
 };

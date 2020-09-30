@@ -17,7 +17,7 @@ Menu quitMenu {
         y: kPromptTopItemY
 
         color: kPromptTopItemColor
-        text: aQuitToDos
+        text: swos.aQuitToDos
 
         downEntry: >
 
@@ -28,7 +28,7 @@ Menu quitMenu {
         y: kPromptBottomItemY
 
         color: kPromptBottomItemColor
-        text: aReturnToGame
+        text: swos.aReturnToGame
 
         upEntry: <
 

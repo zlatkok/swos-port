@@ -2,8 +2,13 @@
 
 namespace SWOS_Menu {
 
-enum EntryElementCode : word {
-    kEndOfEntry,
+enum EntryElementCode : int16_t
+{
+    kEndOfMenu = -999,
+    kMenuXY = -998,
+    kFillTemplate = -997,
+    kResetTemplate = -996,
+    kEndOfEntry = 0,
     kInvisibilityCloak,
     kPositions,
     kCustomBackgroundFunc,
@@ -25,13 +30,37 @@ enum EntryElementCode : word {
     kUpSkip,
     kDownSkip,
     kColorConvertedSprite,
+#ifdef SWOS_VM
+    kCustomBackgroundFuncNative,
+    kCustomForegroundFuncNative,
+    kStringNative,
+    kStringTableNative,
+    kMultiLineTextNative,
+    kOnSelectNative,
+    kOnSelectWithMaskNative,
+    kBeforeDrawNative,
+    kOnReturnNative,
+    kColorConvertedSpriteNative,
+#else
+    kCustomBackgroundFuncNative = kCustomBackgroundFunc,
+    kCustomForegroundFuncNative = kCustomForegroundFunc,
+    kStringNative = kString,
+    kStringTableNative = kStringTable,
+    kMultiLineTextNative = kMultiLineText,
+    kOnSelectNative = kOnSelect,
+    kOnSelectWithMaskNative = kOnSelectWithMask,
+    kBeforeDrawNative = kBeforeDraw,
+    kOnReturnNative = kOnReturn,
+    kColorConvertedSpriteNative = kColorConvertedSprite,
+#endif
 };
 
 static_assert(kColorConvertedSprite == 21, "Element code enum is broken");
 
 #pragma pack(push, 1)
 
-struct SpriteConversionTable {
+struct SpriteConversionTable
+{
     word sourceIndex;
     word destinationIndex;
     byte colorConversionTable[32];
@@ -39,29 +68,46 @@ struct SpriteConversionTable {
 
 struct MenuHeader
 {
-    void (*onInit)();
-    void (*onReturn)();
-    void (*onDraw)();
+    SwosProcPointer onInit;
+    SwosProcPointer onReturn;
+    SwosProcPointer onDraw;
     int32_t selectedEntry;
 };
 
-struct MenuEnd {
-    word code = static_cast<word>(-999);
+constexpr int32_t kMenuHeaderV2Mark = -100'000;
+
+struct MenuHeaderV2
+{
+    int32_t mark;
+    void (*onInit)();
+    void (*onReturn)();
+    void (*onDraw)();
+    int32_t initialEntry;
+    bool nativePtr[4];
+
+    const int16_t *data() const {
+        return (int16_t *)(this + 1);
+    }
 };
 
-struct MenuXY {
-    word code = static_cast<word>(-998);
+struct MenuEnd {
+    word code = static_cast<word>(kEndOfMenu);
+};
+
+struct MenuXY
+{
+    word code = static_cast<word>(kMenuXY);
     word x;
     word y;
     MenuXY(word x, word y) : x(x), y(y) {}
 };
 
 struct TemplateEntry {
-    word code = static_cast<word>(-997);
+    word code = static_cast<word>(kFillTemplate);
 };
 
 struct ResetTemplateEntry {
-    word code = static_cast<word>(-996);
+    word code = static_cast<word>(kResetTemplate);
 };
 
 struct Entry
@@ -70,24 +116,33 @@ struct Entry
     word y;
     word width;
     word height;
+#ifndef DEBUG
+    constexpr
+#endif
     Entry(word x, word y, word width, word height) : x(x), y(y), width(width), height(height) {
+#ifdef DEBUG
         assert(width && height);
+#endif
     }
 };
 
-class EntryElement {
-    EntryElementCode code;
+template<typename FuncType>
+class EntryElementBase {
 protected:
-    using Func = void (*)();
-    EntryElement(EntryElementCode code) : code(code) {}
+    EntryElementCode code;
+    using Func = FuncType;
+    constexpr EntryElementBase(EntryElementCode code) : code(code) {}
 };
 
+using EntryElement = EntryElementBase<SwosProcPointer>;
+using EntryElementNative = EntryElementBase<void (*)()>;
+
 struct EntryEnd : EntryElement {
-    EntryEnd() : EntryElement(kEndOfEntry) {}
+    constexpr EntryEnd() : EntryElement(kEndOfEntry) {}
 };
 
 struct EntryInvisible : EntryElement {
-    EntryInvisible() : EntryElement(kInvisibilityCloak) {}
+    constexpr EntryInvisible() : EntryElement(kInvisibilityCloak) {}
 };
 
 class EntryNextPositions : EntryElement {
@@ -96,98 +151,144 @@ class EntryNextPositions : EntryElement {
     byte up;
     byte down;
 public:
-    EntryNextPositions(byte left = -1, byte right = -1, byte up = -1, byte down = -1)
+    constexpr EntryNextPositions(byte left = -1, byte right = -1, byte up = -1, byte down = -1)
         : EntryElement(kPositions), left(left), right(right), up(up), down(down) {}
 };
 
-class EntryCustomBackgroundFunction : EntryElement {
-    Func func;
+template<typename Base>
+class EntryFunction : Base {
+protected:
+    typename Base::Func func;
+    using Base::Func;
 public:
-    EntryCustomBackgroundFunction(Func func) : EntryElement(kCustomBackgroundFunc), func(func) {}
+    constexpr EntryFunction(typename Base::Func func, EntryElementCode code) : Base(code), func(func) {}
+};
+
+using EntryFunctionSwos = EntryFunction<EntryElement>;
+using EntryFunctionNative = EntryFunction<EntryElementNative>;
+
+class EntryCustomBackgroundFunction : EntryFunctionSwos {
+    constexpr EntryCustomBackgroundFunction(Func func) : EntryFunctionSwos(func, kCustomBackgroundFunc) {}
+};
+class EntryCustomBackgroundFunctionNative : EntryFunctionNative {
+    constexpr EntryCustomBackgroundFunctionNative(Func func)
+        : EntryFunction<EntryElementNative>(func, kCustomBackgroundFunc) {}
 };
 
 class EntryColor : EntryElement {
     word color;
 public:
-    EntryColor(unsigned color) : EntryElement(kColor), color(color) {}
+    constexpr EntryColor(unsigned color) : EntryElement(kColor), color(color) {}
 };
 
 class EntryBackgroundSprite : EntryElement {
     word index;
 public:
-    EntryBackgroundSprite(unsigned index) : EntryElement(kBackgroundSprite), index(index) {}
+    constexpr EntryBackgroundSprite(unsigned index) : EntryElement(kBackgroundSprite), index(index) {}
 };
 
-class EntryCustomForegroundFunction : EntryElement {
-    Func func;
-public:
-    EntryCustomForegroundFunction(Func func) : EntryElement(kCustomForegroundFunc), func(func) {}
+struct EntryCustomForegroundFunction : EntryFunctionSwos {
+    constexpr EntryCustomForegroundFunction(Func func) : EntryFunctionSwos(func, kCustomForegroundFunc) {}
+};
+struct EntryCustomForegroundFunctionNative : EntryFunctionNative {
+    constexpr EntryCustomForegroundFunctionNative(Func func) : EntryFunctionNative(func, kCustomForegroundFuncNative) {}
 };
 
 class EntryText : EntryElement {
     word flags;
+    SwosDataPointer<const char> str;
+public:
+    constexpr EntryText(word flags, SwosDataPointer<const char> str) : EntryElement(kString), flags(flags), str(str) {}
+};
+
+class EntryTextNative : EntryElementNative {
+    word flags;
     const char *str;
 public:
-    EntryText(word flags, const char *str) : EntryElement(kString), flags(flags), str(str) {}
+    constexpr EntryTextNative(word flags, const char *str) : EntryElementNative(kStringNative), flags(flags), str(str) {}
 };
 
 class EntryForegroundSprite : EntryElement {
     word index;
 public:
-    EntryForegroundSprite(unsigned index) : EntryElement(kForegroundSprite), index(index) {}
+    constexpr EntryForegroundSprite(unsigned index) : EntryElement(kForegroundSprite), index(index) {}
 };
 
 class EntryStringTable : EntryElement {
     word flags;
-    StringTable *stringTable;
+    SwosDataPointer<StringTable> stringTable;
 public:
-    EntryStringTable(word flags, StringTable *stringTable) : EntryElement(kStringTable), flags(flags), stringTable(stringTable) {}
+    constexpr EntryStringTable(word flags, SwosDataPointer<StringTable> stringTable) : EntryElement(kStringTable), flags(flags), stringTable(stringTable) {}
+};
+
+class EntryStringTableNative : EntryElementNative {
+    word flags;
+    const StringTableNative *stringTable;
+public:
+    constexpr EntryStringTableNative(word flags, const StringTableNative *stringTable) : EntryElementNative(kStringTableNative), flags(flags), stringTable(stringTable) {}
+};
+
+class EntryMultiLineTextNative : EntryElementNative {
+    word flags;
+    void *stringList;
+public:
+    constexpr EntryMultiLineTextNative(word flags, void *stringList) : EntryElementNative(kMultiLineText), flags(flags), stringList(stringList) {}
 };
 
 class EntryMultiLineText : EntryElement {
     word flags;
     void *stringList;
 public:
-    EntryMultiLineText(word flags, void *stringList) : EntryElement(kMultiLineText), flags(flags), stringList(stringList) {}
+    constexpr EntryMultiLineText(word flags, void *stringList) : EntryElement(kMultiLineText), flags(flags), stringList(stringList) {}
 };
 
 class EntryNumber : EntryElement {
     word flags;
     word number;
 public:
-    EntryNumber(word flags, word number) : EntryElement(kInteger), flags(flags), number(number) {}
+    constexpr EntryNumber(word flags, word number) : EntryElement(kInteger), flags(flags), number(number) {}
 };
 
-class EntryOnSelectFunction : EntryElement {
-    Func func;
-public:
-    EntryOnSelectFunction(Func func) : EntryElement(kOnSelect), func(func) {}
+struct EntryOnSelectFunction : EntryFunctionSwos {
+    constexpr EntryOnSelectFunction(Func func) : EntryFunctionSwos(func, kOnSelect) {}
+};
+struct EntryOnSelectFunctionNative : EntryFunctionNative {
+    constexpr EntryOnSelectFunctionNative(Func func) : EntryFunctionNative(func, kOnSelectNative) {}
 };
 
 class EntryOnSelectFunctionWithMask : EntryElement {
     word mask;
     Func func;
 public:
-    EntryOnSelectFunctionWithMask(Func func, word mask) : EntryElement(kOnSelectWithMask), func(func), mask(mask) {}
+    constexpr EntryOnSelectFunctionWithMask(Func func, word mask) : EntryElement(kOnSelectWithMask), func(func), mask(mask) {}
 };
 
-class EntryBeforeDrawFunction : EntryElement {
+class EntryOnSelectFunctionWithMaskNative : EntryElementNative {
+    word mask;
     Func func;
 public:
-    EntryBeforeDrawFunction(Func func) : EntryElement(kBeforeDraw), func(func) {}
+    constexpr EntryOnSelectFunctionWithMaskNative(Func func, word mask) : EntryElementNative(kOnSelectWithMaskNative), func(func), mask(mask) {}
 };
 
-class EntryOnReturnFunction : EntryElement {
-    Func func;
-public:
-    EntryOnReturnFunction(Func func) : EntryElement(kOnReturn), func(func) {}
+struct EntryBeforeDrawFunction : EntryFunctionSwos {
+    constexpr EntryBeforeDrawFunction(Func func) : EntryFunctionSwos(func, kBeforeDraw) {}
+};
+struct EntryBeforeDrawFunctionNative : EntryFunctionNative {
+    constexpr EntryBeforeDrawFunctionNative(Func func) : EntryFunctionNative(func, kBeforeDrawNative) {}
+};
+
+struct EntryOnReturnFunction : EntryFunctionSwos {
+    constexpr EntryOnReturnFunction(Func func) : EntryFunctionSwos(func, kOnReturn) {}
+};
+struct EntryOnReturnFunctionNative : EntryFunctionNative {
+    constexpr EntryOnReturnFunctionNative(Func func) : EntryFunctionNative(func, kOnReturnNative) {}
 };
 
 class EntryLeftSkip : EntryElement {
     byte skipLeftEntry;
     byte directionLeft;
 public:
-    EntryLeftSkip(byte skipLeftEntry, byte directionLeft)
+    constexpr EntryLeftSkip(byte skipLeftEntry, byte directionLeft)
         : EntryElement(kLeftSkip), skipLeftEntry(skipLeftEntry), directionLeft(directionLeft) {}
 };
 
@@ -195,7 +296,7 @@ class EntryRightSkip : EntryElement {
     byte skipRightEntry;
     byte directionRight;
 public:
-    EntryRightSkip(byte skipRightEntry, byte directionRight)
+    constexpr EntryRightSkip(byte skipRightEntry, byte directionRight)
         : EntryElement(kRightSkip), skipRightEntry(skipRightEntry), directionRight(directionRight) {}
 };
 
@@ -203,7 +304,7 @@ class EntryUpSkip : EntryElement {
     byte skipUpEntry;
     byte directionUp;
 public:
-    EntryUpSkip(byte skipUpEntry, byte directionUp)
+    constexpr EntryUpSkip(byte skipUpEntry, byte directionUp)
         : EntryElement(kUpSkip), skipUpEntry(skipUpEntry), directionUp(directionUp) {}
 };
 
@@ -211,14 +312,15 @@ class EntryDownSkip : EntryElement {
     byte skipDownEntry;
     byte directionDown;
 public:
-    EntryDownSkip(byte skipDownEntry, byte directionDown)
+    constexpr EntryDownSkip(byte skipDownEntry, byte directionDown)
         : EntryElement(kDownSkip), skipDownEntry(skipDownEntry), directionDown(directionDown) {}
 };
 
 class EntryColorConvertedSprite : EntryElement {
     SpriteConversionTable *table;
 public:
-    EntryColorConvertedSprite(SpriteConversionTable *table) : EntryElement(kColorConvertedSprite), table(table) {}
+    constexpr EntryColorConvertedSprite(SpriteConversionTable *table)
+        : EntryElement(kColorConvertedSprite), table(table) {}
 };
 
 #pragma pack(pop)

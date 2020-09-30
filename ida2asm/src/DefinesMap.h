@@ -18,6 +18,7 @@ public:
         bool isInverted() const;
         String name() const;
         String value() const;
+        int intValue() const;
         String leadingComments() const;
         String comment() const;
         const Define *next() const;
@@ -41,8 +42,8 @@ public:
 
     DefinesMap(size_t capacity);
     void add(const TokenList& leadingComments, CToken *comment, CToken *name, CToken *value, bool inverted);
-    const Define *get(const String& str);
-    const Define *get(const String& str, Util::hash_t hash);
+    const Define *get(const String& str) const;
+    const Define *get(const String& str, Util::hash_t hash) const;
     void seal();
     size_t size() const;
     StringMap<Define>::Iterator begin() const;

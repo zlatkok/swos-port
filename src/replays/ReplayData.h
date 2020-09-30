@@ -32,6 +32,7 @@ private:
         RawDword() {}
         RawDword(dword data) : data(data) {}
         RawDword(const RawDword&) {}  // keep it uninitialized when resizing the vector
+        RawDword& operator=(const RawDword&) = default;
         bool operator!=(int i) const { return data != i; }
 
         dword data;

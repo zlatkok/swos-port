@@ -115,11 +115,26 @@ class CodeGenerator:
         assert callable(out)
 
         for numStrings in stringTableLengths:
-            out(f'struct StringTable{numStrings} : public StringTable {{')
+            out(f'struct StringTableNative{numStrings} : public StringTableNative{{')
             out(f'    const char *strings[{numStrings}];')
-            out(f'    StringTable{numStrings}(int16_t *index, int16_t initialValue, '
-                f'{", ".join(map(lambda i: f"const char *str{i}", range(0, numStrings)))}) :\n        StringTable(index, initialValue), '
-                f'strings{{{", ".join(map(lambda i: f"str{i}", range(0, numStrings)))}}} {{}}')
+            out(f'    const bool nativeFlags[{numStrings + 1}];')
+            out(f'    constexpr StringTableNative{numStrings}(int16_t *index, int16_t initialValue,')
+
+            stringsDecl = map(lambda i: f'const char *str{i}', range(0, numStrings))
+            out(' ' * 8 + ', '.join(stringsDecl) + ',')
+
+            flagsDecl = map(lambda i: f'bool flag{i}', range(0, numStrings + 1))
+            out(' ' * 8 + ', '.join(flagsDecl) + ')')
+
+            out('    :')
+            out(f'        StringTableNative(index, initialValue, {numStrings}),')
+
+            stringsInit = map(lambda i: f"str{i}", range(0, numStrings))
+            out('        strings{' + ', '.join(stringsInit) + '},')
+
+            flagsInit = map(lambda i: f"flag{i}", range(0, numStrings + 1))
+            out('        nativeFlags{' + ', '.join(flagsInit) + '}')
+            out('    {}')
             out('};')
 
     def outputStringTableVariables(self, out):
@@ -132,18 +147,32 @@ class CodeGenerator:
                     numStrings = len(st.values)
                     if numStrings:
                         name = Util.getStringTableName(menuName, entry)
-                        output = f'extern int16_t {st.variable};\n'
-                        output += f'static StringTable{numStrings} {name} {{\n    &{st.variable}, {st.initialValue}, '
+                        output = ''
 
-                        for value in st.values:
+                        if st.declareIndexVariable:
+                            assert st.nativeFlags[0]
+                            output += f'extern int16_t {st.variable};\n'
+                            variable = f'&{st.variable}'
+                        elif not st.nativeFlags[0]:
+                            variable = f'reinterpret_cast<int16_t *>(SwosVM::Offsets::{st.variable})'
+
+                        output += f'const StringTableNative{numStrings} {name} {{\n    {variable}, {st.initialValue}, '
+
+                        for value, native in zip(st.values, st.nativeFlags[1:]):
                             if value[0] == value[-1] == "'":
                                 value = f'"{value[1:-1]}"'
-                            output += f'{value}, '
+                            if not native:
+                                output += f'reinterpret_cast<const char *>(SwosVM::Offsets::{value}), '
+                            else:
+                                output += f'{value}, '
 
-                        output = output[:-1] + '\n};\n'
-                        output += f'#ifdef {kStubIfdef}\n'
-                        output += f'static int16_t {st.variable};\n'
-                        output += '#endif'
+                        output = output[:-1] + '\n    ' + ', '.join(map(lambda flag: 'true' if flag else 'false', st.nativeFlags))
+                        output += '\n};\n'
+
+                        if st.declareIndexVariable:
+                            output += f'#ifdef {kStubIfdef}\n'
+                            output += f'static int16_t {st.variable};\n'
+                            output += '#endif'
 
                         out(output)
 
@@ -161,13 +190,34 @@ class CodeGenerator:
         assert isinstance(menu, Menu)
         assert callable(out)
 
+        menuHeaderV2 = False
+        nativeFunction = []
+
         for func in Constants.kMenuFunctions:
+            nativeFunction.append(False)
+
             if not func in menu.properties:
-                menu.properties[func] = 'nullptr'
+                menu.properties[func] = 0
+            elif menu.properties[func].startswith('$'):
+                menu.properties[func] = f'SwosVM::Procs::{menu.properties[func][1:]}'
+            else:
+                menuHeaderV2 = True
+                nativeFunction[-1] = True
 
         out(f'struct SWOS_Menu_{menuName} : public BaseMenu\n{{')
-        out(f'    MenuHeader header{{ {menu.properties[Constants.kOnInit]}, {menu.properties[Constants.kOnReturn]}, '
-            f'{menu.properties[Constants.kOnDraw]}, {menu.properties[Constants.kInitialEntry]} }};')
+
+        if menuHeaderV2:
+            out('    MenuHeaderV2 header{ kMenuHeaderV2Mark, ', end='')
+        else:
+            out('    MenuHeader header{ ', end='')
+
+        out(f'{menu.properties[Constants.kOnInit]}, {menu.properties[Constants.kOnReturn]}, '
+            f'{menu.properties[Constants.kOnDraw]}, {menu.properties[Constants.kInitialEntry]}', end='')
+
+        if menuHeaderV2:
+            out(''.join(map(lambda val: f', {("false", "true")[val]}', nativeFunction)), end='')
+
+        out(' };')
 
         templateIndex = 0
         resetTemplateIndex = 0
@@ -245,6 +295,29 @@ class CodeGenerator:
 
         out('}')
 
+    @staticmethod
+    def expandSwosSymbols(entry):
+        assert isinstance(entry, Entry)
+
+        entry.native = set()
+
+        for func in Constants.kEntryFunctions:
+            value = getattr(entry, func)
+            if value:
+                if value.startswith('$'):
+                    setattr(entry, func, f'SwosVM::Procs::{value[1:]}')
+                else:
+                    entry.native.add(func)
+
+        if entry.stringTable and entry.stringTable.native:
+            entry.native.add('stringTable')
+
+        if entry.text:
+            if entry.text.startswith('$'):
+                entry.text = f'SwosVM::Offsets::{entry.text[1:]}'
+            elif entry.text not in ('-1', '(-1)'):
+                entry.native.add('text')
+
     # getEntryStructs
     #
     # in:
@@ -259,19 +332,26 @@ class CodeGenerator:
         assert isinstance(menuName, str)
         assert isinstance(entry, Entry)
 
+        CodeGenerator.expandSwosSymbols(entry)
+
         result = []
         ord = f'{entry.ordinal:02}'
 
         if entry.text:
             text = str(entry.text).strip()
             if text in ('-1', '(-1)'):
-                text = 'reinterpret_cast<const char *>(-1)'
-            result.append(f'EntryText et{ord}{{ {entry.textFlags}, {text} }};')
+                text = '-1'
+            native = 'Native' if 'text' in entry.native else ''
+            result.append(f'EntryText{native} et{ord}{{ {entry.textFlags}, {text} }};')
 
         if entry.stringTable:
-            result.append(f'EntryStringTable est{ord}{{ {entry.textFlags}, ')
+            native = 'Native' if 'stringTable' in entry.native else ''
+            result.append(f'EntryStringTable{native} est{ord}{{ {entry.textFlags}, ')
             if not entry.stringTable.values:
-                result[-1] += f'reinterpret_cast<StringTable *>(&{entry.stringTable.variable}) }};'
+                if entry.stringTable.native:
+                    result[-1] += f'reinterpret_cast<StringTable *>(&{entry.stringTable.variable}) }};'
+                else:
+                    result[-1] += f'SwosVM::Offsets::{entry.stringTable.variable} }};'
             else:
                 name = Util.getStringTableName(menuName, entry)
                 result[-1] += f'&{name} }};'
@@ -283,10 +363,12 @@ class CodeGenerator:
             result.append(f'EntryForegroundSprite efs{ord}{{ {entry.sprite} }};')
 
         if entry.customDrawForeground is not None:
-            result.append(f'EntryCustomForegroundFunction ecff{ord} {{ { entry.customDrawForeground} }};')
+            native = 'Native' if 'customDrawForeground' in entry.native else ''
+            result.append(f'EntryCustomForegroundFunction{native} ecff{ord} {{ {entry.customDrawForeground} }};')
 
         if entry.customDrawBackground is not None:
-            result.append(f'EntryCustomBackgroundFunction ecbf{ord}{{ {entry.customDrawBackground} }};')
+            native = 'Native' if 'customDrawBackground' in entry.native else ''
+            result.append(f'EntryCustomBackgroundFunction{native} ecbf{ord}{{ {entry.customDrawBackground} }};')
 
         if entry.color and entry.color != '0':
             result.append(f'EntryColor ec{ord}{{ {entry.color} }};')
@@ -308,14 +390,18 @@ class CodeGenerator:
                 result.append(f'Entry{direction}Skip e{direction[0].lower()}s{ord}{{ {skip}, {newDirection} }};')
 
         if entry.controlsMask:
-            result.append(f'EntryOnSelectFunctionWithMask eosfm{ord}{{ {entry.onSelect}, {entry.controlsMask} }};')
+            native = 'Native' if 'onSelect' in entry.native else ''
+            result.append(f'EntryOnSelectFunctionWithMask{native} eosfm{ord}{{ {entry.onSelect}, {entry.controlsMask} }};')
         elif entry.onSelect:
-            result.append(f'EntryOnSelectFunction eosf{ord}{{ {entry.onSelect} }};')
+            native = 'Native' if 'onSelect' in entry.native else ''
+            result.append(f'EntryOnSelectFunction{native} eosf{ord}{{ {entry.onSelect} }};')
 
         if entry.beforeDraw:
-            result.append(f'EntryBeforeDrawFunction ebdf{ord}{{ {entry.beforeDraw} }};')
+            native = 'Native' if 'beforeDraw' in entry.native else ''
+            result.append(f'EntryBeforeDrawFunction{native} ebdf{ord}{{ {entry.beforeDraw} }};')
 
         if entry.onReturn:
-            result.append(f'EntryOnReturnFunction eadf{ord}{{ {entry.onReturn} }};')
+            native = 'Native' if 'onReturn' in entry.native else ''
+            result.append(f'EntryOnReturnFunction{native} eadf{ord}{{ {entry.onReturn} }};')
 
         return result

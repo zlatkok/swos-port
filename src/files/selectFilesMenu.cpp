@@ -75,7 +75,7 @@ FoundFileList findFiles(dword packedExtension)
     };
 
     auto ext = codeToExtension(packedExtension);
-    auto numAllowedExtensions = std::size(kAllowedExtensions) - (g_skipNonCompetitionFiles ? 3 : 0);
+    auto numAllowedExtensions = std::size(kAllowedExtensions) - (swos.g_skipNonCompetitionFiles ? 3 : 0);
 
     return findFiles(ext, nullptr, kAllowedExtensions, numAllowedExtensions);
 }
@@ -133,7 +133,7 @@ __declspec(naked) int SWOS::GetFilenameAndExtension()
 {
 #ifdef SWOS_VM
     auto result = getFilenameAndExtension();
-    g_flags.zero = result;
+    SwosVM::flags.zero = result;
     D0 = !result;
     return 0;
 #else
@@ -175,7 +175,7 @@ __declspec(naked) int SWOS::SelectFileToSaveDialog()
 {
 #ifdef SWOS_VM
     auto result = selectFileToSaveDialog();
-    g_flags.zero = result;
+    SwosVM::flags.zero = result;
     D0 = !result;
     return 0;
 #else

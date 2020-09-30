@@ -16,7 +16,7 @@ Menu optionsMenu
     initialEntry: controls
 
     Entry header {
-        text: aOptions
+        text: swos.aOptions
         color: kHeaderColor
     }
 
@@ -52,7 +52,7 @@ Menu optionsMenu
 
     Entry exit {
         y: kExitY
-        text: aExit
+        text: swos.aExit
         color: kExitColor
         upEntry: <
         onSelect: exitOptions
@@ -102,17 +102,17 @@ Menu gameplayOptionsMenu
 
     Entry {
         y: kGamePlayOptionsStartY
-        text: aFriendlyDiyGam
+        text: swos.aFriendlyDiyGam
     }
 
     defaultY: @prevEndY + kOptionsRowDistance
 
-    Entry { text: aFixPitchType }
-    Entry { text: aAutoReplays }
-    Entry { text: aAllPlayerTeams }
-    Entry { text: aAutoSaveHighli }
+    Entry { text: swos.aFixPitchType }
+    Entry { text: swos.aAutoReplays }
+    Entry { text: swos.aAllPlayerTeams }
+    Entry { text: swos.aAutoSaveHighli }
     Entry { text: "AUTO SAVE REPLAYS" }
-    Entry { text: aChairmanScenes }
+    Entry { text: swos.aChairmanScenes }
     Entry { text: "GAME STYLE" }
 
     // start of column 2, where the actual controls are
@@ -124,35 +124,35 @@ Menu gameplayOptionsMenu
 
     Entry gameLength {
         y: kGamePlayOptionsStartY
-        stringTable: ~gameLengthStrTable
-        onSelect: ~ChangeGameLength
+        stringTable: swos.gameLengthStrTable
+        onSelect: swos.ChangeGameLength
         downEntry: >
     }
 
     Entry {
-        stringTable: ~pitchTypeStrTable
-        onSelect: ~ChangePitchType
+        stringTable: swos.pitchTypeStrTable
+        onSelect: swos.ChangePitchType
         upEntry: <
         downEntry: >
     }
 
     Entry {
-        stringTable: ~autoReplaysStrTable
-        onSelect: ~ChangeAutoReplays
+        stringTable: swos.autoReplaysStrTable
+        onSelect: swos.ChangeAutoReplays
         upEntry: <
         downEntry: >
     }
 
     Entry {
-        stringTable: ~allPlTeamsEqualStrTable
-        onSelect: ~ChangeAllPlTeamsEqual
+        stringTable: swos.allPlTeamsEqualStrTable
+        onSelect: swos.ChangeAllPlTeamsEqual
         upEntry: <
         downEntry: >
     }
 
     Entry {
-        stringTable: ~autoSaveHlStrTable
-        onSelect: ~ChangeAutoSaveHighlights
+        stringTable: swos.autoSaveHlStrTable
+        onSelect: swos.ChangeAutoSaveHighlights
         upEntry: <
         downEntry: >
     }
@@ -165,8 +165,8 @@ Menu gameplayOptionsMenu
     }
 
     Entry {
-        stringTable: ~chairmanScenesStrTable
-        onSelect: ~ChangeChairmanScenes
+        stringTable: swos.chairmanScenesStrTable
+        onSelect: swos.ChangeChairmanScenes
         upEntry: <
         downEntry: >
     }
@@ -183,9 +183,9 @@ Menu gameplayOptionsMenu
         y: kExitY
         width: kBigButtonWidth
         height: kBigButtonHeight
-        text: aExit
+        text: swos.aExit
         color: kExitColor
-        onSelect: ~SetExitMenuFlag
+        onSelect: swos.SetExitMenuFlag
         upEntry: <
     }
 }

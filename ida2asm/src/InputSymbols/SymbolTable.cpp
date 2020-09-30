@@ -7,7 +7,7 @@ SymbolTable::SymbolTable() : m_procs(kProcCapacity), m_replacements(kReplacement
 {
 }
 
-SymbolTable::SymbolTable(const SymbolTable & other)
+SymbolTable::SymbolTable(const SymbolTable& other)
     : m_procs(other.m_procs), m_replacements(other.m_replacements)
 {
 }

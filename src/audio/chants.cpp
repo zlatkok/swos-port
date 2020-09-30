@@ -14,6 +14,11 @@ static int m_fadeInChantTimer;
 static int m_fadeOutChantTimer;
 static int m_nextChantTimer;
 
+enum ChantFunctionIndices {
+    kPlayIntroChant, kPlayFansChant8l, kPlayFansChant10l, kPlayFansChant4l,
+};
+static std::array<void (*)(), 4> m_chants;
+
 static void (*m_playCrowdChantsFunction)();
 
 static int m_lastResultSampleIndex = -1;
@@ -52,7 +57,7 @@ bool chantsOnChannelFinished(int channel)
 
 void playCrowdChants()
 {
-    if (g_soundOff || !g_crowdChantsOn || g_trainingGame)
+    if (swos.g_soundOff || !swos.g_crowdChantsOn || swos.g_trainingGame)
         return;
 
     if (m_fadeInChantTimer) {
@@ -77,7 +82,7 @@ void playCrowdChants()
                 index = getRandomInRange(0, 3);
 
             logDebug("Picked chant function %d", index);
-            m_playCrowdChantsFunction = (&playIntroChantSampleOffset)[index];
+            m_playCrowdChantsFunction = m_chants[index];
         }
 
         assert(m_playCrowdChantsFunction);
@@ -94,22 +99,25 @@ void playCrowdChants()
 // Called when initializing the game loop.
 void SWOS::LoadIntroChant()
 {
-    if (g_soundOff)
+    if (swos.g_soundOff)
         return;
 
-    auto color = leftTeamIngame.prShirtCol;
+    auto color = swos.leftTeamIngame.prShirtCol;
     assert(color < 16);
 
-    auto chantIndex = introTeamChantIndices[color];
-    assert(chantIndex < 6);
+    static const int8_t kIntroTeamChantIndices[16] = {
+        -1, -1, 3, -1, 0, 0, 0, 1, -1, 1, 2, 5, -1, 5, 1, 4
+    };
+    auto chantIndex = kIntroTeamChantIndices[color];
 
     std::string prefix;
     bool hasAudioDir = dirExists(kAudioDir);
     if (hasAudioDir)
-        prefix = std::string("audio") + getDirSeparator();
+        prefix = "audio"s + getDirSeparator();
 
     if (chantIndex >= 0) {
-        auto introChantFile = introTeamChantsTable[chantIndex];
+        assert(chantIndex < 6);
+        auto introChantFile = swos.introTeamChantsTable[chantIndex].asPtr();
         m_introChantSample.free();
 
         logInfo("Picked intro chant %d `%s'", chantIndex, introChantFile);
@@ -118,18 +126,22 @@ void SWOS::LoadIntroChant()
             introChantFile += 4;    // skip "sfx\" prefix
 
         m_introChantSample.loadFromFile(hasAudioDir ? (prefix + introChantFile).c_str() : introChantFile);
-        playIntroChantSampleOffset = PlayIntroChantSample;
+        m_chants[kPlayIntroChant] = PlayIntroChantSample;
     } else {
         logInfo("Not playing intro chant");
         m_introChantSample.free();
 
-        playIntroChantSampleOffset = PlayFansChant4lSample;
+        m_chants[kPlayIntroChant] = PlayFansChant4lSample;
     }
+
+    m_chants[kPlayFansChant8l] = PlayFansChant8lSample;
+    m_chants[kPlayFansChant10l] = PlayFansChant10lSample;
+    m_chants[kPlayFansChant4l] = PlayFansChant4lSample;
 }
 
 static void playChant(Mix_Chunk *chunk)
 {
-    if (g_soundOff || !g_crowdChantsOn)
+    if (swos.g_soundOff || !swos.g_crowdChantsOn)
         return;
 
     if (chunk) {
@@ -141,7 +153,7 @@ static void playChant(Mix_Chunk *chunk)
 
 static void playChant(SfxSampleIndex index)
 {
-    if (g_soundOff || !g_crowdChantsOn)
+    if (swos.g_soundOff || !swos.g_crowdChantsOn)
         return;
 
     assert(index == kChant4l || index == kChant8l || index == kChant10l);
@@ -210,15 +222,15 @@ static void setVolumeOrStopChants(int volume)
 void SWOS::EnqueueCrowdChantsReload()
 {
     // fix SWOS bug where crowd chants only get reloaded when auto replays are on
-    loadCrowdChantSampleFlag = 1;
+    swos.loadCrowdChantSampleFlag = 1;
 }
 
 void SWOS::LoadCrowdChantSampleIfNeeded()
 {
     // the code doesn't even get to test the flag unless the replay is started
-    if (loadCrowdChantSampleFlag) {
+    if (swos.loadCrowdChantSampleFlag) {
         LoadCrowdChantSample();
-        loadCrowdChantSampleFlag = 0;
+        swos.loadCrowdChantSampleFlag = 0;
     }
 }
 
@@ -228,7 +240,7 @@ static void fadeOutChantsIfGameTurnedBoring(bool wasInteresting);
 
 void SWOS::LoadCrowdChantSample()
 {
-    if (g_soundOff || !g_commentary)
+    if (swos.g_soundOff || !swos.g_commentary)
         return;
 
     bool wasInteresting = m_interestingGame;
@@ -247,10 +259,10 @@ static int getChantSampleIndex()
 {
     int sampleIndex = -1;
 
-    if (!statsTeam1Goals || !statsTeam2Goals) {
-        if (statsTeam1Goals != statsTeam2Goals) {
+    if (!swos.statsTeam1Goals || !swos.statsTeam2Goals) {
+        if (swos.statsTeam1Goals != swos.statsTeam2Goals) {
             // one team scored, other is losing with 0
-            int goalDiff = std::max(statsTeam1Goals, statsTeam2Goals);
+            int goalDiff = std::max(swos.statsTeam1Goals, swos.statsTeam2Goals);
             if (goalDiff <= 6) {
                 if (!getRandomInRange(0, 1)) {
                     // 50% chance of cheering up the losing team ;)
@@ -263,7 +275,7 @@ static int getChantSampleIndex()
                 }
             }
         }
-    } else if (statsTeam1Goals == statsTeam2Goals) {
+    } else if (swos.statsTeam1Goals == swos.statsTeam2Goals) {
         // equalizer goal scored
         logDebug("Choosing equalizer chant");
         sampleIndex = 7;
@@ -282,7 +294,7 @@ static void loadChantSample(int sampleIndex)
         if (m_lastResultSampleIndex != sampleIndex) {
             m_resultSample.free();
 
-            auto filename = resultChantFilenames[sampleIndex];
+            auto filename = swos.resultChantFilenames[sampleIndex].asPtr();
 
             std::string path;
             bool hasAudioDir = dirExists(kAudioDir);
@@ -293,11 +305,11 @@ static void loadChantSample(int sampleIndex)
             m_lastResultSampleIndex = sampleIndex;
         }
 
-        playFansChant10lOffset = SWOS::PlayResultSample;
+        m_chants[kPlayFansChant10l] = SWOS::PlayResultSample;
         m_interestingGame = true;
     } else {
         // game not very interesting
-        playFansChant10lOffset = SWOS::PlayFansChant10lSample;
+        m_chants[kPlayFansChant10l] = SWOS::PlayFansChant10lSample;
         m_interestingGame = false;
     }
 }
@@ -305,13 +317,8 @@ static void loadChantSample(int sampleIndex)
 static void fadeOutChantsIfGameTurnedBoring(bool wasInteresting)
 {
     if (wasInteresting && !m_interestingGame && m_chantsChannel >= 0 && Mix_Playing(m_chantsChannel)) {
-        if (m_fadeInChantTimer) {
-            m_fadeOutChantTimer = m_fadeInChantTimer;
-            m_fadeInChantTimer = 0;
-        } else if (!m_fadeOutChantTimer) {
-            m_fadeOutChantTimer = MIX_MAX_VOLUME;
-            m_fadeInChantTimer = 0;
-        }
+        m_fadeOutChantTimer = m_fadeInChantTimer ? m_fadeInChantTimer : MIX_MAX_VOLUME;
+        m_fadeInChantTimer = 0;
     }
 }
 
@@ -330,15 +337,15 @@ void SWOS::TurnCrowdChantsOn()
     m_fadeInChantTimer = 0;
     m_fadeOutChantTimer = 0;
     m_nextChantTimer = 0;
-    g_crowdChantsOn = 1;
+    swos.g_crowdChantsOn = 1;
 
-    if (screenWidth == kGameScreenWidth)
+    if (swos.screenWidth == kGameScreenWidth)
         playCrowdNoiseSample();
 }
 
 void SWOS::TurnCrowdChantsOff()
 {
-    g_crowdChantsOn = 0;
+    swos.g_crowdChantsOn = 0;
     stopChants();
     stopBackgroudCrowdNoise();
 }

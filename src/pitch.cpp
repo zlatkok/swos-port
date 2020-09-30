@@ -12,16 +12,16 @@ void SWOS::ReadPitchFile()
 
     // this runs right after virtual screen for menus is trashed; restore it so it can fade-out properly
     // also note that screen pitch is changed by this point
-    memcpy(linAdr384k, linAdr384k + 2 * kVgaScreenSize, kVgaScreenSize);
+    memcpy(swos.linAdr384k, swos.linAdr384k + 2 * kVgaScreenSize, kVgaScreenSize);
     for (int i = 0; i < kVgaHeight; i++)
-        memcpy(linAdr384k + i * screenWidth, linAdr384k + 2 * kVgaScreenSize + i * kVgaWidth, kVgaWidth);
+        memcpy(swos.linAdr384k + i * swos.screenWidth, swos.linAdr384k + 2 * kVgaScreenSize + i * kVgaWidth, kVgaWidth);
 
-    memset(g_pitchDatBuffer, 0, sizeof(g_pitchDatBuffer));
-    memset(g_currentMenu, 0, skillsPerQuadrant - g_currentMenu);
+    memset(swos.g_pitchDatBuffer, 0, sizeof(swos.g_pitchDatBuffer));
+    memset(swos.g_currentMenu, 0, swos.skillsPerQuadrant - reinterpret_cast<char *>(swos.g_currentMenu));
 
-    auto pitchFilenamesTable = &ofsPitch1Dat;
+    auto pitchFilenamesTable = &swos.ofsPitch1Dat;
     auto pitchFilename = pitchFilenamesTable[D0];
-    auto buffer = g_pitchDatBuffer + 180;
+    auto buffer = swos.g_pitchDatBuffer + 180;
 
     if (auto file = openFile(pitchFilename)) {
         for (int i = 0; i < 55; i++) {
@@ -32,8 +32,8 @@ void SWOS::ReadPitchFile()
         fclose(file);
     }
 
-    auto blkFilename = aPitch1_blk + 16 * D0;
-    loadFile(blkFilename, g_pitchPatterns);
+    auto blkFilename = swos.aPitch1_blk + 16 * D0;
+    loadFile(blkFilename, swos.g_pitchPatterns);
 }
 
 // in:
@@ -57,9 +57,9 @@ void SWOS::DrawBackPattern()
         xScreenTile < 0 || xScreenTile > kMaxTileX || yScreenTile < 0 || yScreenTile > kMaxTileY)
         return;
 
-    auto base = reinterpret_cast<char **>(g_pitchDatBuffer);
+    auto base = reinterpret_cast<SwosDataPointer<char> *>(swos.g_pitchDatBuffer);
     auto src = base[44 * yTile + xTile];
-    auto dst = linAdr384k + 16 * (384 * yScreenTile + xScreenTile);
+    auto dst = swos.linAdr384k + 16 * (384 * yScreenTile + xScreenTile);
 
     for (int i = 0; i < 16; i++) {
         memcpy(dst, src, 16);
@@ -70,5 +70,5 @@ void SWOS::DrawBackPattern()
 
 void SWOS::ResetAnimatedPatternsForBothTeams()
 {
-    memset(animatedPatterns, -1, sizeof(animatedPatterns));
+    memset(swos.animatedPatterns, -1, sizeof(swos.animatedPatterns));
 }

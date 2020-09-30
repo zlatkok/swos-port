@@ -17,7 +17,7 @@ public:
     MasmOutput(const char *path, const SymbolFileParser& symFileParser, const StructStream& structs, const DefinesMap& defines,
         const References& references, const OutputItemStream& outputItems);
     void setOutputPrefix(const std::string& prefix) override;
-    void setCImportSymbols(const StringList *syms) override;
+    void setCImportSymbols(const StringSet *syms) override;
     void setCExportSymbols(const StringList *syms) override;
     void setDisassemblyPrefix(const std::string& prefix) override;
     bool output(OutputFlags flags, CToken *openingSegment = nullptr) override;
@@ -57,7 +57,7 @@ private:
     String m_currentSegment;
 
     std::string m_outputPrefix;
-    const StringList *m_cImportSymbols = nullptr;
+    const StringSet *m_cImportSymbols = nullptr;
     const StringList *m_cExportSymbols = nullptr;
     std::string m_disassemblyPrefix;
 };

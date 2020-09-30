@@ -258,7 +258,7 @@ Menu controlOptionsMenu
         width: kBigButtonWidth
         height: kBigButtonHeight
 
-        text: aExit
+        text: swos.aExit
         color: kExitColor
 
         onSelect: exitControlsMenu

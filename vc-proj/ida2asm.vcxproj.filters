@@ -23,14 +23,11 @@
     <Filter Include="Source Files\Parser">
       <UniqueIdentifier>{735e1f23-bd9c-4456-9ab5-683ef803a237}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\OutputWriter\CppOutput">
+      <UniqueIdentifier>{b7106878-c78b-4223-b5ed-b008157e0e65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ida2asm\src\AsmConverter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ida2asm\src\AsmConverterWorker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\ida2asm\src\DefinesMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -115,17 +112,50 @@
     <ClCompile Include="..\ida2asm\src\InputSymbols\SymbolTable.cpp">
       <Filter>Source Files\InputSymbols</Filter>
     </ClCompile>
-    <ClCompile Include="..\ida2asm\src\OutputWriter\COutput.cpp">
+    <ClCompile Include="..\ida2asm\src\InputConverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\InputConverterWorker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\CppOutput.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\OutputFormatResolver.cpp">
       <Filter>Source Files\OutputWriter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\DataBank.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\IntermediateFormConverter.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\RedundantInstructionRemover.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\x86InstructionWriter.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\vmFileWriter.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\OpWriter.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\VmDataState.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\OrphanedAssignmentChainRemover.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\InstructionOperandsInfoExtractor.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ida2asm\src\OutputWriter\CppOutput\OperandInfo.cpp">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ida2asm\src\AsmConverter.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ida2asm\src\AsmConverterWorker.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\ida2asm\src\DefinesMap.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -222,11 +252,66 @@
     <ClInclude Include="..\ida2asm\src\InputSymbols\SymbolAction.h">
       <Filter>Source Files\InputSymbols</Filter>
     </ClInclude>
-    <ClInclude Include="..\ida2asm\src\OutputWriter\COutput.h">
-      <Filter>Source Files\OutputWriter</Filter>
-    </ClInclude>
     <ClInclude Include="..\ida2asm\src\Util\PascalString.h">
       <Filter>Source Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\InputConverter.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\InputConverterWorker.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\CppOutput.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\OutputFormatResolver.h">
+      <Filter>Source Files\OutputWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\DataBank.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\IntermediateFormConverter.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\RedundantInstructionRemover.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\InstructionNode.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\x86InstructionWriter.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\vmFileWriter.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\OpWriter.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\TypeInfo.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\OutputException.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\stdinc.h" />
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\VmDataState.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\OrphanedAssignmentChainRemover.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\RegisterEnum.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\StructMap.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\InstructionOperandsInfoExtractor.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ida2asm\src\OutputWriter\CppOutput\OperandInfo.h">
+      <Filter>Source Files\OutputWriter\CppOutput</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

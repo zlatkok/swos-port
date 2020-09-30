@@ -279,8 +279,8 @@ static int getScanCode()
         if (SDL_GetMouseState(nullptr, nullptr))
             return -1;
 
-        if (lastKey)
-            return lastKey;
+        if (swos.lastKey)
+            return swos.lastKey;
 
         SDL_Delay(50);
     }
@@ -595,7 +595,7 @@ static bool selectJoypadWithButtonPress(PlayerNumber player)
         updateControls();
         SWOS::GetKey();
 
-        if (SDL_GetMouseState(nullptr, nullptr) || lastKey == kKeyEscape)
+        if (SDL_GetMouseState(nullptr, nullptr) || swos.lastKey == kKeyEscape)
             break;
 
         auto joypadIndex = getJoypadWithButtonDown();

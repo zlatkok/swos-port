@@ -17,7 +17,11 @@ namespace Iterator {
         const T *operator&() const { return m_item; }
 
         bool operator!=(const Iterator& rhs) const { return m_item != rhs.m_item; }
-        Iterator operator++() { m_item = m_item->next(); return *this; }
+        Iterator operator++() {
+            assert(m_item->next() != m_item);
+            m_item = m_item->next();
+            return *this;
+        }
         operator const T *() const { return m_item; }
 
     private:

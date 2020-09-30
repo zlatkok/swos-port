@@ -13,11 +13,6 @@ OutputWriter::~OutputWriter()
     closeOutputFile();
 }
 
-void OutputWriter::setGlobalStructVars(const StringMap<PascalString> *structVars)
-{
-    m_globalStructVars = structVars;
-}
-
 bool OutputWriter::openOutputFile(OutputFlags flags, int anticipatedSize /* = -1 */)
 {
     const auto& path = getOutputFilename(flags);

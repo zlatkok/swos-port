@@ -5,25 +5,28 @@
     <Expand>
       <Item Name="value">data</Item>
       <Item Name="ptr">(char *)data</Item>
+      <Item Name="swosPtr" Condition="data &amp;&amp; data != -1">SwosVM::g_memByte+data</Item>
       <Item Name="hex">data,h</Item>
       <Item Name="char">(char)data,c</Item>
       <Item Name="hiWord">(word)(data >> 16)</Item>
       <Item Name="loWord">(word)data</Item>
+      <Item Name="hiWordSigned">(int16_t)(data >> 16)</Item>
+      <Item Name="loWordSigned">(int16_t)data</Item>
     </Expand>
   </Type>
   <Type Name="Token">
     <DisplayString Condition="textLength != 0">{(char *)(this + 1),[textLength]}</DisplayString>
-    <DisplayString Condition="textLength == 0">{type}</DisplayString>
+    <DisplayString Condition="textLength == 0">type</DisplayString>
     <Expand>
       <Item Name="type">type</Item>
       <Item Name="text" Condition="textLength > 0">(char *)(this + 1),[textLength]</Item>
       <Item Name="length">textLength</Item>
-      <Item Name="hash" Condition="type == T_ID">hash,h</Item>
+      <Item Name="hash" Condition="type == Token::T_ID">hash,h</Item>
       <Item Name="category">category</Item>
-      <Item Name="instructionType" Condition="category == Instruction">instructionType</Item>
-      <Item Name="registerType" Condition="category == Register">registerType</Item>
-      <Item Name="registerSize" Condition="category == Register">registerSize</Item>
-      <Item Name="keywordType" Condition="category == Keyword">keywordType</Item>
+      <Item Name="instructionType" Condition="category == Token::kInstruction">instructionType</Item>
+      <Item Name="registerType" Condition="category == Token::kRegister">registerType</Item>
+      <Item Name="registerSize" Condition="category == Token::kRegister">registerSize</Item>
+      <Item Name="keywordType" Condition="category == Token::kKeyword">keywordType</Item>
       <Item Name="next">(Token *)((char *)(this + 1) + textLength)</Item>
     </Expand>
   </Type>
@@ -33,6 +36,72 @@
     <Expand>
       <Item Name="string">m_str,[m_length]</Item>
       <Item Name="length">m_length</Item>
+    </Expand>
+  </Type>
+  <Type Name="PascalString">
+    <DisplayString Condition="m_length == 0">(Empty string)</DisplayString>
+    <DisplayString Condition="m_length != 0">{(char *)(this + 1),[m_length]}</DisplayString>
+    <Expand>
+      <Item Name="string">(char *)(this + 1),[m_length]</Item>
+      <Item Name="length">m_length</Item>
+    </Expand>
+  </Type>
+  <Type Name="StringMap&lt;*&gt;::Node">
+    <DisplayString Condition="m_textLength != 0 &amp;&amp; *(char *)(this + 1)">{(char *)(this + 1),[m_textLength]}</DisplayString>
+    <DisplayString Condition="m_textLength == 0 || !*(char *)(this + 1)">(Removed)</DisplayString>
+    <Expand>
+      <Item Name="text" Condition="m_textLength != 0">(char *)(this + 1),[m_textLength]</Item>
+      <Item Name="textLength">m_textLength</Item>
+      <Item Name="removed">m_textLength == 0 || !*(char *)(this + 1)</Item>
+      <Item Name="payloadLength">m_payloadLength</Item>
+      <Item Name="payload">($T1 *)((char *)(this + 1) + m_textLength)</Item>
+      <Item Name="hash">m_hash</Item>
+      <Item Name="next">(Node *)((char *)(this + 1) + m_textLength + m_payloadLength)</Item>
+    </Expand>
+  </Type>
+  <Type Name="StringMap&lt;*&gt;">
+    <Expand>
+      <Item Name="count">m_count</Item>
+      <Item Name="nodes">(Node *)(m_data.m_data._Mypair._Myval2)</Item>
+      <Item Name="lookupNodes">m_nodes,[m_count]</Item>
+    </Expand>
+  </Type>
+  <Type Name="SwosDataPointer&lt;*&gt;">
+    <Expand>
+      <Item Name="ptr" Condition="m_offset &amp;&amp; m_offset != -1">($T1 *)(SwosVM::g_memByte + m_offset)</Item>
+      <Item Name="ptr" Condition="!m_offset || m_offset == -1">"nullptr"</Item>
+      <Item Name="offset">m_offset</Item>
+      <Item Name="offsetHex">m_offset,h</Item>
+      <Item Name="type">"$T1 *"</Item>
+    </Expand>
+  </Type>
+  <Type Name="SwosProcPointer">
+    <Expand>
+      <Item Name="proc"
+        Condition="m_index == -1 || m_index == 0">
+        "nullptr"</Item>
+      <Item Name="proc"
+        Condition="m_index &lt; -1 &amp;&amp; m_index &gt; -2 - SwosVM::kNumProcs">
+        SwosVM::kProcs[-2 - m_index]</Item>
+      <Item Name="proc"
+        Condition="m_index &lt;= -2 - SwosVM::kNumProcs &amp;&amp; m_index &gt; -2 - SwosVM::kNumProcs - SwosVM::m_userProcs.size()">
+        SwosVM::m_userProcs._Mypair._Myval2._Myfirst[-2 - m_index - SwosVM::kNumProcs]</Item>
+      <Item Name="proc"
+        Condition="m_index &lt;= int(-2 - SwosVM::kNumProcs - SwosVM::m_userProcs.size())">
+        "invalid"
+      </Item>
+      <Item Name="index"
+        Condition="m_index &lt; -1 &amp;&amp; m_index &gt; -2 - SwosVM::kNumProcs">
+        -2 - m_index</Item>
+      <Item Name="index"
+        Condition="m_index &lt;= -2 - SwosVM::kNumProcs &amp;&amp; m_index &gt; -2 - SwosVM::kNumProcs - SwosVM::m_userProcs.size()">
+        -2 - m_index - SwosVM::kNumProcs</Item>
+      <Item Name="type"
+        Condition="m_index &lt; -1 &amp;&amp; m_index &gt; -2 - SwosVM::kNumProcs">"SWOS"</Item>
+      <Item Name="type"
+        Condition="m_index &lt;= -2 - SwosVM::kNumProcs &amp;&amp; m_index &gt; -2 - SwosVM::kNumProcs - SwosVM::m_userProcs.size()">
+        "user"</Item>
+      <Item Name="rawIndex">m_index</Item>
     </Expand>
   </Type>
 </AutoVisualizer>

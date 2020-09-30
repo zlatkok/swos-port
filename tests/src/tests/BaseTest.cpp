@@ -224,7 +224,7 @@ void BaseTest::runTestCase(BaseTest *test, const Case& testCase, size_t i, const
         addFailureMessage(errorMessage);
         std::cout << 'F';
     } catch (const std::exception& e) {
-        addFailureMessage(std::string("Exception `") + e.what() + "' caught.");
+        addFailureMessage("Exception `"s + e.what() + "' caught.");
         std::cout << 'E';
 
         if (options.passOnExceptions)

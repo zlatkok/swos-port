@@ -25,7 +25,7 @@ private:
     uint8_t m_offsetLength;
     uint8_t m_sizeLength;
     uint8_t m_size;
-    int8_t m_offset;
+    int16_t m_offset;
     // followed by: name string, offset string, size/struct string
 };
 #pragma pack(pop)

@@ -8,8 +8,11 @@ DefinesMap::Define::Define(const TokenList& leadingComments, CToken *comment, CT
 
     m_value = value->parseInt();
     m_type = value->type;
-    if (inverted)
+
+    if (inverted) {
         m_type |= kInvertedFlag;
+        m_value = ~m_value;
+    }
 
     auto leadingCommentsLength = Token::flattenTokenList(leadingComments, leadingCommentsPtr());
     Util::assignSize(m_leadingCommentsLength, leadingCommentsLength);
@@ -54,6 +57,11 @@ String DefinesMap::Define::name() const
 String DefinesMap::Define::value() const
 {
     return { valuePtr(), m_valueLength };
+}
+
+int DefinesMap::Define::intValue() const
+{
+    return m_value;
 }
 
 String DefinesMap::Define::leadingComments() const
@@ -102,12 +110,12 @@ void DefinesMap::add(const TokenList& leadingComments, CToken *comment, CToken *
     m_defines.add(name->text(), name->textLength, name->hash, leadingComments, comment, name, value, inverted);
 }
 
-auto DefinesMap::get(const String& str) -> const Define *
+auto DefinesMap::get(const String& str) const -> const Define *
 {
     return get(str, Util::hash(str.data(), str.length()));
 }
 
-auto DefinesMap::get(const String& str, Util::hash_t hash) -> const Define *
+auto DefinesMap::get(const String& str, Util::hash_t hash) const -> const Define *
 {
     return m_defines.get(str.data(), str.length(), hash);
 }

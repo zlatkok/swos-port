@@ -214,7 +214,7 @@ Menu joypadConfigMenu
     Entry decYNeg {
         x: kHorizontalBoxesStartX
 
-        text: aMinus
+        text: swos.aMinus
         color: kChangerColor
 
         leftEntry: incXNeg
@@ -232,7 +232,7 @@ Menu joypadConfigMenu
     }
 
     Entry incYNeg {
-        text: aPlus
+        text: swos.aPlus
         color: kChangerColor
 
         leftEntry: decYNeg
@@ -249,7 +249,7 @@ Menu joypadConfigMenu
     Entry decYPos {
         x: kHorizontalBoxesStartX
 
-        text: aMinus
+        text: swos.aMinus
         color: kChangerColor
 
         leftEntry: deadZoneYNeg
@@ -268,7 +268,7 @@ Menu joypadConfigMenu
     }
 
     Entry incYPos {
-        text: aPlus
+        text: swos.aPlus
 
         color: kChangerColor
 
@@ -289,7 +289,7 @@ Menu joypadConfigMenu
         x: kDeadZoneBoxX1 - kChangerWidth - kChangerDist
         y: kVerticalBoxesStartY
 
-        text: aPlus
+        text: swos.aPlus
         color: kChangerColor
 
         leftEntry: fireButton
@@ -312,7 +312,7 @@ Menu joypadConfigMenu
     Entry decXNeg {
         x: incXNeg.x
 
-        text: aMinus
+        text: swos.aMinus
         color: kChangerColor
 
         leftEntry: fireButton
@@ -329,7 +329,7 @@ Menu joypadConfigMenu
         x: kDeadZoneBoxX2 + kChangerDist + 2
         y: kVerticalBoxesStartY
 
-        text: aPlus
+        text: swos.aPlus
         color: kChangerColor
 
         leftEntry: incXNeg
@@ -351,7 +351,7 @@ Menu joypadConfigMenu
     Entry decXPos {
         x: incXPos.x
 
-        text: aMinus
+        text: swos.aMinus
         color: kChangerColor
 
         upEntry: incXPos
@@ -367,7 +367,7 @@ Menu joypadConfigMenu
         width: kBigButtonWidth
         height: kBigButtonHeight
 
-        text: aExit
+        text: swos.aExit
         textFlags: @kCenterAligned
         color: kExitColor
 

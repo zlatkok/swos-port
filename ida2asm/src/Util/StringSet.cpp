@@ -21,6 +21,17 @@ void StringSet::add(const char *str, size_t len)
     add(str, len, Util::hash(str, len));
 }
 
+void StringSet::add(const char *begin, const char *end)
+{
+    assert(end >= begin);
+    add(begin, end - begin);
+}
+
+bool StringSet::empty() const
+{
+    return m_count == 0;
+}
+
 void StringSet::add(const char *str, size_t len, Util::hash_t hash)
 {
     auto size = Node::requiredSize(len);

@@ -39,6 +39,10 @@ void IdaAsmParser::parse()
                 m_lineNo++;
                 continue;
 
+            case Token::T_ALIGN:
+                token = parseDirective(token, comments);
+                break;
+
             case Token::T_ID:
                 assert(next < m_tokenizer.end());
 
@@ -50,7 +54,7 @@ void IdaAsmParser::parse()
                     token = parseStruct(token, comments);
                 } else if (next->type == Token::T_SEGMENT || next->type == Token::T_ENDS) {
                     token = parseSegment(token, comments);
-                } else if (token->type == Token::T_ALIGN || token->text()[0] == '.') {
+                } else if (token->text()[0] == '.') {
                     token = parseDirective(token, comments);
                 } else if (next->isId() && *(token->next()) == "=") {
                     token = parseDefine(token, comments);
@@ -86,7 +90,7 @@ void IdaAsmParser::parse()
                         token = parseDataItem(token, comments, noBreakStatus);
                         break;
                     }
-                    // assume fall-through
+                    [[fallthrough]];
                 default:
                     unexpected(token);
                 }
@@ -316,7 +320,7 @@ CToken *IdaAsmParser::parseInstruction(CToken *token, TokenList& comments)
     auto addOperandToken = [&token, &operandNo, &opTokens] { opTokens[2 * operandNo + 1] = token->next(); };
     auto setSize = [&opSizes, &operandNo, &token, this](size_t size) {
         if (opSizes[operandNo] > 0 && opSizes[operandNo] != size)
-            error(std::string("inconsistent operand size: ") + std::to_string(size) + " (was " +
+            error("inconsistent operand size: " + std::to_string(size) + " (was " +
                 std::to_string(opSizes[operandNo]) + ')', token);
         Util::assignSize(opSizes[operandNo], size);
     };
@@ -392,7 +396,7 @@ CToken *IdaAsmParser::parseInstruction(CToken *token, TokenList& comments)
 
         case Token::T_SIZE:
             sizeOperator = true;
-            // assume fall-through
+            [[fallthrough]];
         case Token::T_PLUS:
         case Token::T_MULT:
         case Token::T_LPAREN:
@@ -639,7 +643,7 @@ CToken *IdaAsmParser::parseProc(CToken *token, TokenList& comments)
 
 CToken *IdaAsmParser::parseEndProc(CToken *token, TokenList& comments)
 {
-    assert(token->isText() && token->next()->type == Token::T_ENDP);
+    assert(m_currentProc && token->isText() && token->next()->type == Token::T_ENDP);
 
     auto name = token;
     advance(token);
@@ -692,6 +696,7 @@ CToken *IdaAsmParser::parseDataItem(CToken *token, TokenList& comments, Token::N
         advance(token);
     }
 
+    String dataReplacement;
     if (name) {
         auto action = m_symbolTable.symbolAction(name, ~(kRemove | kRemoveSolo));
         bool removed = (action.first & kRemove) != 0;
@@ -706,6 +711,8 @@ CToken *IdaAsmParser::parseDataItem(CToken *token, TokenList& comments, Token::N
         }
 
         m_references.addVariable(name, size, structName);
+
+        dataReplacement = m_symbolTable.symbolReplacement(name);
     }
 
     CToken *lineComment{};
@@ -729,7 +736,7 @@ CToken *IdaAsmParser::parseDataItem(CToken *token, TokenList& comments, Token::N
             assert(lastDataItem);
             assert(lastDataItem->numElements() == 1);
 
-            auto item = lastDataItem->begin();
+            auto item = lastDataItem->initialElement();
 
             assert(item);
             if (!item->dup())
@@ -747,6 +754,14 @@ CToken *IdaAsmParser::parseDataItem(CToken *token, TokenList& comments, Token::N
 
     comments.clear();
 
+    if (dataReplacement)
+        return parseReplacementDataItemElements(dataReplacement, token);
+    else
+        return parseDataItemElements(token);
+}
+
+CToken *IdaAsmParser::parseDataItemElements(CToken *token)
+{
     while (!token->isNewLine()) {
         if (token->isComment()) {
             advance(token);
@@ -792,6 +807,15 @@ CToken *IdaAsmParser::parseDataItem(CToken *token, TokenList& comments, Token::N
     }
 
     return token;
+}
+
+CToken *IdaAsmParser::parseReplacementDataItemElements(const String& dataReplacement, CToken *token)
+{
+    char tokensArea[1024];
+    Tokenizer::tokenize(dataReplacement.data(), dataReplacement.length(), tokensArea);
+    auto tokenStart = reinterpret_cast<CToken *>(tokensArea);
+    parseDataItemElements(tokenStart);
+    return skipUntilNewLine(token);
 }
 
 CToken *IdaAsmParser::parseStackVariable(CToken *token, TokenList& comments)
@@ -1127,6 +1151,8 @@ std::pair<CToken *, size_t> IdaAsmParser::getNextSignificantToken(CToken *token)
 
 std::pair<CToken *, std::vector<CToken *>> IdaAsmParser::collectComments(CToken *token)
 {
+    assert(token);
+
     if (!token->isNewLine())
         return {};
 
@@ -1211,7 +1237,7 @@ inline void IdaAsmParser::error(const std::string& what, CToken *token)
 void IdaAsmParser::expect(Token::Type type, CToken *token)
 {
     if (token->type != type) {
-        auto message = std::string("expecting ") + Token::typeToString(type) + ", got " + tokenToString(token);
+        auto message = "expecting "s + Token::typeToString(type) + ", got " + tokenToString(token);
         error(message, token);
     }
 }
@@ -1236,7 +1262,7 @@ void IdaAsmParser::expectTextToken(CToken *token)
 
 void IdaAsmParser::expectedCustom(const char *what, CToken *token)
 {
-    auto message = std::string("expecting ") + what  + ", got " + tokenToString(token);
+    auto message = "expecting "s + what  + ", got " + tokenToString(token);
     error(message, token);
 }
 
@@ -1248,13 +1274,13 @@ void IdaAsmParser::expectNumber(CToken *token)
 
 void IdaAsmParser::unexpected(CToken *token)
 {
-    error(std::string("unexpected token ") + token->typeToString() + " encountered", token);
+    error("unexpected token "s + token->typeToString() + " encountered", token);
 }
 
 void IdaAsmParser::verifyHookLine(CToken *token)
 {
     if (m_currentHookLine >= 0) {
-        auto errorDesc = std::string("insertion point for call passed");
+        auto errorDesc = "insertion point for call passed"s;
 
         const auto& hookName = ProcHookList::getCurrentHookProc(m_currentProcHook);
         if (!hookName.empty())

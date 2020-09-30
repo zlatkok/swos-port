@@ -7,14 +7,14 @@ bytes header followed by entries, which are 56 bytes each.
 Parameters to menu entry functions (before draw, after draw, etc.) are in the
 following registers:
 A5 - pointer to entry which is receiving the event
-A0 - pointer to function itself (since it's called indirectly through A0)
+A0 - pointer to the function itself (since it's called indirectly through A0)
 
-Upon entry, init and onReturn functions of the menu will have A6 point to menu
-header.
+Upon entry, onInit, onReturn and onDraw functions of the menu will have A6
+pointing to the menu's header.
 
 Header (size 22 bytes):
 
-           +0  - init function (invoked only once, converting the menu)
+           +0  - init function (invoked only once, when converting the menu)
            +4  - onReturn function (invoked when returning to this menu)
            +8  - onDraw function (invoked each frame, before drawing the items)
            +12 - pointer to currently selected entry
@@ -326,13 +326,13 @@ ofs38 = dword (pointer na strukturu, videti opis ofs34)
 ======
 Colors
 
-Broj boja koje mogu imati pozadine stavki je 16. One se konvertuju preko
-menuitem_colortable tablice u DrawEmptyMenuItem. U radnoj paleti postoji vise
-grupa nijansi od po 16 boja. Posto meniji mogu imati samo 16 boja, njihova
-boja se konvertuje u pocetak nijanse, i na nju se dodaju pikseli fill.256 koji
-su napravljeni tako da budu lepo nijansirani - pitanje je samo u kojoj boji.
-U fill.256 se koriste samo 32 boje (indeksi 0..31), tako da grupe nijansi u
-radnoj paleti mogu imati maksimum 32 boje.
+Number of colors menu entry background can have is 16. They're converted via
+menuItemColorTable table in DrawEmptyMenuItem(). The working menu palette
+contains several groups of 16 color shades. Since menus can have only 16
+colors, their color is converted to a start of a shade group, and the pixels
+from 'fill.256' are added to it. Those pixels are designed to form a gradient
+-- only question is in which color. 'fill.256' uses only 32 colors (indices
+0..31), so the shade groups from working palette can have 32 colors at maximum.
 
 Grupe nijansi:
 

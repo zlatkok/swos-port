@@ -301,8 +301,10 @@ class Tokenizer:
         assert isinstance(token, Token)
         assert isinstance(expectedNext, (str, type(None)))
 
-        if not token.string.isidentifier():
-            Util.error(f"`{token.string}' is not a valid identifier", token)
+        id = token.string[1:] if token.string.startswith('$') else token.string
+
+        if not id.isidentifier():
+            Util.error(f"`{id}' is not a valid identifier", token)
 
         if fetchNextToken:
             token = self.getNextToken(expectedNext)

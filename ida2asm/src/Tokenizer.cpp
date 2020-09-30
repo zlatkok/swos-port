@@ -8,42 +8,10 @@ int Token::parseInt() const
     assert(textLength > 0);
     assert(type == Token::T_HEX || type == Token::T_NUM || type == Token::T_BIN);
     assert(category == kNumber || category == kDup);
+    assert(type != Token::T_HEX || tolower(text()[textLength - 1]) == 'h');
+    assert(type != Token::T_BIN|| tolower(text()[textLength - 1]) == 'b');
 
-    int value = 0;
-
-    auto p = text();
-    auto length = textLength;
-    bool neg = false;
-
-    if (*p == '+' || *p == '-') {
-        p++;
-        length--;
-        neg = *p == '-';
-    }
-
-    if (type == Token::T_HEX) {
-        assert(tolower(text()[textLength - 1]) == 'h');
-
-        for (; p < text() + length - 1; p++) {
-            int c;
-
-            if (*p >= '0' && *p <= '9')
-                c = *p - '0';
-            else
-                c = 10 + (*p | 0x20) - 'a';
-
-            value = value * 16 + c;
-        }
-    } else if (type == Token::T_NUM) {
-        for (; p < text() + length; p++)
-            value = value * 10 + *p - '0';
-    } else {
-        assert(tolower(text()[textLength - 1]) == 'b');
-        for (; p < text() + length - 1; p++)
-            value = value * 2 + *p - '0';
-    }
-
-    return neg ? -value : value;
+    return Util::parseInt(text(), textLength);
 }
 
 int Token::dataSize() const
@@ -132,13 +100,24 @@ auto Tokenizer::tokenize(const char *data, long size, long hardSize) -> TokenRan
     return { softLimit, hardLimit };
 }
 
+void Tokenizer::tokenize(const char *data, size_t size, char *tokensArea)
+{
+    assert(data && size && tokensArea);
+
+    const auto sentinel = data + size;
+    auto token = reinterpret_cast<Token *>(tokensArea);
+
+    for (auto p = data; p < sentinel; advance(token))
+        p = lookupToken(*token, p);
+
+    makeToken(token, Token::T_NL);
+}
+
 std::tuple<std::string, bool, bool> Tokenizer::determineBlockLimits(const TokenRange& limits)
 {
-    BlockState state;
-    bool noBreakContinued, noBreakOverflow;
-    CToken *comment;
+    bool noBreakOverflow;
 
-    std::tie(state, noBreakContinued, comment) = determineBlockStart(limits);
+    auto [state, noBreakContinued, comment] = determineBlockStart(limits);
     std::tie(state, noBreakOverflow) = determineBlockEnd(limits, state, comment);
 
     assert(m_start && m_start < limits.first);

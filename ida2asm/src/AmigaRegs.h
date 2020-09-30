@@ -22,7 +22,7 @@ inline int amigaRegisterToIndex(const String& str)
 inline String indexToAmigaRegister(int index)
 {
     static const char kAmigaRegisterNames[] = "D0D1D2D3D4D5D6D7A0A1A2A3A4A5A6";
-    static_assert(sizeof(kAmigaRegisterNames) == 2 * kNumAmigaRegisters + 1, "kAmigaRegisterNames has invalid size");
+    static_assert(sizeof(kAmigaRegisterNames) == 2 * kNumAmigaRegisters + 1, "Invalid size of kAmigaRegisterNames");
 
     assert(index >= 0 && index < kNumAmigaRegisters);
     return String(&kAmigaRegisterNames[2 * index], 2);

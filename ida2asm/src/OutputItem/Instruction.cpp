@@ -30,9 +30,12 @@ size_t Instruction::requiredSize(CToken *prefix, CToken *instructionToken, const
     assert(instructionToken);
 
     size_t opSize = 0;
-    for (size_t i = 0; i < opTokens.size() - 1; i += 2)
-        for (const auto *token = opTokens[i]; token != opTokens[i + 1]; token = token->next())
+    for (size_t i = 0; i < opTokens.size() - 1; i += 2) {
+        for (const auto *token = opTokens[i]; token != opTokens[i + 1]; token = token->next()) {
+            assert(token < opTokens[i + 1]);
             opSize += Operand::requiredSize(token);
+        }
+    }
 
     auto prefixLength = prefix ? prefix->textLength : 0;
 
@@ -58,6 +61,26 @@ Token::Type Instruction::type() const
 bool Instruction::isBranch() const
 {
     return m_instructionType == Token::kBranchInstruction;
+}
+
+String Instruction::getBranchTarget() const
+{
+    assert(isBranch() && (m_type == Token::T_RETN || numOperands() == 1));
+
+    if (numOperands() < 1)
+        return {};
+
+    auto target = operands()[0].begin();
+
+    if (target->type() == Token::T_SHORT)
+        target = target->next();
+
+    if (target->text().startsWith('$'))
+        return {};
+
+    assert(m_type == Token::T_RETN || target->next() == operands()[0].end());
+
+    return target->text();
 }
 
 bool Instruction::isShiftRotate() const

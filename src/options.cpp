@@ -30,14 +30,14 @@ static constexpr char kIniFilename[] = "swos.ini";
 static constexpr char kStandardSection[] = "standard-options";
 
 static const std::array<Option<int16_t>, 9> kStandardOptions = {
-    "gameLength",  &g_gameLength, 0, 3, 0,
-    "autoReplays",  &g_autoReplays, 0, 1, 0,
-    "menuMusic",  &g_menuMusic, 0, 1, 1,
-    "autoSaveHighlights",  &g_autoSaveHighlights, 0, 1, 1,
-    "allPlayerTeamsEqual", &g_allPlayerTeamsEqual, 0, 1, 0,
-    "pitchType", &g_pitchType, -2, 6, 4,
-    "chairmanScenes", &g_chairmanScenes, 0, 1, 1,
-    "showBigLetterS", &g_spinBigS, 0, 1, 0,
+    "gameLength",  &swos.g_gameLength, 0, 3, 0,
+    "autoReplays",  &swos.g_autoReplays, 0, 1, 0,
+    "menuMusic",  &swos.g_menuMusic, 0, 1, 1,
+    "autoSaveHighlights",  &swos.g_autoSaveHighlights, 0, 1, 1,
+    "allPlayerTeamsEqual", &swos.g_allPlayerTeamsEqual, 0, 1, 0,
+    "pitchType", &swos.g_pitchType, -2, 6, 4,
+    "chairmanScenes", &swos.g_chairmanScenes, 0, 1, 1,
+    "showBigLetterS", &swos.g_spinBigS, 0, 1, 0,
     "gameStyle", &m_gameStyle, 0, 1, 0,
 };
 
@@ -104,7 +104,7 @@ static void parseControls(LogFunction log, OptionalControls& controls, const cha
         } else if (strstr(str, "joystick") == str || strstr(str, "joypad")) {
             controls.second = kJoypad;
         } else {
-            log(std::string("Unrecognized control name: ") + str);
+            log("Unrecognized control name: "s + str);
             controls.first = false;
         }
     } else {
@@ -151,7 +151,7 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
         } else if (!strcmp(argv[i], kNoLoadPause)) {
             m_noLoadPause = true;
         } else if (!strcmp(argv[i], kMaxBank)) {
-            log(std::string("Maximum bank number is ") + std::to_string(adl_getBanksCount() - 1), kInfo);
+            log("Maximum bank number is " + std::to_string(adl_getBanksCount() - 1), kInfo);
         } else if (strstr(argv[i], kBankNum) == argv[i]) {
             auto bankNumStr = argv[i] + sizeof(kBankNum) - 1;
             auto bankNo = atoi(bankNumStr);
@@ -159,7 +159,7 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
             if (bankNo >= 0 && bankNo <= maxBankNo) {
                 m_bankNo = bankNo;
             } else {
-                auto warningText = std::string("Invalid bank number ") + std::to_string(bankNo) +
+                auto warningText = "Invalid bank number " + std::to_string(bankNo) +
                     ", range is [0.." + std::to_string(maxBankNo) + "]";
                 log(warningText);
             }
@@ -186,7 +186,7 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
                 joypad.second = joypadStr;
             }
         } else {
-            log(std::string("Unknown option ignored: ") + argv[i]);
+            log("Unknown option ignored: "s + argv[i]);
         }
     }
 
@@ -197,9 +197,9 @@ void normalizeOptions()
 {
     if (m_soundState != kUnspecified) {
         auto soundOff = m_soundState == kOff;
-        g_soundOff = soundOff;
-        g_musicOff = soundOff;
-        g_menuMusic = !g_musicOff;
+        swos.g_soundOff = soundOff;
+        swos.g_musicOff = soundOff;
+        swos.g_menuMusic = !swos.g_musicOff;
     }
 
     normalizeInput();
@@ -241,10 +241,10 @@ void SWOS::OptionsMenuSelected()
 
 static void exitOptions()
 {
-    if (controlsStatus == 0x20) {
+    if (swos.controlsStatus == 0x20) {
         SetExitMenuFlag();
         saveOptions();
-    } else if (controlsStatus == 0x30 && ++showPrereleaseCounter == 15) {
+    } else if (swos.controlsStatus == 0x30 && ++swos.showPrereleaseCounter == 15) {
         auto entry = getMenuEntry(OptionsMenu::Entries::secret);
         entry->show();
     }
@@ -279,7 +279,7 @@ static void changeGameStyle()
 static void initGamePlayOptions()
 {
     auto autoSaveReplaysEntry = getMenuEntry(GameplayOptionsMenu::autoSaveReplays);
-    strcpy(autoSaveReplaysEntry->string(), getAutoSaveReplays() ? aOn : aOff);
+    strcpy(autoSaveReplaysEntry->string(), getAutoSaveReplays() ? swos.aOn : swos.aOff);
 }
 
 static void toggleAutoSaveReplays()

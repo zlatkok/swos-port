@@ -118,18 +118,19 @@ bool commenteryOnChannelFinished(int channel)
     return false;
 }
 
-const char **getOnDemandSampleTable()
+static SwosDataPointer<const char> *getOnDemandSampleTable()
 {
     // unique samples used in tables of on-demand comment filenames
-    static const char *kOnDemandSamples[] = {
-        aHardM10_v__raw, aHardM10_w__raw, aHardM10_y__raw, aHardM313_1__ra, aHardM313_2__ra, aHardM313_3__ra, aHardM10_5__raw,
-        aHardM10_7__raw, aHardM10_8__raw, aHardM10_9__raw, aHardM10_a__raw, aHardM10_b__raw, aHardM233_j__ra, aHardM233_k__ra,
-        aHardM233_l__ra, aHardM233_m__ra, aHardM10_3__raw, aHardM10_4__raw, aHardM196_8__ra, aHardM196_9__ra, aHardM196_a__ra,
-        aHardM196_b__ra, aHardM196_c__ra, aHardM196_d__ra, aHardM196_e__ra, aHardM196_f__ra, aHardM196_g__ra, aHardM196_h__ra,
-        aHardM196_i__ra, aHardM196_j__ra, aHardM406_f__ra, aHardM406_g__ra, aHardM406_h__ra, aHardM406_i__ra, aHardM406_j__ra,
-        aHardM443_7__ra, aHardM443_8__ra, aHardM443_9__ra, aHardM443_a__ra, aHardM443_b__ra, aHardM443_c__ra, aHardM443_d__ra,
-        aHardM443_e__ra, aHardM443_f__ra, aHardM443_g__ra, aHardM443_h__ra, aHardM443_i__ra, aHardM443_j__ra, aHardM406_3__ra,
-        aHardM406_8__ra, aHardM406_7__ra, aHardM406_9__ra,
+    static SwosDataPointer<const char> kOnDemandSamples[] = {
+        swos.aHardM10_v__raw, swos.aHardM10_w__raw, swos.aHardM10_y__raw, swos.aHardM313_1__ra, swos.aHardM313_2__ra, swos.aHardM313_3__ra,
+        swos.aHardM10_5__raw, swos.aHardM10_7__raw, swos.aHardM10_8__raw, swos.aHardM10_9__raw, swos.aHardM10_a__raw, swos.aHardM10_b__raw,
+        swos.aHardM233_j__ra, swos.aHardM233_k__ra, swos.aHardM233_l__ra, swos.aHardM233_m__ra, swos.aHardM10_3__raw, swos.aHardM10_4__raw,
+        swos.aHardM196_8__ra, swos.aHardM196_9__ra, swos.aHardM196_a__ra, swos.aHardM196_b__ra, swos.aHardM196_c__ra, swos.aHardM196_d__ra,
+        swos.aHardM196_e__ra, swos.aHardM196_f__ra, swos.aHardM196_g__ra, swos.aHardM196_h__ra, swos.aHardM196_i__ra, swos.aHardM196_j__ra,
+        swos.aHardM406_f__ra, swos.aHardM406_g__ra, swos.aHardM406_h__ra, swos.aHardM406_i__ra, swos.aHardM406_j__ra, swos.aHardM443_7__ra,
+        swos.aHardM443_8__ra, swos.aHardM443_9__ra, swos.aHardM443_a__ra, swos.aHardM443_b__ra, swos.aHardM443_c__ra, swos.aHardM443_d__ra,
+        swos.aHardM443_e__ra, swos.aHardM443_f__ra, swos.aHardM443_g__ra, swos.aHardM443_h__ra, swos.aHardM443_i__ra, swos.aHardM443_j__ra,
+        swos.aHardM406_3__ra, swos.aHardM406_8__ra, swos.aHardM406_7__ra, swos.aHardM406_9__ra,
         kSentinel,
     };
 
@@ -293,7 +294,7 @@ static void mapOriginalSamples()
             } else if (!didSampleFailToLoad(i)) {
                 auto& sample = m_originalCommentarySamples[i];
                 if (sample.hasData()) {
-                    movedSamples[i] = { mapping.tableIndex, table.samples.size() };
+                    movedSamples[i] = { mapping.tableIndex, static_cast<int>(table.samples.size()) };
                     table.samples.push_back(std::move(sample));
                 } else {
                     markSampleAsFailed(i);
@@ -320,7 +321,7 @@ static void loadOriginalSamples()
     const auto onDemandSamples = getOnDemandSampleTable();
 
     int i = 0;
-    for (auto ptr : { commentaryTable, onDemandSamples }) {
+    for (auto ptr : { swos.commentaryTable, onDemandSamples }) {
         for (; *ptr != kSentinel; ptr++, i++) {
             auto& sampleData = m_originalCommentarySamples[i];
             if (!sampleData.hasData())
@@ -335,7 +336,7 @@ static void loadOriginalSamples()
 
 void SWOS::LoadCommentary()
 {
-    if (g_soundOff || !g_commentary)
+    if (swos.g_soundOff || !swos.g_commentary)
         return;
 
     logInfo("Loading commentary...");
@@ -404,7 +405,7 @@ static bool isLastPlayedComment(SoundSample& sample)
 
 static void playComment(CommentarySampleTableIndex tableIndex, bool interrupt = true)
 {
-    if (g_soundOff || !g_commentary || g_muteCommentary)
+    if (swos.g_soundOff || !swos.g_commentary || swos.g_muteCommentary)
         return;
 
     auto& table = m_sampleTables[tableIndex];
@@ -469,24 +470,24 @@ void SWOS::PlayInjuryComment()
 void SWOS::PlayPenaltyGoalComment()
 {
     playComment(kPenaltyGoal);
-    performingPenalty = 0;
+    swos.performingPenalty = 0;
 }
 
 void SWOS::PlayPenaltyMissComment()
 {
     playComment(kPenaltyMissed);
-    performingPenalty = 0;
+    swos.performingPenalty = 0;
 }
 
 void SWOS::PlayPenaltySavedComment()
 {
     playComment(kPenaltySaved);
-    performingPenalty = 0;
+    swos.performingPenalty = 0;
 }
 
 void SWOS::PlayPenaltyComment()
 {
-    performingPenalty = -1;
+    swos.performingPenalty = -1;
     playComment(kPenalty);
 }
 
@@ -522,9 +523,9 @@ void SWOS::PlayBarHitComment()
 
 void SWOS::PlayKeeperClaimedComment()
 {
-    if (performingPenalty) {
+    if (swos.performingPenalty) {
         playComment(kPenaltySaved);
-        performingPenalty = 0;
+        swos.performingPenalty = 0;
     } else {
         // don't interrupt penalty saved comments
         if (m_lastPlayedCategory != kPenaltySaved || !commentPlaying())
@@ -534,7 +535,7 @@ void SWOS::PlayKeeperClaimedComment()
 
 void SWOS::PlayNearMissComment()
 {
-    if (performingPenalty || penaltiesState == -1)
+    if (swos.performingPenalty || swos.penaltiesState == -1)
         PlayPenaltyMissComment();
     else
         playComment(kNearMiss);
@@ -542,7 +543,7 @@ void SWOS::PlayNearMissComment()
 
 void SWOS::PlayGoalkeeperSavedComment()
 {
-    if (performingPenalty || penaltiesState == -1)
+    if (swos.performingPenalty || swos.penaltiesState == -1)
         PlayPenaltySavedComment();
     else
         playComment(kKeeperSaved);
@@ -551,7 +552,7 @@ void SWOS::PlayGoalkeeperSavedComment()
 // fix original SWOS bug where penalty flag remains set when penalty is missed, but it's not near miss
 void SWOS::FixPenaltyBug()
 {
-    performingPenalty = 0;
+    swos.performingPenalty = 0;
 }
 
 void SWOS::PlayOwnGoalComment()
@@ -561,7 +562,7 @@ void SWOS::PlayOwnGoalComment()
 
 void SWOS::PlayGoalComment()
 {
-    if (performingPenalty || penaltiesState == -1)
+    if (swos.performingPenalty || swos.penaltiesState == -1)
         PlayPenaltyGoalComment();
     else
         playComment(kGoal);
@@ -599,39 +600,39 @@ void SWOS::PlayThrowInSample()
 
 void SWOS::PlayEnqueuedSamples()
 {
-    if (playingYellowCardTimer >= 0 && !--playingYellowCardTimer) {
+    if (swos.playingYellowCardTimer >= 0 && !--swos.playingYellowCardTimer) {
         PlayYellowCardSample();
-        playingYellowCardTimer = -1;
-    } else if (playingRedCardTimer >= 0 && !--playingRedCardTimer) {
+        swos.playingYellowCardTimer = -1;
+    } else if (swos.playingRedCardTimer >= 0 && !--swos.playingRedCardTimer) {
         PlayRedCardSample();
-        playingRedCardTimer = -1;
-    } else if (playingGoodPassTimer >= 0 && !--playingGoodPassTimer) {
+        swos.playingRedCardTimer = -1;
+    } else if (swos.playingGoodPassTimer >= 0 && !--swos.playingGoodPassTimer) {
         PlayGoodPassComment();
-        playingGoodPassTimer = -1;
-    } else if (playingThrowInSample >= 0 && !--playingThrowInSample) {
+        swos.playingGoodPassTimer = -1;
+    } else if (swos.playingThrowInSample >= 0 && !--swos.playingThrowInSample) {
         PlayThrowInSample();
-        playingThrowInSample = -1;
-    } else if (playingCornerSample >= 0 && !--playingCornerSample) {
+        swos.playingThrowInSample = -1;
+    } else if (swos.playingCornerSample >= 0 && !--swos.playingCornerSample) {
         PlayCornerSample();
-        playingCornerSample = -1;
-    } else if (substituteSampleTimer >= 0 && !--substituteSampleTimer) {
+        swos.playingCornerSample = -1;
+    } else if (swos.substituteSampleTimer >= 0 && !--swos.substituteSampleTimer) {
         PlaySubstituteSample();
-        substituteSampleTimer = -1;
-    } else if (tacticsChangedSampleTimer >= 0 && !--tacticsChangedSampleTimer) {
+        swos.substituteSampleTimer = -1;
+    } else if (swos.tacticsChangedSampleTimer >= 0 && !--swos.tacticsChangedSampleTimer) {
         PlayTacticsChangeSample();
-        tacticsChangedSampleTimer = -1;
+        swos.tacticsChangedSampleTimer = -1;
     }
 
     // strange place to decrement this...
-    if (goalCounter)
-        goalCounter--;
+    if (swos.goalCounter)
+        swos.goalCounter--;
 
     playCrowdChants();
 }
 
 static void loadAndPlayEndGameCrowdSample(int index)
 {
-    if (g_trainingGame || !g_commentary)
+    if (swos.g_trainingGame || !swos.g_commentary)
         return;
 
     assert(index >= 0 && index <= 3);
@@ -639,7 +640,7 @@ static void loadAndPlayEndGameCrowdSample(int index)
     // no need to worry about this still being played
     m_endGameCrowdSample.free();
 
-    auto filename = endGameCrowdSamples[index];
+    auto filename = swos.endGameCrowdSamples[index].asPtr();
 
     std::string path;
     if (m_hasAudioDir)
@@ -658,27 +659,27 @@ static void loadAndPlayEndGameCrowdSample(int index)
 
 void SWOS::LoadAndPlayEndGameComment()
 {
-    if (g_soundOff || !g_commentary)
+    if (swos.g_soundOff || !swos.g_commentary)
         return;
 
     int index;
     // weird way of comparing, might it be like this because of team positions?
-    if (team1GoalsDigit2 == team2GoalsDigit2)
+    if (swos.team1GoalsDigit2 == swos.team2GoalsDigit2)
         index = 2;
-    else if (team2GoalsDigit2 < team1GoalsDigit2)
+    else if (swos.team2GoalsDigit2 < swos.team1GoalsDigit2)
         index = 0;
     else
         index = 1;
 
     loadAndPlayEndGameCrowdSample(index);
 
-    int goalDiff = std::abs(statsTeam1Goals - statsTeam2Goals);
+    int goalDiff = std::abs(swos.statsTeam1Goals - swos.statsTeam2Goals);
 
     if (goalDiff >= 3)
         PlayItsBeenACompleteRoutComment();
     else if (!goalDiff)
         PlayDrawComment();
-    else if (statsTeam1Goals + statsTeam2Goals >= 4)
+    else if (swos.statsTeam1Goals + swos.statsTeam2Goals >= 4)
         PlaySensationalGameComment();
 }
 

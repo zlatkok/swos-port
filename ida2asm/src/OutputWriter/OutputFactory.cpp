@@ -1,63 +1,20 @@
 #include "OutputFactory.h"
 #include "VerbatimOutput.h"
 #include "MasmOutput.h"
-#include "COutput.h"
+#include "CppOutput/CppOutput.h"
 
-enum OutputFormatEnum {
-    kVerbatim,
-    kMasm,
-    kC,
-    kNumFormats
-};
-
-const struct OutputFormat {
-    const char *name;
-    OutputFormatEnum type;
-};
-
-std::array<OutputFormat, kNumFormats> kFormats = {
-    "verbatim", kVerbatim,
-    "MASM", kMasm,
-    "C", kC,
-};
-
-std::string OutputFactory::getSupportedFormats()
+std::unique_ptr<OutputWriter> OutputFactory::create(OutputFormatResolver::OutputFormat format, const char *path, int index,
+    int extraMemorySize, bool disableOptimizations, const SymbolFileParser& symFileParser, const StructStream& structs,
+    const DefinesMap& defines, const References& references, const OutputItemStream& outputItems, const DataBank& dataBank)
 {
-    std::string formats;
-    for (auto format : kFormats)
-        formats += std::string(", ") + format.name;
-
-    return formats.substr(2);
-}
-
-static const OutputFormat *findOutputFormat(const char *inFormat)
-{
-    for (const auto& format : kFormats)
-        if (!_stricmp(format.name, inFormat))
-            return &format;
-
-    return nullptr;
-}
-
-bool OutputFactory::formatSupported(const char *format)
-{
-    return findOutputFormat(format) != nullptr;
-}
-
-std::unique_ptr<OutputWriter> OutputFactory::create(const char *formatStr, const char *path, int index, const SymbolFileParser& symFileParser,
-    const StructStream& structs, const DefinesMap& defines, const References& references, const OutputItemStream& outputItems)
-{
-    auto format = findOutputFormat(formatStr);
-    if (!format)
-        return nullptr;
-
-    switch (format->type) {
-    case kVerbatim:
+    switch (format) {
+    case OutputFormatResolver::kVerbatim:
         return std::make_unique<VerbatimOutput>(path, symFileParser, structs, defines, outputItems);
-    case kMasm:
+    case OutputFormatResolver::kMasm:
         return std::make_unique<MasmOutput>(path, symFileParser, structs, defines, references, outputItems);
-    case kC:
-        return std::make_unique<COutput>(path, index, symFileParser, structs, defines, references, outputItems);
+    case OutputFormatResolver::kCpp:
+        return std::make_unique<CppOutput>(path, index, extraMemorySize, disableOptimizations, symFileParser,
+            structs, defines, references, outputItems, dataBank);
     default:
         assert(false);
         return nullptr;

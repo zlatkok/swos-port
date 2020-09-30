@@ -115,6 +115,19 @@ class Parser:
             menu.properties[Constants.kInitialEntry] = 0
             menu.initialEntryToken = None
 
+        self.verifyMenuHeaderType(menu)
+
+    @staticmethod
+    def verifyMenuHeaderType(menu):
+        assert isinstance(menu, Menu)
+
+        gotSwosFunc = False
+        for func in filter(lambda func: func in menu.properties, Constants.kMenuFunctions):
+            if menu.properties[func].startswith('$'):
+                gotSwosFunc = True
+            elif gotSwosFunc:
+                Util.error(f"menu `{menu.name}' contains mixed type functions", menu.propertyTokens[func])
+
     def handleResetTemplateEntry(self, menu):
         assert isinstance(menu, Menu)
 
@@ -209,7 +222,6 @@ class Parser:
             if exported:
                 menu.exportedVariables[varName] = (value, idToken)
                 var.referenced = True   # treat exported variables as referenced to suppress unused warning
-
 
     def parseMenuPropertyAssignment(self, menu, propertyToken):
         assert isinstance(menu, Menu)
@@ -627,6 +639,10 @@ class Parser:
 
         value = token.string
 
+        if value == 'swos':
+            token = self.getSwosVariable(token, skipDot=False)
+            return token.string
+
         if menu is None:
             self.error("dot operator (`.') can only be used inside menus", token)
         if value not in menu.entries:
@@ -643,6 +659,18 @@ class Parser:
             value = getattr(entry, token.string)
 
         return str(value)
+
+    def getSwosVariable(self, token, skipDot=True):
+        assert isinstance(token, Token)
+        assert token.string == 'swos'
+
+        if skipDot:
+            token = self.tokenizer.getNextToken('.')
+            token = self.tokenizer.expect('.', token)
+
+        token = self.tokenizer.getNextToken('SWOS symbol')
+        token.string = '$' + token.string
+        return token
 
     def handleOperand(self, token, menu, result, isOperand, expandVariables, tokenizer):
         assert isinstance(token, Token)
@@ -824,9 +852,9 @@ class Parser:
         token = self.tokenizer.getNextToken(kNameOfHAndleFunction)
         self.verifyNonCppKeyword(token, kNameOfHAndleFunction)
 
-        functionName, declareFunction, isRawFunction = self.handlePredefinedFunction(token)
+        functionName, declareFunction, isRawFunction = self.handlePredeclaredFunction(token)
 
-        if not isRawFunction and not functionName.isidentifier():
+        if not isRawFunction and not functionName.startswith('$') and not functionName.isidentifier():
             self.error(f"expected handler function, got `{functionName}'", token)
 
         if declareFunction:
@@ -834,16 +862,20 @@ class Parser:
 
         return functionName
 
-    # If the function is prefixed with tilde don't declare it (presumably it is declared elsewhere).
-    def handlePredefinedFunction(self, token):
+    # If the function is prefixed with "swos." or tilde don't declare it (presumably it is declared elsewhere).
+    def handlePredeclaredFunction(self, token):
         assert isinstance(token, Token)
 
         functionName = token.string
         declareFunction = True
         isRawFunction = False
 
-        if token.string == '~':
-            token = self.tokenizer.getNextToken('handler function')
+        if token.string == '~' or token.string == 'swos':
+            if token.string == 'swos':
+                token = self.getSwosVariable(token)
+            else:
+                token = self.tokenizer.getNextToken('handler function')
+
             functionName = token.string
             declareFunction = False
 
@@ -862,19 +894,35 @@ class Parser:
         token = self.tokenizer.getNextToken()
         self.verifyNonCppKeyword(token, 'string table name')
 
-        if token.string == '~':
-            token = self.tokenizer.getNextToken()
-            stringTable = StringTable(token.string)
+        if token.string == '~' or token.string == 'swos':
+            if token.string == '~':
+                token = self.tokenizer.getNextToken()
+            else:
+                token = self.getSwosVariable(token)
+
+            stringTableVar = token.string
+            native = True
+
+            if stringTableVar.startswith('$'):
+                native = False
+                stringTableVar = stringTableVar[1:]
+
+            stringTable = StringTable(stringTableVar, native)
             token = self.tokenizer.expectIdentifier(token, fetchNextToken=False)
         else:
             token = self.tokenizer.expect('[', token, fetchNextToken=True)
 
-            token, variable = self.getStringTableIndexVariable(token)
+            token, variable, declareIndexVariable = self.getStringTableIndexVariable(token)
             token, initialValue = self.getStringTableInitialStringIndex(token)
             values = self.getStringTableStrings(token)
+            nativeFlags = self.getNativeFlags(variable, values)
 
-            assert values
-            stringTable = StringTable(variable, values, initialValue)
+            removePrefix = lambda val: val[1:] if val.startswith('$') else val
+            values = tuple(map(removePrefix, values))
+            variable = removePrefix(variable)
+
+            assert values and nativeFlags
+            stringTable = StringTable(variable, True, declareIndexVariable, values, initialValue, nativeFlags)
 
             self.stringTableLengths.add(len(values))
 
@@ -883,11 +931,22 @@ class Parser:
     def getStringTableIndexVariable(self, token):
         assert isinstance(token, Token)
 
+        declare = False
         variable = token.string
+
+        if variable == '~':
+            token = self.tokenizer.getNextToken()
+            variable = token.string
+        elif variable == 'swos':
+            token = self.getSwosVariable(token)
+            variable = token.string
+        else:
+            declare = True
+
         token = self.tokenizer.expectIdentifier(token, "comma (`,')", fetchNextToken=True)
         token = self.tokenizer.expect(',', token, fetchNextToken=True)
 
-        return token, variable
+        return token, variable, declare
 
     def getStringTableInitialStringIndex(self, token):
         assert isinstance(token, Token)
@@ -911,12 +970,18 @@ class Parser:
 
         while True:
             string = token.string
+            idString = string
+
             if string[0] == "'":
                 string = '"' + string[1:-1] + '"'
+            elif string == 'swos':
+                token = self.getSwosVariable(token)
+                string = token.string
+                idString = string[1:]
 
             values.append(string)
 
-            if not string.isidentifier() and not Util.isString(string):
+            if not idString.isidentifier() and not Util.isString(string):
                 self.error(f"expecting string or identifier, got `{token.string}'", token)
 
             token = self.tokenizer.getNextToken("`]' or `,'")
@@ -926,6 +991,12 @@ class Parser:
             token = self.tokenizer.expect(',', token, fetchNextToken=True)
 
         return values
+
+    def getNativeFlags(self, variable, values):
+        assert isinstance(variable, str)
+        assert isinstance(values, list)
+
+        return tuple(map(lambda var: not var.startswith('$'), [variable] + values))
 
     # expandTextWidthAndHeight
     #

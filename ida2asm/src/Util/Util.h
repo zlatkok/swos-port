@@ -4,6 +4,9 @@
 #define kNL "\r\n"
 
 namespace Util {
+    constexpr int kRegSize = 4;
+    constexpr int kMaxOperands = 3;
+
     using hash_t = uint32_t;
     constexpr hash_t kInitialHashValue = 1021;
 
@@ -83,13 +86,16 @@ namespace Util {
         return true;
     }
 
-    std::string formatNumberWithCommas(int64_t num);
+    int parseInt(const char *str, size_t len);
+    int parseDec(const char *str, size_t len);
+    int parseHex(const char *str, size_t len);
+    int parseBin(const char *str, size_t len);
+
+    std::string formatDelimitedNumber(int64_t num, char delimiter = ',');
 
     constexpr std::array<char, 2> kNewLine = { '\r', '\n' };
     constexpr std::array<char, 4> kDoubleNewLine = { '\r', '\n', '\r', '\n' };
     inline const std::string kNewLineString() { return { kNewLine.begin(), kNewLine.end() }; }
-
-    constexpr char kTablesHeaderName[] = "cTables.h";
 }
 
 // enable enumeration members to be used as flags

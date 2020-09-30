@@ -85,6 +85,8 @@ bool References::hasPublic(const String& str) const
 
 auto References::getType(const String& str) const -> std::pair<ReferenceType, String>
 {
+    assert(!str.empty());
+
     auto ref = m_references.get(str);
 
     auto type = kUnknown;

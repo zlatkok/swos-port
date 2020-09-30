@@ -38,13 +38,9 @@ void invokeWithSaved68kRegisters(F f)
 
 size_t hash(const void *buffer, size_t length);
 int getRandomInRange(int min, int max);
-
 int setZeroFlagAndD0FromAl();
-
 bool isMatchRunning();
-
 void beep();
-
 bool isDebuggerPresent();
 
 #ifdef DEBUG
@@ -67,6 +63,7 @@ inline word hiWord(dword d) {
 }
 
 #ifdef SWOS_VM
+// we're safe by default ;)
 # define SAFE_INVOKE(proc) (proc)()
 #else
 // preserve registers VC++ doesn't expect to change between calls

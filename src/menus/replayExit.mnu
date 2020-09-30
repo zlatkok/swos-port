@@ -28,7 +28,7 @@ Menu replayExitMenu
         y: kPromptBottomItemY
 
         color: @kLightBrownWithOrangeFrame
-        text: aExit
+        text: swos.aExit
 
         upEntry: <
 

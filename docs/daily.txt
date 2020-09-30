@@ -2090,7 +2090,7 @@ earlier:
 ....
 
 13.01.2020. - 19.05.2020.
-- big pause period, lots of changes on work, been trying to get into Android development, will continue
+- big break period, lots of changes at work, been trying to get into Android development, will continue
   trying, maybe making a career switch (Kotlin+NDK might give a good edge and allow me to find good remote
   jobs easier) and all that will most definitely help Android game porting efforts ;)
 
@@ -2185,3 +2185,692 @@ earlier:
 - there's quite a bit of stuff to read on the ARM architecture and its assembler
 02.06.2020.
 - learning about ARM and its architecture, although haven't managed to read much today
+- damn it, if I use 64-bit architecture then I'll need to fix every pointer access, and if I use 32-bit
+  architecture then I have to fix every misaligned memory access... ARGH
+03.06.2020.
+- the way forward is to focus on memory indirection system (and flow analysis for simple optimizations),
+  from which both C and ARM optimized version can be developed
+04.06.2020.
+/
+05.06.2020.
+/
+06.06.2020.
+/
+07.06.2020.
+- finally read a good introduction to ARM architecture, a chapter from a reverse engineering book
+08.06.2020.
+/
+09.06.2020.
+/
+10.06.2020.
+- working on getting the C output converter done; removed the old code and started from scratch, it's been
+  tough so far, trying to assemble a kind of a register containing all the variables in the program, which
+  will later serve as a main data structure for generating all the stuffzorgs
+11.06.2020.
+- just realized that ida2asm can be compiled with C++17, since it doesn't need to run on XP (only the main
+  SWOS port executable needs to, so it can be the only one compiled with VS2015 toolset)
+- made all the plumbing up to marking of the redundant instructions, will leave that for tomorrow, it will
+  require devising a way to track all the register contents as well as knowing when each instruction destroys
+  them
+12.06.2020.
+- was definitely doing something, but forgot to type it in and now can't remember what it was
+13.06.2020.
+- laid ground for instruction operand type parsing
+14.06.2020.
+- wrote operand type extraction code, now trying to come up with values to assign to registers to track
+  their usage; it's more difficult than anticipated, but it's moving slowly
+15.06.2020.
+/
+16.06.2020.
+/
+17.06.2020.
+- wrote register assignment and value propagation logic
+18.06.2020.
+- worked on setting up variables tracking
+19.06.2020.
+- returned old COutput :) will remove struct tables from it, and add a new variable handler
+20.06.2020.
+- seems there's more stuff to remove from COutput, but it will be more clear once the data bank conversion
+  is close to completion
+- wrote initial implementation of data bank variables parsing
+- found that structs were not being handled properly (bit inefficient), and they're being written by multiple
+  threads, so rewrote them a bit; now they're a prime example of purity
+- created variable to offset mapping, ready to be used by the code generator
+- planning to extract the instruction emulating functions into a class of its own, and do some modifications
+  required for memory layer to work; also have to integrate intermediate code into COutput and finish
+  optimizer
+21.06.2020.
+- broke everything :)
+- finished rough initial version of memory array output, untested though! (until I sort all the mess)
+22.06.2020.
+- already evening, and finally it's compiling again (compiling but not more!)
+- fixed barrage of asserts, broke the build again, fixed it
+- assertions are pure gold, they should thrive and multiply
+- fawk! I didn't consider pointers to code, only data... must rethink this
+23.06.2020.
+- it's not that big of a problem actually, figured out a decent solution I think: will keep a separate table
+  of function pointers and replace any address with index into this table, since there are no arithmetics on
+  values of function pointer it should work (we incur additional memory access each time a function pointer
+  is used, but it shouldn't be a big problem, they are used relatively rarely and are expensive anyway)
+- this seemingly never ending rain seems to do wonders for my productivity ;)
+- phewww, finally made it through the crashes and asserts, got the output file, of course it's wrong :P
+- I'm very glad to be able to remove the switch table hack, with the new proc invoke system this case will be
+  handled automatically
+- parsing of integer values in tokens was broken all this time, incredible...
+- found a weird bug in IDA, it outputs extraneous semicolon if the comment contains one when exporting ASM
+- memory array looks great :) procs array not so much, but no time left, gotta get some work done, will fix
+  it up tomorrow
+24.06.2020.
+- first time to see the sun in days
+- I might be able to remove gross struct hack as well, but it might still be too early
+- and finally, data and proc arrays look good! :) at least I can't find any mistakes, we'll probably see more
+  once the compilation starts, but this is it for now, therefore I officially pronounce phase 1 finished ;)
+  now on to actually using this lovely juicy data to make the game moving >:)
+25.06.2020.
+- figured out how to rework instruction generation, but haven't got around to actually do anything
+26.06.2020.
+- begun converting instruction generation code
+27.06.2020.
+- continuing with instruction generation, it's pretty rough, discovered that offset integer parsing didn't
+  account for hex offsets and was therefore producing completely wrong offsets; no wonder it was crashing
+- finally had a good idea how to generate more complicated instructions with memory access
+- so much to do... want to write more... but must... sleep...
+28.06.2020.
+- d-oh... function pointers can be referenced from the code directly, not just from data... must capture them
+  as well
+- replacing MOV instruction, but there are still some failing cases
+- fixed generating wrong addresses for variables & added a check so it doesn't go unnoticed again
+29.06.2020.
+- MOV is looking pretty good aside from some small things, can't wait to fix it all and move on to
+  implementing other instructions... heat was exhausting these days, will have to service air conditioner
+  if this hellish weather continues
+30.06.2020.
+- MOVSX working
+- turned single byte dynamic access via function into a direct byte array access, since 1 byte access can't
+  be misaligned, so it's a bit simpler now
+- reworked memory array into union of three arrays that can be accessed with three variables, as byte, word
+  or dword array as needed (simplifies access code)
+- implemented initial read/writeMemory functions
+- MOVSB/MOVSW/MOVSD implemented
+- removed direction flag
+- STOSB/STOSW/STOSD implemented
+- bumped into and removed some unused functions
+- added debugBreak() function instead of INT 3, it should trigger a breakpoint and is compiler-dependant
+- fixed some small issues
+01.07.2020.
+- LODSB/LODSW/LODSD converted
+- implemented function calls
+- refactored a bit
+- PUSH/POP converted ("small" handled as well)
+- OR/XOR converted
+02.07.2020.
+- CMP/SUB/ADD converted
+- INC/DEC converted
+- XCHG converted (phew, that was a tough cookie)
+03.07.2020.
+- NEG/NOT converted
+- DIV/IDIV converted
+- SHL/SHR/SAR converted
+- only rotate instructions to go! they're by far the toughest though :P
+04.07.2020.
+- phew, RCL/RCR/ROL/ROR finished, that's about it, now let's see if the code can be optimized
+05.07.2020.
+- eliminated redundant flag assignments (when an instruction sets the flags, they never get used, and a
+  subsequent instruction resets them); quite content how well this works and how quick it was to implement
+- working on redundant assignment elimination, set it up in theory, sounds solid, trying to turn it into
+  implementation
+06.07.2020.
+- moved forward with redundant assignment elimination, refined the plan some more
+07.07.2020.
+/
+08.07.2020.
+/
+09.07.2020.
+- resumed working on optimizer code, moved it a bit forward
+10.07.2020.
+- sort of finished, but lots of debugging ahead
+11.07.2020.
+- woops, forgot other instructions than MOV ;) but it's a good progress nevertheless
+12.07.2020.
+- working on handling instructions that change state, quite a lot to handle there
+- there's still stuff to be done on the "simulator", I'm hoping to wrap this all up over the incoming week
+13.07.2020.
+- implemented stack operations (untested though)
+14.07.2020.
+/
+15.07.2020.
+/
+16.07.2020.
+- implementing block instructions, interestingly, LODSD was missing all this time
+17.07.2020.
+- finished with block instructions, they're looking good now :)
+- introduced new Value abstraction and made things a LOT easier, seems good ideas only come after a
+  significant effort
+- omigawd, finitto! (minus the debugging :P)
+- found a problem with extractValue()
+18.07.2020.
+- fixed extractValue() problem (was surprisingly easy), and a bunch of other small bugs
+- found out about and fixed flow change instructions that weren't being marked properly
+- stack is giving me headache, there are push/pop instructions executed conditionally :/
+19.07.2020.
+- fixed stack (simple idea again, to duplicate it for each branch) and a bunch of small issues
+- realized IMUL slipped through the cracks (the notorious three-operand instruction)
+- refactored a bit so the code is a less of a monstrosity
+- ran into interesting thing: my lovely jovely stack tracer pointed to a stack imbalance inside
+  FillManagementRecordInfo(), so I checked it manually, and am pretty sure it's a faulty code; it should
+  crash when there is no best scorer in the season; there is a test if best scorer string is empty, but
+  when I looked, the string has value "SEVERAL", so it might be a different bug preventing the first
+  one from manifesting ;)
+  will patch it up later just in case
+- finally everything is passing without triggering any asserts, but we're not out of the woods yet, I see
+  some invalid looking things in the output file
+- gah, my implementation of expressions was too simplistic, I'll have to rework it tomorrow (or whenever
+  the next time will be)
+20.07.2020.
+- refactored code and simplified it a lot, it's more manageable now (removed extraneous data structures and
+  functions), shaved off ~200 lines
+21.07.2020.
+- ...aand finished (yet again) but it's still generating invalid code, let's put our improved debugging to
+  some good use
+- fixed local variable output (the only one ;))
+- fixed nasty bug where I didn't check if operand string in OperandInfo wasn't empty first, before doing
+  anything; and quite annoyingly, it was only manifesting in release build
+- there's still (another) crash happening in release build only :/
+- after a little bit of desperation did the most stupid (but effective) thing: commented out functions one
+  by one, and soon pinpointed it to assignRegisters() then to widenRegister(); it was an invalid index
+  arithmetics, and it was starring into my face all the time... sigh, moving on
+- applied bunch of little fixes, and hallelujah! finally can't find anything wrong in the output (or maybe
+  I'm just tired and couldn't see a white cat on a sunny day)
+- tomorrow will add orphan assignment remover and then the next step is compiling it :)
+22.07.2020.
+- orphan assignment remover turned out to be more complicated than anticipated
+- fixed invalid constant detection
+- fixed expressions involving unknown memory addresses that were acting up
+- removed ADD/SUB xxx, 0 instructions
+- made flags optimizer respect deleted node flag
+23.07.2020.
+- refactoring operand info extraction to be ready for assignment remover code to fit in
+24.07.2020.
+- discovered 's' suffix for std::string creation, what an awesome thingie
+- refactoring done, but dreaded error is back, now it won't even crash in release, just throwing exception
+  when invoking a worker thread
+- seems my debugger wasn't set up correctly to capture some of C++ exceptions, it should be fine now (and
+  fixed the error)
+- finally the refactoring is done, and the output file matches the old one, except it's better since there
+  were some bugs I fixed along the way; road to orphan assignment removal cleared!
+25.07.2020.
+- been developing orphan assignment removal, got close to finish and the start of debugging
+26.07.2020.
+- added CBW/CWDE/CDQ
+27.07.2020.
+- didn't have too much time today, worked on MUL
+28.07.2020.
+- finished MUL/IMUL/DIV/IDIV
+- "done", but need to actually connect it with the rest of the program
+29.07.2020.
+- realized mul & div's weren't handled properly, fixing
+30.07.2020.
+- passed all asserts
+- wrote test cases
+- found out the hard way I haven't checked if the proc was already open when encountering endp inside the
+  parser (made a mistake in test input); though it should never happen in automatically generated IDA code
+- fixed CBW/CWDE/CWD/CDQ
+31.07.2020.
+- realized I haven't maintained lists of connected instructions properly, so separated links and reference
+  counts and created new links when appending
+- after the smoke has settled from all the debugging, ALL THE TESTS ARE PASSING! WOOHOO!!!
+- discovering more problems in output files, there's still some work to be done before trying to compile
+- finally, can't find any more problems, it's time for the next phase, gotta get this thing to compile
+  and start game-testing :)
+01.08.2020.
+- started compiling the generated code, and fixed TONS of small mistakes
+- compiled it, but darn, there are linker errors due to the fact that all SWOS variables are now contained
+  in an array, and we need to access them from the outside code; must figure out something to handle this
+02.08.2020.
+- just learned that a void function can return another void function... as well as any void type... seems
+  it's like that so the templates with generic return types would work, wicked
+- started working on solving the outside access to SWOS variables array, don't have all the details figured
+  out yet, but hope to carve them out as I go
+03.08.2020.
+- been converting direct memory access to SWOS variables from outside to indirect; ugh, this will be really
+  rough
+04.08.2020.
+- solved problem of words (maybe but probably not), haven't ran it yet, I see that interoperability between
+  SWOS and non-SWOS code is jeopardized, pointers are especially sore subject, I'll have to come up with
+  something, maybe some bridge routines
+05.08.2020.
+- converting SWOS variable access with templates, down to 117 unresolved externs!
+- char arrays converted, 107 externs to go
+- void pointers: 98
+- yipes, forgot about pointer difference: pointers are 4 bytes in SWOS and 8 bytes in a 64-bit system, and
+  they and/or stuff they point to could be misaligned, so there are two levels to take care of... will have
+  to devise some convenient interface to handle all of this
+- another tough problem: how to handle buffer extensions for pitch patterns and so on?
+06.08.2020.
+- all right, after some rumination I think I have a reasonable plan to deal with the memory probljem: first,
+  the additional memory allocated when the game starts will be joined to the g_mem array (at the end), there
+  will be an interface to get its size and pointer to the beginning, and the size should be configurable via
+  a command line switch; second, pointers will be coded into 4 bytes: highest bit clear: typical SWOS offset
+  into g_mem, highest bit set: following bits will be an index into a pointer pool (set say at the g_mem end,
+  right before extra memory area), remaining bits will be the offset and together with the stored pointer
+  would form the real pointer to the data... sounds nice in theory, let's see if it actually works ;)
+- added support for specifying extra memory size and disabling optimizations from command line, and basic
+  variables for SWOS extended memory
+07.08.2020.
+- finished converting access to extended memory, and with pointer arithmetics (luckily, they weren't too
+  heavily used), now the new problem is how to handle struct member access, since they too can be misaligned,
+  by starting address as well as by internal variable ordering (which I can not touch since the SWOS expects
+  it that way); most likely the approach here would be to replace variables with functions, or to have
+  essentially a collection of variables instead of a struct (teamData.playerNumber() or
+  teamData_playerNumber.get() or teamData.get(kPlayerNumber)... #1 looks best IMHO)
+- trying to handle structs, it's getting complicated
+08.08.2020.
+- struggling with structs, tried & rejected new approach
+09.08.2020.
+- dwelled deep into dark art of templates, but haven't managed to finish struct access yet
+10.08.2020.
+- fixed a small bug only appearing in release mode, accessing all opInfo members, even if there are none
+- feeling somewhat better today, yesterday evening was a disaster, a food poisoning or an allergy attack or
+  both :/ nevertheless made some progress, but things are taking a turn for the uglier, I can't properly
+  assign types to automatically generated structures, so I might have to manually create them, which is
+  quite unsatisfactory as well... will need to think a bit on this
+11.08.2020.
+- was mostly resting today, but did finally decide on the issue of structs, they will remain as they were,
+  and the client will have to take care of the alignment (sucks to throw it on the client, but they are
+  heavily customized and there is a similar situation already with SAFE_INVOKE macros), will add some
+  templates later for safe generic pointer manipulation; it also means most of the code I was writing past
+  days had to go, painful but it's for the better in long-term
+- also read about packed structure access, seems that the compiler will take care of unaligned access, which
+  makes my life a lot easier (and has influenced the decision, since only the pointer itself will need
+  adjustment and the compiler will take care of the rest)
+- with this intervention it's compiling again and down to 71 unresolved externals
+12.08.2020.
+- fixed a fix for accessing all opInfo members
+- moved forward within new direction; planning to add "align" directive to ida2asm so important variables
+  can have proper alignment guaranteed
+13.08.2020.
+- implemented alignment of all exported variables (though this might come back to haunt me if I disturb some
+  of the save/load buffers, but will fix it if it becomes an issue)
+- deleted a lot of code again, and reverted back to the direct variable access, only thing it's now one big
+  struct with filler arrays in between non-consecutive variables, accessed via "swos." macro (e.g.
+  swos.someVar)
+- seems it could work, got a tons of references to fix, and to sort variable access from menu files, as they
+  need to add "swos." prefix sometimes
+14.08.2020.
+- the cunning plan worked flawlessly, added "swos." prefix to all SWOS variables and fixed up menu scripts
+  to add it as well (via $.var syntax), it even looks nice
+- in the process realized it would be so much easier if generated files were C++ as well, so switching from
+  C to C++ now, it shouldn't make much of a difference in portability, all the major platforms have at least
+  one good C++ compiler
+- argh, so close to getting a clean compile (replaced functions are treated as ordinary exports without SWOS
+  namespace and thus create linker errors)
+15.08.2020.
+- solved SWOS:: problem, now only at 24 unresolved externs!
+- gah, my hope menu switch table would be handled gracefully was shattered, even if all jumps are
+  straightforward except one, it makes partitioning into separate functions impossible (too intertwined with
+  ConvertMenu), will just convert the whole proc, should be fun too, haven't been converting anything in a
+  while ;)
+16.08.2020.
+- converted ConvertMenu, but realized there is a grave problem: the MenuEntry struct contains pointers, which
+  will become 8 bytes in 64-bit systems and break the layout; they will have to remain 4 bytes and yet
+  somehow do their duty both in SWOS and non-SWOS code; most likely I will need to extend invokeProc array
+  dynamically and use negative offsets for reference; menu scripts will have to take care of registering menu
+  functions
+17.08.2020.
+/
+18.08.2020.
+/
+19.08.2020.
+/
+20.08.2020.
+/
+21.08.2020.
+/
+22.08.2020.
+/
+23.08.2020.
+/
+24.08.2020.
+/
+25.08.2020.
+/
+26.08.2020.
+/
+27.08.2020.
+/
+28.08.2020.
+/
+29.08.2020.
+- finally back, haven't realized it was so long, but have to do some work for the paying job from time to
+  time as well ;)
+- started implementing classes for interfacing with SWOS variables and procedures, got an include dependency
+  hell on my hands, will need to start defusing it slowly
+30.08.2020.
+- tried untangling circular dependency, but failed miserably
+31.08.2020.
+- solved the dependency, but it was tough, introduced functions for pointer/offset conversion, and put them
+  to cpp file so swos.h wouldn't need to include vm.h; the only way I see to solve this
+- unfortunately now the templates are going rampant, trying to fix the mess
+01.09.2020.
+- managed to solve the templates, as well as pile of compile errors, back to linker errors, 8 unresolved
+  externs
+02.09.2020.
+- removed shift by 32 to the right from rcr instruction (extraneous as well as undefined behaviour)
+- unreferenced label warnings helped me remove one unnecessary label in IDA
+- converted swos.h to use wrapped pointer classes, surprisingly few errors
+- missed ConvertMenu reference from RestorePreviousMenu, fixed now
+03.09.2020.
+- fixed invalid generated string table name, and learned that C++ compiler actually accepts $ as variable
+  name quite happily
+- fixed mnu2h tests and covered latest syntax additions
+- fixed one unresolved external, one element of the proc array was C++ function and was missing SWOS::
+  namespace prefix
+- facing horrible problem with insanely long compile times, I've narrowed it to the memory union, if I make
+  it static it goes away, but that will require some annoying code changes, lucky I was accessing it via a
+  macro so it's doable
+- ARGH now it's back even with static qualifier :`-(
+04.09.2020.
+- finally pinned it down the slowdown to templated class SWOSDataPointer, still analyzing why the hell is
+  this happening, and how could it be avoided
+- it seems a template (the usual performance suspect) doesn't really matter in this case, only if I remove
+  the constructor it goes back to full speed; it's quite crazy, but anyways I've created minimal project and
+  reported it to Microsoft, hope they'll fix it properly soon enough, or I'll need to modify a lot of code,
+  without being sure it would ultimately work...
+05.09.2020.
+- argh, nobody looked at my report yet, it's weekend -_- will just have to patch it up somehow until it's
+  properly fixed
+- phewwww, found a satisfying workaround! I've thrown out union temporarily (since I only need it to
+  guarantee the alignment of the data, and that I can forego temporarily during the development -- x86
+  swallows anything :D); now I'm using raw array with few pointers pointing into it (not gonna worry about
+  aliasing either), and it's compiling fast again! this will be good enough to unblock me until the proper
+  bug fix (also turned off assembly listing generation for a small additional speed up)
+- finally back on track, debugging invalid generated types of SwosVariables struct
+06.09.2020.
+- fixed natvis definitions for Token, seems something might have changed between Visual Studio versions
+- joined terminating zero to its parent string (so the sizeof operator would return correct size now)
+- fixed array dimensions in SwosVariables
+07.09.2020.
+- expanded natvis script with descriptions of StringView and it's Node, need to debug it since its behaviour
+  seems suspicious (especially duplicate elimination)
+- worked on eliminating duplicate functions in proc array, as well as comparison with outside functions; got
+  sidetracked but luckily those function pointer variables got eliminated, so there wasn't any work left for
+  this matter
+08.09.2020.
+- discovered that chant function pointers weren't needed in the SWOS code (removed/replaced all the functions
+  that used them), so removed them and replaced with a C++ array
+- converted raw pointers in SwosVariables to SwosDataPointer's, now fixing up the rest of the code, wherever
+  there's some compile error
+09.09.2020.
+- omg, FINALLY a clean compile!! (even though there's plenty to do it's still a nice landmark ;))
+- fixed duplicate proc's in the proc array and other smaller mistakes
+- now have to figure out how to reconcile using menu variables from both SWOS and C++, since the pointer size
+  is potentially different... tough problem, will need to think hard on this
+10.09.2020.
+- the bug I reported is under consideration, got a reply to try making constuctor constexpr, which works in
+  simple example, but unfortunately it wouldn't work in the real project (maybe I've missed something, or
+  something else triggers it, such as copy constructor)
+- started working on a system to add external pointers into SWOS VM, they will have the highest bit set and
+  be treated specially, that should reconcile SWOS and non-SWOS menus
+11.09.2020.
+- implemented simple memory allocation system to support mixed menus + system for SWOS VM pointers that can
+  access outside memory, we'll see how it will fare in practice ;)
+- implemented safe fetch()/store() for 8-byte pointers
+12.09.2020.
+- implemented registering user procs with SWOS VM
+- updated verifySafeMemoryAreas() to check all newly added safe areas
+- fixed a bug in convertMenu(), didn't bump data pointer when handling custom foreground function
+- implemented native menu codes (to support out-of-SWOS menus)
+- starting with mnu2h and menu system modifications but it's revealing more complex than I thought;
+  lucky I took over convertMenu() or it would be impossible; and it's even greater luck I wrote a little
+  language for describing menus, which allows this big change without myself going insane (just barely)
+13.09.2020.
+- created Offset and Procs enums in vm.h and expanded procs with exported ones
+- begun converting mnu2h to support new stuff
+14.09.2020.
+- my two week vacation begins! let's push this far! ;)
+- moved mnu2h conversion further, now using new enums but still need to fix up StringTable (and maybe few
+  other smaller codes) so it's possible to handle mix of contained SWOS and non-SWOS pointers
+15.09.2020.
+- implemented C++ classes for new native menu codes
+- updated output from mnu2h to detect and generate them (except for string tables)
+- added check for menu headers to report error if functions are mixed SWOS/non-SWOS (luckily there is no
+  need for such menus yet)
+- pushed plenty of changes to mnu2h, and woah... it compiles, but too scared to run it ;)
+- fixed asserts so debug version now compiles too
+- fixed variable offsets off by 256 bytes
+16.09.2020.
+- added natvis visualization for SwosDataPointer and SwosProcPointer
+- trying to fix another variable offsets mess up, it only happens with the later ones, the first ones are OK;
+  seems the problem is tied with @replace section, which was introduced to help expand some buffers in SWOS;
+  actually the size of the array was picked up from export section (which was inflated since the buffer was
+  extended with @replace, but the variables were generated according to the old size)
+- argh, @replace section was implemented on output level, by simply copying replacement to the output
+  verbatim, since the syntax is ASM that worked but with advent of C++ output it couldn't be done like that
+  anymore; added proper parsing of the replacement text and everything is fine again
+- introduced a new check: size of exported array variables must match with the source, and already caught
+  a couple of mistakes with it
+- improved error reporting a bit
+- even after all these fixes there's still another variable offset discrepancy :/
+- pinpointed it to smallCharsTable, it's a struct variable, but one not properly declared in IDA, so it looks
+  like an ordinary word, while it's imported as a CharTable (but much too late now to even try fixing it)
+17.09.2020.
+- fixed struct variables size in a satisfactory way, but there's still some more discrepancy :/
+- it was due to convertKeysTable being interpreted as a single byte variable instead of 110 bytes array
+- then there's more, currentHilBuffer is making problems -- size calculation didn't take in account base
+  size of array element (dword in this case), fixed, but can you guess? something else still ain't right
+- spritesIndex was the culprit, this time exported declaration had smaller size so it shifted everything up
+- moving on, stadiumMenu is of PackedMenu type, and ida2asm doesn't know about it and defaults to 4 bytes...
+- implemented system to report an error if an unknown struct type is encountered in exports
+- adding @type-sizes section to symbols.txt so type sizes can be introduced to ida2asm (hard coding them is
+  really wrong)
+- argh, dword -> byte[4] conversion sabotaged the works
+- stopped counting issues, but finally, offsets are matched! :)
+- and FINALLY, after some months, going to run the game :) of course it crashes, so now fixing stuff on the
+  fly and debugging; it's a great pleasure watching SWOS VM work, even in its current crippled state :)
+- there's some gnarly bug that forces 16-bit conversion on each memory read, but it's too late now to fix,
+  besides, gotta leave some for tomorrow too ;)
+18.09.2020.
+- my, my, what was I on to write such vulgar and unrefined code, this must be addressed at once; so it seems
+  I added it to address compiler warnings, which is only fine for 16-bit access, I must have been misled by
+  the sheer number of them and disregarded the other option (a lesson to take); a simple check for operand
+  size did the trick and we're back to the races
+- optimized generated code when assigning zero constant to memory, things like "= 0 & 0xff" and "= (0 << 8)"
+  were annoying me
+- added leading comments for functions to output (making them easier to debug)
+- fixed removal of unnecessary "return" from the end of the proc and double empty line, those somehow got
+  broken with the introduction of intermediate form converter
+- fixed double empty lines before labels
+- fixed jmp short missing space between local label
+- converted jumps to last labels to returns (and removed the labels)
+- now on to solving some mysterious crash in DoUnchainSpriteInMenus(), looks like some mess up with memory
+  write indirection, but gotta quit for now; back, no big mystery, high and low words of a Register struct
+  were mixed up
+- good we're moving forward, now there's an infinite loop in InitializeTacticsPositions() ;)
+  so it seems integer conversion rules have bitten me:
+  a, b, c -> signed 16-bit ints
+  (word)a - (word)b < (word)a
+  left side ends up as signed, expression gets promoted to int (since it's smaller), and then the right one
+  as well (but not relevant since it was positive); in the end it's negative int compared to positive and
+  doing the opposite of what was intended :S
+- seems some of the menu infrastructure will have to be rewritten
+19.09.2020.
+- managed to fix menus cheaply ;) a bit hacky but it was fast
+- seems there are misaligned fields in the SWOS structs, thinking about the best way to address this, but
+  first will try to enable exceptions for misaligned access on x86 somehow
+- seems it's very difficult to enable AC (alignment check) exceptions on Windows, and even if successful it
+  will cause a large amount of noise from Windows code itself and libraries... have to give it up for now
+  and rely on my own asserts
+- trying to get convertMenu() to working condition (plenty of small mistakes fixed so far)
+- just my luck, found a compiler bug again (this time connected with template non-type parameter); reported
+  it, let's see what happens; the previous bug is still "under consideration", it will probably die like that
+- implemented a workaround, code is a bit uglier now, but no choice really, it's most important that it works
+- crap, when I introduced external pointers I broke reading of a single g_memByte element, will have to call
+  readMemory() on bytes as well
+20.09.2020.
+- added readMemory() and also writeMemory() for byte access
+- got pissed of occasional crash that happens in ida2asm only in release version, found a place where opInfo
+  was accessed before being initialized (for no operand instructions) and fixed it, but it's still happening,
+  about once in 10-20-30 runs
+- after gruesome debugging session narrowed it down to orphaned assignments remover (causes crashes) and
+  redundant instruction remover (causes error in output file, could be some overwrite or something weirder);
+  and now it's as if it stopped happening, giving it up for now, but it's just sooo annoying $%&#*@$!^
+- ops, I overlooked the fact that pointers from the pointer pool can be incremented and manipulated; so the
+  strings will have to be copied in the SWOS VM address area with the linear allocator, but the index
+  variables in string tables can still use the pointer pool just fine (those pointers are constant and will
+  allow updates from the UI to propagate to C++ code)
+- ha, finally got to a menu screen, though it's completely broken and crashes on mouse move :D actually it's
+  just the text that seems garbled & plenty of alignment asserts are triggering
+21.09.2020.
+- comparing sprite data after unpacking with x86 version, and it is a bit off; signed right shift where
+  unsigned should have been slipped into rotation with carry routine, fixed it and now the unpacked sprite
+  data is identical
+- the menu is still garbled but the text looks a little bit more like a proper text :D off to get bicycle
+  from the bike repair shop and then will see wth is going on :D
+- dumped memory after sprite uncrunching and compared it, it's the same (save for pointers); so uncrunching
+  routine has cleared suspicion and restored it's good name
+- changed 8 and 16 bit registers to unsigned to avoid problems with signed right shift
+- seems flags optimization was too aggressive since I changed node.flowChange flag to only include
+  instructions jumped to and not jumped from (alleviated with instruction->isBranch() check)
+- ops, forgot to put return in writeMemory() after writing single byte, and wooow the menu is finally showing
+  up properly :D it doesn't _work_ properly, but one step at a time :D
+- fixed miscalculation in registerProc()
+22.09.2020.
+- overrode assignment of 68k registers to automatically convert pointers into SWOS VM offsets
+- fixed calling convertMenu() instead of prepareMenu() (so selected entry index wasn't converted to pointer)
+- fixed invalid code generation for onSelect function with mask in mnu2h and menuCodes.h (and some more)
+- added new type of menu header (v2), it differentiates from the old by starting with -2 (in onInit field);
+  it should never show up in old menus; this header type supports mix of SWOS and non-SWOS functions
+- fixed some more miscalculations about proc indices, and separated 0 and -1 values for pointers
+- fixed not assigning memory for string that are to be allocated
+- fixed bugs in natvis script
+- ha, menus "kind of" work now, victory is near! ;)
+23.09.2020.
+- they closed my bug, it seems VC++ does some retarded things by default, but luckily it can be disabled with
+  "/permissive-" command line switch; what's worse I've read the article but couldn't believe a simple thing
+  like this wouldn't work by design
+- realized that -2 isn't good value for menu header mark (considering VM starts procs from -2 downwards),
+  changed to -100,000
+- invalid codes started popping out again, but I can't reproduce it in a small project, reverting to the
+  workaround and not looking back
+- reworked menus a bit, eliminated g_currentMenuPtr since it could potentially point to both VM and non-VM
+  address
+- fixed some pointer methods I missed in Register
+- woohoo! basic menu navigation works!
+- now trying to get into the game but friendly menu isn't reacting; it's because pass through functions
+  weren't implemented correctly (and friendly menu depended on them) - fixed
+- fixed null strings wrongly set to kSentinel, causing allocation of menu space for string data, and
+  starving menu buffer
+- trying desperately to reach the game ;) but getting some null pointer access in SetCountryNames()
+24.09.2020.
+- fixed missed initialization of MenuEntry drawn field
+- really fixed pass through functions, this time for real
+- removed extraneous "return" when jumping out of the proc
+- this is funny, I've never been debugging two programs at once -- x86 SWOS vs VM SWOS comparing what's
+  going on, and a good old x86 version has been an immense help, speeding everything up
+- now the friendly menu shows "CHOOSE TEAMS" button after pressing "OK" (this part was missing), but it still
+  fails with null pointer access in SetCountryNames() because countryNames array isn't getting populated for
+  some reason
+- yikes! I've accessed g_memDword in one place without dividing address by 4; that's why country names
+  weren't populated
+- managed to pass to the next menu, but this one is broken, the title entry is selected and I can't move
+  anywhere :D
+- dayum, didn't write to 2nd address when writing word to odd memory address :/ took a nice investigation to
+  uncover this; with this fix the next menu is unlocked! I can now select teams, but when going to the next
+  menu it crashes again :P
+- the struct offset was wrong, when a struct contained a nested struct with dup modifier, the dup modifier
+  wasn't multiplied in; after taking care of that got into play match menu and started the game... almost! :)
+  it's crashing on the loading screen
+- mistake was in struct variables... ugh, hate syncing variables, but had to go back there and fix extraneous
+  bytes added to stadiumMenu
+- also discovered a mistake in types sizes for ida2asm, added static_assert's so at least it won't compile if
+  it ever happens again
+- now going further, and crashing in ConvertSpriteColors(); seems that movzx is generating signed extension
+  instead of unsigned; fixed and now reaching deep ocean, ending with a heap corruption X_X
+25.09.2020.
+- testing things by adding heap checks after each call, and then verify VM memory checks (after making them
+  work properly), but it's all checking out fine, except for load file call, something fishy is going on
+  there
+- fixed ++/--/+=/-= SwosDataPointer operators
+- d-oh! the memory array had the old (lower) size the whole time, that's why there were memory overwrites...
+  :facepalm; after the fix there's some rogue pointer in GetTeamPointer()
+- urgh, mask for writing 16-bit values was wrong, 0xff instead of 0xffff :/
+- fixed copying pitch patterns, g_pitchDatBuffer was reinterpret casted into array of ordinary char pointers
+  instead of SWOSDataPointer<char>'s
+- fixed movzx from a variable (constant address) that was broken
+- somehow in FadeOut() palette pointer gets obliterated; reason is a bit crazy, because in the calling tree
+  from setPalette() a SWOS function(s) gets called (char drawing, by dumping routine) and trashes the
+  important registers, so not even virtual registers are safe!
+- and finally in the game :D player names are messed up, and flicker in an epilepsy-inducing manner, ball
+  bounces strangely, as if it has more energy than it should, goalkeepers are letting easy goals in...
+  just kidding about the goalkeepers ;D they seem OK-ish, as much as I could see until the game crashes
+  (it hardly every survives longer than minute 70 or so); still, I'm pretty satisfied, will investigate more
+  tomorrow, better get some sleep now :D
+26.09.2020.
+- implemented removing unused flags calculation from a function; unfortunately I didn't remember that there
+  are functions that use flags as return values (zero, sign & carry), so the only flag available for removal
+  was overflow; still, it removed thousands of lines, and overflow is the most complicated to calculate
+- I've discovered something very interesting, there are only two jump-if-overflow instructions used in the
+  whole program, and both are actually wrong! they are used after div instruction, which leaves overflow
+  flag in undefined state; 68k does set overflow flag after division, so it must have been an oversight;
+  they are used after some calculations in unknown part of the game (it seems to be something related to
+  price calculations in career mode) and are practically used as an assertion -- game goes into infinite loop
+  asking for debugger if they trigger -- so I will disable them for now
+- fixed invalid code in the case when overflow flags is supressed
+- added static assertions for couple variables struct members, so if it gets broken again it will be reported
+  immediately
+- fixed LODSW & LODSD; now the team names display properly at the start of the game; sprite flicker and weird
+  ball bouncing are still present; played the game till minute 78 before crashing, that's a record so far
+- fixed flags optimizer not removing flags on the instruction immediately following a label
+- fixed flags optimizer not removing flags of the instruction before a label (caused by me erroneously adding
+  isBranch() check along with flowChange, instead of replacing it)
+- sprite flickering: after putting an assert at sprite index assignment and going backward I found that
+  invalid sprite index was occasionally set by the animation routine, but it wasn't its fault, it was getting
+  an already corrupted animation table; then I've set a data breakpoint on those trashed bytes and that lead
+  me to ResetResultSprites(); it was trying to initialize team scorers data, but the structure wasn't
+  generated properly, it was too short causing ResetResultSprites() to write well beyond it, into the
+  animation tables; struct size was invalid (didn't count nested struct size properly), same thing I fixed
+  in a different spot before -_- but not gonna bother now with refactoring
+- fixed a little crash when going back to menus after the game
+- and the game is working pretty well :) played a few games, no crashes, works pretty smooth, only this
+  weird ball bouncing that's bugging me; will try compiling a 64-bit version, maybe it will be easier to
+  catch it there (if I don't solve it by then)
+- started with project conversion to 64-bit, ida2asm is already triggering some new assertion
+27.09.2020.
+- with the help of x64 version finally fixed that damn ida2asm occasional crash, ran it 30+ times and not
+  a single failure, woohoo! it all came from branch instructions not getting their op info initialized and
+  later causing nasty things, what was I thinking writing it...
+- reorganized project to better accommodate multiple platforms, as well to be organized a bit better overall
+- compiled all the necessary libraries in 64-bit mode, fixed errors, and the x64 version is finally built!
+- adjusted VM memory pointers to be on the pointer size boundary and set up static asserts to trigger if
+  they aren't
+- 64-bit compiler is generating some stupid code, creating temporary SwosDataPointer on stack at rsp+21h,
+  triggering misalignment assert; that forced me to add assignment operator that takes dword, and now it's
+  assigning it directly and everyone is happy
+- and played the first SWOS 64-bit game :D it was in debug mode and slow-motion, at least 2 times slower than
+  the x86; noticed some other glitches too, some player icons weren't drawn during the loading menu, and
+  sometimes wrong comment was played (maybe I'm wrong about this one); the ball bounce still felt weird,
+  although it's hard to gauge when the game is so slow
+- tried the release version, and that calmed me down: the game works brilliantly :D super fast and smooth,
+  just the SWOS we know and love; the bounce still feels weird, and is especially noticeable on muddy pitch;
+  it seems to happen on several occasions but it can be triggered by simply holding up/down and pressing
+  fire, kick like this reaches opponents goal from almost half of the field
+- pressing 'S' in debug version was causing stack overflow: the jump-to-function-start instruction was
+  implemented via a function call and that was sucking the poor stack dry; replaced the call with a goto and
+  it's fine now (still no idea why x64-debug version is so slow)
+- lol, my x64 debug configuration was copied from release, that's why I was able to capture the ida2asm error
+  so easily with an assert, why didn't I think of this before :)
+- there was an error in parsing negative hex numbers, they weren't detected as hex properly; fixed, but the
+  ball still acts weird :/
+- fixed invalid memory dword read when address % 4 == 1, both constant and dynamic
+- did more detailed comparison with x86, and "the super-bounce" is definitely a thing
+28.09.2020.
+- improved ida2asm error reporting a bit, though it's still quite rough
+- fixed not clearing string flags for color converted sprite entry in unpackMenu()
+- fixed a mistake in fetch user proc routine that was failing for the first one
+- implemented releasing of memory when the menu closes (hope this will not unearth some bugs in SWOS menu
+  handlers!)
+29.09.2020.
+- did static analysis and fixed a bunch of things, e.g. I was returning references to tmp objects in postfix
+  increment overridden operators... big whoops, bunch of integer promotion traps etc.
+- discovered & fixed an invalid type cast in IMUL
+- preparing to commit took insanely long time, wasn't aware there were this many changes

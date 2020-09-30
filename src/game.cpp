@@ -57,14 +57,14 @@ void SWOS::InitGame_OnEnter()
     // unlike the original game, which only changes palette register on the VGA card, we need those bytes
     // to persist in order to fade-out properly; so save it here so we can restore them later
     logInfo("Initializing the game...");
-    memcpy(linAdr384k + 2 * kVgaScreenSize, linAdr384k, kVgaScreenSize);
+    memcpy(swos.linAdr384k + 2 * kVgaScreenSize, swos.linAdr384k, kVgaScreenSize);
 }
 
 __declspec(naked) void SWOS::ClearBackground_OnEnter()
 {
     // fix SWOS bug, just in case
 #ifdef SWOS_VM
-    g_edx.all = 0;
+    SwosVM::edx = 0;
 #else
     _asm {
         xor edx, edx
@@ -76,11 +76,11 @@ __declspec(naked) void SWOS::ClearBackground_OnEnter()
 void SWOS::MainKeysCheck_OnEnter()
 {
     if (testForPlayerKeys()) {
-        lastKey = 0;
+        swos.lastKey = 0;
         return;
     }
 
-    switch (convertedKey) {
+    switch (swos.convertedKey) {
     case 'D':
         toggleDebugOutput();
         break;
@@ -89,7 +89,7 @@ void SWOS::MainKeysCheck_OnEnter()
         break;
     }
 
-    if (lastKey == kKeyF2)
+    if (swos.lastKey == kKeyF2)
         makeScreenshot();
 }
 
@@ -105,19 +105,21 @@ static void drawSprites(bool saveHihglightCoordinates = true)
 {
     SortSprites();
 
-    if (!numSpritesToRender)
+    if (!swos.numSpritesToRender)
         return;
 
-    for (size_t i = 0; i < numSpritesToRender; i++) {
-        auto player = sortedSprites[i];
+    for (size_t i = 0; i < swos.numSpritesToRender; i++) {
+        auto player = swos.sortedSprites[i].asPtr();
+
+        assert(player->spriteIndex == -1 || player->spriteIndex > kMaxMenuSprite && player->spriteIndex < kNumSprites);
 
         if (player->spriteIndex < 0)
             continue;
 
-        auto sprite = spritesIndex[player->spriteIndex];
+        auto sprite = swos.spritesIndex[player->spriteIndex];
 
-        int x = player->x - sprite->centerX - g_cameraX;
-        int y = player->y - sprite->centerY - g_cameraY - player->z;
+        int x = player->x - sprite->centerX - swos.g_cameraX;
+        int y = player->y - sprite->centerY - swos.g_cameraY - player->z;
 
         SpriteClipper clipper(sprite, x, y);
         if (clipper.clip())
@@ -125,13 +127,13 @@ static void drawSprites(bool saveHihglightCoordinates = true)
 
         if (x < 336 && y < 200 && x > -sprite->width && y > -sprite->height) {
         //if (!clipper.clip()) {
-            if (saveHihglightCoordinates && player != &big_S_Sprite && player->teamNumber)
+            if (saveHihglightCoordinates && player != &swos.big_S_Sprite && player->teamNumber)
                 saveCoordinatesForHighlights(player->spriteIndex, x, y);
 
             player->beenDrawn = 1;
 
-            if (player == &big_S_Sprite)
-                deltaColor = 0x70;
+            if (player == &swos.big_S_Sprite)
+                swos.deltaColor = 0x70;
 
             if (player->spriteIndex == kSquareGridForResultSprite)
                 darkenRectangle(kSquareGridForResultSprite, x, y);
@@ -142,7 +144,7 @@ static void drawSprites(bool saveHihglightCoordinates = true)
             player->beenDrawn = 0;
         }
 
-        deltaColor = 0;
+        swos.deltaColor = 0;
     }
 }
 
@@ -157,7 +159,7 @@ void SWOS::FadeOutToBlack_OnEnter()
 
 void SWOS::HandleInstantReplayStateSwitch_OnEnter()
 {
-    if (!replayState)
+    if (!swos.replayState)
         startingReplay = true;
 }
 
@@ -173,13 +175,13 @@ static void swosSetPalette(const char *palette)
     frameDelay(0.5);
 
     // if the game is running, we have to redraw the sprites explicitly
-    if (screenWidth == kGameScreenWidth) {
+    if (swos.screenWidth == kGameScreenWidth) {
         // do one redraw of the sprites if the game was aborted, ended, or the replay is just starting,
         // but skip forced screen update if playing highlights
-        if (fadeOutInitiated && !playHighlightFlag && (gameAborted || startingReplay || gameDone)) {
+        if (fadeOutInitiated && !swos.playHighlightFlag && (swos.gameAborted || startingReplay || gameDone)) {
             // also be careful not to mess with saved highlights coordinates
             drawSprites(false);
-            gameAborted = 0;
+            swos.gameAborted = 0;
             fadeOutInitiated = false;
             startingReplay = false;
             gameDone = false;
@@ -193,8 +195,15 @@ static void swosSetPalette(const char *palette)
 __declspec(naked) void SWOS::SetPalette()
 {
 #ifdef SWOS_VM
-    auto palette = reinterpret_cast<char *>(g_esi.all);
+    using namespace SwosVM;
+    push(ebx);
+    push(esi);
+    push(ecx);
+    auto palette = SwosVM::esi.asPtr();
     swosSetPalette(palette);
+    pop(ecx);
+    pop(esi);
+    pop(ebx);
 #else
     __asm {
         push ebx
@@ -229,14 +238,14 @@ void SWOS::StartMainGameLoop()
     initNewReplay();
     updateCursor(true);
 
-    A5 = &leftTeamIngame;
-    A6 = &rightTeamIngame;
+    A5 = &swos.leftTeamIngame;
+    A6 = &swos.rightTeamIngame;
 
-    EGA_graphics = 0;
+    swos.EGA_graphics = 0;
 
     SAFE_INVOKE(GameLoop);
 
-    vsPtr = linAdr384k;
+    swos.vsPtr = swos.linAdr384k;
 
     finishGameControls();
     updateCursor(false);
@@ -277,7 +286,7 @@ void SWOS::FixTwoCPUsGameCrash()
 static dword gameTimeInMinutes()
 {
     // endianess alert
-    return gameTime[1] * 100 + gameTime[2] * 10 + gameTime[3];
+    return swos.gameTime[1] * 100 + swos.gameTime[2] * 10 + swos.gameTime[3];
 }
 
 static bool isGameAtMinute(dword minute)
@@ -294,49 +303,49 @@ static void endFirstHalf()
 static void endSecondHalf()
 {
     BumpAllPlayersLastPlayedHalfPostGame();
-    statsTeam1GoalsCopy = statsTeam1Goals;
-    statsTeam2GoalsCopy = statsTeam2Goals;
+    swos.statsTeam1GoalsCopy = swos.statsTeam1Goals;
+    swos.statsTeam2GoalsCopy = swos.statsTeam2Goals;
 
-    int totalTeam1Goals = team1Goals;
-    int totalTeam2Goals = team2Goals;
+    int totalTeam1Goals = swos.team1Goals;
+    int totalTeam2Goals = swos.team2Goals;
 
     if (totalTeam1Goals == totalTeam2Goals) {
-        totalTeam1Goals = statsTeam1Goals + 2 * team1GoalsFirstLeg;
-        totalTeam2Goals = statsTeam2Goals + 2 * team2GoalsFirstLeg;
+        totalTeam1Goals = swos.statsTeam1Goals + 2 * swos.team1GoalsFirstLeg;
+        totalTeam2Goals = swos.statsTeam2Goals + 2 * swos.team2GoalsFirstLeg;
 
-        bool gameTied = !secondLeg || playing2ndGame != 1 || totalTeam1Goals == totalTeam2Goals;
+        bool gameTied = !swos.secondLeg || swos.playing2ndGame != 1 || totalTeam1Goals == totalTeam2Goals;
         if (gameTied) {
-            if (extraTimeState) {
-                extraTimeState = -1;
+            if (swos.extraTimeState) {
+                swos.extraTimeState = -1;
                 StartFirstExtraTime();
-            } else if (penaltiesState) {
-                penaltiesState = -1;
+            } else if (swos.penaltiesState) {
+                swos.penaltiesState = -1;
                 StartPenalties();
             } else {
-                winningTeamPtr = nullptr;
+                swos.winningTeamPtr = nullptr;
                 EndOfGame();
             }
             return;
         }
     }
 
-    winningTeamPtr = totalTeam1Goals > totalTeam2Goals ? &leftTeamIngame : &rightTeamIngame;
+    swos.winningTeamPtr = totalTeam1Goals > totalTeam2Goals ? &swos.leftTeamIngame : &swos.rightTeamIngame;
     EndOfGame();
 }
 
 static bool prolongLastMinute()
 {
-    if (gameStatePl != GameState::kInProgress)
+    if (swos.gameStatePl != GameState::kInProgress)
         return true;
 
     constexpr int kUpperPenaltyAreaLowerLine = 216;
     constexpr int kLowerPenaltyAreaUpperLine = 682;
     constexpr int kCenterLine = 449;
 
-    auto ballY = ballSprite.y;
+    auto ballY = swos.ballSprite.y;
     auto ballInsidePenaltyArea = ballY <= kUpperPenaltyAreaLowerLine || ballY > kLowerPenaltyAreaUpperLine;
-    auto attackingTeam = ballY > kCenterLine ? &leftTeamData : &rightTeamData;
-    auto attackInProgress = lastTeamPlayed == attackingTeam;
+    auto attackingTeam = ballY > kCenterLine ? &swos.topTeamData : &swos.bottomTeamData;
+    auto attackInProgress = swos.lastTeamPlayed == attackingTeam;
 
     return ballInsidePenaltyArea || attackInProgress;
 }
@@ -348,27 +357,27 @@ static void endFirstExtraTime()
 
 static void endSecondExtraTime()
 {
-    int totalTeam1Goals = team1Goals;
-    int totalTeam2Goals = team2Goals;
+    int totalTeam1Goals = swos.team1Goals;
+    int totalTeam2Goals = swos.team2Goals;
 
     if (totalTeam1Goals == totalTeam2Goals) {
-        totalTeam1Goals = statsTeam1Goals + 2 * team1GoalsFirstLeg;
-        totalTeam2Goals = statsTeam2Goals + 2 * team2GoalsFirstLeg;
+        totalTeam1Goals = swos.statsTeam1Goals + 2 * swos.team1GoalsFirstLeg;
+        totalTeam2Goals = swos.statsTeam2Goals + 2 * swos.team2GoalsFirstLeg;
 
-        bool gameTied = !secondLeg || !playing2ndGame || totalTeam1Goals == totalTeam2Goals;
+        bool gameTied = !swos.secondLeg || !swos.playing2ndGame || totalTeam1Goals == totalTeam2Goals;
         if (gameTied) {
-            if (penaltiesState) {
-                penaltiesState = -1;
+            if (swos.penaltiesState) {
+                swos.penaltiesState = -1;
                 StartPenalties();
             } else {
-                winningTeamPtr = nullptr;
+                swos.winningTeamPtr = nullptr;
                 EndOfGame();
             }
             return;
         }
     }
 
-    winningTeamPtr = totalTeam1Goals > totalTeam2Goals ? &leftTeamIngame : &rightTeamIngame;
+    swos.winningTeamPtr = totalTeam1Goals > totalTeam2Goals ? &swos.leftTeamIngame : &swos.rightTeamIngame;
     EndOfGame();
 }
 
@@ -394,15 +403,15 @@ static void positionTimeSprite()
 {
     constexpr int kMultiDigitTimeXOffset = 20 - 6;
 
-    currentTimeSprite.x = g_cameraX + kMultiDigitTimeXOffset;
+    swos.currentTimeSprite.x = swos.g_cameraX + kMultiDigitTimeXOffset;
 
     constexpr int kTimeZOffset = 10'000;
     constexpr int kTimeYOffset = 9;
 
-    currentTimeSprite.y = g_cameraY;
-    currentTimeSprite.y += kTimeYOffset + kTimeZOffset;
+    swos.currentTimeSprite.y = swos.g_cameraY;
+    swos.currentTimeSprite.y += kTimeYOffset + kTimeZOffset;
 
-    currentTimeSprite.z = kTimeZOffset;
+    swos.currentTimeSprite.z = kTimeZOffset;
 }
 
 constexpr int kTimeDigitWidth = 6;
@@ -410,7 +419,7 @@ constexpr int kTimeDigitWidth = 6;
 static void copyDigitToTimeSprite(int digit, int xOffset, int destSpriteIndex)
 {
     assert(digit >= 0 && digit <= 9);
-    assert(spritesIndex[kBigTimeDigitSprite0]->width == kTimeDigitWidth);
+    assert(swos.spritesIndex[kBigTimeDigitSprite0]->width == kTimeDigitWidth);
 
     int sourceSpriteIndex = kBigTimeDigitSprite0 + digit;
 
@@ -421,20 +430,20 @@ static void updateTimeSprite()
 {
     int spriteIndex = kTimeSprite8Mins;
 
-    if (gameTime[1]) {
+    if (swos.gameTime[1]) {
         spriteIndex = kTimeSprite118Mins;
-        copyDigitToTimeSprite(gameTime[1], 0, spriteIndex);
-        copyDigitToTimeSprite(gameTime[2], kTimeDigitWidth, spriteIndex);
-        copyDigitToTimeSprite(gameTime[3], 2 * kTimeDigitWidth, spriteIndex);
-    } else if (gameTime[2]) {
+        copyDigitToTimeSprite(swos.gameTime[1], 0, spriteIndex);
+        copyDigitToTimeSprite(swos.gameTime[2], kTimeDigitWidth, spriteIndex);
+        copyDigitToTimeSprite(swos.gameTime[3], 2 * kTimeDigitWidth, spriteIndex);
+    } else if (swos.gameTime[2]) {
         spriteIndex = kTimeSprite88Mins;
-        copyDigitToTimeSprite(gameTime[2], 0, spriteIndex);
-        copyDigitToTimeSprite(gameTime[3], kTimeDigitWidth, spriteIndex);
+        copyDigitToTimeSprite(swos.gameTime[2], 0, spriteIndex);
+        copyDigitToTimeSprite(swos.gameTime[3], kTimeDigitWidth, spriteIndex);
     } else {
-        copyDigitToTimeSprite(gameTime[3], 0, spriteIndex);
+        copyDigitToTimeSprite(swos.gameTime[3], 0, spriteIndex);
     }
 
-    currentTimeSprite.spriteIndex = spriteIndex;
+    swos.currentTimeSprite.spriteIndex = spriteIndex;
 }
 
 static void updateAndPositionTimeSprite()
@@ -445,34 +454,34 @@ static void updateAndPositionTimeSprite()
 
 static void bumpGameTime()
 {
-    if (++gameTime[3] >= 10) {
-        gameTime[3] = 0;
-        if (++gameTime[2] >= 10) {
-            gameTime[2] = 0;
-            gameTime[1]++;
+    if (++swos.gameTime[3] >= 10) {
+        swos.gameTime[3] = 0;
+        if (++swos.gameTime[2] >= 10) {
+            swos.gameTime[2] = 0;
+            swos.gameTime[1]++;
         }
     }
 }
 
 static void setupLastMinuteSwitchNextFrame()
 {
-    gameSeconds = -1;
-    endGameCounter = 55;
+    swos.gameSeconds = -1;
+    swos.endGameCounter = 55;
 }
 
 void SWOS::ResetTime()
 {
-    gameSeconds = 0;
-    memset(&gameTime, 0, sizeof(gameTime));
-    secondsSwitchAccumulator = 0;
+    swos.gameSeconds = 0;
+    memset(&swos.gameTime, 0, sizeof(swos.gameTime));
+    swos.secondsSwitchAccumulator = 0;
     updateAndPositionTimeSprite();
-    currentTimeSprite.visible = 0;
+    swos.currentTimeSprite.visible = 0;
 }
 
 static void ensureTimeSpriteIsVisible()
 {
-    if (!currentTimeSprite.visible) {
-        currentTimeSprite.visible = true;
+    if (!swos.currentTimeSprite.visible) {
+        swos.currentTimeSprite.visible = true;
         InitDisplaySprites();
     }
 }
@@ -481,14 +490,14 @@ void SWOS::UpdateTime()
 {
     ensureTimeSpriteIsVisible();
 
-    bool minuteSwitchAboutToHappen = gameSeconds < 0;
+    bool minuteSwitchAboutToHappen = swos.gameSeconds < 0;
 
     if (minuteSwitchAboutToHappen) {
-        endGameCounter -= timerDifference;
-        if (endGameCounter < 0) {
+        swos.endGameCounter -= swos.timerDifference;
+        if (swos.endGameCounter < 0) {
             if (auto periodEndHandler = getPeriodEndHandler()) {
-                gameSeconds = 0;
-                stateGoal = 0;
+                swos.gameSeconds = 0;
+                swos.stateGoal = 0;
                 PlayEndGameWhistleSample();
                 periodEndHandler();
             }
@@ -499,14 +508,14 @@ void SWOS::UpdateTime()
                 positionTimeSprite();
             }
         }
-    } else if (gameStatePl == GameState::kInProgress && !playingPenalties) {
-        secondsSwitchAccumulator -= timeDelta;
-        if (secondsSwitchAccumulator < 0) {
-            secondsSwitchAccumulator += 54;
-            gameSeconds += timerDifference;
+    } else if (swos.gameStatePl == GameState::kInProgress && !swos.playingPenalties) {
+        swos.secondsSwitchAccumulator -= swos.timeDelta;
+        if (swos.secondsSwitchAccumulator < 0) {
+            swos.secondsSwitchAccumulator += 54;
+            swos.gameSeconds += swos.timerDifference;
 
-            if (gameSeconds >= 60) {
-                gameSeconds = 0;
+            if (swos.gameSeconds >= 60) {
+                swos.gameSeconds = 0;
                 bumpGameTime();
 
                 if (isGameAtMinute(1) || isGameAtMinute(46))
@@ -536,20 +545,20 @@ void SWOS::ReplayExitMenuAfterFriendly()
 
 static void replayExitMenuOnInit()
 {
-    replaySelected = 0;
+    swos.replaySelected = 0;
 
     DrawMenu();     // redraw menu so it's ready for the fade-in
     fadeIfNeeded();
 
-    g_cameraX = 0;
-    g_cameraY = 0;
+    swos.g_cameraX = 0;
+    swos.g_cameraY = 0;
 
     SDL_ShowCursor(SDL_ENABLE);
 }
 
 static void replayExitMenuDone(bool replay = false)
 {
-    replaySelected = replay;
+    swos.replaySelected = replay;
     SAFE_INVOKE(FadeOutToBlack);
     SetExitMenuFlag();
 

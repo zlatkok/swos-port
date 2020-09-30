@@ -210,7 +210,7 @@ static void performMouseWheelAction(const MenuEntry& entry, int scrollValue)
 static void checkForEntryClicksAndMouseWheelMovement()
 {
     auto currentMenu = getCurrentMenu();
-    auto entries = reinterpret_cast<MenuEntry *>(currentMenu + 1);
+    auto entries = currentMenu->entries();
 
     auto wheelScrollAmount = mouseWheelAmount();
     auto wheelHandled = globalWheelHandler(wheelScrollAmount);
@@ -335,7 +335,7 @@ void determineReachableEntries()
 
     auto currentMenu = getCurrentMenu();
     auto currentEntry = currentMenu->selectedEntry;
-    auto entries = reinterpret_cast<MenuEntry *>(g_currentMenu + sizeof(Menu));
+    auto entries = currentMenu->entries();
 
     entryStack.emplace_back(currentEntry, 0);
 

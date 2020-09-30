@@ -12,16 +12,20 @@ DynaArray::DynaArray(const DynaArray& rhs)
     copy(rhs);
 }
 
-DynaArray::DynaArray(DynaArray&& rhs)
+DynaArray::DynaArray(DynaArray&& rhs) noexcept
 {
-    m_data = std::move(rhs.m_data);
-    m_reserved = std::exchange(rhs.m_reserved, 0);
-    m_used = std::exchange(rhs.m_used, 0);
+    move(std::move(rhs));
 }
 
 DynaArray& DynaArray::operator=(const DynaArray& rhs)
 {
     copy(rhs);
+    return *this;
+}
+
+DynaArray& DynaArray::operator=(DynaArray&& rhs) noexcept
+{
+    move(std::move(rhs));
     return *this;
 }
 
@@ -66,6 +70,12 @@ char *DynaArray::end() const
     return m_data.get() + m_used;
 }
 
+void DynaArray::reset(size_t newSize)
+{
+    m_reserved = newSize;
+    m_data.reset(new char[m_reserved]);
+}
+
 void DynaArray::clear()
 {
     m_used = 0;
@@ -79,4 +89,11 @@ void DynaArray::copy(const DynaArray& rhs)
         m_data.reset(new char[m_used]);
         memcpy(m_data.get(), rhs.m_data.get(), m_used);
     }
+}
+
+void DynaArray::move(DynaArray&& rhs)
+{
+    m_data = std::move(rhs.m_data);
+    m_reserved = std::exchange(rhs.m_reserved, 0);
+    m_used = std::exchange(rhs.m_used, 0);
 }

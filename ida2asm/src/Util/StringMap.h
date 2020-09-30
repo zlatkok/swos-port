@@ -9,8 +9,53 @@ template<class T>
 class StringMap
 {
 public:
-    class Iterator
-    {
+    StringMap(size_t initialCapacity) : m_data(initialCapacity) {}
+    StringMap(const StringMap& rhs) : m_data(rhs.m_data) {
+        copy(rhs);
+    }
+    StringMap(StringMap&& rhs) noexcept : m_data(std::move(rhs.m_data)) {
+        move(std::move(rhs));
+    }
+    StringMap& operator=(StringMap&& rhs) noexcept {
+        m_data = std::move(rhs.m_data);
+        move(std::move(rhs));
+        return *this;
+    }
+    StringMap& operator=(const StringMap& rhs) {
+        m_data = rhs.m_data;
+        copy(rhs);
+        return *this;
+    }
+    void move(StringMap&& rhs) {
+        m_count = std::exchange(rhs.m_count, 0);
+        m_nodes = std::exchange(rhs.m_nodes, nullptr);
+        m_end = std::exchange(rhs.m_end, nullptr);
+    }
+    void copy(const StringMap& rhs) {
+        if (this == &rhs || (!m_nodes && !rhs.m_nodes))
+            return;
+
+        assert(rhs.m_nodes && rhs.m_end);
+
+        m_count = rhs.m_count;
+        m_nodes = rhs.m_nodes;
+
+        auto endOffset = reinterpret_cast<char *>(rhs.m_end) - rhs.m_data.begin();
+        auto nodesOffset = reinterpret_cast<char *>(rhs.m_nodes) - rhs.m_data.begin();
+
+        m_end = reinterpret_cast<Node *>(m_data.begin() + endOffset);
+        m_nodes = reinterpret_cast<LookupNode *>(m_data.begin() + nodesOffset);
+
+        auto ptrDiff = m_data.begin() - rhs.m_data.begin();
+        for (size_t i = 0; i < m_count; i++)
+            m_nodes[i].node = reinterpret_cast<Node *>(reinterpret_cast<char *>(m_nodes[i].node) + ptrDiff);
+    }
+    size_t size() const { return m_data.spaceUsed(); }
+    size_t reserved() const { return m_data.reserved(); }
+    size_t count() const { return m_count; }
+    bool empty() const { return size() != 0; }
+
+    class Iterator {
     public:
         struct Node {
             String text;
@@ -46,43 +91,6 @@ public:
         Node m_result;
     };
 
-    StringMap(size_t initialCapacity) : m_data(initialCapacity) {}
-    StringMap(const StringMap& rhs) : m_data(rhs.m_data) {
-        copy(rhs);
-    }
-    StringMap(StringMap&& rhs) : m_data(std::move(rhs.m_data)) {
-        m_count = std::exchange(rhs.m_count, 0);
-        m_nodes = std::exchange(rhs.m_nodes, nullptr);
-        m_end = std::exchange(rhs.m_end, nullptr);
-    }
-    StringMap& operator=(const StringMap& rhs) {
-        m_data = rhs.m_data;
-        copy(rhs);
-        return *this;
-    }
-    void copy(const StringMap& rhs) {
-        if (this == &rhs)
-            return;
-
-        assert(rhs.m_nodes && rhs.m_end);
-
-        m_count = rhs.m_count;
-        m_nodes = rhs.m_nodes;
-
-        auto endOffset = reinterpret_cast<char *>(rhs.m_end) - rhs.m_data.begin();
-        auto nodesOffset = reinterpret_cast<char *>(rhs.m_nodes) - rhs.m_data.begin();
-
-        m_end = reinterpret_cast<Node *>(m_data.begin() + endOffset);
-        m_nodes = reinterpret_cast<LookupNode *>(m_data.begin() + nodesOffset);
-
-        auto ptrDiff = m_data.begin() - rhs.m_data.begin();
-        for (size_t i = 0; i < m_count; i++)
-            m_nodes[i].node = reinterpret_cast<Node *>(reinterpret_cast<char *>(m_nodes[i].node) + ptrDiff);
-    }
-    size_t size() const { return m_data.spaceUsed(); }
-    size_t reserved() const { return m_data.reserved(); }
-    size_t count() const { return m_count; }
-    bool empty() const { return size() != 0; }
     Iterator begin() const {
         if (!m_count)
             return end();
@@ -100,32 +108,50 @@ public:
     }
 
     template<typename... Args>
-    void add(const String& str, Args... args) {
-        add(str.data(), str.length(), Util::hash(str.data(), str.length()), args...);
+    T *add(const String& str, Args... args) {
+        return add(str.data(), str.length(), Util::hash(str.data(), str.length()), args...);
     }
 
     template<typename... Args>
-    void add(const char *str, size_t len, Args... args) {
-        add(str, len, Util::hash(str, len), args...);
+    T *add(const char *str, size_t len, Args... args) {
+        return add(str, len, Util::hash(str, len), args...);
     }
 
     template<typename... Args>
-    void add(CToken *token, Args... args) {
+    T *add(const char *start, const char *end, Args... args) {
+        return add(start, end - start, Util::hash(start, end - start), args...);
+    }
+
+    template<typename... Args>
+    T *add(CToken *token, Args... args) {
         assert(token && token->isId() && token->textLength);
-        add(token->text(), token->textLength, token->hash, args...);
+        return add(token->text(), token->textLength, token->hash, args...);
+    }
+
+    template<typename T, typename... Args, std::enable_if_t<std::is_integral<T>::value, T *> = nullptr>
+    size_t requiredSize(Args... args) {
+        return sizeof(T);
+    }
+
+    template<typename T, typename... Args, std::enable_if_t<!std::is_integral<T>::value, T *> = nullptr>
+    size_t requiredSize(Args... args) {
+        return T::requiredSize(args...);
     }
 
     template<typename... Args>
-    void add(const char *str, size_t len, Util::hash_t hash, Args... args) {
+    T *add(const char *str, size_t len, Util::hash_t hash, Args... args) {
         assert(!m_nodes);
 
-        auto size = T::requiredSize(args...);
+        //auto size = T::requiredSize(args...);
+        auto size = requiredSize<T, Args...>(args...);
         auto nodeSize = Node::requiredSize(len);
 
         auto buf = m_data.add(size + nodeSize);
-        new (buf) Node(str, len, hash, size, args...);
+        auto node = new (buf) Node(str, len, hash, size, args...);
 
         m_count++;
+
+        return node->cargo();
     }
 
     T *get(const char *str, size_t len) const {
@@ -179,6 +205,11 @@ public:
         return getAll(token->text(), token->textLength(), token->hash);
     }
 
+    void reset(size_t newSize) {
+        m_data.reset(newSize);
+        m_count = 0;
+    }
+
     void clear() {
         assert(!m_nodes);
         m_data.clear();
@@ -195,8 +226,9 @@ public:
         auto sentinelBuf = m_data.add(Node::requiredSize(1));
         m_end = new (sentinelBuf) Node("z", 1, 0);
 
-        auto alignment = (4 - m_data.spaceUsed() % 4) % 4;
-        auto buf = m_data.add((m_count + 1) * sizeof(LookupNode) + alignment);
+        constexpr auto kLookupNodeSize = sizeof(LookupNode);
+        auto alignment = (kLookupNodeSize - m_data.spaceUsed() % kLookupNodeSize) % kLookupNodeSize;
+        auto buf = m_data.add((m_count + 1) * kLookupNodeSize + alignment);
         m_nodes = reinterpret_cast<LookupNode *>(buf + alignment);
 
         auto node = reinterpret_cast<Node *>(m_data.begin());

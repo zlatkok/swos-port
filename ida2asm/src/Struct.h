@@ -3,6 +3,7 @@
 #include "Iterator.h"
 #include "Tokenizer.h"
 #include "DynaArray.h"
+#include "StringMap.h"
 
 #pragma pack(push, 1)
 class Struct {
@@ -16,8 +17,6 @@ public:
     String lineComment() const;
     bool isUnion() const;
 
-    bool resolved() const;
-    void resolve();
     bool dupNotAllowed() const;
     void disallowDup();
 
@@ -62,7 +61,7 @@ public:
         }
 
         size_t elementSize() const { return m_elementSize; }
-        size_t byteSize() const { return m_elementSize * (!dup().empty() ? dup().toInt() : 1); }
+        size_t byteSize() const { return m_elementSize * (dup() ? dup().toInt() : 1); }
         Field *next() const { return reinterpret_cast<Field *>((char *)this + m_size); }
         String name() const { return { namePtr(), m_nameLength }; }
         String comment() const { return { commentPtr(), m_commentLength }; }
@@ -120,14 +119,57 @@ public:
     void addField(CToken *name, size_t fieldLenght, CToken *comment, CToken *type, CToken *dup);
     void addComment(CToken *token);
     void disallowDup();
+    void seal();
     String lastStructName() const;
     Struct *findStruct(const String& name) const;
-    Iterator::Iterator<Struct> begin() const;
-    Iterator::Iterator<Struct> end() const;
+    size_t getStructSize(const String& name) const;
 
+    class Iterator
+    {
+    public:
+        Iterator(Struct **structs) : m_structs(structs) {
+            assert(m_structs);
+        }
+
+        Struct& operator*() { return **m_structs; }
+        const Struct& operator*() const { return **m_structs; }
+
+        Struct *operator->() { return *m_structs; }
+        const Struct *operator->() const { return *m_structs; }
+
+        Struct *operator&() { return *m_structs; }
+        const Struct *operator&() const { return *m_structs; }
+
+        bool operator!=(const Iterator& rhs) const { return *m_structs != *rhs.m_structs; }
+        Iterator operator++() { m_structs++; return *this; }
+        operator const Struct *() const { return *m_structs; }
+
+    private:
+        Struct **m_structs;
+    };
+
+    Iterator begin() const;
+    Iterator end() const;
+
+    static constexpr int kAverageBytesPerStruct = 750;
 private:
+    void determineTraversalOrderAndStructSizes();
+
     size_t m_count = 0;
     DynaArray m_structs;
     Struct *m_lastStruct = nullptr;
     Struct::Field *m_lastField = nullptr;
+
+    struct StructInfoHolder {
+        Struct *ptr;
+        size_t size;
+        StructInfoHolder(Struct *ptr, size_t size) : ptr(ptr), size(size) {}
+        static size_t requiredSize(Struct *, size_t) { return sizeof(StructInfoHolder); }
+    };
+
+    StringMap<StructInfoHolder> m_structMap;
+    size_t m_currentStructPos = 0;
+    Struct **m_structOrder = nullptr;
+
+    size_t getStructSizeAndOrder(StructInfoHolder *struc);
 };

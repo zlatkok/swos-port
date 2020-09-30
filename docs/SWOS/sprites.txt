@@ -263,7 +263,7 @@ offset  length  description
                 0 = sprites that are not shown in the highlights
    2        2   player ordinal (shirt number)
    4        2   ??? (zero during the game)
-                perhaps some sortf of picture offset for some specific sprite
+                perhaps some sort of picture offset for some specific sprite
    6        4   pointer to an animation table, it changes depending if the
                 player is running, tackling or heading; can change without
                 ball (say rolling on the pitch injured, or getting booked)
@@ -278,9 +278,9 @@ offset  length  description
                     3 - goalkeeper, team 2
                 - inside the category pointer is indexed based on sprite
                   direction 0..7
-                - in index table special indices exist:
+                - in the table special index values exist:
                     = 999   - reset index to zero
-                    = 100   - subtract one of the indices
+                    = 100   - subtract one from the index (effectively pause the frame)
                     <= 101  - add 100 + this to index
                     -99..-1 - seems to be delay value
                     otherwise - negate, add to frame delay and write to timer
@@ -308,8 +308,8 @@ offset  length  description
                 "inoperable"; this field is also used when player takes
                 throw-in, heads the ball, etc...
   14        2   ??? (ball has it 0 always)
-  16        2   something for x
-  18        2   something for y
+  16        2   something with x
+  18        2   something with y
                 for referee, player and ball shadow this is a dword, pointer to
                 something; dword from sprite table is written here; seems to be
                 a pointer to an array of picture indices
@@ -339,16 +339,14 @@ offset  length  description
                        4
                 for the ball -1 if out of the game
   44        2   player speed
-                mnozi se sa some_pitch_related_value2
-                ofs6 iz pitch_cvt tabele
-  46        4   delta x, u fiksnom zarezu word.word (pomeraj po x)
-  50        4   delta y, u fiksnom zarezu word.word (pomeraj po y)
-  54        4   delta z, u fiksnom zarezu word.word (pomeraj po z)
+  46        4   delta x, fixed point word.word (per frame movement by x)
+  50        4   delta y, fixed point word.word (per frame movement by y)
+  54        4   delta z, fixed point word.word (per frame movement by z)
   58        2   destination x, whole part
   60        2   destination y, whole part
-  62        6   ??? (kod lopte 62, 64 = 0, 66 = -1 const.)
-  68        2   is_visible, da li je sprajt vidljiv? !0 - da, 0 - ne
-  70        2   indeks slicice sprajta, ako je negativno nema slicicu
+  62        6   ??? (ball sprite: 62, 64 = 0, 66 = -1 const.)
+  68        2   is sprite visible? !0 - yes, 0 - no
+  70        2   sprite picture index, if negative no image
   72        2   flag za snimanje sprajta: 1 - nemoj da snimas, !1 - snimaj
   74        4   sqr(x igraca - x lopte) + sqr(y igraca - y lopte)
   78        4
@@ -409,67 +407,6 @@ Boje:
 13 - boja kose (svetla nijansa)
 14 - boja sortsa
 15 - boja carapa
-
-
-=== Koordinate objekata po terenu
-
-Koordinate su u pikselima u odnosu na gornji levi piksel terena. SWOS koristi
-y koordinate uvecane za 16, jer ima jos jedan red patterna pre pocetka koji se
-ne vidi. Dimenzije terena su 672 x 848 piksela.
-
-[koordinate date za 16 manje nego u SWOS-u]
-
-y koordinata lopte se poredi sa 216, 682, 449 pri odredjivanju da li ce se
-partija produziti
-
-Sesnaesterac po x: [193..478]
-Donja granica gornjeg sesnaesterca: 200
-Gornja granica donjeg sesnaesterca: 666
-Granice terena po y: [113..753] (SWOS: 129..769)
-Granice od kojih se lopta odbija po x: [53..618]
-              -||-               po y: [84..783]
-Gornja gol-linija: 113
-Donja gol-linija: 753
-Krajnja donja linija donjeg gola: 762
-Precka gornjeg dela: 96
-Leva stativa: 302
-Desna stativa: 372
-Leva aut linija: 81
-Desna aut linija: 590
-
-y kamere kada gornji tim krece sa centra: 336
-      -||-    donji          -||-       : 309
-
-Teren: (0, 16) - (671, 863)
-Koordinate gola po x: 302..366
-Precka gornjeg gola: 112
-Pokusaj suta na gol po x: 240..430
-
-Donja bela tacka: 336, 711
-
-Lopta na centru: (336, 449)
-
-Korneri:
-gornji levi:  ( 86, 134)
-gornji desni: (585, 134)
-donji levi:   ( 86, 764)
-donji desni:  (585, 764)
-
-Gol auti (kada golman izvodi):
-gornji levi:  (276, 154)
-gornji desni: (396, 154)
-donji levi:   (276, 744)
-donji desni:  (396, 744)
-
-Granice za "near miss":
-po x: 290..281
-po z:   0..25
-Takodje, brzina lopte mora biti barem 768
-
-Granice donjeg podrucja za slobodni udarac:
-po y: 551..666
-Granice gornjeg podrucja za slobodni udarac:
-po y: 200..31
 
 
 === Razno

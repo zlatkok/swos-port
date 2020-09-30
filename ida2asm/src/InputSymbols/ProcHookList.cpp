@@ -27,7 +27,7 @@ auto ProcHookList::getItems() -> std::vector<ProcHookItem>
     std::vector<ProcHookItem> result;
     for (size_t i = 0; i < m_sortedItems.size(); i++) {
         const auto& item = m_sortedItems[i];
-        auto nextIndex = item->lastIndex > 0 ? item->lastIndex : i + 1;
+        int nextIndex = item->lastIndex > 0 ? item->lastIndex : i + 1;
 
         result.emplace_back(String(item->procName, item->procNameLen), String(item->hookName, item->hookNameLen),
             item->line, nextIndex, item->definedAtLine);
@@ -101,7 +101,7 @@ auto ProcHookList::getSortedItems() -> std::vector<ProcHookItemInternal *>
                     while (!sortedItems[first]->first)
                         first--;
 
-                    sortedItems[first]->lastIndex = current->lastIndex >= 0 ? current->lastIndex : lastIndex;
+                    sortedItems[first]->lastIndex = current->lastIndex;
                     break;
                 }
 

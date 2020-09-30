@@ -5,7 +5,7 @@ DataItem::DataItem(CToken *name, CToken *structName, uint8_t baseSize) : m_baseS
 {
     m_nameLength = 0;
     if (name) {
-        m_nameLength = name->textLength;
+        Util::assignSize(m_nameLength, name->textLength);
         name->copyText(namePtr());
     }
 
@@ -67,12 +67,12 @@ size_t DataItem::numElements() const
     return m_numElements & ~kContiguousDataFlag;
 }
 
-auto DataItem::begin() const -> const Element *
+auto DataItem::initialElement() const -> const Element *
 {
-    return const_cast<DataItem *>(this)->begin();
+    return const_cast<DataItem *>(this)->initialElement();
 }
 
-auto DataItem::begin() -> Element *
+auto DataItem::initialElement() -> Element *
 {
     return reinterpret_cast<Element *>(structNamePtr() + m_structNameLength);
 }

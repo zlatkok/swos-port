@@ -326,7 +326,7 @@ void loadVideoOptions(const CSimpleIniA& ini)
 {
     m_windowMode = static_cast<WindowMode>(ini.GetLongValue(kVideoSection, kWindowMode, -1));
 
-    if (m_windowMode < 0 || m_windowMode >= kNumWindowModes)
+    if (m_windowMode >= kNumWindowModes)
         m_windowMode = kModeWindow;
 
     m_windowWidth = ini.GetLongValue(kVideoSection, kWindowWidthKey, kWindowWidth);
@@ -486,17 +486,18 @@ void updateScreen(const char *inData /* = nullptr */, int offsetLine /* = 0 */, 
 
     m_lastRenderStartTime = SDL_GetPerformanceCounter();
 
-    auto data = reinterpret_cast<const uint8_t *>(inData ? inData : (vsPtr ? vsPtr : linAdr384k));
+    auto data = reinterpret_cast<const uint8_t *>(inData ? inData : (swos.vsPtr ? swos.vsPtr : swos.linAdr384k));
 
 #ifdef DEBUG
-    if (screenWidth == kGameScreenWidth)
+    if (swos.screenWidth == kGameScreenWidth)
         dumpVariables();
+    SwosVM::verifySafeMemoryAreas();
 #endif
 
     requestPixelAccess([&](Uint32 *pixels, int pitch) {
         for (int y = offsetLine; y < numLines; y++) {
             for (int x = 0; x < kVgaWidth; x++) {
-                auto color = &m_palette[data[y * screenWidth + x] * 3];
+                auto color = &m_palette[data[y * swos.screenWidth + x] * 3];
                 pixels[y * pitch / sizeof(Uint32) + x] = SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
             }
         }
@@ -562,21 +563,21 @@ void frameDelay(double factor /* = 1.0 */)
 // simulate SWOS procedure executed at each interrupt 8 tick
 void timerProc()
 {
-    currentTick++;
-    menuCycleTimer++;
-    if (!paused) {
-        stoppageTimer++;
-        timerBoolean = (timerBoolean + 1) & 1;
-        if (!timerBoolean)
-            bumpBigSFrame = -1;
+    swos.currentTick++;
+    swos.menuCycleTimer++;
+    if (!swos.paused) {
+        swos.stoppageTimer++;
+        swos.timerBoolean = (swos.timerBoolean + 1) & 1;
+        if (!swos.timerBoolean)
+            swos.bumpBigSFrame = -1;
     }
 }
 
 void fadeIfNeeded()
 {
-    if (!skipFade) {
+    if (!swos.skipFade) {
         FadeIn();
-        skipFade = -1;
+        swos.skipFade = -1;
     }
 }
 

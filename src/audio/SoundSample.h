@@ -10,6 +10,7 @@ public:
     ~SoundSample() { free(); }
 
     SoundSample& operator=(SoundSample&& other);
+    SoundSample& operator=(const SoundSample& other) = delete;
 
     static SoundSample createNullSample();
 
@@ -37,11 +38,11 @@ private:
     static int getMaxAudioExensionLength();
 
     char *m_buffer = nullptr;
-    size_t m_size = 0;
+    unsigned m_size = 0;
     bool m_isRaw = false;
     bool m_is11Khz = false;
     Mix_Chunk *m_chunk = nullptr;
-    size_t m_hash = 0;
+    unsigned m_hash = 0;
     int m_chanceModifier = 1;
 
     static const std::array<const char *, 5> kSupportedAudioExtensions;

@@ -38,7 +38,7 @@ done:
         return i >= s1.length();
 
     assert(false);
-    return false;   // should never happen
+    return false;   // should never be reached
 }
 
 Struct::Struct(CToken *name, const TokenList& leadingComments, CToken *comment, bool isUnion, size_t size) : m_isUnion(isUnion)
@@ -110,16 +110,6 @@ bool Struct::isUnion() const
     return m_isUnion != 0;
 }
 
-bool Struct::resolved() const
-{
-    return (m_flags & kResolved) != 0;
-}
-
-void Struct::resolve()
-{
-    m_flags = static_cast<Flags>(m_flags | kResolved);
-}
-
 bool Struct::dupNotAllowed() const
 {
     return (m_flags & kCantBeDuped) != 0;
@@ -179,7 +169,8 @@ auto Struct::end() const -> Iterator::Iterator<Field>
     return reinterpret_cast<Field *>((char *)this + m_size);
 }
 
-StructStream::StructStream() : m_structs(kStructBufferSize)
+StructStream::StructStream()
+    : m_structs(kStructBufferSize), m_structMap(kAverageBytesPerStruct * 50)
 {
 }
 
@@ -208,6 +199,8 @@ void StructStream::addStruct(CToken *name, const TokenList& leadingComments, CTo
 
     m_lastStruct = new (buf) Struct(name, leadingComments, lineComment, isUnion, size);
     m_lastField = nullptr;
+
+    m_structMap.add(name, m_lastStruct, 0);
 }
 
 void StructStream::addField(CToken *name, size_t byteSize, CToken *comment, CToken *type, CToken *dup)
@@ -235,27 +228,85 @@ void StructStream::disallowDup()
     m_lastStruct->disallowDup();
 }
 
+void StructStream::seal()
+{
+    determineTraversalOrderAndStructSizes();
+}
+
 String StructStream::lastStructName() const
 {
     assert(m_lastStruct);
     return m_lastStruct->name();
 }
 
-Iterator::Iterator<Struct> StructStream::begin() const
+auto StructStream::begin() const -> Iterator
 {
-    return reinterpret_cast<Struct *>(m_structs.begin());
+    return { m_structOrder };
 }
 
-Iterator::Iterator<Struct> StructStream::end() const
+auto StructStream::end() const -> Iterator
 {
-    return reinterpret_cast<Struct *>(m_structs.end());
+    return { m_structOrder + m_count };
 }
 
 Struct *StructStream::findStruct(const String& name) const
 {
-    for (auto& struc : *this)
-        if (struc.name() == name)
-            return &struc;
+    auto structInfo = m_structMap.get(name);
+    return structInfo ? structInfo->ptr : nullptr;
+}
 
-    return nullptr;
+size_t StructStream::getStructSize(const String& name) const
+{
+    auto structInfo = m_structMap.get(name);
+    assert(structInfo);
+    return structInfo->size;
+}
+
+// determine struct traversal order such that structs that contain other structs come after them
+// (so there are no forward references); along the way, calculate byte sizes as well
+void StructStream::determineTraversalOrderAndStructSizes()
+{
+    auto begin = reinterpret_cast<Struct *>(m_structs.begin());
+    auto end = reinterpret_cast<Struct *>(m_structs.end());
+
+    constexpr auto kStructPtrSize = sizeof(Struct *);
+    auto padding = (kStructPtrSize - m_structs.spaceUsed() % kStructPtrSize) % kStructPtrSize;
+    auto pointersBuff = m_structs.add(m_count * kStructPtrSize + padding);
+
+    m_structOrder = reinterpret_cast<Struct **>(pointersBuff + padding);
+    m_currentStructPos = 0;
+
+    m_structMap.seal();
+
+    for (auto struc = begin; struc != end; struc = struc->next()) {
+        auto info = m_structMap.get(struc->name(), struc->hash());
+        if (!info->size)
+            info->size = getStructSizeAndOrder(info);
+    }
+}
+
+size_t StructStream::getStructSizeAndOrder(StructInfoHolder *struc)
+{
+    assert(struc->size == 0 && m_structOrder);
+
+    size_t size = 0;
+
+    for (const auto& field : *struc->ptr) {
+        if (field.elementSize()) {
+            size += field.byteSize();
+        } else {
+            auto nestedStruct = m_structMap.get(field.type());
+            if (!nestedStruct->size)
+                nestedStruct->size = getStructSizeAndOrder(nestedStruct);
+            auto nestedSize = nestedStruct->size;
+            if (field.dup())
+                nestedSize *= field.dup().toInt();
+            size += nestedSize;
+        }
+    }
+
+    assert(m_currentStructPos < m_count);
+
+    m_structOrder[m_currentStructPos++] = struc->ptr;
+    return size;
 }

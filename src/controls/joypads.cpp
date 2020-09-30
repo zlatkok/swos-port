@@ -477,14 +477,12 @@ void updateJoypadMotion(SDL_JoystickID id, Uint8 axis, Sint16 value)
         if (matchValues == isMatchRunning() && index >= 0 && id == m_joypads[index].id) {
             auto values = std::get<2>(indexValue);
 
-            auto bu = SDL_JoystickGetAxis(m_joypads[index].handle, 0);
-            auto bg = SDL_JoystickGetAxis(m_joypads[index].handle, 1);
             Sint16 state;
-            auto ii = SDL_JoystickGetAxisInitialState(m_joypads[index].handle, axis, &state);
+            SDL_JoystickGetAxisInitialState(m_joypads[index].handle, axis, &state);
 
             if (axis == 0)
                 values->x = value;
-            else if (axis > 0)
+            else if (static_cast<Sint8>(axis) > 0)
                 values->y = value;
 
             break;
@@ -533,7 +531,7 @@ void clearJoypadInput()
         updateControls();
     } while (getJoypadWithButtonDown() >= 0);
 
-    fire = 0;
+    swos.fire = 0;
 }
 
 // Transfer control of the joypad from this player to the other one.

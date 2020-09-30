@@ -3,11 +3,10 @@
 #include "log.h"
 #include "util.h"
 #include "render.h"
+#include "sprites.h"
 #include "music.h"
 #include "controls.h"
-#include "replays.h"
-#include "main.mnu.h"
-#include "quit.mnu.h"
+#include "mainMenu.h"
 
 #ifdef SWOS_TEST
 # include "unitTest.h"
@@ -34,106 +33,10 @@ static void menuDelay()
     checkMemory();
 #endif
 
-    if (!menuCycleTimer) {
+    if (!swos.menuCycleTimer) {
         timerProc();
         timerProc();    // imitate int 8 ;)
     }
-}
-
-static std::pair<int, int> charSpriteWidth(char c, const CharTable *charTable)
-{
-    assert(c >= ' ');
-
-    if (c == ' ')
-        return { charTable->spaceWidth, 0 };
-
-    auto spriteIndex = charTable->conversionTable[c - ' '];
-    spriteIndex += charTable->spriteIndexOffset;
-    const auto sprite = (*spriteGraphicsPtr)[spriteIndex];
-
-    return { sprite->width, charTable->charSpacing };
-}
-
-int getStringPixelLength(const char *str, bool bigText /* = false */)
-{
-    const auto charTable = bigText ? &bigCharsTable : &smallCharsTable;
-    int len = 0;
-    int spacing = 0;
-
-    for (char c; c = *str; str++) {
-        int charWidth, nextSpacing;
-        std::tie(charWidth, nextSpacing) = charSpriteWidth(c, charTable);
-        len += charWidth + spacing;
-        spacing = nextSpacing;
-    }
-
-    return len;
-}
-
-// Ensures that string fits inside a given pixel limitation.
-// If not, replaces last characters with "..." in a way that the string will fit.
-void elideString(char *str, int maxStrLen, int maxPixels, bool bigText /* = false */)
-{
-    assert(str && maxPixels);
-
-    const auto charTable = bigText ? &bigCharsTable : &smallCharsTable;
-    int dotWidth, spacing;
-    std::tie(dotWidth, spacing) = charSpriteWidth('.', charTable);
-
-    constexpr int kNumDotsInEllipsis = 3;
-    int ellipsisWidth = kNumDotsInEllipsis * dotWidth;
-
-    int len = 0;
-    std::array<int, kNumDotsInEllipsis> prevWidths = {};
-
-    for (int i = 0; str[i]; i++) {
-        auto c = str[i];
-
-        int charWidth, nextSpacing;
-        std::tie(charWidth, nextSpacing) = charSpriteWidth(c, charTable);
-
-        if (len + charWidth + spacing > maxPixels) {
-            int pixelsRemaining = maxPixels - len;
-
-            int j = prevWidths.size() - 1;
-
-            while (true) {
-                if (pixelsRemaining >= ellipsisWidth) {
-                    if (maxStrLen - i >= kNumDotsInEllipsis + 1) {
-                        auto dotsInsertPoint = str + i;
-                        std::fill(dotsInsertPoint, dotsInsertPoint + kNumDotsInEllipsis, '.');
-                        str[i + kNumDotsInEllipsis] = '\0';
-
-                        assert(getStringPixelLength(str, bigText) <= maxPixels);
-                        return;
-                    } else {
-                        if (i > 0) {
-                            i--;
-                        } else {
-                            *str = '\0';
-                            return;
-                        }
-                    }
-                } else {
-                    i--;
-                    if (i < 0) {
-                        *str = '\0';
-                        return;
-                    }
-                    pixelsRemaining += prevWidths[j];
-                    j--;
-                    assert(j >= 0 || pixelsRemaining >= ellipsisWidth);
-                }
-            }
-        }
-
-        len += charWidth + spacing;
-        spacing = nextSpacing;
-        std::move(prevWidths.begin() + 1, prevWidths.end(), prevWidths.begin());
-        prevWidths.back() = charWidth;
-    }
-
-    assert(getStringPixelLength(str, bigText) <= maxPixels);
 }
 
 static void menuProcCycle()
@@ -156,13 +59,15 @@ void SWOS::MainMenu()
         menuProcCycle();
 }
 
-static const char *entryText(const MenuEntry *entry)
+static const char *entryText(int entryOrdinal)
 {
+    auto entry = getMenuEntry(entryOrdinal);
+
     static char buf[16];
     if (entry) {
         switch (entry->type2) {
         case kEntryString: return entry->string();
-        case kEntryMultiLineText: return reinterpret_cast<char *>(entry->u2.multiLineText) + 1;
+        case kEntryMultiLineText: return entry->u2.multiLineText.asCharPtr() + 1;
         case kEntrySprite2:
         case kEntryNumber: return _itoa(entry->u2.number, buf, 10);
         }
@@ -175,13 +80,49 @@ static const char *entryText(const MenuEntry *entry)
 // being functions they can't create local variables on callers stack, and then we'd need explicit stacks.
 #define saveCurrentMenu() \
     auto currentMenu = getCurrentMenu(); \
-    auto savedEntry = currentMenu->selectedEntry; \
-    auto savedMenu = g_currentMenuPtr; \
+    auto savedEntry = currentMenu->selectedEntry ? currentMenu->selectedEntry->ordinal : 0; \
+    auto savedMenu = getCurrentPackedMenu(); \
 
 #define restorePreviousMenu() \
-    A6 = savedMenu; \
-    A5 = savedEntry; \
-    SAFE_INVOKE(RestorePreviousMenu); \
+    restoreMenu(savedMenu, savedEntry); \
+
+void showMenu(const BaseMenu& menu)
+{
+    swos.g_scanCode = 0;
+    swos.controlWord = 0;
+    swos.menuStatus = 0;
+
+    menuMouseOnAboutToShowNewMenu();
+
+    saveCurrentMenu();
+    logInfo("Showing menu %#x [%s], previous menu is %#x", &menu, entryText(savedEntry), savedMenu);
+
+    auto memoryMark = SwosVM::markAllMemory();
+
+    swos.g_exitMenu = 0;
+    activateMenu(&menu);
+
+    while (!swos.g_exitMenu) {
+        menuProcCycle();
+#ifdef SWOS_TEST
+        // ask unit tests how long they want to run menu proc
+        if (SWOS_UnitTest::exitMenuProc())
+            return;
+#endif
+    }
+
+    swos.menuStatus = 1;
+    swos.g_exitMenu = 0;
+    SwosVM::releaseAllMemory(memoryMark);
+
+    restorePreviousMenu();
+    determineReachableEntries();
+
+    menuMouseOnOldMenuRestored();
+
+
+    logInfo("Menu %#x finished, restoring menu %#x", &menu, savedMenu);
+}
 
 // ShowMenu
 //
@@ -193,37 +134,8 @@ static const char *entryText(const MenuEntry *entry)
 //
 void SWOS::ShowMenu()
 {
-    g_scanCode = 0;
-    controlWord = 0;
-    menuStatus = 0;
-
-    menuMouseOnAboutToShowNewMenu();
-
-    auto newMenu = A6.asPtr();
-    saveCurrentMenu();
-    logInfo("Showing menu %#x [%s], previous menu is %#x", A6.data, entryText(savedEntry), savedMenu);
-
-    g_exitMenu = 0;
-    PrepareMenu();
-
-    while (!g_exitMenu) {
-        menuProcCycle();
-#ifdef SWOS_TEST
-        // ask unit tests how long they want to run menu proc
-        if (SWOS_UnitTest::exitMenuProc())
-            return;
-#endif
-    }
-
-    menuStatus = 1;
-    g_exitMenu = 0;
-
-    restorePreviousMenu();
-    determineReachableEntries();
-
-    menuMouseOnOldMenuRestored();
-
-    logInfo("Menu %#x finished, restoring menu %#x", newMenu, g_currentMenuPtr);
+    auto menu = A6.as<BaseMenu *>();
+    showMenu(*menu);
 }
 
 // called by SWOS, when we're starting the game
@@ -239,7 +151,7 @@ void SWOS::ToMainGameLoop()
 __declspec(naked) void SWOS::DoUnchainSpriteInMenus_OnEnter()
 {
 #ifdef SWOS_VM
-    g_ecx.all = 0;
+    SwosVM::ecx = 0;
 #else
     // only cx is loaded, but later whole ecx is tested; make this right
     _asm {
@@ -249,31 +161,48 @@ __declspec(naked) void SWOS::DoUnchainSpriteInMenus_OnEnter()
 #endif
 }
 
-// PrepareMenu
+// ActivateMenu
 //
 // in:
-//     A6 -> menu to prepare (or activate)
+//     A6 -> menu to activate
 // globals:
 //     g_currentMenu - destination for unpacked menu.
 //
-// Unpack given static menu into g_currentMenu. Execute menu initialization function, if present.
+// Unpacks given static menu into g_currentMenu. Executes menu initialization function, if present.
 //
-void SWOS::PrepareMenu()
+void SWOS::ActivateMenu()
 {
-    g_currentMenuPtr = A6;
+    activateMenu(A6.asPtr());
+}
 
-    A0 = A6;
-    A1 = g_currentMenu;
-    SAFE_INVOKE(ConvertMenu);
+// SetCurrentEntry
+//
+//  in:
+//      D0 - number of menu entry
+//
+//  Sets current entry in the current menu.
+//
+void SWOS::SetCurrentEntry()
+{
+    auto currentMenu = getCurrentMenu();
+    assert(D0.asWord() < currentMenu->numEntries);
+
+    auto newSelectedEntry = getMenuEntry(D0.asWord());
+    currentMenu->selectedEntry = newSelectedEntry;;
+}
+
+void activateMenu(const void *menu)
+{
+    upackMenu(menu);
 
     auto currentMenu = getCurrentMenu();
-    auto currentEntry = reinterpret_cast<uint32_t>(currentMenu->selectedEntry);
+    auto currentEntry = currentMenu->selectedEntry.getRaw();
 
     if (currentEntry <= 0xffff)
         currentMenu->selectedEntry = getMenuEntry(currentEntry);
 
     if (currentMenu->onInit) {
-        A6 = g_currentMenu;
+        A6 = swos.g_currentMenu;
         auto proc = currentMenu->onInit;
         SAFE_INVOKE(proc);
     }
@@ -291,47 +220,46 @@ void SWOS::InitMainMenu()
     InitMainMenuStuff();
     // speed up starting up in debug mode
 #ifdef DEBUG
-    menuFade = 0;
-    setPalette(g_workingPalette);
+    swos.menuFade = 0;
+    setPalette(swos.g_workingPalette);
 #else
-    menuFade = 1;
+    swos.menuFade = 1;
 #endif
 }
 
 void SWOS::InitMainMenuStuff()
 {
     ZeroOutStars();
-    twoPlayers = -1;
-    player1ClearFlag = 0;
-    player2ClearFlag = 0;
-    flipOnOff = 1;
-    inFriendlyMenu = 0;
-    isNationalTeam = 0;
+    swos.twoPlayers = -1;
+    swos.player1ClearFlag = 0;
+    swos.player2ClearFlag = 0;
+    swos.flipOnOff = 1;
+    swos.inFriendlyMenu = 0;
+    swos.isNationalTeam = 0;
 
     D0 = kGameTypeNoGame;
     InitCareerVariables();
 
-    menuStatus = 0;
-    menuFade = 0;
-    g_exitMenu = 0;
-    fireResetFlag = 0;
-    dseg_10E848 = 0;
-    dseg_10E846 = 0;
-    dseg_11F41C = -1;
-    dseg_11F41E = 0;
-    coachOrPlayer = 1;
+    swos.menuStatus = 0;
+    swos.menuFade = 0;
+    swos.g_exitMenu = 0;
+    swos.fireResetFlag = 0;
+    swos.dseg_10E848 = 0;
+    swos.dseg_10E846 = 0;
+    swos.dseg_11F41C = -1;
+    swos.coachOrPlayer = 1;
     SetDefaultNameAndSurname();
-    plNationality = kEng;       // English is the default
-    competitionOver = 0;
-    g_numSelectedTeams = 0;
+    swos.plNationality = kEng;       // English is the default
+    swos.competitionOver = 0;
+    swos.g_numSelectedTeams = 0;
     InitHighestScorersTable();
-    teamsLoaded = 0;
-    poolplyrLoaded = 0;
-    importTacticsFilename[0] = 0;
-    chooseTacticsTeamPtr = 0;
+    swos.teamsLoaded = 0;
+    swos.poolplyrLoaded = 0;
+    swos.importTacticsFilename[0] = 0;
+    swos.chooseTacticsTeamPtr = nullptr;
     InitUserTactics();
 
-    prepareMenu(mainMenu);
+    activateMainMenu();
 }
 
 static MenuEntry *findNextEntry(byte nextEntryIndex, int nextEntryDirection)
@@ -368,7 +296,7 @@ static MenuEntry *findNextEntry(byte nextEntryIndex, int nextEntryDirection)
 static void invokeOnSelect(MenuEntry *entry)
 {
     stopTitleSong();
-    menuCycleTimer = 1;     // set cycle timer to prevent InputText choking
+    swos.menuCycleTimer = 1;    // set cycle timer to prevent InputText choking
 
     selectEntry(entry);
 }
@@ -380,13 +308,13 @@ static bool isPlayMatchEntry(const MenuEntry *entry)
 
 static void playMatchSelected(int playerNo)
 {
-    if (reinterpret_cast<TeamFile *>(careerTeam)->teamControls == kComputerTeam)
-        pl1IsntPlayer = 1;
+    if (reinterpret_cast<TeamFile *>(swos.careerTeam)->teamControls == kComputerTeam)
+        swos.pl1IsntPlayer = 1;
 
-    useColorTable = 0;
-    playerNumThatStarted = playerNo;
-    player1ClearFlag = 0;
-    player2ClearFlag = 0;
+    swos.useColorTable = 0;
+    swos.playerNumThatStarted = playerNo;
+    swos.player1ClearFlag = 0;
+    swos.player2ClearFlag = 0;
     SetExitMenuFlag();
 }
 
@@ -438,21 +366,21 @@ static int getControlMask(int entryControlMask)
 {
     int controlMask = 0;
 
-    if (shortFire)
+    if (swos.shortFire)
         controlMask |= 0x20;
-    if (fire)
+    if (swos.fire)
         controlMask |= 0x01;
-    if (left)
+    if (swos.left)
         controlMask |= 0x02;
-    if (right)
+    if (swos.right)
         controlMask |= 0x04;
-    if (up)
+    if (swos.up)
         controlMask |= 0x08;
-    if (down)
+    if (swos.down)
         controlMask |= 0x10;
 
-    if (finalControlsStatus >= 0) {
-        switch (finalControlsStatus >> 1) {
+    if (swos.finalControlsStatus >= 0) {
+        switch (swos.finalControlsStatus >> 1) {
         case 0:
             controlMask |= 0x100;   // up-right
             break;
@@ -472,13 +400,13 @@ static int getControlMask(int entryControlMask)
 
 static void selectEntryWithControlMask(MenuEntry *entry)
 {
-    controlsStatus = 0;
+    swos.controlsStatus = 0;
 
     if (entry->onSelect) {
         int controlMask = getControlMask(entry->controlMask);
 
         if (entry->controlMask == -1 || controlMask) {
-            controlsStatus = controlMask;
+            swos.controlsStatus = controlMask;
             invokeOnSelect(entry);
         }
     }
@@ -487,12 +415,12 @@ static void selectEntryWithControlMask(MenuEntry *entry)
 static MenuEntry *handleSwitchingToNextEntry(const MenuEntry *activeEntry, MenuEntry *nextEntry)
 {
     // if no fire but there's a movement, try moving to the next entry
-    if (!fire && finalControlsStatus >= 0) {
+    if (!swos.fire && swos.finalControlsStatus >= 0) {
         // map direction values (down, right, left, up) to order in MenuEntry structure
         static const size_t nextDirectionOffsets[MenuEntry::kNumDirections] = { 2, 1, 3, 0, };
 
         // this will hold the offset of the next entry to move to (direction)
-        int nextEntryDirection = nextDirectionOffsets[(finalControlsStatus >> 1) & 3];
+        int nextEntryDirection = nextDirectionOffsets[(swos.finalControlsStatus >> 1) & 3];
         auto nextEntryIndex = (&activeEntry->leftEntry)[nextEntryDirection];
 
         nextEntry = findNextEntry(nextEntryIndex, nextEntryDirection);
@@ -506,7 +434,7 @@ static void highlightEntry(Menu *currentMenu, MenuEntry *entry)
     assert(currentMenu);
 
     if (entry) {
-        previousMenuItem = currentMenu->selectedEntry;
+        swos.previousMenuItem = currentMenu->selectedEntry;
         currentMenu->selectedEntry = entry;
         entry->type1 == kEntryNoBackground ? DrawMenu() : DrawMenuItem();
     }
@@ -516,15 +444,15 @@ void SWOS::MenuProc()
 {
     updateMouse();
 
-    g_videoSpeedIndex = 50;     // just in case
+    swos.g_videoSpeedIndex = 50;    // just in case
 
     ReadTimerDelta();
     DrawMenu();
-    menuCycleTimer = 0;         // must come after DrawMenu(), set to 1 to slow down input
+    swos.menuCycleTimer = 0;        // must come after DrawMenu(), set to 1 to slow down input
 
-    if (menuFade) {
+    if (swos.menuFade) {
         FadeIn();
-        menuFade = 0;
+        swos.menuFade = 0;
     }
 
     CheckControls();
@@ -536,19 +464,19 @@ void SWOS::MenuProc()
 
     // we deviate a bit from SWOS behavior here, as it seems like a bug to me: only the field in
     // the current menu is assigned but not the activeEntry variable, leading to a potential nullptr access
-    if (!activeEntry && finalControlsStatus >= 0 && previousMenuItem)
-        activeEntry = currentMenu->selectedEntry = previousMenuItem;
+    if (!activeEntry && swos.finalControlsStatus >= 0 && swos.previousMenuItem)
+        activeEntry = currentMenu->selectedEntry = swos.previousMenuItem;
 
     if (activeEntry) {
         if (checkForPlayMatchEntry(activeEntry))
             return;
         selectEntryWithControlMask(activeEntry);
         nextEntry = handleSwitchingToNextEntry(activeEntry, nextEntry);
-    } else if (finalControlsStatus < 0) {
+    } else if (swos.finalControlsStatus < 0) {
         return;
-    } else if (previousMenuItem) {
-        currentMenu->selectedEntry = previousMenuItem;
-        nextEntry = previousMenuItem;
+    } else if (swos.previousMenuItem) {
+        currentMenu->selectedEntry = swos.previousMenuItem;
+        nextEntry = swos.previousMenuItem;
     }
 
     highlightEntry(currentMenu, nextEntry);
@@ -556,14 +484,14 @@ void SWOS::MenuProc()
 
 void SWOS::ExitPlayMatch()
 {
-    g_exitGameFlag = 1;
-    player1ClearFlag = 0;
-    player2ClearFlag = 0;
-    useColorTable = 0;
-    isCareer = 0;
+    swos.g_exitGameFlag = 1;
+    swos.player1ClearFlag = 0;
+    swos.player2ClearFlag = 0;
+    swos.useColorTable = 0;
+    swos.isCareer = 0;
 
-    if (playMatchTeam1Ptr == careerTeam || playMatchTeam2Ptr == careerTeam)
-        isCareer = 1;
+    if (swos.playMatchTeam1Ptr == swos.careerTeam || swos.playMatchTeam2Ptr == swos.careerTeam)
+        swos.isCareer = 1;
 
     SetExitMenuFlag();
 
@@ -572,7 +500,7 @@ void SWOS::ExitPlayMatch()
 
 void SWOS::ExitEuropeanChampionshipMenu()
 {
-    prepareMenu(mainMenu);
+    activateMainMenu();
 }
 
 // in:
@@ -612,9 +540,9 @@ void SWOS::Int2Ascii()
 
 void SWOS::AbortTextInputOnEscapeAndRightMouseClick()
 {
-    if (lastKey == kKeyEscape || SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON_RMASK) {
-        convertedKey = kKeyEscape;
-        g_inputingText = 0;
+    if (swos.lastKey == kKeyEscape || SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON_RMASK) {
+        swos.convertedKey = kKeyEscape;
+        swos.g_inputingText = 0;
     }
 }
 
@@ -625,7 +553,7 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
     int num = static_cast<int16_t>(entry->u2.number);
     assert(num >= minNum && num <= maxNum);
 
-    g_inputingText = -1;
+    swos.g_inputingText = -1;
 
     char buf[32];
     _itoa_s(num, buf, 10);
@@ -649,26 +577,26 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
         SWOS::GetKey();
 
         while (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON_RMASK) {
-            lastKey = kKeyEscape;
+            swos.lastKey = kKeyEscape;
             updateControls();
             SDL_Delay(15);
         }
 
-        switch (lastKey) {
+        switch (swos.lastKey) {
         case kKeyEnter:
             memmove(cursorPtr, cursorPtr + 1, end - cursorPtr);
             entry->type2 = kEntryNumber;
             entry->u2.number = atoi(buf);
-            g_inputingText = 0;
-            controlWord = 0;
+            swos.g_inputingText = 0;
+            swos.controlWord = 0;
             return true;
 
         case kKeyEscape:
             A5 = entry;
             entry->type2 = kEntryNumber;
             entry->u2.number = num;
-            g_inputingText = 0;   // original SWOS leaves it set, wonder if it's significant...
-            controlWord = 0;
+            swos.g_inputingText = 0;   // original SWOS leaves it set, wonder if it's significant...
+            swos.controlWord = 0;
             return false;
 
         case kKeyLShift:
@@ -721,16 +649,16 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
             if (cursorPtr != buf || minNum >= 0)
                 break;
 
-            convertedKey = '-';
+            swos.convertedKey = '-';
             // assume fall-through
 
         case kKey0: case kKey1: case kKey2: case kKey3: case kKey4:
         case kKey5: case kKey6: case kKey7: case kKey8: case kKey9:
             if (end - buf - 1 < maxDigits) {
-                *cursorPtr++ = convertedKey;
+                *cursorPtr++ = swos.convertedKey;
                 auto newValue = atoi(buf);
 
-                if (newValue >= minNum && newValue <= maxNum && (newValue != 0 || end == buf + 1 || lastKey != kKey0)) {
+                if (newValue >= minNum && newValue <= maxNum && (newValue != 0 || end == buf + 1 || swos.lastKey != kKey0)) {
                     memmove(cursorPtr + 1, cursorPtr, end++ - cursorPtr + 1);
                     *cursorPtr = kCursorChar;
                 } else {
@@ -740,89 +668,4 @@ bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
             break;
         }
     }
-}
-
-//
-// main menu routines
-//
-
-static void drawExitIcon()
-{
-    static const unsigned char kExitIconData[] = {
-        0x1e, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
-        0x00, 0x00, 0x00, 0x02, 0x02, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x0d, 0x0d, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02,
-        0x02, 0x01, 0x09, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x0d, 0x09, 0x09, 0x09, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x02, 0x09, 0x03,
-        0x03, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x06, 0x06, 0x0c, 0x0c, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x09, 0x03, 0x03, 0x03, 0x03,
-        0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x06,
-        0x05, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x02, 0x00,
-        0x00, 0x00, 0x00, 0x0f, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x05, 0x05, 0x02,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x02, 0x00, 0x00, 0x00,
-        0x0f, 0x06, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x03, 0x02, 0x03, 0x03, 0x02, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x02, 0x00, 0x00, 0x02, 0x0f, 0x06,
-        0x06, 0x05, 0x05, 0x05, 0x04, 0x04, 0x00, 0x00, 0x00, 0x02, 0x03, 0x02, 0x03, 0x02, 0x00, 0x00,
-        0x00, 0x00, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x02, 0x00, 0x00, 0x0f, 0x0f, 0x0f, 0x06, 0x06,
-        0x05, 0x05, 0x05, 0x04, 0x08, 0x00, 0x00, 0x03, 0x03, 0x03, 0x03, 0x06, 0x05, 0x00, 0x00, 0x00,
-        0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x02, 0x00, 0x00, 0x00, 0x0f, 0x06, 0x08, 0x08, 0x08, 0x08,
-        0x08, 0x08, 0x08, 0x00, 0x00, 0x03, 0x03, 0x03, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03,
-        0x03, 0x03, 0x03, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x0f, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x05, 0x06, 0x06, 0x06, 0x0f, 0x03, 0x00, 0x00, 0x00, 0x02, 0x03, 0x03, 0x03,
-        0x09, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x06, 0x04, 0x05, 0x04, 0x0f, 0x03, 0x00, 0x00, 0x00, 0x02, 0x03, 0x03, 0x09, 0x02, 0x02,
-        0x01, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f,
-        0x0f, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x02, 0x09, 0x01, 0x02, 0x02, 0x01, 0x07, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x03, 0x03, 0x08,
-        0x00, 0x00, 0x08, 0x08, 0x08, 0x00, 0x02, 0x02, 0x02, 0x01, 0x07, 0x09, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x08, 0x08, 0x08,
-        0x08, 0x08, 0x08, 0x00, 0x09, 0x01, 0x07, 0x07, 0x09, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
-        0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08,
-        0x08, 0x08
-    };
-
-    int x = D1.asInt() + 1;
-    int y = D2.asInt();
-    int width = kExitIconData[0];
-    int height = kExitIconData[1];
-    auto data = &kExitIconData[2];
-
-    auto dest = linAdr384k + y * kMenuScreenWidth + x;
-    auto pitch = kMenuScreenWidth - width;
-
-    while (height--) {
-        for (int i = 0; i < width; i++, dest++, data++)
-            if (*data)
-                *dest = *data;
-
-        dest += pitch;
-    }
-}
-
-static void showQuitMenu()
-{
-    showMenu(quitMenu);
-    CommonMenuExit();
-}
-
-static void quitMenuOnInit()
-{
-    FadeOutToBlack();
-    DrawMenu();     // redraw menu so it's ready for the fade-in
-    FadeIn();
-    skipFade = -1;
-}
-
-static void quitGame()
-{
-    SAFE_INVOKE(FadeOutToBlack);
-    std::exit(EXIT_SUCCESS);
-}
-
-static void returnToGame()
-{
-    SAFE_INVOKE(FadeOutToBlack);
-    SetExitMenuFlag();
-    menuFade = 1;
 }

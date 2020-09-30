@@ -18,7 +18,7 @@ void MasmOutput::setOutputPrefix(const std::string& prefix)
     ensureNewLineEnd(m_outputPrefix);
 }
 
-void MasmOutput::setCImportSymbols(const StringList *syms)
+void MasmOutput::setCImportSymbols(const StringSet *syms)
 {
     m_cImportSymbols = syms;
 }
@@ -137,7 +137,7 @@ bool MasmOutput::outputExterns()
         default:
             if (!m_error.empty())
                 m_error += '\n';
-            m_error += std::string("undefined reference found: ") + name.string();
+            m_error += "undefined reference found: " + name.string();
             result = false;
         }
 
@@ -160,23 +160,8 @@ void MasmOutput::outputPublics()
 
 void MasmOutput::outputStructs()
 {
-    for (auto& struc : m_structs) {
-        if (struc.resolved())
-            continue;
-
-        for (const auto& field : struc) {
-            if (!field.elementSize()) {
-                auto structName = field.type();
-                auto nestedStruct = m_structs.findStruct(structName);
-
-                assert(nestedStruct);
-                if (nestedStruct && !nestedStruct->resolved())
-                    outputStruct(*nestedStruct);
-            }
-        }
-
+    for (auto& struc : m_structs)
         outputStruct(struc);
-    }
 }
 
 void MasmOutput::outputStruct(Struct& struc)
@@ -210,7 +195,6 @@ void MasmOutput::outputStruct(Struct& struc)
     }
 
     out(struc.name(), " ends", Util::kNewLine);
-    struc.resolve();
 }
 
 void MasmOutput::outputCExternDefs()
@@ -220,12 +204,13 @@ void MasmOutput::outputCExternDefs()
         out(regName, " EQU _", regName, Util::kNewLine);
     }
 
-    for (auto importsExports : { m_cImportSymbols, m_cExportSymbols }) {
-        if (importsExports) {
-            for (const auto impExp : *importsExports)
-                out(impExp, " EQU _", impExp, Util::kNewLine);
-        }
-    }
+    if (m_cImportSymbols)
+        for (const auto imp : *m_cImportSymbols)
+            out(imp.text(), " EQU _", imp.text(), Util::kNewLine);
+
+    if (m_cExportSymbols)
+        for (const auto exp : *m_cExportSymbols)
+            out(exp, " EQU _", exp, Util::kNewLine);
 
     out(Util::kNewLine);
 }
@@ -399,7 +384,7 @@ int MasmOutput::outputDataItem(const DataItem *item)
     if (!item->name().empty())
         column = out(item->name(), ' ');
 
-    auto element = item->begin();
+    auto element = item->initialElement();
     assert(element);
 
     if (!item->structName().empty()) {
@@ -417,11 +402,6 @@ int MasmOutput::outputDataItem(const DataItem *item)
     } else {
         auto sizeSpecifier = dataSizeSpecifier(item->size());
         column += out(sizeSpecifier, ' ');
-        if (!item->name().empty()) {
-            auto replacement = m_symFileParser.symbolTable().symbolReplacement(item->name());
-            if (!replacement.empty())
-                return out(replacement);
-        }
     }
 
     bool isString = item->numElements() > 0 && element->type() == DataItem::kString;

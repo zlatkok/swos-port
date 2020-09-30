@@ -94,8 +94,8 @@ For each of 16 pixels that are scrolled (a whole pattern), one or two patterns
 are copied in the spots around the virtual screen. So when the 16-pixel pattern
 limit is crossed, next row or column of patterns is already in its spot and
 scrolling can continue (18 or 24 patterns). It is probably done like this in
-order to divide job more equally for each frame and avoid delaying update if
-scroll routine has too much to do.
+order to divide the job more equally for each frame and avoid delaying update
+if scroll routine has too much to do.
 Copy patterns function is called twice per pixel scrolled, odd indices are used
 for first call, even for second. -1 means don't copy anything.
 24 x 16 = 384 (24 patterns for virtual screen length)
@@ -123,3 +123,67 @@ are achieved by palette editing. For each type of pitch there is a 27 bytes
 working palette: (0, 1, 2, 21, 22, 23, 27, 28, 29, 234, 235, 236, 237, 238,
 239, 240, 241, 242, 243, 244, 245, 318, 319, 320, 321, 322, 323). Those are the
 colors: 0, 7, 9, 78, 79, 80, 81, 106, 107.
+
+
+=== Various pitch coordinates
+
+Coordinates are given in pixels relative to upper left pixel of the pitch. SWOS
+uses y coordinates increased by 16, since there is an additional invisible row
+of patterns on top. Pitch dimensions are 672 x 848 pixels.
+
+[coordinates given below are by 16 less compared to what SWOS uses in the code]
+
+Ball y coordinate gets compared with 216, 682, 449 when determining if the
+match will end.
+
+Penalty area by x: [193..478]
+Top penalty area lower bound: 200
+Lower penalty area top bound: 666
+Pitch boundaries by y: [113..753] (SWOS: 129..769)
+Ball bouncing boundaries by x: [53..618]
+              -||-       by y: [84..783]
+Top goal line: 113
+Bottom goal line: 753
+Bottom goal bottom net line: 762
+Top goal bar: 96
+Left post: 302
+Right post: 372
+Left touchline: 81
+Right touchline: 590
+
+Camera y when top team starts off from the center: 336
+      -||-    bottom             -||-            : 309
+
+Pitch: (0, 16) - (671, 863)
+Goal coordinates by x: 302..366
+Top goal bar: 112
+Goal attempt by x: 240..430
+
+Bottom penalty spot: 336, 711
+
+Ball center location: (336, 449)
+
+Corner kick locations:
+top left:     ( 86, 134)
+top right:    (585, 134)
+bottom left:  ( 86, 764)
+bottom right: (585, 764)
+
+Goal kicks:
+top left:     (276, 154)
+top right:    (396, 154)
+bottom left:  (276, 744)
+bottom right: (396, 744)
+
+"Near miss" limits:
+x: 290..281
+z:   0..25
+Also the ball speed has to be at least 768
+
+Free kick bottom area limits:
+y: 551..666
+Free kick top area limits:
+y: 200..31
+
+AI x values for turning the players:
+0..299, 300..371, 372+

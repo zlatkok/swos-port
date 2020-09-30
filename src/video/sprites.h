@@ -21,3 +21,5 @@ void drawTeamNameSprites(int spriteIndex, int x, int y);
 void drawSprite(int spriteIndex, int x, int y, bool saveSpritePixelsFlag = true);
 void drawSpriteUnclipped(SpriteClipper& c, bool saveSpritePixelsFlag = true);
 void copySprite(int sourceSpriteIndex, int destSpriteIndex, int xOffset, int yOffset);
+int getStringPixelLength(const char *str, bool bigText = false);
+void elideString(char *str, int maxStrLen, int maxPixels, bool bigText = false);

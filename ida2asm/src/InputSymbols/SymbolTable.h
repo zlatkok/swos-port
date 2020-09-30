@@ -7,6 +7,7 @@ class SymbolTable {
 public:
     SymbolTable();
     SymbolTable(const SymbolTable& other);
+    SymbolTable& operator=(const SymbolTable&) = delete;
 
     void addSymbolAction(const char *symStart, const char *symEnd, SymbolAction action,
         const char *auxSymStart = nullptr, const char *auxSymEnd = nullptr);

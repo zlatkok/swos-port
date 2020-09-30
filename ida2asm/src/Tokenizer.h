@@ -28,7 +28,7 @@ struct Token
         kEof,
     };
     // keep as a full 32-bit int value so we can use it for initialization in tests
-    enum InstructionType {
+    enum InstructionType : int32_t {
         kGeneralInstruction,
         kBranchInstruction,
         kPrefixInstruction,
@@ -94,6 +94,9 @@ struct Token
         return isText() && textLength > 2 && text()[0] == '@' && text()[1] == '@';
     }
     inline bool isNumber() const {
+        return isNumber(type);
+    }
+    inline static bool isNumber(const Token::Type type) {
         return type == T_NUM || type == T_HEX || type == T_BIN;
     }
     inline bool isComment() const {
@@ -177,6 +180,7 @@ public:
     static constexpr char kBreakMarker[] = { ';', ' ', '$', 'n', 'o', '-', 'b', 'r', 'e', 'a', 'k' };
 
     TokenRange tokenize(const char *data, long size, long hardSize = -1);
+    static void tokenize(const char *data, size_t size, char *tokensArea);
     std::tuple<std::string, bool, bool> determineBlockLimits(const TokenRange& limits);
     CToken *begin() const;
     CToken *end() const;

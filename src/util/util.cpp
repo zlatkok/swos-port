@@ -128,6 +128,7 @@ int getRandomInRange(int min, int max)
 
 __declspec(naked) int setZeroFlagAndD0FromAl()
 {
+#ifndef SWOS_VM
     // SWOS expects 0 for success, 1 for error
     __asm {
         and  eax, 0xff
@@ -144,11 +145,14 @@ done:
         mov  D0, eax
         retn
     }
+#else
+    return 0;
+#endif
 }
 
 bool isMatchRunning()
 {
-    return screenWidth == kGameScreenWidth;
+    return swos.screenWidth == kGameScreenWidth;
 }
 
 void beep()

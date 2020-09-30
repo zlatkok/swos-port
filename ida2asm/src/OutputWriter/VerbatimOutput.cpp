@@ -213,7 +213,7 @@ int VerbatimOutput::outputDataItem(const DataItem *item)
         column += out(sizeSpecifier, ' ');
     }
 
-    auto element = item->begin();
+    auto element = item->initialElement();
     bool isString = item->numElements() > 0 && element->type() == DataItem::kString;
 
     for (size_t i = 0; i < item->numElements(); i++, element = element->next()) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma pack(push, 1)
 class PascalString
 {
 public:
@@ -28,7 +29,11 @@ public:
         dest[m_length] = '\0';
     }
 
-    std::string string() const {
+    std::string stdString() const {
+        return { data(), m_length };
+    }
+
+    String string() const {
         return { data(), m_length };
     }
 
@@ -39,3 +44,4 @@ public:
 private:
     uint8_t m_length;
 };
+#pragma pack(pop)

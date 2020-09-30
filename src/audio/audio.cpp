@@ -62,7 +62,7 @@ void ensureMenuAudioFrequency()
 
 void initAudio()
 {
-    if (!g_soundOff)
+    if (!swos.g_soundOff)
         resetMenuAudio();
 }
 
@@ -77,7 +77,7 @@ static void channelFinished(int channel);
 // Called when switching from menus to the game.
 void initGameAudio()
 {
-    if (g_soundOff)
+    if (swos.g_soundOff)
         return;
 
     fadeOutMusic();
@@ -145,10 +145,10 @@ __declspec(naked) void SWOS::PlaySoundSample()
 //
 
 static const std::array<Option<int16_t>, 4> kAudioOptions = {
-    "soundOff", &g_soundOff, 0, 1, 0,
-    "musicOff", &g_musicOff, 0, 1, 0,
-    "commentary", &g_commentary, 0, 1, 1,
-    "crowdChants", &g_crowdChantsOn, 0, 1, 1,
+    "soundOff", &swos.g_soundOff, 0, 1, 0,
+    "musicOff", &swos.g_musicOff, 0, 1, 0,
+    "commentary", &swos.g_commentary, 0, 1, 1,
+    "crowdChants", &swos.g_crowdChantsOn, 0, 1, 1,
 };
 
 const char kAudioSection[] = "audio";
@@ -171,7 +171,7 @@ static void setMasterVolume(int volume, bool apply = true)
 {
     setVolume(m_volume, volume, "master");
 
-    if (apply && !g_soundOff)
+    if (apply && !swos.g_soundOff)
         Mix_Volume(-1, m_volume);
 }
 
@@ -184,7 +184,7 @@ static void setMusicVolume(int volume, bool apply = true)
 {
     setVolume(m_musicVolume, volume, "music");
 
-    if (apply && !g_soundOff && !g_musicOff)
+    if (apply && !swos.g_soundOff && !swos.g_musicOff)
         Mix_VolumeMusic(m_musicVolume);
 }
 
@@ -192,7 +192,7 @@ void loadAudioOptions(const CSimpleIniA& ini)
 {
     loadOptions(ini, kAudioOptions, kAudioSection);
 
-    g_menuMusic = !g_musicOff;
+    swos.g_menuMusic = !swos.g_musicOff;
 
     auto volume = ini.GetLongValue(kAudioSection, kMasterVolume, 100);
     setMasterVolume(volume, false);
@@ -203,7 +203,7 @@ void loadAudioOptions(const CSimpleIniA& ini)
 
 void saveAudioOptions(CSimpleIni& ini)
 {
-    g_musicOff = !g_menuMusic;
+    swos.g_musicOff = !swos.g_menuMusic;
 
     saveOptions(ini, kAudioOptions, kAudioSection);
 
@@ -222,14 +222,14 @@ void showAudioOptionsMenu()
 
 static void toggleMasterSound()
 {
-    g_soundOff = !g_soundOff;
+    swos.g_soundOff = !swos.g_soundOff;
 
-    if (g_soundOff) {
+    if (swos.g_soundOff) {
         finishMusic();
         finishAudio();
     } else {
         initAudio();
-        if (g_menuMusic)
+        if (swos.g_menuMusic)
             restartMusic();
     }
 
@@ -238,10 +238,10 @@ static void toggleMasterSound()
 
 static void toggleMenuMusic()
 {
-    g_menuMusic = !g_menuMusic;
-    g_musicOff = !g_menuMusic;
+    swos.g_menuMusic = !swos.g_menuMusic;
+    swos.g_musicOff = !swos.g_menuMusic;
 
-    if (g_menuMusic)
+    if (swos.g_menuMusic)
         restartMusic();
     else
         finishMusic();
@@ -295,7 +295,7 @@ static void musicVolumeBeforeDraw()
 
 static void toggleCrowdChants()
 {
-    if (!g_crowdChantsOn)
+    if (!swos.g_crowdChantsOn)
         SWOS::TurnCrowdChantsOn();
     else
         SWOS::TurnCrowdChantsOff();

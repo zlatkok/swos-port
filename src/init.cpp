@@ -10,85 +10,88 @@
 #ifdef NDEBUG
 constexpr int kSentinelSize = 0;
 #else
-constexpr char kSentinelMagic[] = "nick.slaughter@mariah.key.com";
+constexpr char kSentinelMagic[] = "nick.slaughter@key.mariah.com";
 constexpr int kSentinelSize = sizeof(kSentinelMagic);
 #endif
 
-// this buffer will masquerade as DOS memory ;)
-// decreased by the size of pitch patterns buffer
-static char dosMemBuffer[342'402 + kSentinelSize];
-
+// sizes of all SWOS buffers in DOS and extended memory
+constexpr int kDosMemBufferSize = 342'402 + kSentinelSize;
 // allocate buffer big enough to hold every single pitch pattern (if each would be unique)
-static char pitchPatternsBuffer[(42 * 53 + 42) * 256 + kSentinelSize];
-
-// extended memory buffers
-static char linBuf384k[393'216 + kSentinelSize];
+constexpr int kPitchPatternsBufferSize = (42 * 53 + 42) * 256 + kSentinelSize;
+constexpr int kExtendedMemoryBufferSize = 393'216 + kSentinelSize;
+constexpr int kTotalExtraMemorySize = kDosMemBufferSize + kPitchPatternsBufferSize + kExtendedMemoryBufferSize;
 
 #ifdef DEBUG
-template <size_t N>
-void verifyBlock(char (&array)[N])
+void verifyBlock(const char *array, size_t size)
 {
-    assert(!memcmp(array + sizeof(array) - kSentinelSize, kSentinelMagic, kSentinelSize));
+    assert(!memcmp(array + size - kSentinelSize, kSentinelMagic, kSentinelSize));
 }
 
 void checkMemory()
 {
-    verifyBlock(dosMemBuffer);
-    verifyBlock(pitchPatternsBuffer);
-    verifyBlock(linBuf384k);
+    auto extraMemStart = SwosVM::getExtraMemoryArea();
+
+    assert(swos.dosMemLinAdr == extraMemStart);
+    verifyBlock(extraMemStart, kDosMemBufferSize);
+
+    assert(swos.g_pitchPatterns == extraMemStart + kDosMemBufferSize);
+    verifyBlock(extraMemStart + kDosMemBufferSize, kPitchPatternsBufferSize);
+
+    assert(swos.linAdr384k == extraMemStart + kDosMemBufferSize + kPitchPatternsBufferSize);
+    verifyBlock(extraMemStart + kDosMemBufferSize + kPitchPatternsBufferSize, kExtendedMemoryBufferSize);
 }
 #endif
 
 static void printIntroString()
 {
-    auto str = aSensibleWorldOfSoccerV2_0;
+    auto str = swos.aSensibleWorldOfSoccerV2_0;
     while (*str != '\r')
         std::cout << *str++;
 
     std::cout << "[Win32 Port]\n";
 }
 
-static void setupDosBaseMemory()
+static void setupExtraMemory()
 {
-    g_pitchPatterns = pitchPatternsBuffer;
+    // make sure we have enough but don't waste too much either ;)
+    assert(SwosVM::kExtendedMemSize >= kTotalExtraMemorySize && kTotalExtraMemorySize + 10'000 > SwosVM::kExtendedMemSize);
 
-    dosMemLinAdr = dosMemBuffer;
-    dosMemOfs30000h = dosMemBuffer + 0x30000;
-    dosMemOfs4fc00h = dosMemBuffer + 0x3d400;   // names don't match offsets anymore, but oh well ;)
-    dosMemOfs60c00h = dosMemBuffer + 0x4e400;
+    auto extraMemStart = SwosVM::getExtraMemoryArea();
+    assert(reinterpret_cast<uintptr_t>(extraMemStart) % sizeof(void *) == 0);
+
+    swos.dosMemLinAdr = extraMemStart;
+    swos.dosMemOfs30000h = extraMemStart + 0x30000;
+    swos.dosMemOfs4fc00h = extraMemStart + 0x3d400; // names don't match offsets anymore, but are left for historical preservation ;)
+    swos.dosMemOfs60c00h = extraMemStart + 0x4e400;
+
+    swos.g_pitchPatterns = extraMemStart + kDosMemBufferSize;
+
+    swos.linAdr384k = extraMemStart + kDosMemBufferSize + kPitchPatternsBufferSize;
+
+    swos.g_memAllOk = 1;
+    swos.g_gotExtraMemoryForSamples = 1;
 
 #ifdef DEBUG
-    memcpy(dosMemBuffer + sizeof(dosMemBuffer) - kSentinelSize, kSentinelMagic, kSentinelSize);
-    memcpy(pitchPatternsBuffer + sizeof(pitchPatternsBuffer) - kSentinelSize, kSentinelMagic, kSentinelSize);
-#endif
-}
-
-static void setupExtendedMemory()
-{
-    linAdr384k = linBuf384k;
-
-    g_memAllOk = 1;
-    g_gotExtraMemoryForSamples = 1;
-
-#ifdef DEBUG
-    memcpy(linBuf384k + sizeof(linBuf384k) - kSentinelSize, kSentinelMagic, kSentinelSize);
+    SwosVM::initSafeMemoryAreas();
+    memcpy(swos.dosMemLinAdr + kDosMemBufferSize - kSentinelSize, kSentinelMagic, kSentinelSize);
+    memcpy(swos.g_pitchPatterns + kPitchPatternsBufferSize - kSentinelSize, kSentinelMagic, kSentinelSize);
+    memcpy(swos.linAdr384k + kExtendedMemoryBufferSize - kSentinelSize, kSentinelMagic, kSentinelSize);
 #endif
 }
 
 static void init()
 {
-    skipIntro = 0;
+    swos.skipIntro = 0;
     printIntroString();
 
-    setupDatBuffer = 0;     // disable this permanently
-    EGA_graphics = 0;
-    g_videoSpeedIndex = 100;
+    swos.setupDatBuffer = 0;    // disable this permanently
+    swos.EGA_graphics = 0;
+    swos.g_videoSpeedIndex = 100;
 
-    g_inputControls = 6;    // set this up for CheckControls to avoid touching g_*ScanCode variables
+    swos.g_inputControls = 6;   // set this up for CheckControls to avoid touching g_*ScanCode variables
 
     logInfo("Setting up base and extended memory pointers");
-    setupDosBaseMemory();
-    setupExtendedMemory();
+    setupExtraMemory();
 
     initAudio();
 
@@ -101,13 +104,13 @@ static void init()
 //
 // returns: true if ended normally, false if user aborted
 //
-static bool showImageReel(const char **imageList)
+static bool showImageReel(SwosDataPointer<const char> *imageList)
 {
     assert(imageList);
 
     constexpr int k256ImageSize = kVgaScreenSize + kVgaPaletteSize;
 
-    auto imageBuffer = linAdr384k;
+    auto imageBuffer = swos.linAdr384k;
     auto currentImageBuffer = imageBuffer + kVgaScreenSize;
 
     // 3 image buffer will be used, images 0 and 2 being empty
@@ -130,7 +133,7 @@ static bool showImageReel(const char **imageList)
 
             if (anyInputActive()) {
                 // copy image at the proper position to linAdr384k so it can fade-out properly (when menu comes in)
-                memmove(linAdr384k, imageBuffer + lineOffset, kVgaScreenSize);
+                memmove(swos.linAdr384k, imageBuffer + lineOffset, kVgaScreenSize);
                 return false;
             }
         }
@@ -157,53 +160,53 @@ static void initRandomSeed()
     seed = lo | (seed & 0xff00);
 
     assert(seed <= 0xffff);
-    randomSeed = seed;
+    swos.randomSeed = seed;
 }
 
 static bool initIntroAnimation()
 {
     resetGameAudio();
 
-    soccerBinPtr = dosMemLinAdr;
-    introCurrentSoundBuffer = dosMemLinAdr + kVirtualScreenSize;
-    soccerBinSoundChunkBuffer = introCurrentSoundBuffer + 47628;
-    introCurrentSoundBufferChunk = soccerBinSoundChunkBuffer;
-    soccerBinSoundDataPtr = soccerBinSoundChunkBuffer + 47628;
-    introScreenBuffer = linAdr384k + kVirtualScreenSize;
-    introAborted = 0;
+    swos.soccerBinPtr = swos.dosMemLinAdr;
+    swos.introCurrentSoundBuffer = swos.dosMemLinAdr + kVirtualScreenSize;
+    swos.soccerBinSoundChunkBuffer = swos.introCurrentSoundBuffer + 47628;
+    swos.introCurrentSoundBufferChunk = swos.soccerBinSoundChunkBuffer;
+    swos.soccerBinSoundDataPtr = swos.soccerBinSoundChunkBuffer + 47628;
+    swos.introScreenBuffer = swos.linAdr384k + kVirtualScreenSize;
+    swos.introAborted = 0;
 
     do {
-        if (soccerBinHandle = openFile(aArcSoccer_bin)) {
-            introFrameDataOffset = 0;
-            introFrameDataChunkRemainder = 0;
-            introFirstChunkLoaded = 0;
+        if (swos.soccerBinHandle = openFile(swos.aArcSoccer_bin)) {
+            swos.introFrameDataOffset = 0;
+            swos.introFrameDataChunkRemainder = 0;
+            swos.introFirstChunkLoaded = 0;
 
-            if (fread(soccerBinPtr, 20, 1, soccerBinHandle) != 1)
+            if (fread(swos.soccerBinPtr, 20, 1, swos.soccerBinHandle) != 1)
                 break;
 
-            introNumFrames = *reinterpret_cast<dword *>(soccerBinPtr + 12);
-            auto size = *reinterpret_cast<word *>(soccerBinPtr + 16);
+            swos.introNumFrames = *reinterpret_cast<dword *>(swos.soccerBinPtr + 12);
+            auto size = *reinterpret_cast<word *>(swos.soccerBinPtr + 16);
 
-            if (fread(soccerBinPtr, size, 1, soccerBinHandle) != 1)
+            if (fread(swos.soccerBinPtr, size, 1, swos.soccerBinHandle) != 1)
                 break;
 
-            memcpy(introCurrentSoundBuffer, soccerBinPtr, 47628);
+            memcpy(swos.introCurrentSoundBuffer, swos.soccerBinPtr, 47628);
 
-            size = *reinterpret_cast<word *>(soccerBinPtr + 47628);
-            if (fread(soccerBinPtr, size, 1, soccerBinHandle) != 1)
+            size = *reinterpret_cast<word *>(swos.soccerBinPtr + 47628);
+            if (fread(swos.soccerBinPtr, size, 1, swos.soccerBinHandle) != 1)
                 break;
 
-            memcpy(soccerBinSoundChunkBuffer, soccerBinPtr, 47628);
+            memcpy(swos.soccerBinSoundChunkBuffer, swos.soccerBinPtr, 47628);
 
-            size = *reinterpret_cast<word *>(soccerBinPtr + 47628);
-            if (fread(soccerBinPtr, size, 1, soccerBinHandle) != 1)
+            size = *reinterpret_cast<word *>(swos.soccerBinPtr + 47628);
+            if (fread(swos.soccerBinPtr, size, 1, swos.soccerBinHandle) != 1)
                 break;
 
-            memcpy(soccerBinSoundDataPtr + 47628, soccerBinPtr, 47628);
-            memcpy(soccerBinSoundDataPtr, soccerBinSoundChunkBuffer, 47628);
+            memcpy(swos.soccerBinSoundDataPtr + 47628, swos.soccerBinPtr, 47628);
+            memcpy(swos.soccerBinSoundDataPtr, swos.soccerBinSoundChunkBuffer, 47628);
 
-            introSoundBufferIndex = 95256;
-            introCurrentFrameDataPtr = soccerBinPtr + 47628;
+            swos.introSoundBufferIndex = 95256;
+            swos.introCurrentFrameDataPtr = swos.soccerBinPtr + 47628;
         }
 
         clearScreen();
@@ -217,8 +220,8 @@ static bool initIntroAnimation()
 
 void SWOS::CloseSoccerBin()
 {
-    if (soccerBinHandle)
-        fclose(soccerBinHandle);
+    if (swos.soccerBinHandle)
+        fclose(swos.soccerBinHandle);
 }
 
 void SWOS::IntroEnsureFrameDataLoaded()
@@ -228,37 +231,37 @@ void SWOS::IntroEnsureFrameDataLoaded()
     int dest = 0;
     int numChunks = 0;
     int subSize = 0;
-    auto wasFirstChunkLoaded = introFirstChunkLoaded;
+    auto wasFirstChunkLoaded = swos.introFirstChunkLoaded;
 
-    if (!introFirstChunkLoaded) {
-        introFirstChunkLoaded = 1;
+    if (!swos.introFirstChunkLoaded) {
+        swos.introFirstChunkLoaded = 1;
         numChunks = 1;
     }
 
-    if (wasFirstChunkLoaded || introFrameDataSize > kChunkSize) {
-        introFrameDataChunkRemainder = introFrameDataOffset % kChunkSize;
-        auto bytesUntilNextChunk = kChunkSize - introFrameDataChunkRemainder;
+    if (wasFirstChunkLoaded || swos.introFrameDataSize > static_cast<size_t>(kChunkSize)) {
+        swos.introFrameDataChunkRemainder = swos.introFrameDataOffset % kChunkSize;
+        auto bytesUntilNextChunk = kChunkSize - swos.introFrameDataChunkRemainder;
 
-        if (introFrameDataChunkRemainder + introFrameDataSize < kChunkSize)
+        if (swos.introFrameDataChunkRemainder + swos.introFrameDataSize < kChunkSize)
             return;
 
-        if (introFrameDataChunkRemainder) {
-            dest = introFrameDataChunkRemainder;
-            memcpy(soccerBinPtr + dest, soccerBinPtr + introFrameDataOffset, bytesUntilNextChunk);
+        if (swos.introFrameDataChunkRemainder) {
+            dest = swos.introFrameDataChunkRemainder;
+            memcpy(swos.soccerBinPtr + dest, swos.soccerBinPtr + swos.introFrameDataOffset, bytesUntilNextChunk);
             dest += bytesUntilNextChunk;
             subSize = bytesUntilNextChunk;
-            if (introFrameDataSize == bytesUntilNextChunk)
+            if (swos.introFrameDataSize == bytesUntilNextChunk)
                 return;
         } else {
-            introFrameDataChunkRemainder = 0;
+            swos.introFrameDataChunkRemainder = 0;
         }
 
-        auto res = std::div(introFrameDataSize - subSize, kChunkSize);
+        auto res = std::div(swos.introFrameDataSize - subSize, kChunkSize);
         numChunks = res.quot + (res.rem > 0);
     }
 
-    fread(soccerBinPtr + dest, numChunks * kChunkSize, 1, soccerBinHandle);
-    introFrameDataOffset = introFrameDataChunkRemainder;
+    fread(swos.soccerBinPtr + dest, numChunks * kChunkSize, 1, swos.soccerBinHandle);
+    swos.introFrameDataOffset = swos.introFrameDataChunkRemainder;
 }
 
 static void introDelay()
@@ -268,14 +271,14 @@ static void introDelay()
 
 static char *introDrawFrame(char *frameData)
 {
-    introCurrentFrameDataPtr = frameData;
+    swos.introCurrentFrameDataPtr = frameData;
 
-    if (!introAnimationTimer) {
+    if (!swos.introAnimationTimer) {
         setPalette(frameData, kVgaPaletteNumColors / 2);
         frameData += kVgaPaletteSize / 2;
 
         int index = 0;
-        auto dest = introScreenBuffer;
+        auto dest = swos.introScreenBuffer;
 
         do {
             auto pixel = *frameData++;
@@ -304,7 +307,7 @@ static char *introDrawFrame(char *frameData)
             }
         } while (true);
 
-        auto src = introScreenBuffer;
+        auto src = swos.introScreenBuffer;
         for (int y = 0; y < kVgaHeight / 2; y++) {
             for (int x = 0; x < kVgaWidth / 2; x++) {
                 src[1] = (src[0] + src[2]) / 2;
@@ -315,29 +318,29 @@ static char *introDrawFrame(char *frameData)
             src += kVgaWidth;
         }
 
-        updateScreen(introScreenBuffer, 32, 148);
-        while (introCountDownTimer) {
+        updateScreen(swos.introScreenBuffer, 32, 148);
+        while (swos.introCountDownTimer) {
             introDelay();
             timerProc();
         }
         timerProc();
-        introCountDownTimer = introWaitInterval;
+        swos.introCountDownTimer = swos.introWaitInterval;
     } else {
-        frameData += introFrameDataSize - 1768;
-        if (introAnimationTimer < 4) {
-            while (introCountDownTimer > 4 - introAnimationTimer) {
+        frameData += swos.introFrameDataSize - 1768;
+        if (swos.introAnimationTimer < 4) {
+            while (swos.introCountDownTimer > 4 - swos.introAnimationTimer) {
                 introDelay();
                 timerProc();
             }
-            introCountDownTimer = 4;
-            introAnimationTimer = 0;
+            swos.introCountDownTimer = 4;
+            swos.introAnimationTimer = 0;
         } else {
-            while (!introCountDownTimer) {
+            while (!swos.introCountDownTimer) {
                 introDelay();
                 timerProc();
             }
-            introCountDownTimer = 4;
-            introAnimationTimer = 4;
+            swos.introCountDownTimer = 4;
+            swos.introAnimationTimer = 4;
         }
         timerProc();
     }
@@ -345,18 +348,15 @@ static char *introDrawFrame(char *frameData)
     SAFE_INVOKE(IntroFillSoundBuffer);
     frameData += 1764;
 
-//    if (introCurrentSoundBufferNum == 26)
-//        playIntroSample(soccerBinSoundDataPtr + introCurrentSoundBufferChunkOffset, kIntroBufferSize / 2, 127, 0);
-
     return frameData;
 }
 
 __declspec(naked) void SWOS::IntroDrawFrame()
 {
 #ifdef SWOS_VM
-    auto frameData = reinterpret_cast<char *>(g_esi.all);
+    auto frameData = SwosVM::esi.asPtr();
     auto result = introDrawFrame(frameData);
-    g_esi.all = reinterpret_cast<int32_t>(result);
+    SwosVM::esi = result;
 #else
     __asm {
         push esi
@@ -373,16 +373,16 @@ static void showImageReelsAndIntro()
     bool aborted = false;
     if (!disableImageReels()) {
         logInfo("Showing image reels");
-        aborted = !showImageReel(partOneImages) || !showImageReel(partTwoImages);
+        aborted = !showImageReel(swos.partOneImages) || !showImageReel(swos.partTwoImages);
     }
 
-    getPalette(g_fadePalette);
+    getPalette(swos.g_fadePalette);
     SAFE_INVOKE(FadeOutToBlack);
 
     if (!disableIntro() && !aborted && initIntroAnimation()) {
         logInfo("Playing intro");
         PlayIntroAnimation();
-        getPalette(g_fadePalette);
+        getPalette(swos.g_fadePalette);
         SAFE_INVOKE(FadeOutToBlack);
     }
 }
@@ -398,23 +398,23 @@ void SWOS::SWOS()
 //initIntroAnimation();
 //PlayIntroAnimation();
 
-    controlWord = 0;
-    g_pl2Status = 0;
-    g_pl1Status = 0;
-    pl1FinalStatus = -1;
-    pl2FinalStatus = -1;
+    swos.controlWord = 0;
+    swos.g_pl2Status = 0;
+    swos.g_pl1Status = 0;
+    swos.pl1FinalStatus = -1;
+    swos.pl2FinalStatus = -1;
 
     logInfo("Loading title and menu music");
     SAFE_INVOKE(LoadTitleAndStartMusic);
     initRandomSeed();
 
-    someColorConversionFlag = 1;    // not sure what this is
+    swos.someColorConversionFlag = 1;    // not sure what this is
 
-    goalBasePtr = currentHilBuffer;
-    nextGoalPtr = reinterpret_cast<dword *>(hilFileBuffer);
+    swos.goalBasePtr = swos.currentHilBuffer;
+    swos.nextGoalPtr = reinterpret_cast<dword *>(swos.hilFileBuffer);
 
-    loadFile(aSprite_dat, spritesIndex);
-    loadFile(aCharset_dat, dosMemOfs30000h);
+    loadFile(swos.aSprite_dat, swos.spritesIndex);
+    loadFile(swos.aCharset_dat, swos.dosMemOfs30000h);
 
     logInfo("Fixing up initial charset");
     SAFE_INVOKE(FixupInitialCharset);
@@ -422,22 +422,22 @@ void SWOS::SWOS()
     SAFE_INVOKE(ChainFont);
     SAFE_INVOKE(Randomize2);
 
-    vsPtr = linAdr384k;
-    screenWidth = kVgaWidth;
-    spriteFixupFlag = 0;
+    swos.vsPtr = swos.linAdr384k;
+    swos.screenWidth = kVgaWidth;
+    swos.spriteFixupFlag = 0;
 
     // flush controls
     SDL_FlushEvents(SDL_KEYDOWN, SDL_KEYUP);
 
 #ifndef NDEBUG
     // verify that the string offsets are OK
-    assert(!memcmp(aChairmanScenes + 0x4dc1, "YUGOSLAVIA", 11));
-    assert(!memcmp(aChairmanScenes + 0x2e5, "THE PRESIDENT", 14));
-    assert(!memcmp(aChairmanScenes + 0x2f, "RETURN TO GAME", 15));
-    assert(!memcmp(aChairmanScenes + 0x30c, "EXCELLENT JOB", 13));
-    assert(!memcmp(aChairmanScenes + 0x58c3, "QUEENSLAND", 11));
-    assert(!memcmp(aChairmanScenes + 0x331, "APPRECIATE IT", 14));
-    assert(!memcmp(aChairmanScenes + 0x3d1c, "DISK FULL", 9));
+    assert(!memcmp(swos.aChairmanScenes + 0x4dc1, "YUGOSLAVIA", 11));
+    assert(!memcmp(swos.aChairmanScenes + 0x2e5, "THE PRESIDENT", 14));
+    assert(!memcmp(swos.aChairmanScenes + 0x2f, "RETURN TO GAME", 15));
+    assert(!memcmp(swos.aChairmanScenes + 0x30c, "EXCELLENT JOB", 13));
+    assert(!memcmp(swos.aChairmanScenes + 0x58c3, "QUEENSLAND", 11));
+    assert(!memcmp(swos.aChairmanScenes + 0x331, "APPRECIATE IT", 14));
+    assert(!memcmp(swos.aChairmanScenes + 0x3d1c, "DISK FULL", 9));
 #endif
 
 #ifndef SWOS_TEST

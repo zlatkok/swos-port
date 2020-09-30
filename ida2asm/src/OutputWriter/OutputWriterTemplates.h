@@ -80,9 +80,9 @@ int out(size_t num)
 
     do {
         assert(m_outPtr + 1 < m_outBuffer.get() + m_outBufferSize);
-        auto res = std::div(num, 10);
-        *m_outPtr++ = res.rem + '0';
-        num = res.quot;
+        char rem = num % 10;
+        num /= 10;
+        *m_outPtr++ = rem + '0';
     } while (num);
 
     std::reverse(start, m_outPtr);
@@ -99,3 +99,5 @@ int out(int num)
 
     return out(static_cast<size_t>(num));
 }
+
+template<> int out(uint8_t num) { return out(static_cast<size_t>(num)); }

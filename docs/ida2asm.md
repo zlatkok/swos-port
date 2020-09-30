@@ -1,13 +1,14 @@
 # `ida2asm`
 
 `ida2asm` is a tool for converting pseudo-assembly output from IDA Pro into
-something that can actually be assembled without errors.
+something that can actually be assembled/compiled without errors.
 
-Currently only possible output format is MASM x86, but having multiple output
-formats was an idea from the start so it was designed to be easily augmented.
+Even though it started as an assembler conversion tool it can now generate C++ output in addition to the
+basic MASM x86 format. Having multiple output formats was an idea from the start so it was designed to be
+easily augmented.
 
-Aside from conversion, second task is symbol manipulation (importing,
-exporting, removing, etc.). This is specified via a custom format input text file.
+Aside from conversion, second task is symbol manipulation (importing, exporting, removing, etc.). This is
+specified via a custom format input text file.
 
 ## Command-line parameters
 
@@ -16,15 +17,22 @@ exporting, removing, etc.). This is specified via a custom format input text fil
 - directory path for output files (it will be extracted if a file path is given)
 - path to input control file
 - path to output C++ header with exported symbols
-- output format (currently only `masm` is supported)
+- output format (currently only `masm` and `c++` are supported)
 - number of files to split output ASM files (as well as how many threads to use), maximum is 20
+
+Optional parameters are also accepted, they start with two dashes, and are currently only valid for
+C++ output:
+
+`--extra-memory-size=<size>` - statically allocate memory of given size
+
+`--disable-optimizations`
 
 Short help can be listed by passing `-h` or `--help` parameter.
 
 ## Input file
 
-Input file controls how the conversion to actual assembly files will be performed. It consists of sections which
-begin with `@` sign. Following sections are supported:
+Input file controls how the conversion to actual assembly files will be performed. It consists of sections
+which begin with `@` sign. Following sections are supported:
 - `@import`
 - `@export`
 - `@remove`
@@ -33,17 +41,18 @@ begin with `@` sign. Following sections are supported:
 - `@save-regs`
 - `@on-enter`
 - `@insert-hook`
+- `@type-sizes`
 
 Any line beginning with `#` sign is considered a comment and will not be processed.
 
 ### `@import` section
 
-Purpose of `@import` section is to replace assembly procedures with functions from C++. Any non-empty line is
-treated as a procedure name that will be imported from C++. C++ functions do not take any parameters and by default
-return `void`, unless symbol name is followed by a comma followed by `int` -- in that case return type is `int`.
-Assembly procedure body is removed from generated assembly code, and its name is treated as an extern label.
-All the imported C++ functions are listed in the generated header file, declared as `extern "C"` inside
-`SWOS` namespace.
+Purpose of `@import` section is to replace assembly procedures with functions from C++. Any non-empty line
+is treated as a procedure name that will be imported from C++. C++ functions do not take any parameters and
+by default return `void`, unless symbol name is followed by a comma followed by `int` -- in that case return
+type is `int`. Assembly procedure body is removed from generated assembly code, and its name is treated as an
+extern label. All the imported C++ functions are listed in the generated header file, declared as
+`extern "C"` inside `SWOS` namespace.
 
 For example, following lines in input file:
 ```
@@ -90,9 +99,9 @@ spriteGraphicsPtr, array SpriteGraphics *(*)    # becomes: SpriteGraphics *(*spr
 
 ### `@remove` section
 
-`@remove` section contains a list of functions and variables that will be completely removed from the resulting
-output files. It's commonly used to get rid of DOS-specific code, unused code/data and items made obsolete by new
-portable C++ code.
+`@remove` section contains a list of functions and variables that will be completely removed from the
+resulting output files. It's commonly used to get rid of DOS-specific code, unused code/data and items
+made obsolete by new portable C++ code.
 
 To remove a range of symbols specify beginning and ending symbol separated by a `-` (minus) sign.
 Ranges are semi-open, just like in C++ so listing
@@ -133,12 +142,14 @@ hilFilename, 256 dup(0)
 
 Since SWOS was written in assembly language it uses CPU registers freely, which can create problems when SWOS
 procedures are called from C\++. Many functions destroy contents of registers C\++ compilers assume will not
-change throughout a function call. In order to call SWOS code safely for each listed procedure instructions will
-be injected that save and restore registers C\++ compiler considers nonvolatile.
+change throughout a function call. In order to call SWOS code safely for each listed procedure instructions
+will be injected that save and restore registers C\++ compiler considers nonvolatile.
 
-Care has to be exercised as `push` and `pop` instructions are injected at the beginning of the proc, and before
-the final `retn`, without code flow analysis. This can cause crashes if used with functions that have multiple
-exit points. `SAFE_INVOOKE` macro can be used to call such functions.
+Care has to be exercised as `push` and `pop` instructions are injected at the beginning of the proc, and
+before the final `retn`, without code flow analysis. This can cause crashes if used with functions that
+have multiple exit points. `SAFE_INVOOKE` macro can be used to call such functions.
+
+This section is ignored when converting to C++ files.
 
 ### `@on-enter` section
 
@@ -176,12 +187,20 @@ be removed.
 There are no limitations in number of hooks per procedure, as long as each line corresponds to exactly
 one hook.
 
+### `@type-sizes` section
+
+This section is only valid for C++ output. In order to properly create structure containing all the SWOS
+variables `ida2asm` must know the sizes of all types. Any type that can't be deduced from the input files
+must be specified here.
+
+This section is currently only used when outputting C++ files.
+
 ## `no-break` markers
 
-`ida2asm` can be instructed to create multiple assembly files, breaking original file in several places in the
-process. While care is taken that no procedures are broken apart, it can still happen with some data tables or
-procedures that are expected to be consecutive. In such situations special markers in the source code are
-introduced: "`; ${no-break`" begins protected block, "`; $no-break}`" ends it. Example usage:
+`ida2asm` can be instructed to create multiple assembly files, breaking original file in several places in
+the process. While care is taken that no procedures are broken apart, it can still happen with some data
+tables or procedures that are expected to be consecutive. In such situations special markers in the source
+code are introduced: "`; ${no-break`" begins protected block, "`; $no-break}`" ends it. Example usage:
 ```
 ; ${no-break
 ; this is important filenames table
@@ -210,6 +229,21 @@ are declared as instances of special templated class which offers a plethora of 
 (as a byte, word, dword, pointer etc.). The variables will be automatically available in the generated
 header file.
 
+## C++ output
+
+TODO:
+- virtual machine
+- memory allocation
+- alignment
+- `SwosDataPointer<>`
+- `SwosProcPointer`
+
+### Optimizations
+TODO:
+- redundant flag setting removal
+- redundant assignment removal
+- orphaned assignment removal
+
 ## Performance
 
 First version of the `ida2asm` was written in Python, with the goal of getting the results as quick as
@@ -221,7 +255,7 @@ That's how second parser version came to be, written in C\++ with ultimate perfo
 is reflected in a specially constructed tokenizer (see next section), minimization of heap allocations,
 cache-friendly structures and multi-threaded parser.
 
-The end result was stunning: ~30ms on average to process `swos.asm` on an i7-7700K :)
+The end result was stunning: ~30ms on average to process 250k lines `swos.asm` on an i7-7700K :)
 
 Many lessons were learned along the way. Importance of measuring can not be overstated. Low performance of
 `std::unordered_map` and `std::isspace()` was surprising but undeniable.
@@ -230,8 +264,28 @@ Many lessons were learned along the way. Importance of measuring can not be over
 
 `gen-lookup` is a Python script that will generate C++ function for tokenizing. It constructs it from input
 file `tokens.lst` which contain informations about the instruction set. The generated function is a kind
-of prefix tree encoded in code (via switch or if statements). It was selected by "winning" performance war
-against a few alternatives:
+of prefix tree encoded in the code (via switch or if statements). Example simplified pseudo-output would be:
+```
+// p -> input
+...
+if (*p++ == 'm')
+  if (*p++ == 'o')
+    if (*p++ == 'v')
+      if (isDelimiter(*p)) return MOV
+      else if (*p++ == 's')
+        if (isDelimiter(*p)) return MOVS
+        else if (*p++ == 'b')
+          if (isDelimiter(*p)) return MOVSB
+        else if (*p++ == 'd')
+          if (isDelimiter(*p)) return MOVSD
+        else if (*p++ == 'w')
+          if (isDelimiter(*p)) return MOVSW
+        else if (*p++ == 'x')
+          if (isDelimiter(*p)) return MOVSX
+...
+```
+
+It was selected by "winning" a performance war against a few alternatives:
 
 * looking up tokens via `std::unordered_map`
 * looking up tokens via custom hash map
@@ -251,8 +305,31 @@ Time for custom hash function: 128ms
 Time for gperf generated lookup: 80ms
 ```
 
-Those who are interested can look further into token-lookup-tester project, and run the executable to see how
+The interested ones can look further into token-lookup-tester project, and run the executable to see how
 the performance results might look like on their machines.
+
+### Parallel processing
+
+Parsing of the input file and further processing and output is split and given to separate threads to process
+it in parallel. Their number can be specified from the command line.
+
+The input file can not be trivially split at random points. Each thread has to determine start and end of its
+block, given only rough offset.
+
+Since no locks or other synchronization primitives are used each thread is responsible of finding the safe
+limits of its part. They all use the same algorithm of what to skip and where to begin/end and thus arrive
+at mutually exclusive limits covering entire file.
+
+First step is to ensure no lines are broken. Then the chunks are tokenized (with some additional buffer
+before/after) and it is further assured that no procedure is broken or any `no-break` block.
+
+Parsing begins after the hard block limits have been established.
+
+### Data oriented programming
+TODO
+
+`ida2asm` uses mostly custom data structures, designed to maximize data locality. Any variable parts (e.g.
+strings) follow immediately after the structure.
 
 ## Hacks and quirks
 
@@ -260,18 +337,17 @@ the performance results might look like on their machines.
 workarounds for weirdness in IDA syntax. Namely, support for virtual Amiga registers, as well as removal
 of unaligned stack access and IDA never marking struct variables as such.
 
-Still, adapting it for a novel purpose would likely be easier than going from scratch.
+Still, adapting it for a novel purpose would likely be much easier than starting from scratch.
 
 ## Changing the output format to other assembler than MASM
 
-Output is created by a class that inherits abstract base class `OutputWriter`. `OutputWriter` handles writing
-to the actual output file and exposes set of output functions for the inherited classes to use. Descendant
-class will be created by the factory and given access to all the stored data from parsing. Its task is to use this
-data and the given interface to generate a valid assembly file.
+Output is created by a class that inherits abstract base class `OutputWriter`. `OutputWriter` handles
+writing to the actual output file and exposes set of output functions for the inherited classes to use.
+Descendant class will be created by the factory and given access to all the stored data from parsing.
+Its task is to use this data and the given interface to generate a valid assembly file.
 
 `VerbatimOutput` is an example output class that will output all the input "as is". It's a very useful
 tool for testing and can be a good place to start when trying to figure out how things work.
 
 For portability do not output new line directly. Use `out(Util::kNewLine)` instead. Use `out(kIndent)` to
 start an indented line. Base class will handle the rest, as well as tabs.
-

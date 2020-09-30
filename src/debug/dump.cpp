@@ -108,8 +108,8 @@ void getStringLength(char *str, int *w, int *h, bool align, bool big)
             spr = char2Sprite(*str, big);
             if (spr == 255)
                 continue;
-            dx = spritesIndex[spr]->width;
-            dy = spritesIndex[spr]->height;
+            dx = swos.spritesIndex[spr]->width;
+            dy = swos.spritesIndex[spr]->height;
             len += dx + 2 * big + 1;
         }
     }
@@ -209,11 +209,11 @@ void printString(char *str, int x, int y, int color, bool big /* = false */, int
             anchor = x - xorig;
             break;
         default:   /* draw character */
-            dx = spritesIndex[c]->width;
-            dy = spritesIndex[c]->height;
+            dx = swos.spritesIndex[c]->width;
+            dy = swos.spritesIndex[c]->height;
 
-            D0 = vsPtr + y * kGameScreenWidth + x;
-            D4 = spritesIndex[c]->wquads * 16;
+            D0 = swos.vsPtr + y * kGameScreenWidth + x;
+            D4 = swos.spritesIndex[c]->wquads * 16;
             D5 = dy;
             SavePixelsBehindSprite();
 
@@ -232,7 +232,7 @@ void dumpVariables()
 {
     if (m_debugOutput) {
         char buf[256];
-        snprintf(buf, sizeof(buf), "%hd", AI_team_num_maybe);
+        snprintf(buf, sizeof(buf), "%hd", swos.AI_attackHalf);
         printString(buf, 0, 16, kYellowText, false, ALIGN_LEFT);
     }
 }

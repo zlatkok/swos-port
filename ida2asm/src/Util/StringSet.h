@@ -20,6 +20,7 @@ public:
         void remove() { m_removed = 1; }
         bool removed() const { return m_removed != 0; }
 
+        String string() const { return { text(), textLength() }; };
         char *text() const { return (char *)(this + 1); }
         size_t textLength() const { return m_len; }
         Util::hash_t hash() const { return m_hash; }
@@ -36,6 +37,8 @@ public:
     void add(CToken *token);
     void add(const String& str);
     void add(const char *str, size_t len);
+    void add(const char *begin, const char *end);
+    bool empty() const;
     bool present(const String& str) const;
     bool present(const char *str, size_t len) const;
     void seal();

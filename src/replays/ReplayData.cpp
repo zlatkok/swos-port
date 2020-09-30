@@ -18,16 +18,16 @@ void ReplayData::startNewReplay()
 void ReplayData::finishCurrentReplay()
 {
     fetchHilHeader();
-    fetchHighlightsScene(currentHilPtr + 1);
+    fetchHighlightsScene(swos.currentHilPtr + 1);
 }
 
 void ReplayData::handleHighglightsBufferOverflow(dword *endPtr, bool playing)
 {
-    assert(endPtr >= nextGoalPtr);
+    assert(endPtr >= swos.nextGoalPtr);
 
     if (playing) {
         assert(m_offset <= m_replayData.size());
-        copyChunk(goalBasePtr);
+        copyChunk(swos.goalBasePtr);
     } else {
         fetchHighlightsScene(endPtr);
     }
@@ -37,8 +37,8 @@ void ReplayData::replayStarting()
 {
     m_offset = 0;
 
-    memcpy(hilFileBuffer, m_header, sizeof(m_header));
-    copyChunk(hilFileBuffer + kHilHeaderSize);
+    memcpy(swos.hilFileBuffer, m_header, sizeof(m_header));
+    copyChunk(swos.hilFileBuffer + kHilHeaderSize);
 
     // endianess alert
     assert(m_header[kNumScenesOffset] == 1 && m_header[kNumScenesOffset + 1] == 0);
@@ -103,7 +103,7 @@ bool ReplayData::save(const char *filename, bool overwrite)
 
 void ReplayData::fetchHilHeader()
 {
-    memcpy(m_header, hilFileBuffer, kHilHeaderSize);
+    memcpy(m_header, swos.hilFileBuffer, kHilHeaderSize);
 
     // endianess alert
     m_header[kNumScenesOffset] = 1;
@@ -112,12 +112,12 @@ void ReplayData::fetchHilHeader()
 
 void ReplayData::fetchHighlightsScene(dword *endPtr)
 {
-    assert(endPtr >= goalBasePtr && endPtr <= nextGoalPtr);
+    assert(endPtr >= swos.goalBasePtr && endPtr <= swos.nextGoalPtr);
 
-    auto bytesLeft = (endPtr - goalBasePtr) * sizeof(dword);
+    auto bytesLeft = (endPtr - swos.goalBasePtr) * sizeof(dword);
     auto oldSize = m_replayData.size();
     m_replayData.resize(oldSize + bytesLeft);
-    memcpy(rawData() + oldSize, goalBasePtr, bytesLeft);
+    memcpy(rawData() + oldSize, swos.goalBasePtr, bytesLeft);
 }
 
 void ReplayData::ensureEndSegmentMarker()

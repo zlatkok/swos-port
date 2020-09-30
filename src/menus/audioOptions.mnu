@@ -35,8 +35,8 @@ Menu audioOptionsMenu
 
     defaultY: @prevEndY + kOptionsRowDistance + 1
 
-    Entry { text: aMenuMusic }
-    Entry { text: aCommentary }
+    Entry { text: swos.aMenuMusic }
+    Entry { text: swos.aCommentary }
     Entry { text: "CROWD CHANTS" }
     Entry { text: "MATCH VOLUME" }
     Entry { text: "MUSIC VOLUME" }
@@ -57,7 +57,7 @@ Menu audioOptionsMenu
     Entry masterSound {
         y: kOptionsStartY
 
-        stringTable: [ g_soundOff, aOn, aOff ]  // notice backward order
+        stringTable: [ swos.g_soundOff, swos.aOn, swos.aOff ]  // notice backward order
 
         onSelect: toggleMasterSound
 
@@ -65,7 +65,7 @@ Menu audioOptionsMenu
     }
 
     Entry menuMusic {
-        stringTable: ~menuMusicStrTable
+        stringTable: swos.menuMusicStrTable
 
         onSelect: toggleMenuMusic
 
@@ -74,7 +74,7 @@ Menu audioOptionsMenu
     }
 
     Entry commentary {
-        stringTable: ~commentaryStrTable
+        stringTable: swos.commentaryStrTable
 
         onSelect: ~ChangeCommentary
 
@@ -83,7 +83,7 @@ Menu audioOptionsMenu
     }
 
     Entry crowdChants {
-        stringTable: [ g_crowdChantsOn, aOff, aOn ]
+        stringTable: [ swos.g_crowdChantsOn, swos.aOff, swos.aOn ]
 
         onSelect: toggleCrowdChants
 
@@ -95,7 +95,7 @@ Menu audioOptionsMenu
         width: kChangerWidth
 
         color: kChangerColorMinus
-        text: aMinus
+        text: swos.aMinus
 
         onSelect: decreaseVolume
 
@@ -120,7 +120,7 @@ Menu audioOptionsMenu
         width: kChangerWidth
 
         color: kChangerColorPlus
-        text: aPlus
+        text: swos.aPlus
 
         onSelect: increaseVolume
 
@@ -133,7 +133,7 @@ Menu audioOptionsMenu
         width: kChangerWidth
 
         color: kChangerColorMinus
-        text: aMinus
+        text: swos.aMinus
 
         onSelect: decreaseMusicVolume
 
@@ -158,7 +158,7 @@ Menu audioOptionsMenu
         width: kChangerWidth
 
         color: kChangerColorPlus
-        text: aPlus
+        text: swos.aPlus
 
         onSelect: increaseMusicVolume
 
@@ -173,7 +173,7 @@ Menu audioOptionsMenu
         width: kBigButtonWidth
         height: kBigButtonHeight
 
-        text: aExit
+        text: swos.aExit
         color: kExitColor
 
         onSelect: ~SetExitMenuFlag

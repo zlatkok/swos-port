@@ -30,6 +30,7 @@ public:
     };
 
     OutputItem(Type type, size_t size, const TokenList& leadingComments, CToken *comment);
+    OutputItem(const OutputItem&) = delete;
     static size_t requiredSize(const TokenList& leadingComments, CToken *comment);
     Type type() const;
     String leadingComments() const;

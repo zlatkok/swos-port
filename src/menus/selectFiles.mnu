@@ -114,7 +114,7 @@ Menu selectFilesMenu
 
         invisible: true
         color: @kGreen
-        text: aSave
+        text: swos.aSave
 
         leftEntry: kFirstFileEntry + kMaxEntriesPerColumn - 1
         rightEntry: kFirstFileEntry + kMaxColumns * kMaxEntriesPerColumn - 1
@@ -131,7 +131,7 @@ Menu selectFilesMenu
         height: 15
 
         color: @kRed
-        text: aAbort
+        text: swos.aAbort
 
         leftEntry: saveLabel.leftEntry
         rightEntry: saveLabel.rightEntry

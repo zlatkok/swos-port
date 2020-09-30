@@ -7,6 +7,8 @@ template <typename T> struct Option {
     typename std::make_signed<T>::type max;
     T defaultValue;
 
+    static_assert(std::is_integral<T>::value, "");
+
     T clamp(long val) const {
         if (val < min || val > max)
             logInfo("Option value for %s out of range (%d), clamping to [%d, %d]", key, val, min, max);
