@@ -4,7 +4,7 @@
 
 static SpriteGraphics *getSprite(int index)
 {
-    assert(index > (isMatchRunning() ? kMaxMenuSprite : -1) && index < kNumSprites);
+    assert(index > (swos.vsPtr != swos.linAdr384k ? kMaxMenuSprite : -1) && index < kNumSprites);
     return swos.spritesIndex[index];
 }
 

@@ -6,7 +6,7 @@
 #include "InstructionOperandsInfoExtractor.h"
 #include "IntermediateFormConverter.h"
 
-constexpr int kAverageBytesPerStruct = 900;
+constexpr int kAverageBytesPerStruct = 905;
 
 IntermediateFormConverter::IntermediateFormConverter(bool disableOptimizations, const StructStream& structs,
     const DefinesMap& defines, const References& references, const DataBank& dataBank)

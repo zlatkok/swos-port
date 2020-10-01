@@ -26,6 +26,9 @@ static const char *m_menuTitle;
 static std::string m_selectedFilename;
 static const char *m_saveExtension;
 static char *m_saveFilenameBuffer;
+static char *m_filenameBuffer;
+
+static const char *kReplays;
 
 static int m_numColumns;
 static bool m_longNames;
@@ -82,10 +85,9 @@ FoundFileList findFiles(dword packedExtension)
 
 static char *getFilenameBuffer(const std::string& selectedFilename)
 {
-    static char filenameBuffer[kMaxPath];
-    strncpy_s(filenameBuffer, sizeof(filenameBuffer), selectedFilename.c_str(), _TRUNCATE);
+    strncpy_s(m_filenameBuffer, kMaxPath, selectedFilename.c_str(), _TRUNCATE);
 
-    return filenameBuffer;
+    return m_filenameBuffer;
 }
 
 static bool getFilenameAndExtension()
@@ -193,7 +195,13 @@ std::string showSelectFilesMenu(const char *menuTitle, const FoundFileList& file
     assert(menuTitle);
     assert(!saveExtension || strlen(saveExtension) == 4 && saveExtension[0] == '.');
 
-    m_menuTitle = menuTitle;
+    using namespace SwosVM;
+
+    if (!isSwosPtr(menuTitle))
+        m_menuTitle = offsetToPtr(allocateString(menuTitle));
+    else
+        m_menuTitle = menuTitle;
+
     m_filenames = filenames;
     m_saveExtension = saveExtension;
     m_saveFilenameBuffer = saveFilenameBuffer;
@@ -516,24 +524,29 @@ static void selectFilesOnInit()
     sortFilenames();
 
     selectFilesOnReturn();
+
+    using namespace SwosVM;
+
+    kReplays = offsetToPtr(allocateString("REPLAYS"));
+    m_filenameBuffer = offsetToPtr(allocateMemory(kMaxPath));
 }
 
-static const char *getFileTypeFromExtension(const char *ext)
+static SwosDataPointer<const char> getFileTypeFromExtension(const char *ext)
 {
-    auto type = "HIGH";
+    auto type = swos.aHigh;
 
     if (!strcmp(ext, "PRE"))
-        type = "PRESET";
+        type = swos.aPreset;
     else if (!strcmp(ext, "SEA"))
-        type = "SEASON";
+        type = swos.aSeason;
     else if (!strcmp(ext, "CAR"))
-        type = "CAREER";
+        type = swos.aCareer;
     else if (!strcmp(ext, "TAC"))
-        type = "TACT";
+        type = swos.aTact;
     else if (!strcmp(ext, "RPL"))
-        type = "REPLAY";
+        type = kReplays;
     else if (!strcmp(ext, "DIY"))
-        type = "DIY";
+        type = swos.aDiy;
     else if (strcmp(ext, "HIL"))
         assert(false);
 

@@ -1,6 +1,10 @@
 #include "InstructionNode.h"
 #include "OrphanedAssignmentChainRemover.h"
 
+// Tracks contents of each byte of registers and known memory locations. Uses reference counting on
+// instructions and creates chains of assignments and operations on them, so that the whole connected
+// sequences of associated instructions could be removed when detected as unnecessary.
+
 OrphanedAssignmentChainRemover::OrphanedAssignmentChainRemover()
 {
     m_nodeLinks.reserve(512);
@@ -78,12 +82,6 @@ void OrphanedAssignmentChainRemover::processInstruction(InstructionNode& node)
     case Token::T_AND:
     case Token::T_SUB:
     case Token::T_ADD:
-    case Token::T_SHL:
-    case Token::T_SHR:
-    case Token::T_SAR:
-    case Token::T_RCR:
-    case Token::T_ROL:
-    case Token::T_ROR:
         if (dst != src) {
             appendSourceNodesToDestination(node);
         } else if (node.instruction->type() == Token::T_XOR || node.instruction->type() == Token::T_SUB) {
@@ -91,6 +89,14 @@ void OrphanedAssignmentChainRemover::processInstruction(InstructionNode& node)
             unlinkDestinationChain(node);
         }
         addDestinationLink(node);
+        break;
+
+    case Token::T_SHL:
+    case Token::T_SHR:
+    case Token::T_SAR:
+    case Token::T_ROL:
+    case Token::T_ROR:
+        handleShiftRotate(node);
         break;
 
     case Token::T_MOVSB:
@@ -105,11 +111,14 @@ void OrphanedAssignmentChainRemover::processInstruction(InstructionNode& node)
     case Token::T_LODSB:
     case Token::T_LODSW:
     case Token::T_LODSD:
-        decreaseReferenceCount(kEax, 0, blockInstructionSize(node.instruction->type()));
-        unlinkChain(kEax);
-        unlinkChain(kEsi);
-        if (node.instruction->prefix() == "rep")
-            unlinkChain(kEcx);
+        {
+            auto size = blockInstructionSize(node.instruction->type());
+            decreaseReferenceCount(kEax, 0, size);
+            unlinkChain(kEax, 0, size);
+            unlinkChain(kEsi);
+            if (node.instruction->prefix() == "rep")
+                unlinkChain(kEcx);
+        }
         break;
 
     case Token::T_STOSB:
@@ -158,6 +167,7 @@ void OrphanedAssignmentChainRemover::processInstruction(InstructionNode& node)
     case Token::T_TEST:
     case Token::T_PUSH:
     case Token::T_RCL:
+    case Token::T_RCR:
         unlinkChains(node);
         break;
 
@@ -379,7 +389,7 @@ void OrphanedAssignmentChainRemover::handleImulThreeOperands(InstructionNode& no
 void OrphanedAssignmentChainRemover::handleDiv(InstructionNode& node)
 {
     assert((node.instruction->type() == Token::T_DIV || node.instruction->type() == Token::T_IDIV) &&
-    node.instruction->numOperands() == 1);
+        node.instruction->numOperands() == 1);
 
     const auto& src = node.opInfo[0];
     bool gotSrcRef = src.type == OperandInfo::kReg && src.base.reg != kEax || src.type == OperandInfo::kFixedMem;
@@ -416,6 +426,79 @@ void OrphanedAssignmentChainRemover::handleDiv(InstructionNode& node)
             addLink(kEdx, i, 1, node);
             addLink(kEax, i, 1, node);
         }
+    }
+}
+
+void OrphanedAssignmentChainRemover::handleShiftRotate(InstructionNode& node)
+{
+    assert(node.instruction && (node.instruction->type() == Token::T_SHL || node.instruction->type() == Token::T_SHR ||
+        node.instruction->type() == Token::T_SAR || node.instruction->type() == Token::T_ROL ||
+        node.instruction->type() == Token::T_ROR));
+
+    const auto& dst = node.opInfo[0];
+    const auto& src = node.opInfo[1];
+
+    assert(dst.type != OperandInfo::kImmediate);
+
+    if (src.type != OperandInfo::kImmediate || src.constValue() % 8) {
+        appendSourceNodesToDestination(node);
+        addDestinationLink(node);
+        return;
+    }
+
+    auto count = src.constValue() / 8 % dst.size();
+    auto size = dst.size();
+
+    switch (node.instruction->type()) {
+    case Token::T_SHR:
+    case Token::T_SAR:
+        if (dst.type == OperandInfo::kReg) {
+            decreaseReferenceCount(dst.base.reg, dst.base.offset, count);
+            memmove(&m_regs[dst.base.reg][dst.base.offset], &m_regs[dst.base.reg][dst.base.offset + count], (size - count) * kRegNodeSize);
+            unlinkChain(dst.base.reg, dst.base.offset + size - count, count);
+        } else if (dst.type == OperandInfo::kFixedMem) {
+            decreaseReferenceCountMem(dst.address(), count);
+            for (auto i = size - count; i != 0; i--)
+                m_mem[dst.address() + i] = m_mem[dst.address() + count + i];
+            for (size_t i = 0; i < count; i++)
+                unlinkChain(m_mem[dst.address() + size - i - 1]);
+        }
+        break;
+    case Token::T_SHL:
+        if (dst.type == OperandInfo::kReg) {
+            decreaseReferenceCount(dst.base.reg, dst.base.offset + size - count, count);
+            memmove(&m_regs[dst.base.reg][dst.base.offset + count], &m_regs[dst.base.reg][dst.base.offset], (size - count) * kRegNodeSize);
+            unlinkChain(dst.base.reg, dst.base.offset, count);
+        } else if (dst.type == OperandInfo::kFixedMem) {
+            decreaseReferenceCountMem(dst.address() + size - count, count);
+            for (auto i = 0; i < count; i--)
+                m_mem[dst.address() + count + i] = m_mem[dst.address() + i];
+            for (size_t i = 0; i < count; i++)
+                unlinkChain(m_mem[dst.address() + i]);
+        }
+        break;
+    case Token::T_ROR:
+        if (dst.type == OperandInfo::kReg) {
+            while (count--)
+                for (size_t i = 0; i < size - 1; i--)
+                    std::swap(m_regs[dst.base.reg][dst.base.offset + i], m_regs[dst.base.reg][dst.base.offset + i + 1]);
+        } else if (dst.type == OperandInfo::kFixedMem) {
+            while (count--)
+                for (size_t i = 0; i < size - 1; i--)
+                    std::swap(m_mem[dst.address() + i], m_mem[dst.address() + i + 1]);
+        }
+        break;
+    case Token::T_ROL:
+        if (dst.type == OperandInfo::kReg) {
+            while (count--)
+                for (size_t i = size - 1; i != 0; i--)
+                    std::swap(m_regs[dst.base.reg][dst.base.offset + i], m_regs[dst.base.reg][dst.base.offset + i - 1]);
+        } else if (dst.type == OperandInfo::kFixedMem) {
+            while (count--)
+                for (size_t i = size - 1; i != 0; i--)
+                    std::swap(m_mem[dst.address() + i], m_mem[dst.address() + i - 1]);
+        }
+        break;
     }
 }
 
@@ -520,10 +603,10 @@ void OrphanedAssignmentChainRemover::increaseReferenceCountMem(size_t address, s
     }
 }
 
-void OrphanedAssignmentChainRemover::increaseReferenceCount(int nodeIndex, int count /* = 1 */)
+void OrphanedAssignmentChainRemover::increaseReferenceCount(int nodeLinkIndex, int count /* = 1 */)
 {
-    while (nodeIndex >= 0) {
-        auto& nodeLink = m_nodeLinks[nodeIndex];
+    while (nodeLinkIndex >= 0) {
+        auto& nodeLink = m_nodeLinks[nodeLinkIndex];
 
         assert(nodeLink.nodeRef >= 0);
         auto& nodeRef = m_nodes[nodeLink.nodeRef];
@@ -536,7 +619,7 @@ void OrphanedAssignmentChainRemover::increaseReferenceCount(int nodeIndex, int c
                 nodeRef.node->deleted = true;
         }
 
-        nodeIndex = nodeLink.next;
+        nodeLinkIndex = nodeLink.next;
     }
 }
 
@@ -564,7 +647,7 @@ void OrphanedAssignmentChainRemover::appendSourceNodesToDestination(const Instru
     switch (src.type) {
     case OperandInfo::kReg:
         size = src.base.size;
-        memcpy(srcReg.data(), &m_regs[src.base.reg][src.base.offset], size * sizeof(srcReg[0]));
+        memcpy(srcReg.data(), &m_regs[src.base.reg][src.base.offset], size * kRegNodeSize);
         break;
 
     case OperandInfo::kFixedMem:
@@ -679,9 +762,9 @@ void OrphanedAssignmentChainRemover::decreaseReferenceCountMem(size_t address, i
     increaseReferenceCountMem(address, size, -count);
 }
 
-void OrphanedAssignmentChainRemover::decreaseReferenceCount(int nodeIndex, int count /* = 1 */)
+void OrphanedAssignmentChainRemover::decreaseReferenceCount(int nodeLinkIndex, int count /* = 1 */)
 {
-    increaseReferenceCount(nodeIndex, -count);
+    increaseReferenceCount(nodeLinkIndex, -count);
 }
 
 int OrphanedAssignmentChainRemover::addLink(InstructionNode& node, int next /* = -1 */)
@@ -719,7 +802,7 @@ auto OrphanedAssignmentChainRemover::getOperandNodes(const OperandInfo& op) cons
 
     switch (op.type) {
     case OperandInfo::kReg:
-        memcpy(result.data(), &m_regs[op.base.reg][op.base.offset], op.base.size * sizeof(result[0]));
+        memcpy(result.data(), &m_regs[op.base.reg][op.base.offset], op.base.size * kRegNodeSize);
         break;
 
     case OperandInfo::kFixedMem:
@@ -763,13 +846,13 @@ auto OrphanedAssignmentChainRemover::memoryToRegister(size_t address, size_t siz
     Register reg;
 
     for (size_t i = 0; i < size; i++) {
-        auto nodeIndex = -1;
+        auto nodeLinkIndex = -1;
 
         auto it = m_mem.find(address);
         if (it != m_mem.end())
-            nodeIndex = it->second;
+            nodeLinkIndex = it->second;
 
-        reg[i] = nodeIndex;
+        reg[i] = nodeLinkIndex;
     }
 
     return reg;

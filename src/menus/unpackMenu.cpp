@@ -272,7 +272,7 @@ void upackMenu(const void *src, char *dst)
                     const auto str = fetch<const char *>(data);
                     assert(str != kSentinel);
                     if (str && str != kSentinel) {
-                        auto ofs = copyStringToVM(str);
+                        auto ofs = SwosVM::allocateString(str);
                         dstEntry->u2.string.set(ofs);
                     } else {
                         dstEntry->u2.string.set(nullptr);
@@ -436,15 +436,6 @@ dword fetchAndTranslateProc(const int16_t *& data)
     return swosProc;
 }
 
-dword copyStringToVM(const char *str)
-{
-    auto len = strlen(str) + 1;
-    auto ofs = SwosVM::allocateMemory(len);
-    auto ptr = SwosVM::offsetToPtr(ofs);
-    memcpy(ptr, str, len);
-    return ofs;
-}
-
 dword translateStringTable(const StringTableNative& strTable)
 {
     auto size = sizeof(StringTable) + strTable.numPointers * 4;
@@ -467,7 +458,7 @@ dword translateStringTable(const StringTableNative& strTable)
         dword strOfs;
 
         if (strTable.isNativeString(i))
-            strOfs = copyStringToVM(str);
+            strOfs = SwosVM::allocateString(str);
         else
             strOfs = reinterpret_cast<uintptr_t>(str);
 
@@ -487,7 +478,7 @@ dword translateMultiLineTable(const MultiLineTextNative& text)
 
     for (size_t i = 0; i < text.numLines; i++) {
         auto str = text[i];
-        auto ofs = copyStringToVM(str);
+        auto ofs = SwosVM::allocateString(str);
         memcpy(swosMem + 1 + i * 4, &ofs, 4);
     }
 

@@ -4,9 +4,6 @@
 #define kNL "\r\n"
 
 namespace Util {
-    constexpr int kRegSize = 4;
-    constexpr int kMaxOperands = 3;
-
     using hash_t = uint32_t;
     constexpr hash_t kInitialHashValue = 1021;
 

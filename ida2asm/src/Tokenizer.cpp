@@ -9,7 +9,7 @@ int Token::parseInt() const
     assert(type == Token::T_HEX || type == Token::T_NUM || type == Token::T_BIN);
     assert(category == kNumber || category == kDup);
     assert(type != Token::T_HEX || tolower(text()[textLength - 1]) == 'h');
-    assert(type != Token::T_BIN|| tolower(text()[textLength - 1]) == 'b');
+    assert(type != Token::T_BIN || tolower(text()[textLength - 1]) == 'b');
 
     return Util::parseInt(text(), textLength);
 }

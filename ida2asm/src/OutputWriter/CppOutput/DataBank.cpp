@@ -327,7 +327,7 @@ StringMap<PascalString> DataBank::getFirstMembersStructMap(const StructStream& s
 {
     constexpr int kFirstMemmbersMapCapacity = 1'600;
     // these introduce ambiguity as multiple structures have them as first field
-    static const String kIgnoredFields[] = { "headerSize", "driver" };
+    static const String kIgnoredFields[] = { "headerSize", "driver", "teamId" };
 
     StringMap<PascalString> firstMembers(kFirstMemmbersMapCapacity);
 

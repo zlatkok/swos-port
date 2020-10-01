@@ -299,6 +299,11 @@ aLoadOldCompeti, array const char
 aQuitToDos, array const char
 aReturnToGame, array const char
 
+aHigh, array const char
+aPreset, array const char
+aTact, array const char
+aDiy, array const char
+
 InitCareerVariables, function
 SetDefaultNameAndSurname, function
 InitHighestScorersTable, function

@@ -7,6 +7,8 @@ constexpr int kPleaseWaitLimitMs = 333;
 static bool m_menuShown;
 static int16_t m_windowResizable = 1;
 
+static const char *kPleaseWaitText;
+
 using namespace VideoOptionsMenu;
 
 void showVideoOptionsMenu()
@@ -57,7 +59,11 @@ static DisplayModeList getDisplayModes(int displayIndex)
             logInfo("  %2d %d x %d, format: %x, refresh rate: %d", i, mode.w, mode.h, mode.format, mode.refresh_rate);
 
             if (!shownWarning && SDL_GetTicks() > startTicks + kPleaseWaitLimitMs) {
-                drawMenuText(55, 80, "PLEASE WAIT, ENUMERATING GRAPHICS MODES...", kYellowText);
+                if (!kPleaseWaitText) {
+                    auto ofs = SwosVM::allocateString("PLEASE WAIT, ENUMERATING GRAPHICS MODES...");
+                    kPleaseWaitText = SwosVM::offsetToPtr(ofs);
+                }
+                drawMenuText(55, 80, kPleaseWaitText, kYellowText);
                 updateScreen();
                 shownWarning = true;
             }

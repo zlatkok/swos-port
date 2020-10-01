@@ -36,6 +36,7 @@ private:
     void handleMul(InstructionNode& node);
     void handleImulThreeOperands(InstructionNode& node);
     void handleDiv(InstructionNode& node);
+    void handleShiftRotate(InstructionNode& node);
     void addDestinationLink(InstructionNode& node);
     void addLinks(InstructionNode& node);
     void addLink(const OperandInfo& op, InstructionNode& node);
@@ -45,7 +46,7 @@ private:
     void addLink(size_t size, InstructionNode& node, std::function<int&(size_t)> getRoot);
     void swapRoots(InstructionNode& node);
     void increaseReferenceCountMem(size_t address, size_t size, int nodeIndex = 1);
-    void increaseReferenceCount(int nodeIndex, int count = 1);
+    void increaseReferenceCount(int nodeLinkIndex, int count = 1);
     void appendSourceNodesToDestination(const InstructionNode& node);
     void unlinkChains(const InstructionNode& node);
     void unlinkDestinationChain(const InstructionNode& node);
@@ -58,7 +59,7 @@ private:
     void decreaseReferenceCount(RegisterEnum reg);
     void decreaseReferenceCount(RegisterEnum reg, size_t offset, size_t size);
     void decreaseReferenceCountMem(size_t address, int size, int count = 1);
-    void decreaseReferenceCount(int nodeIndex, int count = 1);
+    void decreaseReferenceCount(int nodeLinkIndex, int count = 1);
 
     std::vector<NodeLink> m_nodeLinks;
     std::vector<NodeReference> m_nodes;
@@ -66,6 +67,8 @@ private:
     using Register = std::array<int, Instruction::kRegSize>;
     std::array<Register, kNumRegisters> m_regs;
     std::unordered_map<size_t, int> m_mem;
+    static constexpr int kRegNodeSize = sizeof(m_regs[0][0]);
+
 
     int addLink(InstructionNode& node, int next = -1);
     int addLink(int nodeRef, int next = -1);

@@ -352,8 +352,8 @@ offset:  size:  desc.
                 that table:
                 word 6   - sprite speed
                 word 8   - also some speed (goalkeeper when diving)
-                word 10  - table, 16 words, indices into coordinate table used when deciding if
-                           goalkeeper should dive (I think)
+                word 10  - table, 16 words, indices into coordinate table used
+                           when deciding if goalkeeper should dive (I think)
                            values 0..7
                 word 48  - gets compared with high 4 bits of stoppageTimer
                            after that the keeper claimed comment is played
@@ -403,17 +403,17 @@ offset:  size:  desc.
   60       1    ???
                 this gets incremented by product of results from ofs56 table
                 and results from ofs118 table
-  61       1    true ako je kontrolisani igrac vrlo blizu lopte (d <= 32u)
-  62       1    true ako je kontrolisani igrac blizu lopte (32u < d <= 72u)
-  63       1    true ako je kontrolisani igrac nije mnogo daleko od lopte
+  61       1    true if the controlled player is very near the ball (d <= 32u)
+  62       1    true if the controlled player is near the ball (32u < d <= 72u)
+  63       1    true if the controlled player isn't too far away from the ball
                 (72u < d <= 2450u)
-  64       1    true ako je z lopte manje ili jednako 4
-  65       1    true ako je z lopte vece od 4 i manje jednako 8
-  66       1    true ako je z lopte vece od 8 i manje jednako 12
-  67       1    true ako je z lopte vece od 12 i manje jednako 17
-  68       1    true ako je z lopte vise od 17
-  69       1    u ovo se kopira ofs61
-  70       2    ??? nesto kad se golman baca
+  64       1    true if ball z <= 4
+  65       1    true if 4 < ball <= 8
+  66       1    true if 8 < ball <= 12
+  67       1    true if 12 < ball z  <= 17
+  68       1    true if ball z > 17
+  69       1    copy ofs61 here
+  70       2    ??? something when goalkeeper dives
   72       2    ??? 4 bajta pointer na nekog igraca?!
                 reko bih pointer na poslednjeg igraca koji je igrao glavom
   74       2    udaljenost od lopte
@@ -782,8 +782,8 @@ fixed to 52,200 bytes. Structure of records is:
 offset:  size:  description
 -------  -----  -----------
    0       2    some id word, maybe team id
-   1       1    also used for comparing and locating records
-   2      17    ???
+   2       1    also used for comparing and locating records
+   3      17    team name
   20      38    Player (file) record
 
 

@@ -260,16 +260,16 @@ void InstructionOperandsInfoExtractor::fillComponents(OperandInfo& dst, const Ra
                 if (dst.base.empty()) {
                     dst.base.reg = reg;
                     if (reg >= kAmigaRegsStart) {
-                        assert(opSize <= Util::kRegSize);
+                        assert(opSize <= Instruction::kRegSize);
                         dst.base.size = static_cast<uint8_t>(opSize);
 
                         auto offset = getOffset(op);
-                        assert(offset < Util::kRegSize);
+                        assert(offset < Instruction::kRegSize);
 
                         if (offset)
                             dst.base.offset = *offset;
                     } else {
-                        assert(size <= Util::kRegSize && regOffset < Util::kRegSize);
+                        assert(size <= Instruction::kRegSize && regOffset < Instruction::kRegSize);
                         dst.base.size = static_cast<uint8_t>(size);
                         dst.base.offset = static_cast<uint8_t>(regOffset);
                     }

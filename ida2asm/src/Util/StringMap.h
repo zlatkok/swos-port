@@ -329,7 +329,7 @@ private:
 
     struct LookupNode {
         Node *node;
-        size_t len;
+        uint32_t len;
         Util::hash_t hash;
 
         bool operator<(const LookupNode& rhs) const {
@@ -367,7 +367,7 @@ private:
     }
 
     DynaArray m_data;
-    size_t m_count = 0;
+    uint32_t m_count = 0;
     LookupNode *m_nodes = nullptr;
     Node *m_end = nullptr;
 };

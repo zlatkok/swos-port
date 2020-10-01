@@ -2874,3 +2874,13 @@ earlier:
   increment overridden operators... big whoops, bunch of integer promotion traps etc.
 - discovered & fixed an invalid type cast in IMUL
 - preparing to commit took insanely long time, wasn't aware there were this many changes
+30.09.2020.
+- reversed parts of career initialization, namely parts that initialize foreign market players while chasing
+  that infinite loop bug when starting new career
+- that led me to a bug in optimizer, pinpointed it to shift instructions which weren't properly marking their
+  target causing wrongful removal of some instructions; haven't got around to properly fix it just yet though
+01.09.2020.
+- ha, fix almost worked from first try, almost got me worried ;) still, it was done in a satisfying manner
+- tested, and the infinite loop is gone as well as the super-bounce! so that's two birds with one stone :D
+- fixed load files menu, now highlights/replays work, tactics importing etc.
+- fixed video options menu
