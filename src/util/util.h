@@ -91,6 +91,4 @@ static inline void safeInvokeWithSaved68kRegisters(void (*f)())
 
 #ifdef _MSC_VER
 #define suppressConstQualifierOnFunctionWarning() __pragma(warning(suppress:4180))
-#else
-#error Define pragma to suppress warning when using const with function pointer for your compiler, if needed
 #endif

@@ -30,6 +30,7 @@ public:
     void outputSrc(ValueCategory category = kAuto);
     void outputThirdOp();
 
+    bool twoOperandsSameRegister() const;
     void outputSrcVar(ValueCategory category = kAuto);
     void outputDestVar(ValueCategory category = kAuto);
     void setDestVar(const char *destVar);

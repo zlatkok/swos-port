@@ -1,7 +1,11 @@
 #include "controls.h"
 #include "joypads.h"
 #include "menuMouse.h"
+#include "sprites.h"
 #include "joypadConfigMenu.h"
+
+static int16_t m_autoConnectJoypads;
+
 #include "controlOptions.mnu.h"
 
 constexpr int kRedefineKeysHeaderY = 30;
@@ -16,19 +20,17 @@ enum class ScanCodeStatus {
 };
 
 constexpr int kWarningY = 170;
-static char m_warningBuffer[64];
+constexpr int kWarningBufferSize = 64;
+constexpr int kTempBufferSize = 128;
+static SwosDataPointer<char> m_warningBuffer;
+static SwosDataPointer<char> m_tempBuffer;
 static Uint32 m_showWarningTicks;
-
-static PlayerNumber m_playerForSelectingJoypad;
 
 static int m_pl1ControlsOffset;
 static int m_pl2ControlsOffset;
-static int m_lastNumberOfJoypads;
 
 static std::pair<word, word> m_pl1EntryControls[ControlOptionsMenu::kNumControlEntries];
 static std::pair<word, word> m_pl2EntryControls[ControlOptionsMenu::kNumControlEntries];
-
-static int16_t m_autoConnectJoypads;
 
 void showControlOptionsMenu()
 {
@@ -60,11 +62,15 @@ static void controlOptionsMenuInit()
     setMouseWheelEntries(entryList);
 
     m_autoConnectJoypads = getAutoConnectJoypads();
+
+    m_warningBuffer = SwosVM::allocateMemory(kWarningBufferSize);
+    m_tempBuffer = SwosVM::allocateMemory(kTempBufferSize);
 }
 
 static void setupPlayerControlEntries(PlayerNumber player)
 {
     using namespace ControlOptionsMenu;
+    using namespace SwosVM;
 
     assert(player == kPlayer1 || player == kPlayer2);
     assert((getPl1Controls() != kJoypad || pl1UsingJoypad()) && (getPl2Controls() != kJoypad || pl2UsingJoypad()));
@@ -100,7 +106,7 @@ static void setupPlayerControlEntries(PlayerNumber player)
 
     auto baseEntry = getMenuEntry(baseControlsEntryIndex);
 
-    static const char *kFixedEntries[] = { aNone, aKeyboard, aMouse };
+    const char *kFixedEntries[] = { cacheString(aNone), cacheString(aKeyboard), cacheString(aMouse) };
     static const Controls kFixedEntryControls[] = { kNone, kKeyboard1, kMouse };
     int startIndex = player == kPlayer1 ? 1 : 0;
 
@@ -117,11 +123,10 @@ static void setupPlayerControlEntries(PlayerNumber player)
         entriesFilled++;
     }
 
-    int numAvailableJoypadEntries = kNumControlEntries - entriesFilled;
     assert(entriesFilled <= kNumControlEntries);
 
     int startJoypad = std::max(0, *scrollOffset - kNumControlEntries + initiallyVisisbleJoypadEntries);
-    assert(!numJoypads || startJoypad + numAvailableJoypadEntries <= numJoypads);
+    assert(!numJoypads || numJoypads == 1 || startJoypad + kNumControlEntries - entriesFilled <= numJoypads);
 
     int numJoypadEntries = std::min(kNumControlEntries - entriesFilled, numJoypads);
     assert(numJoypadEntries <= kNumControlEntries);
@@ -234,30 +239,33 @@ static void controlOptionsMenuOnDraw()
 
 static void drawRedefineKeysMenu(PlayerNumber player, bool allowQuit)
 {
+    using namespace SwosVM;
+
     assert(player == kPlayer1 || player == kPlayer2);
 
-    static char selectKeysStr[] = "SELECT KEYS FOR PLAYER 1";
-    auto playerNo = selectKeysStr + sizeof(selectKeysStr) - 2;
+    static constexpr char aSelectKeysForPlayer[] = "SELECT KEYS FOR PLAYER 1";
+    auto selectKeysForPlayerStr = cacheString(aSelectKeysForPlayer);
+    auto playerNo = selectKeysForPlayerStr + sizeof(aSelectKeysForPlayer) - 2;
     assert(*playerNo == '1' || *playerNo == '2');
 
     *playerNo = player + '1';
 
     redrawMenuBackground();
-    drawMenuTextCentered(kRedefineKeysPromptX, kRedefineKeysHeaderY, selectKeysStr);
+    drawMenuTextCentered(kRedefineKeysPromptX, kRedefineKeysHeaderY, selectKeysForPlayerStr);
 
-    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY, "UP:");
-    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 10, "DOWN:");
-    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 20, "LEFT:");
-    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 30, "RIGHT:");
-    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 40, "FIRE:");
-    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 50, "BENCH:");
+    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY, cacheString("UP:"));
+    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 10, cacheString("DOWN:"));
+    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 20, cacheString("LEFT:"));
+    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 30, cacheString("RIGHT:"));
+    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 40, cacheString("FIRE:"));
+    drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY + 50, cacheString("BENCH:"));
 
     constexpr int kAbortY = kRedefineKeysStartY + 50 + kRedefineKeysStartY - kRedefineKeysHeaderY;
 
     static_assert(kWarningY >= kAbortY + 10, "Warning and abort labels overlap");
 
     if (allowQuit)
-        drawMenuTextCentered(160, kAbortY, "(MOUSE CLICK ABORTS)");
+        drawMenuTextCentered(160, kAbortY, cacheString("(MOUSE CLICK ABORTS)"));
 
     if (m_showWarningTicks >= SDL_GetTicks())
         drawMenuTextCentered(kVgaWidth / 2, kWarningY, m_warningBuffer, kYellowText);
@@ -340,7 +348,7 @@ static void redefineKeys(PlayerNumber player, bool allowQuit = true)
 
             for (int i = 0; i < setKeys; i++) {
                 auto str = pcScanCodeToString(scanCodes[i]);
-                drawMenuText(kScanCodeX, y, str);
+                drawMenuText(kScanCodeX, y, SwosVM::cacheString(str));
                 y += kRowGap;
             }
 
@@ -361,9 +369,9 @@ static void redefineKeys(PlayerNumber player, bool allowQuit = true)
                     auto scanCodeString = pcScanCodeToString(scanCode);
 
                     if (status == ScanCodeStatus::kAlreadyUsed)
-                        snprintf(m_warningBuffer, sizeof(m_warningBuffer), "%s IS ALREADY USED", scanCodeString);
+                        snprintf(m_warningBuffer, kWarningBufferSize, "%s IS ALREADY USED", scanCodeString);
                     else
-                        snprintf(m_warningBuffer, sizeof(m_warningBuffer), "%s IS TAKEN BY PLAYER %d",
+                        snprintf(m_warningBuffer, kWarningBufferSize, "%s IS TAKEN BY PLAYER %d",
                             scanCodeString, player == kPlayer1 ? 2 : 1);
 
                     setKeys--;
@@ -372,9 +380,8 @@ static void redefineKeys(PlayerNumber player, bool allowQuit = true)
             }
         }
 
-        char buf[128];
-        sprintf_s(buf, "SATISFIED WITH THE CHOICE? (Y/N%s)", allowQuit ? "/Q" : "");
-        drawMenuTextCentered(kRedefineKeysPromptX, 140, buf);
+        snprintf(m_tempBuffer, kTempBufferSize, "SATISFIED WITH THE CHOICE? (Y/N%s)", allowQuit ? "/Q" : "");
+        drawMenuTextCentered(kRedefineKeysPromptX, 140, m_tempBuffer);
 
         SWOS::FlipInMenu();
 
@@ -566,6 +573,8 @@ static void pl2ScrollDownSelected()
 
 static bool selectJoypadWithButtonPress(PlayerNumber player)
 {
+    using namespace SwosVM;
+
     assert(player == kPlayer1 || player == kPlayer2);
 
     if (SDL_NumJoysticks() < 2)
@@ -577,13 +586,14 @@ static bool selectJoypadWithButtonPress(PlayerNumber player)
     constexpr int kPromptY = 40;
     constexpr int kAbortY = 150;
 
-    drawMenuTextCentered(kPromptX, kPromptY, "PRESS ANY BUTTON TO SELECT");
+    drawMenuTextCentered(kPromptX, kPromptY, cacheString("PRESS ANY BUTTON TO SELECT"));
 
-    char text[] = "GAME CONTROLLER FOR PLAYER 1";
-    text[sizeof(text) - 2] = player == kPlayer1 ? '1' : '2';
+    constexpr char aGameControllerForPlayer[] = "GAME CONTROLLER FOR PLAYER 1";
+    auto text = cacheString(aGameControllerForPlayer);
+    text[sizeof(aGameControllerForPlayer) - 2] = player == kPlayer1 ? '1' : '2';
 
     drawMenuTextCentered(kPromptX, kPromptY + 10, text);
-    drawMenuTextCentered(kPromptX, kAbortY, "ESCAPE/MOUSE CLICK ABORTS");
+    drawMenuTextCentered(kPromptX, kAbortY, cacheString("ESCAPE/MOUSE CLICK ABORTS"));
 
     SWOS::FlipInMenu();
 
@@ -621,12 +631,11 @@ static bool selectJoypadWithButtonPress(PlayerNumber player)
         auto currentJoypadIndex = player == kPlayer1 ? getPl1JoypadIndex() : getPl2JoypadIndex();
         auto name = SDL_JoystickName(getJoypad(currentJoypadIndex).handle);
 
-        char text[128];
-        auto len = sprintf_s(text, "%s SELECTED", name ? name : "<UNKNOWN CONTROLLER>");
-        elideString(text, len, kMenuScreenWidth - 20);
-        toUpper(text);
+        auto len = snprintf(m_tempBuffer, kTempBufferSize, "%s SELECTED", name ? name : "<UNKNOWN CONTROLLER>");
+        elideString(m_tempBuffer, len, kMenuScreenWidth - 20);
+        toUpper(m_tempBuffer);
 
-        drawMenuTextCentered(kPromptX, (kPromptY + kAbortY) / 2, text, kYellowText);
+        drawMenuTextCentered(kPromptX, (kPromptY + kAbortY) / 2, m_tempBuffer, kYellowText);
         SWOS::FlipInMenu();
         SDL_Delay(600);
     }

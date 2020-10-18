@@ -9,8 +9,10 @@
 static void turnOnDebugHeap()
 {
 #ifndef NDEBUG
+# ifdef _WIN32
     auto flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
     _CrtSetDbgFlag(flags | _CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF);
+# endif
 #endif
 }
 

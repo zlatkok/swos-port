@@ -1,5 +1,6 @@
 #include "joypadConfig.mnu.h"
 #include "joypads.h"
+#include "sprites.h"
 
 static int m_joypadIndex;
 static SDL_JoystickID m_joypadId;
@@ -155,6 +156,9 @@ static void fillJoypadInfo()
     case SDL_JOYSTICK_POWER_MAX:
         powerLevelDesc = "MAX";
         break;
+    case SDL_JOYSTICK_POWER_UNKNOWN:
+        powerLevelDesc = "UNKNOWN";
+        break;
     }
 
     strcpy(powerLevelDest, powerLevelDesc);
@@ -218,7 +222,6 @@ static void drawDeadZoneBoxBackground()
     }
 
     const auto& values = getJoypadValues();
-    auto& deadZone = getJoypad().config.deadZone;
 
     auto topLeftBackColor = values.y < 0 && values.up() || values.x < 0 && values.left() ? kActiveGreenColor : kInactiveGreenColor;
     auto topRightBackColor = values.y < 0 && values.up() || values.x > 0 && values.right() ? kActiveGreenColor : kInactiveGreenColor;
@@ -419,12 +422,6 @@ static void enterDeadZoneYNeg()
 {
     enterDeadZone(getJoypad().config.deadZone.yNeg, SDL_JOYSTICK_AXIS_MIN, 0);
     updateYNegPercentageEntry();
-}
-
-static void setDeadZoneValueAndPropagate(int entryIndex, int value)
-{
-    getMenuEntry(entryIndex)->u2.number = value;
-    propagateJoypadConfig(m_joypadIndex);
 }
 
 template <typename Op, int fullRange>

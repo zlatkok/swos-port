@@ -7,8 +7,9 @@
 
 OrphanedAssignmentChainRemover::OrphanedAssignmentChainRemover()
 {
-    m_nodeLinks.reserve(512);
-    m_nodes.reserve(128);
+    // these things can go wild
+    m_nodeLinks.reserve(2'100'000);
+    m_nodes.reserve(325);
 }
 
 void OrphanedAssignmentChainRemover::reset()
@@ -213,18 +214,19 @@ void OrphanedAssignmentChainRemover::processInstruction(InstructionNode& node)
 
 void OrphanedAssignmentChainRemover::unlinkMemoryReferences(const InstructionNode& node)
 {
-    for (size_t i = 0; i < node.instruction->numOperands(); i++) {
-        const auto& op = node.opInfo[i];
-        if (op.isDynamicMem()) {
-            if (!op.base.empty())
-                unlinkChain(op.base.reg, op.base.offset, op.base.size);
-            if (!op.scale.empty())
-                unlinkChain(op.scale.reg, op.scale.offset, op.scale.size);
+    if (node.instruction->numOperands() >= 2) {
+        const auto& dst = node.opInfo[0];
+        if (dst.isDynamicMem()) {
+            assert(!dst.base.empty());
+
+            unlinkChain(dst.base.reg, dst.base.offset, dst.base.size);
+            if (!dst.scale.empty())
+                unlinkChain(dst.scale.reg, dst.scale.offset, dst.scale.size);
+
+            const auto& src = node.opInfo[1];
+            unlinkChain(src);
         }
     }
-
-    if (node.instruction->numOperands() >= 2 && node.opInfo[0].isDynamicMem() && node.opInfo[1].isRegister())
-        unlinkChain(node.opInfo[1]);
 }
 
 void OrphanedAssignmentChainRemover::handleXchg(InstructionNode& node)
@@ -446,6 +448,7 @@ void OrphanedAssignmentChainRemover::handleShiftRotate(InstructionNode& node)
         return;
     }
 
+    assert(dst.size());
     auto count = src.constValue() / 8 % dst.size();
     auto size = dst.size();
 
@@ -471,7 +474,7 @@ void OrphanedAssignmentChainRemover::handleShiftRotate(InstructionNode& node)
             unlinkChain(dst.base.reg, dst.base.offset, count);
         } else if (dst.type == OperandInfo::kFixedMem) {
             decreaseReferenceCountMem(dst.address() + size - count, count);
-            for (auto i = 0; i < count; i--)
+            for (size_t i = 0; i < count; i--)
                 m_mem[dst.address() + count + i] = m_mem[dst.address() + i];
             for (size_t i = 0; i < count; i++)
                 unlinkChain(m_mem[dst.address() + i]);
@@ -655,6 +658,21 @@ void OrphanedAssignmentChainRemover::appendSourceNodesToDestination(const Instru
         size = src.memSize;
         break;
 
+    case OperandInfo::kDynamicMem:
+        assert(dst.type == OperandInfo::kReg);
+        for (auto op : { src.base, src.scale }) {
+            if (!op.empty()) {
+                for (size_t i = 0; i < dst.base.size; i++) {
+                    auto& dstNode = m_regs[dst.base.reg][dst.base.offset + i];
+                    for (size_t j = 0; j < op.size; j++) {
+                        const auto& srcNode = m_regs[op.reg][op.offset + j];
+                        appendNodes(dstNode, srcNode);
+                    }
+                }
+            }
+        }
+        return;
+
     default:
         return;
     }
@@ -672,6 +690,7 @@ void OrphanedAssignmentChainRemover::appendSourceNodesToDestination(const Instru
             auto it = m_mem.try_emplace(address, -1).first;
             appendNodes(it->second, srcReg[i]);
         }
+        break;
     }
 }
 
@@ -695,15 +714,28 @@ void OrphanedAssignmentChainRemover::unlinkDestinationChain(const InstructionNod
 
 void OrphanedAssignmentChainRemover::unlinkChain(const OperandInfo& op)
 {
+    auto unlinkRegChain = [this](const OperandInfo::Component& op) {
+        assert(op.reg != kNoReg);
+
+        for (size_t i = 0; i < op.size; i++)
+            unlinkChain(m_regs[op.reg][op.offset + i]);
+    };
+
     switch (op.type) {
     case OperandInfo::kReg:
-        for (size_t i = 0; i < op.base.size; i++)
-            unlinkChain(m_regs[op.base.reg][op.base.offset + i]);
+        unlinkRegChain(op.base);
         break;
 
     case OperandInfo::kFixedMem:
         for (size_t i = 0; i < op.memSize; i++)
             unlinkChain(m_mem[op.address() + i]);
+        break;
+
+    case OperandInfo::kDynamicMem:
+        if (op.base.reg != kNoReg)
+            unlinkRegChain(op.base);
+        if (op.scale.reg != kNoReg)
+            unlinkRegChain(op.scale);
         break;
     }
 }
@@ -729,6 +761,15 @@ void OrphanedAssignmentChainRemover::decreaseDestinationReferenceCount(Instructi
     assert(node.instruction->numOperands() > 0);
 
     const auto& dst = node.opInfo[0];
+
+    if (node.instruction->numOperands() > 1) {
+        const auto& src = node.opInfo[1];
+        if (src.isDynamicMem()) {
+            assert(dst.isRegister());
+            if (src.base.reg == dst.base.reg || src.scale.reg == dst.base.reg)
+                return;
+        }
+    }
 
     switch (dst.type) {
     case OperandInfo::kReg:

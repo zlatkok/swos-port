@@ -178,7 +178,7 @@ void InstructionOperandsInfoExtractor::ensureSizeInformation()
                         return;
                     default:
                         assert(false);
-                        throw OutputException("Undefined reference: " + id.string());
+                        throw OutputException("undefined reference: " + id.string());
                     }
                 }
             }

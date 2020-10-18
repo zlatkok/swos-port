@@ -4,6 +4,12 @@
 
 #ifdef _MSC_VER
 # define debugBreak() __debugbreak()
+#elif defined(__clang__)
+# ifdef __ARM_ARCH
+#  define debugBreak() raise(SIGINT)
+# else
+#  define debugBreak() asm("int $3")
+# endif
 #else
 # error Define debug break directive for your compiler
 #endif

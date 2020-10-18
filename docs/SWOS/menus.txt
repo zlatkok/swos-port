@@ -284,16 +284,16 @@ TIP 13: (on select function - fire only)
 ofs46 = 32
 ofs42 = dword (on select function)
 ---------------------------
-TIP 14: (on select function - all controls accepted)
+TIP 14: (on select function with mask)
 
-ofs46 = word
+ofs46 = word (mask)
 ofs42 = dword (on select function)
 ---------------------------
 TIP 15: (before draw function)
 
 ofs48 = dword (before draw function)
 ---------------------------
-TIP 16: (after draw funkcija)
+TIP 16: (after draw function)
 
 ofs52 = dword (after draw function)
 ---------------------------
@@ -302,17 +302,17 @@ TIP 17: (left skip)
 ofs16 = byte (next entry if this one is disabled or invisible)
 ofs12 = byte (next direction of search, controls direction)
 ---------------------------
-TIP 18: (desno preskakanje)
+TIP 18: (right skip)
 
 ofs17 = byte
 ofs13 = byte
 ---------------------------
-TIP 19: (gornje preskakanje)
+TIP 19: (up skip)
 
 ofs18 = byte
 ofs14 = byte
 ---------------------------
-TIP 20: (donje preskakanje)
+TIP 20: (down skip)
 
 ofs19 = byte
 ofs15 = byte
@@ -334,9 +334,9 @@ from 'fill.256' are added to it. Those pixels are designed to form a gradient
 -- only question is in which color. 'fill.256' uses only 32 colors (indices
 0..31), so the shade groups from working palette can have 32 colors at maximum.
 
-Grupe nijansi:
+Shade groups:
 
-(boje sa nizim indeksom su tamnije)
+(lower index colors are darker)
 
 32 ..63   - plava prelazi u crnu
 64 ..95   - narandzasta prelazi u smedju

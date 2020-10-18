@@ -6,8 +6,12 @@
 #include "music.h"
 #include "replayOptions.h"
 #include "controlOptionsMenu.h"
-#include "options.mnu.h"
 #include <adlmidi.h>
+
+static int16_t m_gameStyle;         // 0 = PC, 1 = Amiga
+static int16_t m_flashCursor = 1;
+
+#include "options.mnu.h"
 
 enum SoundEnabledState { kUnspecified, kOn, kOff, } static m_soundState;
 static bool m_noIntro;
@@ -24,12 +28,10 @@ OptionalControls m_pl2Controls;
 OptionalJoypadGuid m_pl1Joypad;
 OptionalJoypadGuid m_pl2Joypad;
 
-static int16_t m_gameStyle;         // 0 = PC, 1 = Amiga
-
 static constexpr char kIniFilename[] = "swos.ini";
 static constexpr char kStandardSection[] = "standard-options";
 
-static const std::array<Option<int16_t>, 9> kStandardOptions = {
+static const std::array<Option<int16_t>, 10> kStandardOptions = {
     "gameLength",  &swos.g_gameLength, 0, 3, 0,
     "autoReplays",  &swos.g_autoReplays, 0, 1, 0,
     "menuMusic",  &swos.g_menuMusic, 0, 1, 1,
@@ -38,6 +40,7 @@ static const std::array<Option<int16_t>, 9> kStandardOptions = {
     "pitchType", &swos.g_pitchType, -2, 6, 4,
     "chairmanScenes", &swos.g_chairmanScenes, 0, 1, 1,
     "showBigLetterS", &swos.g_spinBigS, 0, 1, 0,
+    "flashMenuCursor", &m_flashCursor, 0, 1, 1,
     "gameStyle", &m_gameStyle, 0, 1, 0,
 };
 
@@ -225,6 +228,11 @@ int midiBankNumber()
     return m_bankNo;
 }
 
+bool flashCursor()
+{
+    return m_flashCursor != 0;
+}
+
 //
 // options menu
 //
@@ -268,6 +276,13 @@ static void doShowControlOptionsMenu()
 static void showGameplayOptions()
 {
     showMenu(gameplayOptionsMenu);
+}
+
+static void changeFlashCursor()
+{
+    logInfo("Flash cursor changed to %s", m_flashCursor ? "ON" : "OFF");
+    m_flashCursor = !m_flashCursor;
+    swos.menuCursorFrame = 0;
 }
 
 static void changeGameStyle()

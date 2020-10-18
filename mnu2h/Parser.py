@@ -912,7 +912,7 @@ class Parser:
         else:
             token = self.tokenizer.expect('[', token, fetchNextToken=True)
 
-            token, variable, declareIndexVariable = self.getStringTableIndexVariable(token)
+            token, variable, declareIndexVariable, externIndexVariable = self.getStringTableIndexVariable(token)
             token, initialValue = self.getStringTableInitialStringIndex(token)
             values = self.getStringTableStrings(token)
             nativeFlags = self.getNativeFlags(variable, values)
@@ -922,7 +922,7 @@ class Parser:
             variable = removePrefix(variable)
 
             assert values and nativeFlags
-            stringTable = StringTable(variable, True, declareIndexVariable, values, initialValue, nativeFlags)
+            stringTable = StringTable(variable, True, declareIndexVariable, externIndexVariable, values, initialValue, nativeFlags)
 
             self.stringTableLengths.add(len(values))
 
@@ -931,22 +931,26 @@ class Parser:
     def getStringTableIndexVariable(self, token):
         assert isinstance(token, Token)
 
-        declare = False
+        extern = False
+        declare = True
         variable = token.string
 
-        if variable == '~':
+        if variable in ('~', 'extern'):
+            if variable == '~':
+                declare = False
+            else:
+                extern = True
             token = self.tokenizer.getNextToken()
             variable = token.string
         elif variable == 'swos':
             token = self.getSwosVariable(token)
             variable = token.string
-        else:
-            declare = True
+            declare = False
 
         token = self.tokenizer.expectIdentifier(token, "comma (`,')", fetchNextToken=True)
         token = self.tokenizer.expect(',', token, fetchNextToken=True)
 
-        return token, variable, declare
+        return token, variable, declare, extern
 
     def getStringTableInitialStringIndex(self, token):
         assert isinstance(token, Token)

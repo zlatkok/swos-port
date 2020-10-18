@@ -3,9 +3,9 @@
 #include "util.h"
 #include "file.h"
 
-const std::array<const char *, 5> SoundSample::kSupportedAudioExtensions = {
+const std::array<const char *, 5> SoundSample::kSupportedAudioExtensions = {{
     "raw", "mp3", "wav", "ogg", "flac",
-};
+}};
 
 SoundSample::SoundSample(const char *path, int chance /* = 1 */)
 {

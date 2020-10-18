@@ -449,21 +449,35 @@ void X86InstructionWriter::outputCdq(const InstructionNode& node)
 
 void X86InstructionWriter::outputOrXor(const InstructionNode& node)
 {
-    assert(node.instruction->numOperands() == 2);
+    assert(node.instruction->numOperands() == 2 && (node.instruction->type() == Token::T_XOR || node.instruction->type() == Token::T_OR));
 
     OpWriter op(node, m_outputWriter);
+    bool eliminateOr = false;
 
-    op.fetchDestFromMemoryIfNeeded();
-    op.outputDestVar();
-
-    switch (node.instruction->type()) {
-    case Token::T_OR: out(" |= "); break;
-    case Token::T_XOR: out(" ^= "); break;
-    default: assert(false);
+    if (node.instruction->type() == Token::T_OR && op.twoOperandsSameRegister()) {
+        if (node.suppressZeroFlag && node.suppressSignFlag) {
+            if (node.suppressCarryFlag)
+                op.discardOutput();
+            else
+                op.clearCarryAndOverflowFlags();
+            return;
+        }
+        eliminateOr = true;
     }
 
-    op.outputSrc(); op.startNewLine();
-    op.writeBackDestToMemoryIfNeeded();
+    if (!eliminateOr) {
+        op.fetchDestFromMemoryIfNeeded();
+        op.outputDestVar();
+
+        switch (node.instruction->type()) {
+        case Token::T_OR: out(" |= "); break;
+        case Token::T_XOR: out(" ^= "); break;
+        default: assert(false);
+        }
+
+        op.outputSrc(); op.startNewLine();
+        op.writeBackDestToMemoryIfNeeded();
+    }
 
     op.clearCarryAndOverflowFlags();
     op.setSignFlag([&] {

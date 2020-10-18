@@ -1,0 +1,301 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\ida2asm\src\InputConverter.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\InputConverterWorker.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\DefinesMap.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\InputSymbols\ProcHookList.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\InputSymbols\SymbolFileParser.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\InputSymbols\SymbolTable.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\main.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\DataItem.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\Directive.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\EndProc.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\Instruction.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\Label.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\OutputItem.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\Proc.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\Segment.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputItem\StackVariable.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\CppOutput.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\DataBank.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\InstructionOperandsInfoExtractor.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\IntermediateFormConverter.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\OperandInfo.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\OpWriter.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\OrphanedAssignmentChainRemover.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\RedundantInstructionRemover.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\VmDataState.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\VmFileWriter.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\CppOutput\X86InstructionWriter.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\MasmOutput.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\OutputFactory.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\OutputFormatResolver.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\OutputWriter.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\OutputWriter\VerbatimOutput.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\Parser\IdaAsmParser.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\References.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\stdinc.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\ida2asm\src\Struct.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\Tokenizer.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\Util\DynaArray.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\Util\StringList.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\Util\StringSet.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\Util\StringView.cpp" />
+    <ClCompile Include="..\..\ida2asm\src\Util\Util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\ida2asm\src\InputConverter.h" />
+    <ClInclude Include="..\..\ida2asm\src\InputConverterWorker.h" />
+    <ClInclude Include="..\..\ida2asm\src\DefinesMap.h" />
+    <ClInclude Include="..\..\ida2asm\src\InputSymbols\ProcHookList.h" />
+    <ClInclude Include="..\..\ida2asm\src\InputSymbols\SymbolAction.h" />
+    <ClInclude Include="..\..\ida2asm\src\InputSymbols\SymbolFileParser.h" />
+    <ClInclude Include="..\..\ida2asm\src\InputSymbols\SymbolTable.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\DataItem.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\Directive.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\EndProc.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\Instruction.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\Label.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\OutputItem.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\Proc.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\Segment.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputItem\StackVariable.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\CppOutput.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\DataBank.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\InstructionNode.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\InstructionOperandsInfoExtractor.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\IntermediateFormConverter.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\OperandInfo.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\OpWriter.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\OrphanedAssignmentChainRemover.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\OutputException.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\RedundantInstructionRemover.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\RegisterEnum.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\StructMap.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\TypeInfo.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\VmDataState.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\VmFileWriter.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\CppOutput\X86InstructionWriter.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\MasmOutput.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\OutputFactory.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\OutputFormatResolver.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\OutputWriter.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\OutputWriterTemplates.h" />
+    <ClInclude Include="..\..\ida2asm\src\OutputWriter\VerbatimOutput.h" />
+    <ClInclude Include="..\..\ida2asm\src\Parser\IdaAsmParser.h" />
+    <ClInclude Include="..\..\ida2asm\src\Parser\ParsingException.h" />
+    <ClInclude Include="..\..\ida2asm\src\References.h" />
+    <ClInclude Include="..\..\ida2asm\src\stdinc.h" />
+    <ClInclude Include="..\..\ida2asm\src\Struct.h" />
+    <ClInclude Include="..\..\ida2asm\src\Tokenizer.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\BlockList.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\DynaArray.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\Iterator.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\PascalString.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\StringList.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\StringMap.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\StringSet.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\StringView.h" />
+    <ClInclude Include="..\..\ida2asm\src\Util\Util.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\ida2asm\gen-lookup\gen-lookup.py">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating token lookup function...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating token lookup function...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating token lookup function...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating token lookup function...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+    </CustomBuild>
+    <None Include="..\..\ida2asm\gen-lookup\tokens.lst" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Types.natvis" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FAB9021D-E0DB-4023-B0F4-FC6881742D10}</ProjectGuid>
+    <RootNamespace>ida2asm</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <EnableASAN>
+    </EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Parser;$(ProjectDir)..\..\ida2asm\src\InputSymbols;$(ProjectDir)..\..\ida2asm\src\OutputWriter;$(ProjectDir)..\..\ida2asm\src\OutputItem;$(ProjectDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Parser;$(ProjectDir)..\..\ida2asm\src\InputSymbols;$(ProjectDir)..\..\ida2asm\src\OutputWriter;$(ProjectDir)..\..\ida2asm\src\OutputItem;$(ProjectDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Parser;$(ProjectDir)..\..\ida2asm\src\InputSymbols;$(ProjectDir)..\..\ida2asm\src\OutputWriter;$(ProjectDir)..\..\ida2asm\src\OutputItem;$(ProjectDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Parser;$(ProjectDir)..\..\ida2asm\src\InputSymbols;$(ProjectDir)..\..\ida2asm\src\OutputWriter;$(ProjectDir)..\..\ida2asm\src\OutputItem;$(ProjectDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>$(ProjectDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(ProjectDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <ImageHasSafeExceptionHandlers>
+      </ImageHasSafeExceptionHandlers>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>$(ProjectDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(ProjectDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;NDEBUG</PreprocessorDefinitions>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <CallingConvention>Cdecl</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeaderFile>$(ProjectDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(ProjectDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeaderFile>$(ProjectDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(ProjectDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>NDEBUG</PreprocessorDefinitions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <CallingConvention>FastCall</CallingConvention>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

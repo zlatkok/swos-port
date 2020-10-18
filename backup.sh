@@ -61,10 +61,27 @@ done
 destPath=$(cygpath -w $destPath)
 
 echo "Creating archive: $destPath"
-"$rar" a -r -m5 -s -x"*__pycache__*" -- "$destPath" 'docs/*' 'ida2asm/*' 'mnu2h/*' 'src/*' 'swos/*' \
-    'tests/sdl-address-table-fetcher/src/*' 'tests/sdl-address-table-fetcher/vc-proj/*.sln' \
-    'tests/sdl-address-table-fetcher/vc-proj/*.vcxproj' 'tests/sdl-address-table-fetcher/vc-proj/*.filters' \
-    'tests/src/*' 'tests/vc-proj/*.sln' 'tests/vc-proj/*.vcxproj' 'tests/vc-proj/*.filters' \
-    'vc-proj/*.sln' 'vc-proj/*.vcxproj' 'vc-proj/*.user' 'vc-proj/*.filters' \
-    tests/meson.build tests/sdl-address-table-fetcher/meson.build \
-    vc-proj/Types.natvis backup.sh README.md meson.build
+"$rar" a -r -m5 -s -x"*__pycache__*" -- "$destPath" \
+    'docs/*' \
+    'ida2asm/*' \
+    'mnu2h/*' \
+    'src/*' \
+    'swos/*' \
+    'tests/sdl-address-table-fetcher/src/*' \
+    'tests/sdl-address-table-fetcher/vc-proj/*.sln' \
+    'tests/sdl-address-table-fetcher/vc-proj/*.vcxproj' \
+    'tests/sdl-address-table-fetcher/vc-proj/*.filters' \
+    'tests/src/*' \
+    'tests/vc-proj/*.sln' \
+    'tests/vc-proj/*.vcxproj' \
+    'tests/vc-proj/*.filters' \
+    'project/vc++/*.sln' \
+    'project/vc++/*.vcxproj' \
+    'project/vc++/*.user' \
+    'project/vc++/*.filters' \
+    'project/vc++/Types.natvis' \
+    tests/meson.build \
+    tests/sdl-address-table-fetcher/meson.build \
+    backup.sh \
+    README.md \
+    meson.build

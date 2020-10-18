@@ -132,6 +132,11 @@ void OpWriter::outputThirdOp()
     outputOp(src2, kRvalue);
 }
 
+bool OpWriter::twoOperandsSameRegister() const
+{
+    return m_node.instruction->numOperands() == 2 && m_dst.opInfo.isRegister() && m_dst.opInfo == m_src.opInfo;
+}
+
 void OpWriter::outputSrcVar(ValueCategory category /* = kAuto */)
 {
     if (m_srcVarDeclared)

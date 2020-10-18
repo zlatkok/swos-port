@@ -1,4 +1,3 @@
-#include "videoOptions.mnu.h"
 #include "menuMouse.h"
 
 constexpr auto kSelectedColor = kSoftBlueText;
@@ -6,6 +5,8 @@ constexpr int kPleaseWaitLimitMs = 333;
 
 static bool m_menuShown;
 static int16_t m_windowResizable = 1;
+
+#include "videoOptions.mnu.h"
 
 static const char *kPleaseWaitText;
 
@@ -59,10 +60,8 @@ static DisplayModeList getDisplayModes(int displayIndex)
             logInfo("  %2d %d x %d, format: %x, refresh rate: %d", i, mode.w, mode.h, mode.format, mode.refresh_rate);
 
             if (!shownWarning && SDL_GetTicks() > startTicks + kPleaseWaitLimitMs) {
-                if (!kPleaseWaitText) {
-                    auto ofs = SwosVM::allocateString("PLEASE WAIT, ENUMERATING GRAPHICS MODES...");
-                    kPleaseWaitText = SwosVM::offsetToPtr(ofs);
-                }
+                if (!kPleaseWaitText)
+                    kPleaseWaitText = SwosVM::allocateString("PLEASE WAIT, ENUMERATING GRAPHICS MODES...");
                 drawMenuText(55, 80, kPleaseWaitText, kYellowText);
                 updateScreen();
                 shownWarning = true;

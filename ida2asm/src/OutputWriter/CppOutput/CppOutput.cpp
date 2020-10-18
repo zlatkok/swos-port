@@ -67,15 +67,19 @@ bool CppOutput::output(OutputFlags flags, CToken *)
             outputDefines();
 
         if (flags & kDisassembly)
-            outputCodeAndData();
+            outputCodeAndData(flags);
 
         if (!save())
             result = false;
 
         closeOutputFile();
     } catch (const OutputException& e) {
+        if (!m_error.empty())
+            m_error += ", ";
+
         if (e.file())
             m_error += "in file: "s + e.file() + ", ";
+
         m_error += e.what();
         result = false;
     }
@@ -189,9 +193,9 @@ void CppOutput::outputDefines()
     }
 }
 
-void CppOutput::outputCodeAndData()
+void CppOutput::outputCodeAndData(OutputFlags flags)
 {
-    runFirstPass();
+    runFirstPass(flags);
 
     const auto& instructions = m_irConverter.instructions();
     for (auto it = instructions.begin(); it != instructions.end(); ++it) {
@@ -231,7 +235,7 @@ void CppOutput::outputCodeAndData()
 
 // Since assembler might reference labels without declaring them first, we'll simply forward declare all the data.
 // Also divide labels into global (outside a proc) and local (inside a proc).
-void CppOutput::runFirstPass()
+void CppOutput::runFirstPass(OutputFlags flags)
 {
     bool inProc = false;
 
@@ -248,7 +252,15 @@ void CppOutput::runFirstPass()
             }
             break;
         case OutputItem::kEndProc:
-            inProc = false;
+            {
+                inProc = false;
+                auto fallThroughFunction = m_irConverter.instructions().back().label;
+                if (fallThroughFunction && (&item == m_outputItems.end() || item.next()->type() != OutputItem::kProc ||
+                    item.next()->getItem<Proc>()->name() != fallThroughFunction))
+                    throw OutputException("missing fallthrough function " + fallThroughFunction.string(),
+                        getOutputFilename(flags).c_str());
+
+            }
             break;
         case OutputItem::kLabel:
             if (inProc) {

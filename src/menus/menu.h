@@ -16,17 +16,21 @@ static inline void showError(const char *error)
 static inline bool showContinueAbortPrompt(const char *header, const char *continueText,
     const char *abortText, const std::vector<const char *>& message)
 {
+    using namespace SwosVM;
+
     assert(message.size() < 7);
 
     A0 = header;
     A2 = continueText;
     A3 = abortText;
 
-    char buf[512];
+    constexpr int kBufferSize = 256;
+    auto mark = getMemoryMark();
+    auto buf = allocateMemory(kBufferSize);
 
     char numLines = 0;
     auto p = buf + 1;
-    auto sentinel = buf + sizeof(buf) - 1;
+    auto sentinel = buf + kBufferSize - 1;
 
     for (auto line : message) {
         numLines++;
@@ -41,6 +45,8 @@ static inline bool showContinueAbortPrompt(const char *header, const char *conti
     buf[0] = numLines;
 
     A1 = buf;
+    assert(p - buf + 1 < kBufferSize);
+    SwosVM::releaseMemory(p - buf + 1 + mark);
 
     DoContinueAbortMenu();
 
@@ -93,13 +99,12 @@ static inline void drawMenuTextCentered(int x, int y, const char *text, int colo
     SAFE_INVOKE(DrawMenuTextCentered);
 }
 
-#include "sprites.h"
 static inline void drawMenuSprite(int x, int y, int index)
 {
     D0 = index;
     D1 = x;
     D2 = y;
-    drawSprite(index, x, y);
+    SAFE_INVOKE(DrawSprite);
 }
 
 static inline void redrawMenuBackground()

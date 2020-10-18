@@ -1,6 +1,9 @@
-#include "CrashRpt.h"
 #include "log.h"
 #include "file.h"
+
+#ifdef _WIN32
+
+#include "CrashRpt.h"
 
 int CALLBACK crashCallback(CR_CRASH_CALLBACK_INFO *info)
 {
@@ -81,3 +84,12 @@ void installCrashHandler()
     crAddScreenshot2(CR_AS_PROCESS_WINDOWS | CR_AS_VIRTUAL_SCREEN, 0);
     crAddProperty("BuiltAt", __DATE__ ", " __TIME__);
 }
+
+#else
+
+void installCrashHandler()
+{
+    // TODO
+}
+
+#endif

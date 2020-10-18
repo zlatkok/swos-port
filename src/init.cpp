@@ -18,10 +18,14 @@ constexpr int kSentinelSize = sizeof(kSentinelMagic);
 constexpr int kDosMemBufferSize = 342'402 + kSentinelSize;
 // allocate buffer big enough to hold every single pitch pattern (if each would be unique)
 constexpr int kPitchPatternsBufferSize = (42 * 53 + 42) * 256 + kSentinelSize;
+
+static SDL_RWops *m_soccerBinHandle;
+static char *m_soccerBinPtr;
+
+#ifdef DEBUG
 constexpr int kExtendedMemoryBufferSize = 393'216 + kSentinelSize;
 constexpr int kTotalExtraMemorySize = kDosMemBufferSize + kPitchPatternsBufferSize + kExtendedMemoryBufferSize;
 
-#ifdef DEBUG
 void verifyBlock(const char *array, size_t size)
 {
     assert(!memcmp(array + size - kSentinelSize, kSentinelMagic, kSentinelSize));
@@ -167,7 +171,7 @@ static bool initIntroAnimation()
 {
     resetGameAudio();
 
-    swos.soccerBinPtr = swos.dosMemLinAdr;
+    m_soccerBinPtr = swos.dosMemLinAdr;
     swos.introCurrentSoundBuffer = swos.dosMemLinAdr + kVirtualScreenSize;
     swos.soccerBinSoundChunkBuffer = swos.introCurrentSoundBuffer + 47628;
     swos.introCurrentSoundBufferChunk = swos.soccerBinSoundChunkBuffer;
@@ -176,37 +180,37 @@ static bool initIntroAnimation()
     swos.introAborted = 0;
 
     do {
-        if (swos.soccerBinHandle = openFile(swos.aArcSoccer_bin)) {
+        if (m_soccerBinHandle = openFile(swos.aArcSoccer_bin)) {
             swos.introFrameDataOffset = 0;
             swos.introFrameDataChunkRemainder = 0;
             swos.introFirstChunkLoaded = 0;
 
-            if (fread(swos.soccerBinPtr, 20, 1, swos.soccerBinHandle) != 1)
+            if (SDL_RWread(m_soccerBinHandle, m_soccerBinPtr, 20, 1) != 1)
                 break;
 
-            swos.introNumFrames = *reinterpret_cast<dword *>(swos.soccerBinPtr + 12);
-            auto size = *reinterpret_cast<word *>(swos.soccerBinPtr + 16);
+            swos.introNumFrames = *reinterpret_cast<dword *>(m_soccerBinPtr + 12);
+            auto size = *reinterpret_cast<word *>(m_soccerBinPtr + 16);
 
-            if (fread(swos.soccerBinPtr, size, 1, swos.soccerBinHandle) != 1)
+            if (SDL_RWread(m_soccerBinHandle, m_soccerBinPtr, size, 1) != 1)
                 break;
 
-            memcpy(swos.introCurrentSoundBuffer, swos.soccerBinPtr, 47628);
+            memcpy(swos.introCurrentSoundBuffer, m_soccerBinPtr, 47628);
 
-            size = *reinterpret_cast<word *>(swos.soccerBinPtr + 47628);
-            if (fread(swos.soccerBinPtr, size, 1, swos.soccerBinHandle) != 1)
+            size = *reinterpret_cast<word *>(m_soccerBinPtr + 47628);
+            if (SDL_RWread(m_soccerBinHandle, m_soccerBinPtr, size, 1) != 1)
                 break;
 
-            memcpy(swos.soccerBinSoundChunkBuffer, swos.soccerBinPtr, 47628);
+            memcpy(swos.soccerBinSoundChunkBuffer, m_soccerBinPtr, 47628);
 
-            size = *reinterpret_cast<word *>(swos.soccerBinPtr + 47628);
-            if (fread(swos.soccerBinPtr, size, 1, swos.soccerBinHandle) != 1)
+            size = *reinterpret_cast<word *>(m_soccerBinPtr + 47628);
+            if (SDL_RWread(m_soccerBinHandle, m_soccerBinPtr, size, 1) != 1)
                 break;
 
-            memcpy(swos.soccerBinSoundDataPtr + 47628, swos.soccerBinPtr, 47628);
+            memcpy(swos.soccerBinSoundDataPtr + 47628, m_soccerBinPtr, 47628);
             memcpy(swos.soccerBinSoundDataPtr, swos.soccerBinSoundChunkBuffer, 47628);
 
             swos.introSoundBufferIndex = 95256;
-            swos.introCurrentFrameDataPtr = swos.soccerBinPtr + 47628;
+            swos.introCurrentFrameDataPtr = m_soccerBinPtr + 47628;
         }
 
         clearScreen();
@@ -220,8 +224,8 @@ static bool initIntroAnimation()
 
 void SWOS::CloseSoccerBin()
 {
-    if (swos.soccerBinHandle)
-        fclose(swos.soccerBinHandle);
+    if (m_soccerBinHandle)
+        SDL_RWclose(m_soccerBinHandle);
 }
 
 void SWOS::IntroEnsureFrameDataLoaded()
@@ -247,7 +251,7 @@ void SWOS::IntroEnsureFrameDataLoaded()
 
         if (swos.introFrameDataChunkRemainder) {
             dest = swos.introFrameDataChunkRemainder;
-            memcpy(swos.soccerBinPtr + dest, swos.soccerBinPtr + swos.introFrameDataOffset, bytesUntilNextChunk);
+            memcpy(m_soccerBinPtr + dest, m_soccerBinPtr + swos.introFrameDataOffset, bytesUntilNextChunk);
             dest += bytesUntilNextChunk;
             subSize = bytesUntilNextChunk;
             if (swos.introFrameDataSize == bytesUntilNextChunk)
@@ -260,7 +264,7 @@ void SWOS::IntroEnsureFrameDataLoaded()
         numChunks = res.quot + (res.rem > 0);
     }
 
-    fread(swos.soccerBinPtr + dest, numChunks * kChunkSize, 1, swos.soccerBinHandle);
+    SDL_RWread(m_soccerBinHandle, m_soccerBinPtr + dest, numChunks * kChunkSize, 1);
     swos.introFrameDataOffset = swos.introFrameDataChunkRemainder;
 }
 

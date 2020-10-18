@@ -10,10 +10,6 @@ __int_3 - SelectAndShowSquadToView
 Initialization - RingABell
 cseg_1994F
 InitIntroAnimation
-OpenSoccerBin
-CopySoccerBinSection
-ReadFromSoccerBin
-IntroWaitNextFrameInterval
 EGAFlip
 ChangeMenuMusic
 ExitOptions - SaveOptions
@@ -24,6 +20,7 @@ FindFiles
 ShowRestOfPics - StartingMatch
 InitMenuEntry - Int2Ascii
 DrawTeamNameSprites
+QuitToDosPromptLoop - SWOSMainMenuInit
 
 # menus
 RestorePreviousMenu
@@ -46,8 +43,16 @@ PlayHitFrameComment
 SetVolumeOrStopChants
 PlayGoodJumpHeaderComment
 
+# intro
+OpenSoccerBin
+CopySoccerBinSection
+ReadFromSoccerBin
+IntroWaitNextFrameInterval
+soccerBinHandle
+# remove together with PlayIntroAnimation()
+#soccerBinPtr
+
 # big AIL & C-lib removal
-# unfortunately, these ranges will have to be updated when file limits change
 cseg_98EFD
 cseg_9A9E1 - dseg
 dataStart - aChairmanScenes
@@ -99,6 +104,7 @@ HighlightsMenu
 HighlightsMenuInit - ViewHighlightsWrapper
 LoadHilFile - SetTeamGlobalNumbers
 IncrementHilBufferPointer
+DrawReplayOrExitMenu - PlayInstantReplayLoop
 
 # CD ROM variables
 dosMemSegment
@@ -141,9 +147,7 @@ PlayChairmanScene
 #
 
 @replace
-# be careful when changing strings, as offsets must not change
-aCommentary, 'COMMENTARY****', 0
-aQuitToDos, 'QUIT TO WINDOWS', 0
+# be careful when changing strings in string pool, as offsets must not change
 
 # make sounds/music/commentary all ON by default
 g_soundOff, 0
@@ -251,6 +255,7 @@ controlWord, word
 DrawMenu, function
 DrawMenuItem, function
 DrawMenuText, function
+DrawInnerFrame, function
 DrawMenuTextCentered, function
 CommonMenuExit, function
 SetExitMenuFlag, function
@@ -266,6 +271,8 @@ player2ClearFlag, word
 menuFade, word
 menuStatus, word
 menuCycleTimer, word
+kColorTableShine, array word[8]
+menuCursorFrame, word
 
 # menu keyboard input
 FilterKeys, function
@@ -296,7 +303,6 @@ aSeason, array const char
 aCareer, array const char
 saveFileTitle, array const char
 aLoadOldCompeti, array const char
-aQuitToDos, array const char
 aReturnToGame, array const char
 
 aHigh, array const char
@@ -367,7 +373,6 @@ aCustom, array const char
 PlayIntroAnimation, function
 IntroFillSoundBuffer, function
 aArcSoccer_bin, array const char
-soccerBinPtr, char *
 introCurrentSoundBuffer, char *
 soccerBinSoundChunkBuffer, char *
 soccerBinSoundDataPtr, char *
@@ -378,7 +383,6 @@ introFrameDataOffset, dword
 introFirstChunkLoaded, byte
 introNumFrames, dword
 introFrameDataChunkRemainder, dword
-soccerBinHandle, FILE *
 introSoundBufferIndex, dword
 introCurrentSoundBufferNum, byte
 introFrameDataSize, dword
@@ -754,6 +758,7 @@ InitMainMenuStuff
 # menus
 MenuProc
 ShowMenu
+DrawSelected
 UnpackMenu
 ActivateMenu
 SetCurrentEntry
@@ -765,7 +770,6 @@ DrawSpriteInCameraView
 DrawSprite16Pixels
 CopySprite
 
-SetPrevVideoModeEndProgram
 ReadPitchFile
 WaitRetrace
 Flip

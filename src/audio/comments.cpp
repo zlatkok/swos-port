@@ -173,17 +173,6 @@ static int parseSampleChanceMultiplier(const char *str, size_t len)
     return frequency;
 }
 
-static size_t getBasenameLength(const char *filename, size_t len)
-{
-    assert(filename);
-
-    for (int i = static_cast<int>(len) - 1; i >= 0; i--)
-        if (filename[i] == '.')
-            return i ? i - 1 : 0;
-
-    return len;
-}
-
 static void loadCustomCommentary()
 {
     assert(m_sampleTables.size() == kNumSampleTables);
@@ -205,11 +194,17 @@ static void loadCustomCommentary()
 
         if (dir) {
             for (dirent *entry; entry = readdir(dir); ) {
-                if (entry->d_namlen < 4)
+#ifdef _WIN32
+                auto len = entry->d_namlen;
+#else
+                auto len = strlen(entry->d_name);
+#endif
+
+                if (len < 4)
                     continue;
 
                 auto samplePath = dirPath + entry->d_name;
-                int chance = parseSampleChanceMultiplier(entry->d_name, entry->d_namlen);
+                int chance = parseSampleChanceMultiplier(entry->d_name, len);
                 SoundSample sample(samplePath.c_str(), chance);
 
                 if (sample.hasData()) {

@@ -17,7 +17,7 @@ Menu quitMenu {
         y: kPromptTopItemY
 
         color: kPromptTopItemColor
-        text: swos.aQuitToDos
+        text: kQuitToOS
 
         downEntry: >
 

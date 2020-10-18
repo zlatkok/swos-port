@@ -29,9 +29,9 @@ private:
     bool outputExterns();
 
     void outputDefines();
-    void outputCodeAndData();
+    void outputCodeAndData(OutputFlags flags);
 
-    void runFirstPass();
+    void runFirstPass(OutputFlags flags);
 
     void outputInstruction(const InstructionNode& node);
     void outputProcStart(const InstructionNode& node);

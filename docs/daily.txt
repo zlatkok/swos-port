@@ -2759,7 +2759,7 @@ earlier:
 - now trying to get into the game but friendly menu isn't reacting; it's because pass through functions
   weren't implemented correctly (and friendly menu depended on them) - fixed
 - fixed null strings wrongly set to kSentinel, causing allocation of menu space for string data, and
-  starving menu buffer
+  starving the menu buffer
 - trying desperately to reach the game ;) but getting some null pointer access in SetCountryNames()
 24.09.2020.
 - fixed missed initialization of MenuEntry drawn field
@@ -2884,3 +2884,116 @@ earlier:
 - tested, and the infinite loop is gone as well as the super-bounce! so that's two birds with one stone :D
 - fixed load files menu, now highlights/replays work, tactics importing etc.
 - fixed video options menu
+02.09.2020.
+- had some fun & learning profiling while ida2asm, shaved of another ~50ms :D
+- optimized optimizer a bit ;) it now deletes a bit more instructions
+- trying to compile SDL2 for Android, this will be death on the dance floor
+03.09.2020.
+- managed to compile SDL2 for ARM with Visual Studio, but not it's Java wrapper project
+- had an idea today, to actually kick out lot of x86 registers from the code and leave 68k (since it was what
+  the conversion was from), but it could get complicated, might leave for later, will see
+04.09.2020.
+- managed to build Java project as well, but can't setup latest SDL (which has a lot of Android updates)
+  since I don't know how to assemble optimized NEON blitting routines
+05.09.2020.
+- managed to build complete project with the latest SDL; managed to set up compilation of NEON assembly
+  routines, it seems they were made for GNU `as', not internal clang assembler (-fno-integrated-as flag),
+  had to tell it specifically to assemble (-x assembler-with-cpp flag) and set target specifically
+  (-target aarch64-none-linux-android and -Wa,-march=armv8-a for the assembler) + the assembler has to be
+  copied from the ARM NDK dir; however it turned out that the generated object files are 32-bit (for arm v6/7)
+  and can't be linked with the rest), but the worst thing is I saw on the Github that they disabled them since
+  "they are buggy", so excluded them for now - atm I got everything compiled for API level 26, but I'm
+  targeting level 16, and as soon as the level is switched everything breaks apart, so trying to figure that
+  out now
+- there are indications if this is successful I could build the whole game from Visual Studio using the
+  existing project and solution which would be awesome :)
+- trying APK on 3 phones but it won't install, even the emulator is refusing it :(
+06.09.2020.
+- APK doesn't work since it wasn't signed; so I need to figure out how to sign it :P
+- despite not being signed it should still work on the emulator, but it doesn't; when trying to deploy to
+  emulator Visual Studio just sits there and nothing happens, updated to the latest version but it still
+  happens
+07.09.2020.
+- updated Windows but it's still not working... and now the Internet loses connection every 20 seconds or
+  so... reverted back, what a debacle
+- giving up on Visual Studio for now, trying to make Android Studio work, it can at least deploy to emulator
+- failed to build in Android Studio via CMake, it keeps failing to configure without a clear reason
+- maybe it could work via ndk-build even if it's deprecated (I'll take anything right now)
+- Android Studio using ndk-build just wouldn't budge, only managed to get some limited info via command line
+  (possibly jni dir is in wrong place, or they just changed expectations between different versions), maybe I
+  could just use pre-made binaries from Visual Studio and combine them with project in Android Studio, will
+  try that tomorrow
+- haha, managed to build it with CMake with last ditch effort :)
+08.09.2020.
+- built native libs of all flavours in Android Studio (debug/release, 32-bit and 64-bit Intel/Arm), had to
+  hack cpu-features include/C file for 32-bit Arm but it succeeded in the end; I thought the build was for
+  the Android level 16, but I missed a warning that CMake never actually used that variable, so it's a big
+  question if this would really work
+- failing to build hello world (it fails to find lib SDL2)
+09.09.2020.
+- after many shenanigans managed to compile SDL program and execute it on the emulator, bundled with all the
+  necessary native libraries; it's not really doing anything, will have to compile SDL_image library and see
+  if it would load an image correctly
+10.10.2020.
+/
+11.10.2020.
+- compiled SDL2_Image
+- trying to make a sample program that loads a PNG and displays it, but I realized I have no idea how to
+  prepare files so IMG_Load() can find them :P I think they must go to assets directory, but now realized I
+  haven't properly compiled SDL_Image: PNG support is missing, and must be added via external libpng library
+  and now have to figure out how to compile and integrate that...
+- managed to build static libpng, after the usual long fighting with this build system
+- woohoo! hello world is finally running! it works on the emulator, good phone and mediocre phone, only fails
+  on the crappy phone (it can't find libc++_shared.so even though it's inside the APK); will see more about
+  this later, it might be possible to fix it and cover a truly insane range of devices :) and if it turns out
+  impossible, it will still be all right; will be split on 1) fix support for Android 16 and 2) start to
+  compile/boil the water for the Android SWOS build ;)
+12.10.2020.
+- fixed library load error, all it took was some load order rearranging, seems later Androids are smarter
+  about this, however SDLActivity is triggering an exception, something about Bluetooth
+- it was using BluetoothManager class not present on Android 16; just checked for null and skipped Bluetooth
+  initialization and voila, the little sample is working on the crappola phone too :)
+- reorganized project files hierarchy to accommodate other platforms, had to replace ..\ with ..\..\ for
+  every single file in VC++ project files, ugh...
+- making VS project file to create Android shared library with the game's main code; so far it seems I must
+  use VS supplied NDK and Android version at least 21 for everything to compile properly; I'll move forward
+  with this combination for development, and resolve any issues in the end, possibly doing final build in
+  Android Studio
+- trying to compile for clang, but the errors keep piling up :P
+13.10.2020.
+- got the thing to compile, but not link; need to build SDL_mixer and ADLMIDI for Android
+14.10.2020.
+- compiled SDL2_mixer (and it's accompanying libraries), it's been an unsurmountable suffering
+15.10.2020.
+- compiled ADLMIDI
+- removed useless ORs with the same operands (e.g. ax |= ax) in the generated code
+- fixed linker errors and finally got SWOS in the lib form, unfortunately it's crashing at start; not sure
+  it's Visual Studio build's fault somehow, will investigate
+- seems Android Studio is very insistent in stripping native libraries during the build, gotta stop it from
+  doing that or link symbols somehow to see why is it crashing
+- found out, I just had to add each arch dir under jniLibs to debugger search path and now debugging works
+  beautifully; ops, I didn't pack all the necessary files :) and the log file couldn't be open for writing,
+  I just rerouted it to Android's logcat
+- trying to make it load files from assets
+16.10.2020.
+- switched to using SDL's RWops file handling system, it's simple, covers desktop & Android transparently
+  and does exactly what I wanted to do
+- got into menus on the emulator :)
+- fixed control options menu
+- added a system for caching constant strings from SwosVM
+- changed "QUIT TO WINDOWS" to "QUIT TO ANDROID" on Android ;)
+- found out that I actually have a 32-bit ARM CPU - a Cortex-A9, that will come handy later
+17.10.2020.
+- managed to run it on the real phone (it does take a while!), but it crashes when opening league to pick
+  teams; and that is because annoying Linux case-sensitive file system is creating problems, converted all
+  paths and filenames in assets to lowercase to compensate
+- fixed a few bugs in the conversion
+- turned off selected entry shining frame in menus on Android, looks too weird when there's no mouse pointer
+  to follow; but then changed my mind (what if someone uses attached keyboard?) and added an option to turn
+  flashing on/off so the code doesn't go to waste ;)
+- fixed a highlighting current entry bug in menus which only now became visible after some unrelated changes
+- "played" a game on the emulator :) it's nearly impossible to control with "mouse" controls, and arrows get
+   rotated (up/down becomes left/right and vice versa) since the phone is in landscape mode :P
+- played it on two phones too :) performance was OK on the good phone, but the game runs a bit slow on the
+  worse phone, fluid but just slower than it's supposed to (I was testing debug version will see how release
+  is doing)

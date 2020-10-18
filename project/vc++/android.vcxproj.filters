@@ -1,0 +1,322 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\..\src\audio\audio.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\chants.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\comments.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\music.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\sfx.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\SoundSample.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\wavFormat.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\controls\controlOptionsMenu.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\controls\controls.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\controls\joypadConfigMenu.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\controls\joypads.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\controls\scanCodes.h">
+      <Filter>Source Files\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\debug\dump.h">
+      <Filter>Source Files\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\files\file.h">
+      <Filter>Source Files\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\files\selectFilesMenu.h">
+      <Filter>Source Files\files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\menus\mainMenu.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\menus\menu.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\menus\menuCodes.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\menus\menuMouse.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\replays\ReplayData.h">
+      <Filter>Source Files\replays</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\replays\replayOptions.h">
+      <Filter>Source Files\replays</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\replays\replays.h">
+      <Filter>Source Files\replays</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\replays\replaysMenu.h">
+      <Filter>Source Files\replays</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\fetch.h">
+      <Filter>Source Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\util\util.h">
+      <Filter>Source Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\video\render.h">
+      <Filter>Source Files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\video\sprites.h">
+      <Filter>Source Files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\android\pch.h">
+      <Filter>Source Files\android</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\assert.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\crash.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\log.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\options.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\stdinc.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\swos.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{446c3088-a312-4bd9-a62b-036b46ac4f1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\audio">
+      <UniqueIdentifier>{59614996-c9ce-450c-8d31-f690c2e2fc03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\controls">
+      <UniqueIdentifier>{02e2e7b0-c26a-4f26-a543-84b6a70cc853}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\debug">
+      <UniqueIdentifier>{b5a0bc12-5591-4d0e-a2f7-d4840646a52e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\files">
+      <UniqueIdentifier>{a349dca6-6508-4717-9b94-e4363ceed7be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\menus">
+      <UniqueIdentifier>{21500068-e1d0-464b-aa3d-4153293d522d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\substitutes">
+      <UniqueIdentifier>{10d6b7c5-9c6d-48d1-99dc-152d63982688}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\video">
+      <UniqueIdentifier>{67e44202-240d-4761-ad7a-be37f9d1d01c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{9e7f9490-e380-4d43-9773-e7a041fb2114}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\swos-cpp">
+      <UniqueIdentifier>{44dc1d5e-37b5-40e0-b8e9-b8cbd4288d45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\replays">
+      <UniqueIdentifier>{6d13b094-db2a-4528-8283-f6da4f8dd749}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\android">
+      <UniqueIdentifier>{76608d68-640f-4b0e-b111-c9d3e90d2fb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ConvertUTF">
+      <UniqueIdentifier>{dccc900f-61e6-4068-baf8-bf38240b7d57}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\audio\audio.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\chants.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\comments.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\music.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\sfx.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\SoundSample.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\controls\controlOptionsMenu.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\controls\controls.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\controls\joypadConfigMenu.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\controls\joypads.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\controls\scanCodes.cpp">
+      <Filter>Source Files\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\debug\dump.cpp">
+      <Filter>Source Files\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\files\file.cpp">
+      <Filter>Source Files\files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\files\selectFilesMenu.cpp">
+      <Filter>Source Files\files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\menus\mainMenu.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\menus\menu.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\menus\menuMouse.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\menus\unpackMenu.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\replays\ReplayData.cpp">
+      <Filter>Source Files\replays</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\replays\replayOptions.cpp">
+      <Filter>Source Files\replays</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\replays\replays.cpp">
+      <Filter>Source Files\replays</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\replays\replaysMenu.cpp">
+      <Filter>Source Files\replays</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\substitutes\substitutes.cpp">
+      <Filter>Source Files\substitutes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util\util.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\video\render.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\video\sprites.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\video\videoOptionsMenu.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\crash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\init.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\options.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\pitch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\src\ConvertUTF\ConvertUTF.cpp">
+      <Filter>ConvertUTF</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-01.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-02.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-03.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-04.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-05.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-06.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-07.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-08.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\vm.cpp">
+      <Filter>Source Files\swos-cpp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\menus\common.mh">
+      <Filter>Source Files\menus</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\menus\videoOptions.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\selectFiles.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\replays.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\replayExit.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\quit.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\options.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\main.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\joypadConfig.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\audioOptions.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\controlOptions.mnu">
+      <Filter>Source Files\menus</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

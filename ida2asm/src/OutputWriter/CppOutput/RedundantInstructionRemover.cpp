@@ -2,7 +2,6 @@
 #include "DataBank.h"
 #include "VmDataState.h"
 #include "RedundantInstructionRemover.h"
-#include "OrphanedAssignmentChainRemover.h"
 
 RedundantInstructionRemover::RedundantInstructionRemover(const DefinesMap& defines, const DataBank& dataBank)
     : m_defines(defines), m_dataBank(dataBank)
@@ -12,25 +11,26 @@ RedundantInstructionRemover::RedundantInstructionRemover(const DefinesMap& defin
 // Remove redundant MOV instructions by tracking registry and memory contents
 void RedundantInstructionRemover::markRedundantProcInstructions(Instructions& nodes, size_t start, size_t end)
 {
+    // moved orphan remover to instance variable so it won't need to recreate its vectors every time
+    // (and they can grow quite large)
     VmDataState state;
-    OrphanedAssignmentChainRemover orphanRemover;
 
     for (; start < end; start++) {
         auto& node = nodes[start];
 
         if (node.type == OutputItem::kProc) {
             state.startNewProc();
-            orphanRemover.startNewProc();
+            m_orphanRemover.startNewProc();
         } else if (node.type == OutputItem::kLabel) {
             state.processLabel(node);
         } else if (node.instruction) {
             if (node.flowChange) {
                 state.reset();
-                orphanRemover.reset();
+                m_orphanRemover.reset();
             }
 
             state.processInstruction(node);
-            orphanRemover.processInstruction(node);
+            m_orphanRemover.processInstruction(node);
         } else if (node.type == OutputItem::kEndProc) {
             assert(start == end - 1);
         }

@@ -438,6 +438,10 @@ bool ExampleClass::assign(const Data& data)
 }
 ```
 
+## CMake
+
+Usage of CMake is strictly forbidden. For cross-platform build management only alternatives may be used.
+
 ## Exceptions to the rules
 
 Use common sense, in cases where strictly following a rule makes your code look bad, exceptions are allowed.

@@ -2,7 +2,6 @@
 #include "menu.h"
 #include "replays.h"
 #include "main.mnu.h"
-#include "quit.mnu.h"
 
 void activateMainMenu()
 {
@@ -62,6 +61,18 @@ static void drawExitIcon()
         dest += pitch;
     }
 }
+
+
+constexpr char kQuitToOS[] = "QUIT TO "
+#ifdef _WIN32
+"WINDOWS";
+#elif defined(__ANDROID__)
+"ANDROID";
+#else
+# error "Define OS name"
+#endif
+
+#include "quit.mnu.h"
 
 static void showQuitMenu()
 {

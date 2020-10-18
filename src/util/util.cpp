@@ -46,7 +46,8 @@ TimeInfo getCurrentTime()
     time_t time = timeSinceEpochMs / 1000;
     auto tm = std::localtime(&time);
 
-    return { 1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, timeSinceEpochMs % 1000 };
+    return { 1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
+        tm->tm_min, tm->tm_sec, static_cast<int>(timeSinceEpochMs % 1000) };
 }
 
 std::string formatNumberWithCommas(int64_t num)
@@ -61,7 +62,7 @@ std::string formatNumberWithCommas(int64_t num)
 
     int i = 0;
     do {
-        auto quoteRem = std::div(num, 10ll);
+        auto quoteRem = std::lldiv(num, 10);
         num = quoteRem.quot;
         if (i++ == 3) {
             result += ',';
@@ -157,12 +158,21 @@ bool isMatchRunning()
 
 void beep()
 {
+#ifdef _WIN32
     ::PlaySound(TEXT("SystemExclamation"), nullptr, SND_ALIAS | SND_ASYNC);
+#else
+    // not working on Android, need something better, maybe some JNI calls
+    putchar('\a');
+#endif
 }
 
 bool isDebuggerPresent()
 {
+#ifdef _WIN32
     return ::IsDebuggerPresent() != 0;
+#else
+    return false;
+#endif
 }
 
 #ifdef DEBUG

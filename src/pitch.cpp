@@ -25,11 +25,11 @@ void SWOS::ReadPitchFile()
 
     if (auto file = openFile(pitchFilename)) {
         for (int i = 0; i < 55; i++) {
-            if (!fread(buffer, 168, 1, file))
+            if (!SDL_RWread(file, buffer, 168, 1))
                 logWarn("Failed reading pitch file %s, line %d", pitchFilename, i);
             buffer += 176;
         }
-        fclose(file);
+        SDL_RWclose(file);
     }
 
     auto blkFilename = swos.aPitch1_blk + 16 * D0;

@@ -144,12 +144,12 @@ __declspec(naked) void SWOS::PlaySoundSample()
 // option variables
 //
 
-static const std::array<Option<int16_t>, 4> kAudioOptions = {
-    "soundOff", &swos.g_soundOff, 0, 1, 0,
-    "musicOff", &swos.g_musicOff, 0, 1, 0,
-    "commentary", &swos.g_commentary, 0, 1, 1,
-    "crowdChants", &swos.g_crowdChantsOn, 0, 1, 1,
-};
+static const std::array<Option<int16_t>, 4> kAudioOptions = {{
+    { "soundOff", &swos.g_soundOff, 0, 1, 0 },
+    { "musicOff", &swos.g_musicOff, 0, 1, 0 },
+    { "commentary", &swos.g_commentary, 0, 1, 1 },
+    { "crowdChants", &swos.g_crowdChantsOn, 0, 1, 1 },
+}};
 
 const char kAudioSection[] = "audio";
 const char kMasterVolume[] = "masterVolume";
@@ -158,7 +158,7 @@ const char kMusicVolume[] = "musicVolume";
 template <typename T>
 static void setVolume(T& dest, int volume, const char *desc)
 {
-    if (volume < 0 || volume > kMaxVolume)
+    if (volume < kMinVolume || volume > kMaxVolume)
         logWarn("Invalid value given for %s volume (%d), clamping", desc, volume);
 
     volume = std::min(volume, kMaxVolume);
@@ -198,7 +198,7 @@ void loadAudioOptions(const CSimpleIniA& ini)
     setMasterVolume(volume, false);
 
     auto musicVolume = ini.GetLongValue(kAudioSection, kMusicVolume, 100);
-    setMusicVolume(volume, false);
+    setMusicVolume(musicVolume, false);
 }
 
 void saveAudioOptions(CSimpleIni& ini)
@@ -281,7 +281,7 @@ static void increaseMusicVolume()
 
 static void decreaseMusicVolume()
 {
-    if (getMusicVolume() > 0) {
+    if (getMusicVolume() > kMinVolume) {
         setMusicVolume(getMusicVolume() - 1);
         DrawMenuItem();
     }

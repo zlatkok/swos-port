@@ -148,12 +148,14 @@ class CodeGenerator:
                     if numStrings:
                         name = Util.getStringTableName(menuName, entry)
                         output = ''
+                        variable = f'&{st.variable}'
 
                         if st.declareIndexVariable:
                             assert st.nativeFlags[0]
-                            output += f'extern int16_t {st.variable};\n'
-                            variable = f'&{st.variable}'
+                            specifier = 'extern' if st.externIndexVariable else 'static'
+                            output += f'{specifier} int16_t {st.variable};\n'
                         elif not st.nativeFlags[0]:
+                            assert not st.externIndexVariable
                             variable = f'reinterpret_cast<int16_t *>(SwosVM::Offsets::{st.variable})'
 
                         output += f'const StringTableNative{numStrings} {name} {{\n    {variable}, {st.initialValue}, '
@@ -169,10 +171,11 @@ class CodeGenerator:
                         output = output[:-1] + '\n    ' + ', '.join(map(lambda flag: 'true' if flag else 'false', st.nativeFlags))
                         output += '\n};\n'
 
-                        if st.declareIndexVariable:
-                            output += f'#ifdef {kStubIfdef}\n'
-                            output += f'static int16_t {st.variable};\n'
-                            output += '#endif'
+#TODO: fixme when fixing tests; no need for static but what to do with externs?
+#                        if st.externIndexVariable:
+#                            output += f'#ifdef {kStubIfdef}\n'
+#                            output += f'static int16_t {st.variable};\n'
+#                            output += '#endif'
 
                         out(output)
 
@@ -215,9 +218,11 @@ class CodeGenerator:
             f'{menu.properties[Constants.kOnDraw]}, {menu.properties[Constants.kInitialEntry]}', end='')
 
         if menuHeaderV2:
-            out(''.join(map(lambda val: f', {("false", "true")[val]}', nativeFunction)), end='')
+            out(', { ' + ''.join(map(lambda val: f'{("false", "true")[val]}, ', nativeFunction)) + '}', end='')
+        else:
+            out(' ')
 
-        out(' };')
+        out('};')
 
         templateIndex = 0
         resetTemplateIndex = 0
@@ -377,7 +382,9 @@ class CodeGenerator:
             result.append(f'EntryInvisible ei{ord}{{}};')
 
         if entry.leftEntry != -1 or entry.rightEntry != -1 or entry.upEntry != -1 or entry.downEntry != -1:
-            result.append(f'EntryNextPositions ep{ord}{{ {entry.leftEntry}, {entry.rightEntry}, {entry.upEntry}, {entry.downEntry} }};')
+            pos = lambda val: 255 if val == -1 else val
+            result.append(f'EntryNextPositions ep{ord}{{ {pos(entry.leftEntry)}, {pos(entry.rightEntry)}, '
+                          f'{pos(entry.upEntry)}, {pos(entry.downEntry)} }};')
 
         for direction in ('Left', 'Right', 'Up', 'Down'):
             newDirection = str(getattr(entry, 'direction' + direction))

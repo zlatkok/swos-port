@@ -1,0 +1,474 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-01.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-02.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-03.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-04.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-05.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-06.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-07.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\tmp\swos-asm\swos-08.asm">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ml /Cp /coff /c /nologo /Zd /Zi /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ml /Cp /coff /c /nologo /Fo$(IntDir)%(Filename).obj %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\tmp\swos-asm\defs.inc</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\menus\options.mnu">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\audio\audio.cpp" />
+    <ClCompile Include="..\..\src\audio\chants.cpp" />
+    <ClCompile Include="..\..\src\audio\comments.cpp" />
+    <ClCompile Include="..\..\src\audio\music.cpp" />
+    <ClCompile Include="..\..\src\audio\SoundSample.cpp" />
+    <ClCompile Include="..\..\src\audio\sfx.cpp" />
+    <ClCompile Include="..\..\src\controls\controlOptionsMenu.cpp" />
+    <ClCompile Include="..\..\src\controls\controls.cpp" />
+    <ClCompile Include="..\..\src\controls\joypadConfigMenu.cpp" />
+    <ClCompile Include="..\..\src\controls\joypads.cpp" />
+    <ClCompile Include="..\..\src\controls\scanCodes.cpp" />
+    <ClCompile Include="..\..\src\crash.cpp" />
+    <ClCompile Include="..\..\src\debug\dump.cpp" />
+    <ClCompile Include="..\..\src\files\file.cpp" />
+    <ClCompile Include="..\..\src\files\selectFilesMenu.cpp" />
+    <ClCompile Include="..\..\src\game.cpp" />
+    <ClCompile Include="..\..\src\init.cpp" />
+    <ClCompile Include="..\..\src\log.cpp" />
+    <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\menus\menu.cpp" />
+    <ClCompile Include="..\..\src\menus\menuMouse.cpp" />
+    <ClCompile Include="..\..\src\options.cpp" />
+    <ClCompile Include="..\..\src\pitch.cpp" />
+    <ClCompile Include="..\..\src\replays\ReplayData.cpp" />
+    <ClCompile Include="..\..\src\replays\replayOptions.cpp" />
+    <ClCompile Include="..\..\src\replays\replays.cpp" />
+    <ClCompile Include="..\..\src\replays\replaysMenu.cpp" />
+    <ClCompile Include="..\..\src\stdinc.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\src\substitutes\substitutes.cpp" />
+    <ClCompile Include="..\..\src\util\util.cpp" />
+    <ClCompile Include="..\..\src\video\render.cpp" />
+    <ClCompile Include="..\..\src\video\sprites.cpp" />
+    <ClCompile Include="..\..\src\video\videoOptionsMenu.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\assert.h" />
+    <ClInclude Include="..\..\src\audio\audio.h" />
+    <ClInclude Include="..\..\src\audio\chants.h" />
+    <ClInclude Include="..\..\src\audio\comments.h" />
+    <ClInclude Include="..\..\src\audio\music.h" />
+    <ClInclude Include="..\..\src\audio\SoundSample.h" />
+    <ClInclude Include="..\..\src\audio\sfx.h" />
+    <ClInclude Include="..\..\src\audio\wavFormat.h" />
+    <ClInclude Include="..\..\src\controls\controlOptionsMenu.h" />
+    <ClInclude Include="..\..\src\controls\controls.h" />
+    <ClInclude Include="..\..\src\controls\joypadConfigMenu.h" />
+    <ClInclude Include="..\..\src\controls\joypads.h" />
+    <ClInclude Include="..\..\src\controls\scanCodes.h" />
+    <ClInclude Include="..\..\src\crash.h" />
+    <ClInclude Include="..\..\src\debug\dump.h" />
+    <ClInclude Include="..\..\src\files\file.h" />
+    <ClInclude Include="..\..\src\files\selectFilesMenu.h" />
+    <ClInclude Include="..\..\src\game.h" />
+    <ClInclude Include="..\..\src\log.h" />
+    <ClInclude Include="..\..\src\menus\menu.h" />
+    <ClInclude Include="..\..\src\menus\menuCodes.h" />
+    <ClInclude Include="..\..\src\menus\menuMouse.h" />
+    <ClInclude Include="..\..\src\options.h" />
+    <ClInclude Include="..\..\src\replays\ReplayData.h" />
+    <ClInclude Include="..\..\src\replays\replayOptions.h" />
+    <ClInclude Include="..\..\src\replays\replays.h" />
+    <ClInclude Include="..\..\src\replays\replaysMenu.h" />
+    <ClInclude Include="..\..\src\stdinc.h" />
+    <ClInclude Include="..\..\src\swos.h" />
+    <ClInclude Include="..\..\src\util\util.h" />
+    <ClInclude Include="..\..\src\video\render.h" />
+    <ClInclude Include="..\..\src\video\sprites.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Types.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\menus\videoOptions.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\menus\audioOptions.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\menus\controlOptions.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\joypadConfig.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\main.mnu">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <None Include="..\..\mnu2h\CodeGenerator.py" />
+    <None Include="..\..\mnu2h\Constants.py" />
+    <None Include="..\..\mnu2h\Entry.py" />
+    <None Include="..\..\mnu2h\Menu.py" />
+    <None Include="..\..\mnu2h\mnu2h.py" />
+    <None Include="..\..\mnu2h\Parser.py" />
+    <None Include="..\..\mnu2h\Preprocessor.py" />
+    <None Include="..\..\mnu2h\PreprocExpression.py" />
+    <None Include="..\..\mnu2h\StringTable.py" />
+    <None Include="..\..\mnu2h\tests\TestCodeGenerator.py" />
+    <None Include="..\..\mnu2h\tests\TestHelper.py" />
+    <None Include="..\..\mnu2h\tests\TestParser.py" />
+    <None Include="..\..\mnu2h\tests\TestPreprocessor.py" />
+    <None Include="..\..\mnu2h\tests\TestTokenizer.py" />
+    <None Include="..\..\mnu2h\tests\TestUtil.py" />
+    <None Include="..\..\mnu2h\Token.py" />
+    <None Include="..\..\mnu2h\Tokenizer.py" />
+    <None Include="..\..\mnu2h\Util.py" />
+    <None Include="..\..\mnu2h\Variable.py" />
+    <None Include="..\..\mnu2h\VariableStorage.py" />
+    <None Include="..\..\src\menus\common.mh" />
+    <CustomBuild Include="..\..\src\menus\replayExit.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\quit.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\selectFiles.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\replays.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <None Include="cpp.hint" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D4D7FBF9-503F-4213-8557-9A7EA57658A4}</ProjectGuid>
+    <RootNamespace>swosport</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Configuration);$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-asm;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\lib\windows\$(Configuration);$(LibraryPath)</LibraryPath>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)-$(Configuration)</TargetName>
+    <OutDir>$(SolutionDir)..\..\bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Configuration);$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-asm;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\lib\windows\$(Configuration);$(LibraryPath)</LibraryPath>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)-$(Configuration)</TargetName>
+    <OutDir>$(SolutionDir)..\..\bin\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>$(ProjectDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(ProjectDir)..\..\src\stdinc.h</ForcedIncludeFiles>
+      <PreprocessorDefinitions>DEBUG;_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;NOMINMAX</PreprocessorDefinitions>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4731</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>SDL2d.lib;SDL2maind.lib;SDL2_image.lib;SDL2_net.lib;SDL2_mixer.lib;ADLMIDI.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;CrashRpt1403d.lib;CrashRptProbe1403d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>$(ProjectDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(ProjectDir)..\..\src\stdinc.h</ForcedIncludeFiles>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG</PreprocessorDefinitions>
+      <AssemblerOutput>All</AssemblerOutput>
+      <CallingConvention>Cdecl</CallingConvention>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4731</DisableSpecificWarnings>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_net.lib;SDL2_mixer.lib;ADLMIDI.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;CrashRpt1403.lib;CrashRptProbe1403.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

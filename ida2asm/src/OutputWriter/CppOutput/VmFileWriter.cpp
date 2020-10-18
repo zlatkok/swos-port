@@ -114,8 +114,10 @@ void VmFileWriter::outputHeaderFile()
         "void writeMemory(dword addr, size_t size, size_t value);\n"
         "char *offsetToPtr(dword offset);\n"
         "char *getExtraMemoryArea();\n"
-        "dword allocateMemory(size_t size);\n"
-        "dword allocateString(const char *str);\n"
+        "SwosDataPointer<char> allocateMemory(size_t size);\n"
+        "SwosDataPointer<char> allocateString(const char *str);\n"
+        "SwosDataPointer<char> cacheString(const char *str);\n"
+        "void resetStringCache();\n"
         "void releaseMemory(dword mark);\n"
         "dword getMemoryMark();\n"
         "dword registerPointer(const void *ptr);\n"
@@ -281,7 +283,7 @@ void VmFileWriter::outputVariablesStruct()
                                 "', " + std::to_string(byteSkip) + " vs " + std::to_string(var.exportedArraySize) +
                                 " (exported)", m_filename);
                     } else {
-                        byteSkip = var.exportedArraySize;
+                        byteSkip = var.exportedArraySize * var.exportedSize;
                     }
                 } else if (auto structName = m_dataBank.structNameFromVar(var.name)) {
                     auto structSize = m_structs.getStructSize(structName->string());
@@ -538,6 +540,7 @@ void VmFileWriter::outputMemoryAccessFunctions()
         "const auto kPointerPool = reinterpret_cast<char **>(kPointerPoolStart);\n"
         "\n"
         "static size_t m_numPointers;\n"
+        "static std::vector<std::pair<const char *, dword>> m_stringCache;\n"
         "\n"
         "static size_t readExternalPointer(size_t index, size_t size)\n"
         "{\n"
@@ -628,7 +631,8 @@ void VmFileWriter::outputMemoryAccessFunctions()
         "char *offsetToPtr(dword offset)\n"
         "{\n"
         "    assert(!offset || offset == -1 || (offset & kExternalPointerMask ?\n"
-        "        (offset & ~kExternalPointerMask) < m_numPointers : offset >= kMemStartOfs && offset + 4 <= kMemSize));\n"
+        "        m_numPointers < kMaxPointers && (offset & ~kExternalPointerMask) < m_numPointers :\n"
+        "        offset >= kMemStartOfs && offset + 4 <= kMemSize));\n"
         "\n"
         "    if (!offset)\n"
         "        return nullptr;\n"
@@ -647,7 +651,7 @@ void VmFileWriter::outputMemoryAccessFunctions()
         "\n"
         "static dword m_dynaMemMarker;\n"
         "\n"
-        "dword allocateMemory(size_t size)\n"
+        "SwosDataPointer<char> allocateMemory(size_t size)\n"
         "{\n"
         "    size = (size + 3) & ~3;\n"
         "    assert(m_dynaMemMarker + size <= kDynamicMemSize);\n"
@@ -660,7 +664,7 @@ void VmFileWriter::outputMemoryAccessFunctions()
         "    return offset;\n"
         "}\n"
         "\n"
-        "dword allocateString(const char *str)\n"
+        "SwosDataPointer<char> allocateString(const char *str)\n"
         "{\n"
         "    assert(str);\n"
         "\n"
@@ -673,6 +677,28 @@ void VmFileWriter::outputMemoryAccessFunctions()
         "    assert(m_dynaMemMarker <= kDynamicMemSize);\n"
         "\n"
         "    return offset;\n"
+        "}\n"
+        "\n"
+        "SwosDataPointer<char> cacheString(const char *str)\n"
+        "{\n"
+        "    assert(str);\n"
+        "\n"
+        "    auto it = std::find_if(m_stringCache.begin(), m_stringCache.end(), [str](const auto& mapping) {\n"
+        "        return mapping.first == str;\n"
+        "    });\n"
+        "\n"
+        "    if (it != m_stringCache.end())\n"
+        "        return it->second;\n"
+        "\n"
+        "    auto swosPtr = allocateString(str);\n"
+        "    m_stringCache.emplace_back(str, swosPtr.getRaw());\n"
+        "\n"
+        "    return swosPtr;\n"
+        "}\n"
+        "\n"
+        "void resetStringCache()\n"
+        "{\n"
+        "    m_stringCache.clear();\n"
         "}\n"
         "\n"
         "void releaseMemory(dword mark)\n"
@@ -704,7 +730,6 @@ void VmFileWriter::outputMemoryAccessFunctions()
         "void releasePointers(dword mark)\n"
         "{\n"
         "    assert(mark < kMaxPointers && mark <= m_numPointers);\n"
-        "\n"
         "    m_numPointers = mark;\n"
         "}\n"
         "\n"
@@ -726,6 +751,7 @@ void VmFileWriter::outputMemoryAccessFunctions()
         "    releaseMemory(std::get<0>(mark));\n"
         "    releasePointers(std::get<1>(mark));\n"
         "    releaseProcs(std::get<2>(mark));\n"
+        "    resetStringCache();\n"
         "}\n\n";
 
     xfputs(kMemFunctions);
@@ -971,23 +997,31 @@ size_t VmFileWriter::getStructFieldOffset(const Struct& struc, const String& fie
     return offset;
 }
 
+// Skip fputc calls here since this function is so heavily used
 void VmFileWriter::hexByteToFile(uint8_t byte)
 {
-    xfputs("0x", true);
+    char buf[256] = "0x";
+    int len = 2;
 
     for (uint8_t c : { byte >> 4, byte & 0x0f }) {
         if (c < 10)
-            xfputc('0' + c);
+            buf[len++] = '0' + c;
         else
-            xfputc('a' + c - 10);
+            buf[len++] = 'a' + c - 10;
     }
 
-    xfputc(',');
+    buf[len++] = ',';
 
-    if (newLineNeeded())
-        addNewLine();
-    else
-        xfputc(' ');
+    if (m_pos + len >= kLineLimit) {
+        memcpy(buf + len, "\n    ", 5);
+        len += 5;
+        m_pos = 4;
+    } else {
+        buf[len++] = ' ';
+        m_pos += len;
+    }
+
+    xfwrite(buf, len);
 }
 
 bool VmFileWriter::newLineNeeded() const

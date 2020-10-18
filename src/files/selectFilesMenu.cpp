@@ -1,4 +1,5 @@
 #include "selectFilesMenu.h"
+#include "sprites.h"
 #include "selectFiles.mnu.h"
 #include "menuMouse.h"
 
@@ -198,7 +199,7 @@ std::string showSelectFilesMenu(const char *menuTitle, const FoundFileList& file
     using namespace SwosVM;
 
     if (!isSwosPtr(menuTitle))
-        m_menuTitle = offsetToPtr(allocateString(menuTitle));
+        m_menuTitle = allocateString(menuTitle);
     else
         m_menuTitle = menuTitle;
 
@@ -462,10 +463,7 @@ static void assignFilenamesToEntries()
     assert(m_scrollOffset >= 0 && m_scrollOffset <= m_maxScrollOffset);
     assert(m_scrollOffset * m_numColumns <= static_cast<int>(m_filenames.size()));
 
-    size_t numShownEntries = 0;
-
     auto entry = getMenuEntry(fileEntry_00);
-    int entryIndex = 0;
     int fileIndex = m_scrollOffset;
 
     for (int i = 0; i < kMaxColumns; i++) {
@@ -527,8 +525,8 @@ static void selectFilesOnInit()
 
     using namespace SwosVM;
 
-    kReplays = offsetToPtr(allocateString("REPLAYS"));
-    m_filenameBuffer = offsetToPtr(allocateMemory(kMaxPath));
+    kReplays = allocateString("REPLAYS");
+    m_filenameBuffer = allocateMemory(kMaxPath);
 }
 
 static SwosDataPointer<const char> getFileTypeFromExtension(const char *ext)

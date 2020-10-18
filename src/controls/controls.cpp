@@ -697,12 +697,6 @@ static int getControlsIndex(Controls controls, int joypadIndex = -1)
     return controls == kJoypad ? joypadIndex + kNumControls : controls;
 }
 
-static void setControlsSelected(Controls controls, int joypadIndex = -1)
-{
-    int index = getControlsIndex(controls, joypadIndex);
-    m_matchControlsFiring.push_back(index);
-}
-
 static bool wereControlsFiring(Controls controls, int joypadIndex = -1)
 {
     int index = getControlsIndex(controls, joypadIndex);

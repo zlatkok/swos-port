@@ -136,7 +136,7 @@ Menu videoOptionsMenu
 
         textFlags: 0
         // using direct constants instead of variables here in order to be able to measure width above
-        stringTable: [ m_windowResizable, "OFF", "ON" ]
+        stringTable: [ ~m_windowResizable, "OFF", "ON" ]
         color: @kLightBlue
 
         onSelect: ~toggleWindowResizable

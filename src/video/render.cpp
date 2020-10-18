@@ -186,7 +186,6 @@ static bool setDisplayMode(int width, int height)
 
 static void setWindowMode(WindowMode newMode)
 {
-    int errorCode = 0;
     bool success = true;
     auto mode = "standard windowed";
 

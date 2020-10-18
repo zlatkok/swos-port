@@ -9,7 +9,6 @@ static void finalizeMenu(Menu *dstMenu, char *menuEnd, int numEntries);
 static void handleSkip(MenuEntry *dstEntry, size_t index, const int16_t *& data);
 #ifdef SWOS_VM
 static dword fetchAndTranslateProc(const int16_t *& data);
-static dword copyStringToVM(const char *str);
 static dword translateStringTable(const StringTableNative& strTable);
 static dword translateMultiLineTable(const MultiLineTextNative& text);
 #endif
@@ -439,10 +438,7 @@ dword fetchAndTranslateProc(const int16_t *& data)
 dword translateStringTable(const StringTableNative& strTable)
 {
     auto size = sizeof(StringTable) + strTable.numPointers * 4;
-    auto stringOffset = size;
-
-    auto ofs = SwosVM::allocateMemory(size);
-    auto swosMem = SwosVM::offsetToPtr(ofs);
+    auto swosMem = SwosVM::allocateMemory(size);
 
     dword indexOfs;
     if (strTable.isIndexPointerNative())
@@ -458,21 +454,20 @@ dword translateStringTable(const StringTableNative& strTable)
         dword strOfs;
 
         if (strTable.isNativeString(i))
-            strOfs = SwosVM::allocateString(str);
+            strOfs = SwosVM::allocateString(str).getRaw();
         else
             strOfs = reinterpret_cast<uintptr_t>(str);
 
         memcpy(swosMem + 6 + i * 4, &strOfs, 4);
     }
 
-    return ofs;
+    return swosMem.getRaw();
 }
 
 dword translateMultiLineTable(const MultiLineTextNative& text)
 {
     auto size = sizeof(MultiLineTextNative) + text.numLines * 4;
-    auto ofs = SwosVM::allocateMemory(size);
-    auto swosMem = SwosVM::offsetToPtr(ofs);
+    auto swosMem = SwosVM::allocateMemory(size);
 
     *swosMem = text.numLines;
 
@@ -482,6 +477,6 @@ dword translateMultiLineTable(const MultiLineTextNative& text)
         memcpy(swosMem + 1 + i * 4, &ofs, 4);
     }
 
-    return ofs;
+    return swosMem.getRaw();
 }
 #endif

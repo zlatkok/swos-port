@@ -51,22 +51,22 @@ bool ReplayData::gotReplay() const
 
 bool ReplayData::load(const char *filename)
 {
-    bool result = false;
-
     auto path = joinPaths(kReplaysDir, filename);
     auto f = openFile(path.c_str());
     if (!f)
         return false;
 
-    if (fseek(f, 0, SEEK_END) == 0) {
-        auto size = ftell(f);
-        int remainingSize = size - kHilHeaderSize;
+    bool result = false;
+    auto size = SDL_RWsize(f);
+
+    if (size >= 0) {
+        int remainingSize = static_cast<int>(size) - kHilHeaderSize;
 
         if (remainingSize > 0) {
             m_replayData.resize(remainingSize);
 
-            bool readOk = fseek(f, 0, SEEK_SET) == 0 && fread(m_header, kHilHeaderSize, 1, f) == 1 &&
-                fread(m_replayData.data(), remainingSize, 1, f) == 1;
+            bool readOk = SDL_RWread(f, m_header, kHilHeaderSize, 1) == 1 &&
+                SDL_RWread(f, m_replayData.data(), remainingSize, 1) == 1;
 
             if (readOk) {
                 m_offset = 0;
@@ -75,7 +75,7 @@ bool ReplayData::load(const char *filename)
         }
     }
 
-    fclose(f);
+    SDL_RWclose(f);
     return result;
 }
 
@@ -90,10 +90,10 @@ bool ReplayData::save(const char *filename, bool overwrite)
 
     ensureEndSegmentMarker();
 
-    bool result = fwrite(m_header, kHilHeaderSize, 1, f) == 1 &&
-        fwrite(m_replayData.data(), m_replayData.size(), 1, f) == 1;
+    bool result = SDL_RWwrite(f, m_header, kHilHeaderSize, 1) == 1 &&
+        SDL_RWwrite(f, m_replayData.data(), m_replayData.size(), 1) == 1;
 
-    fclose(f);
+    SDL_RWclose(f);
 
     if (!result)
         logWarn("Failed to save replay file %s", path.c_str());

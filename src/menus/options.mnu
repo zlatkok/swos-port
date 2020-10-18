@@ -113,6 +113,7 @@ Menu gameplayOptionsMenu
     Entry { text: swos.aAutoSaveHighli }
     Entry { text: "AUTO SAVE REPLAYS" }
     Entry { text: swos.aChairmanScenes }
+    Entry { text: "FLASH MENU CURSOR" }
     Entry { text: "GAME STYLE" }
 
     // start of column 2, where the actual controls are
@@ -171,8 +172,15 @@ Menu gameplayOptionsMenu
         downEntry: >
     }
 
+    Entry {
+        stringTable: [ ~m_flashCursor, swos.aOff, swos.aOn ]
+        onSelect: changeFlashCursor
+        upEntry: <
+        downEntry: >
+    }
+
     Entry gameStyle {
-        stringTable: [ m_gameStyle, "PC", "AMIGA" ]
+        stringTable: [ ~m_gameStyle, "PC", "AMIGA" ]
         onSelect: changeGameStyle
         upEntry: <
         downEntry: >

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "InstructionNode.h"
+#include "OrphanedAssignmentChainRemover.h"
 
 class DefinesMap;
 class DataBank;
@@ -49,4 +50,6 @@ private:
 
     const DefinesMap& m_defines;
     const DataBank& m_dataBank;
+
+    OrphanedAssignmentChainRemover m_orphanRemover;
 };

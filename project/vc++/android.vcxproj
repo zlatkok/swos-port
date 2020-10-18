@@ -1,0 +1,735 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x86">
+      <Configuration>Debug</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{eda40257-4c8b-4d5b-b563-030704ab64a1}</ProjectGuid>
+    <Keyword>Android</Keyword>
+    <RootNamespace>android</RootNamespace>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <ApplicationType>Android</ApplicationType>
+    <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
+    <ProjectName>android-shared-library</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <UseOfStl>c++_shared</UseOfStl>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <UseOfStl>c++_shared</UseOfStl>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+    <UseOfStl>c++_shared</UseOfStl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+    <UseOfStl>c++_shared</UseOfStl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+    <UseOfStl>c++_shared</UseOfStl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+    <UseOfStl>c++_shared</UseOfStl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+    <UseOfStl>c++_shared</UseOfStl>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-21</AndroidAPILevel>
+    <UseOfStl>c++_shared</UseOfStl>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>..\..\lib\android\debug\symbolized\$(TargetArchAbi);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>..\..\lib\android\debug\symbolized\$(TargetArchAbi);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>..\..\lib\android\debug\symbolized\$(TargetArchAbi);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>..\..\lib\android\debug\symbolized\$(TargetArchAbi);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\android\$(Platform)\</OutDir>
+    <TargetName>libmain</TargetName>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-64;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\debug\symbolized\$(TargetArchAbi);..\..\lib\android\debug\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\x86_64-linux-android\$(ToolchainFullVersionName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-64;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\release\stripped\$(TargetArchAbi);..\..\lib\android\release\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\x86_64-linux-android\$(ToolchainFullVersionName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-32;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\debug\symbolized\$(TargetArchAbi);..\..\lib\android\debug\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\i686-linux-android\$(ToolchainFullVersionName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-32;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\release\stripped\$(TargetArchAbi);..\..\lib\android\release\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\i686-linux-android\$(ToolchainFullVersionName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-64;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\debug\symbolized\$(TargetArchAbi);..\..\lib\android\debug\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\$(ToolchainName)\$(ToolchainFullVersionName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-64;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\release\stripped\$(TargetArchAbi);..\..\lib\android\release\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\$(ToolchainName)\$(ToolchainFullVersionName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-32;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\debug\symbolized\$(TargetArchAbi);..\..\lib\android\debug\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\$(ToolchainName)\$(ToolchainFullVersionName)\$(PlatformShortName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>..\..\src\android\pch.h</PrecompiledHeaderFile>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration);..\..\include;..\..\include\SDL2;..\..\include\SDL2_image;..\..\include\SDL_net;..\..\include\adlmidi;..\..\include\crashrpt;..\..\include\simpleini;..\..\inlcude\dirent;$(ProjectDir)..\..\src;$(ProjectDir)..\..\src\audio;$(ProjectDir)..\..\src\controls;$(ProjectDir)..\..\src\debug;$(ProjectDir)..\..\src\files;$(ProjectDir)..\..\src\menus;$(ProjectDir)..\..\src\replays;$(ProjectDir)..\..\src\sprites;$(ProjectDir)..\..\src\video;$(ProjectDir)..\..\src\util;$(ProjectDir)..\..\tmp\swos-cpp-gen-32;$(ProjectDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SWOS_VM;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>SDL2;SDL2_image;SDL2_mixer;ADLMIDI;$(StlLibraryName);%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalLibraryDirectories>..\..\lib\android\release\stripped\$(TargetArchAbi);..\..\lib\android\release\static\$(TargetArchAbi);%(AdditionalLibraryDirectories);$(ToolchainPrebuiltPath)\lib\gcc\$(ToolchainName)\$(ToolchainFullVersionName)\$(PlatformShortName);$(StlLibraryPath)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\android\pch.h" />
+    <ClInclude Include="..\..\src\assert.h" />
+    <ClInclude Include="..\..\src\audio\audio.h" />
+    <ClInclude Include="..\..\src\audio\chants.h" />
+    <ClInclude Include="..\..\src\audio\comments.h" />
+    <ClInclude Include="..\..\src\audio\music.h" />
+    <ClInclude Include="..\..\src\audio\sfx.h" />
+    <ClInclude Include="..\..\src\audio\SoundSample.h" />
+    <ClInclude Include="..\..\src\audio\wavFormat.h" />
+    <ClInclude Include="..\..\src\controls\controlOptionsMenu.h" />
+    <ClInclude Include="..\..\src\controls\controls.h" />
+    <ClInclude Include="..\..\src\controls\joypadConfigMenu.h" />
+    <ClInclude Include="..\..\src\controls\joypads.h" />
+    <ClInclude Include="..\..\src\controls\scanCodes.h" />
+    <ClInclude Include="..\..\src\crash.h" />
+    <ClInclude Include="..\..\src\debug\dump.h" />
+    <ClInclude Include="..\..\src\files\file.h" />
+    <ClInclude Include="..\..\src\files\selectFilesMenu.h" />
+    <ClInclude Include="..\..\src\game.h" />
+    <ClInclude Include="..\..\src\log.h" />
+    <ClInclude Include="..\..\src\menus\mainMenu.h" />
+    <ClInclude Include="..\..\src\menus\menu.h" />
+    <ClInclude Include="..\..\src\menus\menuCodes.h" />
+    <ClInclude Include="..\..\src\menus\menuMouse.h" />
+    <ClInclude Include="..\..\src\options.h" />
+    <ClInclude Include="..\..\src\replays\ReplayData.h" />
+    <ClInclude Include="..\..\src\replays\replayOptions.h" />
+    <ClInclude Include="..\..\src\replays\replays.h" />
+    <ClInclude Include="..\..\src\replays\replaysMenu.h" />
+    <ClInclude Include="..\..\src\stdinc.h" />
+    <ClInclude Include="..\..\src\swos.h" />
+    <ClInclude Include="..\..\src\util\fetch.h" />
+    <ClInclude Include="..\..\src\util\util.h" />
+    <ClInclude Include="..\..\src\video\render.h" />
+    <ClInclude Include="..\..\src\video\sprites.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\src\ConvertUTF\ConvertUTF.cpp" />
+    <ClCompile Include="..\..\src\audio\audio.cpp" />
+    <ClCompile Include="..\..\src\audio\chants.cpp" />
+    <ClCompile Include="..\..\src\audio\comments.cpp" />
+    <ClCompile Include="..\..\src\audio\music.cpp" />
+    <ClCompile Include="..\..\src\audio\sfx.cpp" />
+    <ClCompile Include="..\..\src\audio\SoundSample.cpp" />
+    <ClCompile Include="..\..\src\controls\controlOptionsMenu.cpp" />
+    <ClCompile Include="..\..\src\controls\controls.cpp" />
+    <ClCompile Include="..\..\src\controls\joypadConfigMenu.cpp" />
+    <ClCompile Include="..\..\src\controls\joypads.cpp" />
+    <ClCompile Include="..\..\src\controls\scanCodes.cpp" />
+    <ClCompile Include="..\..\src\crash.cpp" />
+    <ClCompile Include="..\..\src\debug\dump.cpp" />
+    <ClCompile Include="..\..\src\files\file.cpp" />
+    <ClCompile Include="..\..\src\files\selectFilesMenu.cpp" />
+    <ClCompile Include="..\..\src\game.cpp" />
+    <ClCompile Include="..\..\src\init.cpp" />
+    <ClCompile Include="..\..\src\log.cpp" />
+    <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\menus\mainMenu.cpp" />
+    <ClCompile Include="..\..\src\menus\menu.cpp" />
+    <ClCompile Include="..\..\src\menus\menuMouse.cpp" />
+    <ClCompile Include="..\..\src\menus\unpackMenu.cpp" />
+    <ClCompile Include="..\..\src\options.cpp" />
+    <ClCompile Include="..\..\src\pitch.cpp" />
+    <ClCompile Include="..\..\src\replays\ReplayData.cpp" />
+    <ClCompile Include="..\..\src\replays\replayOptions.cpp" />
+    <ClCompile Include="..\..\src\replays\replays.cpp" />
+    <ClCompile Include="..\..\src\replays\replaysMenu.cpp" />
+    <ClCompile Include="..\..\src\substitutes\substitutes.cpp" />
+    <ClCompile Include="..\..\src\util\util.cpp" />
+    <ClCompile Include="..\..\src\video\render.cpp" />
+    <ClCompile Include="..\..\src\video\sprites.cpp" />
+    <ClCompile Include="..\..\src\video\videoOptionsMenu.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Platform)' == 'ARM' Or '$(Platform)' == 'x86'">
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-01.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-02.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-03.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-04.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-05.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-06.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-07.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\swos-08.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-32\vm.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Platform)' == 'ARM64' Or '$(Platform)' == 'x64'">
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-01.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-02.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-03.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-04.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-05.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-06.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-07.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\swos-08.cpp" />
+    <ClCompile Include="..\..\tmp\swos-cpp-gen-64\vm.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\menus\audioOptions.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <None Include="..\..\src\menus\common.mh" />
+    <CustomBuild Include="..\..\src\menus\controlOptions.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\joypadConfig.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\main.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\options.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\quit.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\replayExit.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\replays.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\selectFiles.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\menus\videoOptions.mnu">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x86'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x86'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x86'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python $(ProjectDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compiling %(Filename) menu...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)%(Extension).h</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\mnu2h\CodeGenerator.py;$(ProjectDir)..\..\mnu2h\Constants.py;$(ProjectDir)..\..\mnu2h\Entry.py;$(ProjectDir)..\..\mnu2h\Menu.py;$(ProjectDir)..\..\mnu2h\mnu2h.py;$(ProjectDir)..\..\mnu2h\Parser.py;$(ProjectDir)..\..\mnu2h\Preprocessor.py;$(ProjectDir)..\..\mnu2h\PreprocExpression.py;$(ProjectDir)..\..\mnu2h\StringTable.py;$(ProjectDir)..\..\mnu2h\Token.py;$(ProjectDir)..\..\mnu2h\Tokenizer.py;$(ProjectDir)..\..\mnu2h\Util.py;$(ProjectDir)..\..\mnu2h\Variable.py;$(ProjectDir)..\..\mnu2h\VariableStorage.py;$(ProjectDir)..\..\src\menus\common.mh</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

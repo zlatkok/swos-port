@@ -96,7 +96,6 @@ int getJoypadWithButtonDown();
 std::vector<int> getJoypadButtonsDown(int index);
 
 void clearJoypadInput();
-void transferJoypad(PlayerNumber player, int& joypadIndex, int& otherJoypadIndex);
 bool selectJoypadControls(PlayerNumber player, int joypadNo);
 
 bool getAutoConnectJoypads();

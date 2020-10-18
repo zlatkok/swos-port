@@ -1,64 +1,73 @@
 #include "file.h"
-#include "file.h"
 #include "log.h"
 #include "util.h"
-#include <dirent.h>
-#include <direct.h>
+#include "dirent.h"
+
+#ifdef _WIN32
+# include <direct.h>
+#endif
 
 static std::string m_rootDir;
 
 // Opens a file with consideration to SWOS root directory.
-FILE *openFile(const char *path, const char *mode /* = "rb" */)
+SDL_RWops *openFile(const char *path, const char *mode /* = "rb" */)
 {
-    auto f = fopen((m_rootDir + path).c_str(), mode);
+#ifdef _WIN32
+    auto f = SDL_RWFromFile((m_rootDir + path).c_str(), mode);
+#else
+    // convert every path to lower case and replace backslashes with forward slashes
+    auto fullPath = m_rootDir + path;
+    std::transform(fullPath.begin(), fullPath.end(), fullPath.begin(), [](unsigned char c) {
+        return c == '\\' ? '/' : std::tolower(c);
+    });
+    auto f = SDL_RWFromFile(fullPath.c_str(), mode);
+#endif
     if (!f)
-        logWarn("Failed to open file %s with mode \"%s\"", path, mode);
+        logWarn("Failed to open file \"%s\" with mode \"%s\"", path, mode);
 
     return f;
 }
 
-// Returns the size of the given file.
-int getFileSize(const char *path, bool required /* = true */)
-{
-    struct stat st;
-
-    if (stat((m_rootDir + path).c_str(), &st) != 0) {
-        if (required)
-            errorExit("Failed to stat file %s", path);
-
-        return -1;
-    }
-
-    return st.st_size;
-}
-
-// Internal routine that does all the work.
-static int doLoadFile(const char *path, void *buffer, size_t bufferSize, size_t skipBytes, bool required)
+static std::pair<SDL_RWops *, int> openFileAndGetSize(const char *path, bool required /* = true */)
 {
     auto f = openFile(path);
     if (!f) {
         if (required)
-            errorExit("Could not open %s for reading", path);
+            sdlErrorExit("Required file \"%s\" could not be opened", path);
+        return { nullptr, -1 };
+    }
 
+    auto size = SDL_RWsize(f);
+    if (size < 0) {
+        if (required)
+            sdlErrorExit("Failed to get file size for file \"%s\", received size: %lld", path, size);
+        return { nullptr, -1 };
+    }
+
+    return { f, static_cast<int>(size) };
+}
+
+// Internal routine that does all the work.
+static int doLoadFile(SDL_RWops *f, const char *path, void *buffer, size_t bufferSize, size_t skipBytes, bool required)
+{
+    assert(f);
+
+    if (SDL_RWseek(f, skipBytes, RW_SEEK_SET) < 0) {
+        if (required)
+            sdlErrorExit("Error during seek operation on file \"%s\"", path);
+        SDL_RWclose(f);
         return -1;
     }
 
-    if (fseek(f, skipBytes, SEEK_SET)) {
-        fclose(f);
-        return -1;
-    }
-
-    setbuf(f, nullptr);
     bool plural = bufferSize != 1;
     logInfo("Loading `%s' [%s byte%s]", path, formatNumberWithCommas(bufferSize).c_str(), plural ? "s" : "");
 
-    bool readOk = fread(buffer, bufferSize, 1, f) == 1;
-    fclose(f);
+    bool readOk = SDL_RWread(f, buffer, bufferSize, 1) == 1;
+    SDL_RWclose(f);
 
     if (!readOk) {
         if (required)
-            errorExit("Error reading file %s", path);
-
+            sdlErrorExit("Error reading file \"%s\"", path);
         return -1;
     }
 
@@ -67,14 +76,18 @@ static int doLoadFile(const char *path, void *buffer, size_t bufferSize, size_t 
 
 int loadFile(const char *path, void *buffer, int maxSize /* = -1 */, size_t skipBytes /* = 0 */, bool required /* = true */)
 {
+    SDL_RWops *f;
+    int size;
+
+    std::tie(f, size) = openFileAndGetSize(path, required);
     if (maxSize < 0) {
-        maxSize = getFileSize(path, required);
+        maxSize = size;
         if (maxSize < 0)
             return -1;
     }
 
     auto volatile savedSelTeamsPtr = swos.selTeamsPtr;  // why should a load file routine do this?!?!
-    auto result = doLoadFile(path, buffer, maxSize, skipBytes, required);
+    auto result = doLoadFile(f, path, buffer, maxSize, skipBytes, required);
     swos.selTeamsPtr = savedSelTeamsPtr;
 
     return result;
@@ -95,15 +108,20 @@ int loadFile(const char *path, void *buffer, int maxSize /* = -1 */, size_t skip
 //
 std::pair<char *, size_t> loadFile(const char *path, size_t bufferOffset /* = 0 */, size_t skipBytes /* = 0 */)
 {
-    auto size = getFileSize(path, false);
+    SDL_RWops *f;
+    int size;
+    std::tie(f, size) = openFileAndGetSize(path, false);
+
     if (size < 0)
         return {};
 
     auto buffer = new char[size + bufferOffset];
     auto dest = buffer + bufferOffset;
 
-    if (doLoadFile(path, dest, size, skipBytes, false) != size)
+    if (doLoadFile(f, path, dest, size, skipBytes, false) != size) {
         delete[] buffer;
+        return {};
+    }
 
     return { buffer, size + bufferOffset };
 }
@@ -152,10 +170,10 @@ bool saveFile(const char *path, void *buffer, size_t size)
     logInfo("Writing `%s' [%s bytes]", path, formatNumberWithCommas(size).c_str());
 
     auto f = openFile(path, "wb");
-    bool ok = f && fwrite(buffer, 1, size, f) == size;
+    bool ok = f && SDL_RWwrite(f, buffer, 1, size) == size;
 
     if (f)
-        fclose(f);
+        SDL_RWclose(f);
 
     return ok;
 }
@@ -201,8 +219,8 @@ __declspec(naked) int SWOS::WriteFile()
 void setRootDir(const char *dir)
 {
     m_rootDir = dir;
-    if (m_rootDir.back() != '\\')
-        m_rootDir += '\\';
+    if (m_rootDir.back() != getDirSeparator())
+        m_rootDir += getDirSeparator();
 }
 
 std::string rootDir()
@@ -213,16 +231,6 @@ std::string rootDir()
 std::string pathInRootDir(const char *filename)
 {
     return m_rootDir.empty() ? filename : m_rootDir + filename;
-}
-
-char getDirSeparator()
-{
-    return '\\';
-}
-
-bool isFileSystemCaseInsensitive()
-{
-    return true;
 }
 
 std::string joinPaths(const char *path1, const char *path2)
@@ -241,6 +249,9 @@ bool dirExists(const char *path)
 #ifdef _WIN32
     auto fileAttributes = ::GetFileAttributes(path);
     return fileAttributes != INVALID_FILE_ATTRIBUTES && (fileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#elif __linux__
+    struct stat st;
+    return stat(path, &st) == 0 && st.st_mode & S_IFDIR;
 #else
 # error Please implement platform specific dirExists()
 #endif
@@ -248,14 +259,20 @@ bool dirExists(const char *path)
 
 bool createDir(const char *path)
 {
+#ifdef _WIN32
     bool result = _mkdir(path) == 0;
+#elif __ANDROID__
+    std::string storagePath(SDL_AndroidGetInternalStoragePath());
+    path = ((storagePath += getDirSeparator()) += path).c_str();
+    bool result = mkdir(path, S_IRWXU) == 0;
+#else
+# error Please implement platform specific createDir()
+#endif
 
-    if (!result) {
-        struct stat st;
-        result = stat(path, &st) == 0 && st.st_mode & _S_IFDIR;
-    }
+    if (!result)
+        return dirExists(path);
 
-    return result;
+    return false;
 }
 
 // Returns pointer to last dot in the string, if found, or to the last string character otherwise.
@@ -271,7 +288,7 @@ const char *getBasename(const char *path)
     return result ? result + 1 : path;
 }
 
-static bool isAllowedExtension(const char *ext, const char **allowedExtensions, size_t numAllowedExtensions)
+static bool isAnyExtensionAllowed(const char *ext, const char **allowedExtensions, size_t numAllowedExtensions)
 {
     if (!allowedExtensions)
         return true;
@@ -301,10 +318,16 @@ FoundFileList findFiles(const char *extension, const char *dirName /* = nullptr 
     bool acceptAll = extension && (extension[0] == '\0' || extension[1] == '*');
 
     for (dirent *entry; entry = readdir(dir); ) {
-        if (!entry->d_namlen)
+#ifdef _WIN32
+        auto len = entry->d_namlen;
+#else
+        auto len = strlen(entry->d_name);
+#endif
+
+        if (!len)
             continue;
 
-        auto dot = entry->d_name + entry->d_namlen - 1;
+        auto dot = entry->d_name + len - 1;
         while (dot >= entry->d_name && *dot != '.')
             dot--;
 
@@ -312,7 +335,7 @@ FoundFileList findFiles(const char *extension, const char *dirName /* = nullptr 
             continue;
 
         if (!acceptAll) {
-            if (entry->d_namlen < 4)
+            if (len < 4)
                 continue;
 
             bool match = true;
@@ -331,12 +354,12 @@ FoundFileList findFiles(const char *extension, const char *dirName /* = nullptr 
                 continue;
         } else {
             // skip "." and ".." entries
-            if (entry->d_namlen == 1 && entry->d_name[0] == '.' ||
-                entry->d_namlen == 2 && entry->d_name[0] == '.' && entry->d_name[1] == '.')
+            if (len == 1 && entry->d_name[0] == '.' ||
+                len == 2 && entry->d_name[0] == '.' && entry->d_name[1] == '.')
                 continue;
         }
 
-        if (!isAllowedExtension(dot + 1, allowedExtensions, numAllowedExtensions))
+        if (!isAnyExtensionAllowed(dot + 1, allowedExtensions, numAllowedExtensions))
             continue;
 
         // must make it upper case or SWOS will reject it like a cruel mother

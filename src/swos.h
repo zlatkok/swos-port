@@ -10,8 +10,8 @@ using byte = uint8_t;
 #ifdef SWOS_VM
 // dependency cycle breaker
 namespace SwosVM {
-    extern inline dword ptrToOffset(const void *ptr);
-    extern inline char *offsetToPtr(dword offset);
+    extern dword ptrToOffset(const void *ptr);
+    extern char *offsetToPtr(dword offset);
     using VoidFunction = void(*)();
     extern VoidFunction fetchProc(int index);
     extern void invokeProc(int index);
@@ -27,6 +27,7 @@ public:
         assert(reinterpret_cast<uintptr_t>(&m_offset) % 4 == 0);
         m_offset = SwosVM::ptrToOffset(t);
     }
+    constexpr SwosDataPointer() : m_offset(0) {}
     constexpr SwosDataPointer(dword offset) : m_offset(offset) {}
     constexpr SwosDataPointer(SwosVM::Offsets offset) : m_offset(static_cast<dword>(offset)) {}
     SwosDataPointer& operator=(Type *t) {
@@ -404,6 +405,8 @@ struct SpriteGraphics {
         return reinterpret_cast<SpriteGraphics *>((char *)this + size());
     }
 };
+
+static_assert(sizeof(SpriteGraphics) == 24, "SpriteGraphics is invalid");
 
 struct Sprite
 {

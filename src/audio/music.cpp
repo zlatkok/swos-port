@@ -197,7 +197,6 @@ static Mix_Music *playMixSong(const char *basename, bool loop, Mix_Music *musicC
         // OGG does a short pop when music starts playing again
         auto musicType = Mix_GetMusicType(musicChunk);
         bool isOgg = musicType == MUS_OGG;
-        bool isMidi = musicType == MUS_MID;
 
         if (isOgg)
             Mix_VolumeMusic(0);
@@ -221,6 +220,16 @@ static Mix_Music *playMixSong(const char *basename, bool loop, Mix_Music *musicC
     return musicChunk;
 }
 
+// clang won't let lambda have variable arguments, so making this into a function
+// error : 'va_start' used in function with fixed args
+static void debugMessageHook(void *, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    logv(kWarning, format, args);
+    va_end(args);
+}
+
 static void initAdl()
 {
     m_adlPlayer = adl_init(kMenuFrequency);
@@ -236,12 +245,7 @@ static void initAdl()
 
     m_adlPlayerActive = true;
 
-    adl_setDebugMessageHook(m_adlPlayer, [](void *, const char *format, ...) {
-        va_list args;
-        va_start(args, format);
-        logv(kWarning, format, args);
-        va_end(args);
-    }, nullptr);
+    adl_setDebugMessageHook(m_adlPlayer, debugMessageHook, nullptr);
 
     adl_setBank(m_adlPlayer, midiBankNumber());
 
@@ -316,7 +320,6 @@ static bool fadeOutAdl(Uint8 *stream, int sampleCount)
 static void adlCustomHook(void *data, Uint8 *stream, int len)
 {
     assert(data);
-    auto midiPlayer = reinterpret_cast<ADL_MIDIPlayer *>(data);
 
     int sampleCount = std::min(len / 2, 2 * kMenuChunkSize);
     assert(2 * sampleCount == sizeof(m_adlBuffer[m_adlBufferStart]));

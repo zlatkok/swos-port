@@ -97,9 +97,9 @@ struct MenuEnd {
 struct MenuXY
 {
     word code = static_cast<word>(kMenuXY);
-    word x;
-    word y;
-    MenuXY(word x, word y) : x(x), y(y) {}
+    int16_t x;
+    int16_t y;
+    MenuXY(int16_t x, int16_t y) : x(x), y(y) {}
 };
 
 struct TemplateEntry {
@@ -112,14 +112,14 @@ struct ResetTemplateEntry {
 
 struct Entry
 {
-    word x;
-    word y;
+    int16_t x;
+    int16_t y;
     word width;
     word height;
 #ifndef DEBUG
     constexpr
 #endif
-    Entry(word x, word y, word width, word height) : x(x), y(y), width(width), height(height) {
+    Entry(int16_t x, int16_t y, word width, word height) : x(x), y(y), width(width), height(height) {
 #ifdef DEBUG
         assert(width && height);
 #endif
@@ -159,7 +159,7 @@ template<typename Base>
 class EntryFunction : Base {
 protected:
     typename Base::Func func;
-    using Base::Func;
+    using typename Base::Func;
 public:
     constexpr EntryFunction(typename Base::Func func, EntryElementCode code) : Base(code), func(func) {}
 };
@@ -260,14 +260,14 @@ class EntryOnSelectFunctionWithMask : EntryElement {
     word mask;
     Func func;
 public:
-    constexpr EntryOnSelectFunctionWithMask(Func func, word mask) : EntryElement(kOnSelectWithMask), func(func), mask(mask) {}
+    constexpr EntryOnSelectFunctionWithMask(Func func, word mask) : EntryElement(kOnSelectWithMask), mask(mask), func(func) {}
 };
 
 class EntryOnSelectFunctionWithMaskNative : EntryElementNative {
     word mask;
     Func func;
 public:
-    constexpr EntryOnSelectFunctionWithMaskNative(Func func, word mask) : EntryElementNative(kOnSelectWithMaskNative), func(func), mask(mask) {}
+    constexpr EntryOnSelectFunctionWithMaskNative(Func func, word mask) : EntryElementNative(kOnSelectWithMaskNative), mask(mask), func(func) {}
 };
 
 struct EntryBeforeDrawFunction : EntryFunctionSwos {

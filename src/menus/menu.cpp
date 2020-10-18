@@ -5,6 +5,7 @@
 #include "render.h"
 #include "sprites.h"
 #include "music.h"
+#include "options.h"
 #include "controls.h"
 #include "mainMenu.h"
 
@@ -18,18 +19,13 @@ void SWOS::FlipInMenu()
     updateScreen();
 }
 
-// this is actually a debugging function, but used by everyone to quickly exit SWOS :) (it even got into manual)
-void SWOS::SetPrevVideoModeEndProgram()
-{
-    std::exit(EXIT_SUCCESS);
-}
-
 static void menuDelay()
 {
 #ifdef DEBUG
-    extern void checkMemory();
-
+# ifdef _WIN32
     assert(_CrtCheckMemory());
+# endif
+    extern void checkMemory();
     checkMemory();
 #endif
 
@@ -136,6 +132,29 @@ void SWOS::ShowMenu()
 {
     auto menu = A6.as<BaseMenu *>();
     showMenu(*menu);
+}
+
+// DrawSelected
+//
+// in:
+//     A6 -> menu
+//
+// Draws a frame around the currently selected item.
+//
+void SWOS::DrawSelected()
+{
+    auto menu = A6.as<Menu *>();
+    auto entry = menu->selectedEntry;
+    if (entry && entry->width && entry->height) {
+        D0 = swos.kColorTableShine[swos.menuCursorFrame & 7];
+        if (flashCursor())
+            swos.menuCursorFrame++;
+        D1 = entry->x;
+        D2 = entry->y;
+        D3 = entry->width;
+        D4 = entry->height;
+        SAFE_INVOKE(DrawInnerFrame);
+    }
 }
 
 // called by SWOS, when we're starting the game
@@ -264,8 +283,6 @@ void SWOS::InitMainMenuStuff()
 
 static MenuEntry *findNextEntry(byte nextEntryIndex, int nextEntryDirection)
 {
-    auto currentMenu = getCurrentMenu();
-
     while (nextEntryIndex != 255) {
         auto nextEntry = getMenuEntry(nextEntryIndex);
 
@@ -320,16 +337,18 @@ static void playMatchSelected(int playerNo)
 
 static bool useMouseConfirmation(int playerNo)
 {
+    using namespace SwosVM;
+
     if (playerNo > 0) {
         auto controls = getGameControls(playerNo);
         if (controls == kMouse) {
-            auto useMouse = showContinueAbortPrompt("USE MOUSE CONTROLS", "YES", "NO", {
-                "",
-                "ARE YOU SURE YOU WANT TO PLAY",
-                "THE GAME USING THE MOUSE?",
-                "",
-                "SELECT ''PLAY MATCH'' WITH DESIRED",
-                "CONTROLLER TO USE IT IN THE GAME",
+            auto useMouse = showContinueAbortPrompt(cacheString("USE MOUSE CONTROLS"), cacheString("YES"), cacheString("NO"), {
+                cacheString(""),
+                cacheString("ARE YOU SURE YOU WANT TO PLAY"),
+                cacheString("THE GAME USING THE MOUSE?"),
+                cacheString(""),
+                cacheString("SELECT ''PLAY MATCH'' WITH DESIRED"),
+                cacheString("CONTROLLER TO USE IT IN THE GAME"),
             });
 
             if (!useMouse)
@@ -436,7 +455,13 @@ static void highlightEntry(Menu *currentMenu, MenuEntry *entry)
     if (entry) {
         swos.previousMenuItem = currentMenu->selectedEntry;
         currentMenu->selectedEntry = entry;
-        entry->type1 == kEntryNoBackground ? DrawMenu() : DrawMenuItem();
+
+        if (entry->type1 == kEntryNoBackground) {
+            DrawMenu();
+        } else {
+            A5 = entry;
+            DrawMenuItem();
+        }
     }
 }
 

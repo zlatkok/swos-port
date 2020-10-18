@@ -244,7 +244,7 @@ Menu controlOptionsMenu
         height: kOptionHeight
         color: kOptionsColumn2Color
 
-        stringTable: [ m_autoConnectJoypads, "OFF", "ON" ]
+        stringTable: [ ~m_autoConnectJoypads, "OFF", "ON" ]
 
         onSelect: toggleAutoConnectJoypads
 

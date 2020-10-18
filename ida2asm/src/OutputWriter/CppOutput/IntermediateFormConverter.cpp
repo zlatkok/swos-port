@@ -15,6 +15,8 @@ IntermediateFormConverter::IntermediateFormConverter(bool disableOptimizations, 
     m_defines(defines), m_optimizer(defines, dataBank), m_structMap(structs.count() * kAverageBytesPerStruct)
 {
     fillStructInfo(structs);
+
+    m_instructions.reserve(26'000);
 }
 
 void IntermediateFormConverter::fillStructInfo(const StructStream& structs)

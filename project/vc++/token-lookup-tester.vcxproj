@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BD161D45-F7F2-400C-9797-DC8A902C905E}</ProjectGuid>
+    <RootNamespace>tokenlookuptester</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Util;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Util;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Util;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir)..\..\ida2asm\src;$(ProjectDir)..\..\ida2asm\src\Util;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\ida2asm\gen-lookup\gen-lookup.py">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Creating token lookup tester...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Creating token lookup tester...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)main.cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)main.cpp</Outputs>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</TreatOutputAsContent>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</TreatOutputAsContent>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\src\Tokenizer.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenLookup.h;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenTypeEnum.h</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\src\Tokenizer.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenLookup.h;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenTypeEnum.h</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python %(Identity) $(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Creating token lookup tester...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Creating token lookup tester...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)main.cpp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)main.cpp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\src\Tokenizer.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenLookup.h;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenTypeEnum.h</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\ida2asm\src\Util\Util.h;$(ProjectDir)..\..\ida2asm\src\Tokenizer.h;$(ProjectDir)..\..\ida2asm\gen-lookup\tokens.lst;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenLookup.h;$(ProjectDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenTypeEnum.h</AdditionalInputs>
+    </CustomBuild>
+    <None Include="..\..\ida2asm\gen-lookup\tokens.lst" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(IntDir)\main.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
