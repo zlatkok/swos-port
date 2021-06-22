@@ -107,13 +107,7 @@ static int charSpriteWidth(char c, const CharTable *charTable)
         return bigFont ? kBigExclamationMarkWidth : kSmallExclamationMarkWidth;
 
     auto spriteIndex = charToSprite(c, bigFont);
-
-    if (spriteIndex) {
-        auto sprite = getSprite(spriteIndex);
-        return sprite->width;
-    } else {
-        return 0;
-    }
+    return spriteIndex ? getSpriteDimensions(spriteIndex).first : 0;
 }
 
 struct ElisionInfo {
@@ -173,18 +167,23 @@ static void drawMenuText(int x, int y, const char *str, const char *limit, int c
 
     while (str < limit) {
         auto c = *str++;
-        if (isSpace(c))
+        if (isSpace(c)) {
             x += charTable.spaceWidth;
-        else if (c == '!')
+        } else if (c == '!') {
             x += drawExclamationMark(x, y, color, bigFont) + charTable.charSpacing;
-        else if (int spriteIndex = charToSprite(c, bigFont))
-            x += drawCharSprite(spriteIndex, x, y, color) + charTable.charSpacing;
+        } else if (int spriteIndex = charToSprite(c, bigFont)) {
+            drawCharSprite(spriteIndex, x, y, color);
+            x += getSpriteDimensions(spriteIndex).first + charTable.charSpacing;
+        }
     }
 
     if (addEllipsis) {
         int dotSprite = bigFont ? kBigDotSprite : kSmallDotSprite;
-        x += drawCharSprite(dotSprite, x, y, color);
-        x += drawCharSprite(dotSprite, x, y, color);
+        auto dotSpriteWidth = getSpriteDimensions(dotSprite).first;
+        drawCharSprite(dotSprite, x, y, color);
+        x += dotSpriteWidth;
+        drawCharSprite(dotSprite, x, y, color);
+        x += dotSpriteWidth;
         drawCharSprite(dotSprite, x, y, color);
     }
 }

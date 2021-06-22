@@ -1,0 +1,23 @@
+- individual "source" sprites are stored in individual PNG files, inside assets directory
+- if a sprite has center point other than (0, 0) it is stored in a *.txt file with the same base name (first
+  line is center x, second y)
+- script (assets/compileAssets.py) combines sprites and pitch tiles into PNG atlases up to 2048x2048 pixels
+  (loaded as textures later)
+- there are 3 resolutions for assets: 3840x2160, 1920x1080, 960x540
+- source sprites are assumed to be sprites for 4k resolution (3840x2160), the script will automatically scale
+  them down and create 3 directories: 4k, hd and low-res; currently they need to be copied manually to game
+  directory/assets directory
+- menu item backgrounds have special rendering, and they are also cached in run-time built textures
+- sprites for characters (from fonts) will have to stay in the same proportions as the original, since the
+  menus were designed with fixed font size
+- other sprites don't have to be strictly in proportions to the original, but any larger deviations will have
+  to be thoroughly tested
+- sprites that need to be colorized (containing variable colors for skin, hair, shirt, shorts, shocks...) are
+  broken into gray-scale layers, before the game each layer is colored to proper color and pasted onto a
+  resulting sprite
+- only exception is shirts layer, which contain two colors, they are represented with pixels containing red
+  and blue components (shirt and sleeve color)
+- pitches are broken down in tiles which are stored as individual PNGs and later combined into PNG atlases
+  (just like sprites)
+- each pitch directory has to have a pitch<num>.txt file, which determines which tile goes where on the pitch
+  (it's a pitch matrix, 55x42 tiles)

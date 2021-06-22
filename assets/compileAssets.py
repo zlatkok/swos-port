@@ -1,0 +1,510 @@
+import os
+import sys
+import pathlib
+import operator
+import traceback
+import multiprocessing
+
+from PyTexturePacker import Packer, Utils
+from typing import Final
+
+kOutDir = os.path.join('..', 'tmp', 'assets')
+k4kDir = os.path.join(kOutDir, '4k')
+kHdDir = os.path.join(kOutDir, 'hd')
+kLowResDir = os.path.join(kOutDir, 'low-res')
+
+kPitchesDir: Final = 'pitches'
+kPitchWidth: Final = 42
+kPitchHeight: Final = 53
+
+kResMultipliers = (12, 6, 3)
+kNumResolutions: Final = 3
+
+kFixedSpritePrefixes = ('charset', 'gameSprites')
+kVariableSpritePrefixes = ('goalkeeper', 'player', 'bench')
+
+kWrapLimit: Final = 120
+
+kWarning = r'''// auto-generated, do not edit!
+#pragma once'''
+
+kAssert = 'static_assert(static_cast<int>(AssetResolution::kNumResolutions) == 3, "Floating through the 80s in a digital 8-bit form");'
+
+kHeader = kWarning + '''\n
+#include "PackedSprite.h"
+#include "windowManager.h"
+''' + '\n' + kAssert
+
+def mkdir(path):
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+
+def createDirs():
+    mkdir(kOutDir)
+    mkdir(k4kDir)
+    mkdir(kHdDir)
+    mkdir(kLowResDir)
+
+def pack(kwargs):
+    input = kwargs.pop('input')
+    outputPath = kwargs.pop('outputPath')
+    atlasNamePattern = kwargs.pop('atlasNamePattern')
+    postProcessRoutine = kwargs.pop('post_process_routine', None)
+
+    if 'trim_mode' not in kwargs:
+        kwargs['trim_mode'] = 100
+    if 'detect_duplicates' not in kwargs:
+        kwargs['detect_duplicates'] = True
+    if 'inner_padding' not in kwargs:
+        kwargs['inner_padding'] = 1
+
+    try:
+        packer = Packer.create(max_width=2048, max_height=2048, ignore_blank=True, border_padding=2,
+            shape_padding=2, crop_atlas=True, atlas_format=Utils.ATLAS_FORMAT_JSON, **kwargs)
+
+        return packer.pack(input, atlasNamePattern, output_path=outputPath, save_atlas_data=False,
+            post_process_routine=postProcessRoutine)
+    except Exception:
+        print('Packing failed!')
+        traceback.print_exc()
+        sys.exit(1)
+
+def getResolutionName(res):
+    return ('4k', 'HD', 'low-res')[res]
+
+def extractIndex(name, prefix='spr'):
+    start = len(prefix)
+    end = len(prefix) + 4
+
+    if name.startswith(prefix) and name[start:end].isdigit():
+        return int(name[start:end])
+    else:
+        return -1
+
+def getDirAtlasSprites(atlasData, metadata, res, atlasNamePrefixes, textureIndex):
+    assert 0 <= res <= 2
+
+    sprites = []
+    maxSprite = -1
+
+    for i, atlas in enumerate(atlasData):
+        if not atlas['meta']['image'].startswith(atlasNamePrefixes):
+            continue
+
+        for filename, sprite in atlas['frames'].items():
+            index = extractIndex(filename)
+            if index < 0:
+                continue
+
+            maxSprite = max(maxSprite, index)
+
+            spriteData = []
+
+            # sync with PackedSprite.h
+            for prop in ('x', 'y', 'w', 'h'):
+                spriteData.append(sprite['frame'][prop])
+            for floatValue in (False, True):
+                for prop in ('x', 'y'):
+                    value = sprite['spriteSourceSize'][prop]
+                    spriteData.append(value / kResMultipliers[res] if floatValue else value)
+            for dim in ('w', 'h'):
+                spriteData.append(sprite['frame'][dim] / kResMultipliers[res])
+            for floatValue in (True, False):
+                for coord in metadata.get(index, (0, 0)):
+                    value = coord / kResMultipliers[0] if floatValue else coord
+                    spriteData.append(value)
+            for dim in ('w', 'h'):
+                spriteData.append(sprite['sourceSize'][dim])
+            spriteData += (textureIndex + i, str(sprite['rotated']).lower())
+
+            if sprite['rotated']:
+                spriteData[2], spriteData[3] = spriteData[3], spriteData[2]
+                spriteData[8], spriteData[9] = spriteData[9], spriteData[8]
+
+            sprites.append((index, spriteData))
+
+    return sprites, maxSprite
+
+def getMetadata(paths):
+    metadata = {}
+
+    for path in paths:
+        for file in pathlib.Path('sprites').joinpath(path).glob('spr*.txt'):
+            index = extractIndex(file.name)
+            if index >= 0:
+                with open(file, 'r') as f:
+                    lines = f.readlines()
+                    assert len(lines) == 2
+                    assert index not in metadata
+                    metadata[index] = tuple(map(int, lines))
+
+    return metadata
+
+def getSprites(atlasData, atlasNamePrefixes, metadataPaths, files):
+    assert len(atlasData) % kNumResolutions == 0
+
+    sprites = [[], [], []]
+    numSprites = -1
+    textureIndices = [0, 0, 0]
+
+    metadata = getMetadata(metadataPaths)
+
+    for i, dirAtlasData in enumerate(atlasData):
+        res = i % kNumResolutions
+        dirSprites, maxSprite = getDirAtlasSprites(dirAtlasData, metadata, res, atlasNamePrefixes, textureIndices[res])
+        numSprites = max(numSprites, maxSprite)
+        sprites[res].extend(dirSprites)
+        if dirAtlasData[0]['meta']['image'] in files:
+            textureIndices[res] += len(dirAtlasData)
+
+    numSprites += 1
+    spriteArray = [[None] * numSprites, [None] * numSprites, [None] * numSprites]
+
+    for res, resSprites in enumerate(sprites):
+        for index, sprite in resSprites:
+            assert spriteArray[res][index] is None
+            spriteArray[res][index] = sprite
+
+    return spriteArray, numSprites
+
+def getFilenameMapping(atlasData, atlasNamePrefixes):
+    files = set()
+
+    for resAtlasData in atlasData:
+        for atlas in resAtlasData:
+            if atlas['meta']['image'].startswith(atlasNamePrefixes):
+                files.add(atlas['meta']['image'])
+
+    return {file:index for (index, file) in enumerate(sorted(files))}
+
+def generateFileMap(atlasData, atlasNamePrefixes):
+    assert len(atlasData) % kNumResolutions == 0
+
+    files = getFilenameMapping(atlasData, atlasNamePrefixes)
+
+    fileMap = [[] for i in range(kNumResolutions)]
+
+    for i, resAtlasData in enumerate(atlasData):
+        res = i % kNumResolutions
+        for atlas in resAtlasData:
+            if atlas['meta']['image'].startswith(atlasNamePrefixes):
+                fileMap[res].append(files[atlas['meta']['image']])
+
+    maxFiles = len(files)
+    fileMap = map(lambda l: l + ([-1] * (maxFiles - len(l))), fileMap)
+
+    return maxFiles, files, fileMap
+
+def convertSpriteFieldForOutput(field):
+    import struct
+
+    if isinstance(field, float):
+        field = struct.unpack('f', struct.pack('f', field))[0]
+    elif isinstance(field, int):
+        field = hex(field) + 'u' if field > 0x7fff else field
+    return str(field)
+
+def outputSprite(sprite, index, out):
+    out('        { ', end='')
+    if sprite:
+        line = ', '.join(map(convertSpriteFieldForOutput, sprite))
+    else:
+        line = '0'
+    out((line + ' },').ljust(48), f'// {index}')
+
+def outputSprites(sprites, out):
+    for i, resSprites in enumerate(sprites):
+        out(f'    // {getResolutionName(i)}\n    {{{{')
+        for j, sprite in enumerate(resSprites):
+            outputSprite(sprite, j, out)
+        out('    }},')
+    out('}};')
+
+def outputSpritesArray(atlasData, out, files):
+    sprites, numSprites = getSprites(atlasData, kFixedSpritePrefixes, ('game', 'menu'), files)
+    out(f'static std::array<std::array<PackedSprite, {numSprites}>, {kNumResolutions}> m_packedSprites =\n{{{{')
+    outputSprites(sprites, out)
+
+def getVariableSpritePaths():
+    paths = []
+
+    for root in ('goalkeeper', 'player'):
+        for subdir in ('background', 'socks', 'hair', 'skin', 'shorts'):
+            paths.append((root, subdir))
+
+    for root, subdir in (('player', 'shirt'), ('bench', 'background'), ('bench', 'shirt')):
+        paths.append((root, subdir))
+
+    return paths
+
+def outputVariableSprites(atlasData, out, files):
+    for root, subdir in getVariableSpritePaths():
+        sprites, numSprites = getSprites(atlasData, (f'{root}-{subdir}',), (os.path.join('game', root, subdir),), files)
+        if subdir == 'background':
+            if root == 'player':
+                out(f'constexpr int kNumPlayerSprites = {numSprites};')
+            elif root == 'goalkeeper':
+                out(f'constexpr int kNumGoalkeeperSprites = {numSprites};')
+        out(f'\nstatic const std::array<std::array<PackedSprite, {numSprites}>, {kNumResolutions}> k{root.title()}{subdir.title()} =\n{{{{')
+        outputSprites(sprites, out)
+
+def getNumTexturesNeeded(files):
+    numBasicTextures = sum('-' not in file for file in files)
+    # 2 * 3 players sets (one set per team per face), 2 * 2 goalkeeper sets, 2 bench player sets
+    return numBasicTextures, numBasicTextures + 2 * 3 + 2 * 2 + 2
+
+def outputTextureFilenames(maxFiles, files, fileMap, out, generateTextureToFile=True):
+    import textwrap
+
+    out(f'static const std::array<const char *, {maxFiles}> kTextureFilenames = {{')
+
+    fileList = ', '.join(map(lambda filename: f'"{filename}"', files.keys()))
+    fileListOutput = textwrap.fill(fileList, width=kWrapLimit, expand_tabs=False, replace_whitespace=False,
+        break_long_words=False, break_on_hyphens=False, initial_indent='    ', subsequent_indent='    ')
+    out(fileListOutput)
+    out('};\n')
+
+    if generateTextureToFile:
+        out(f'static const std::array<std::array<int, {maxFiles}>, {kNumResolutions}> kTextureToFile =', '{{')
+        for fileIndices in fileMap:
+            out('    {', ', '.join(map(str, fileIndices)), ' },')
+        out('}};\n')
+
+def getOutputFunc(file):
+    return lambda *args, **kwargs: print(*args, **kwargs, file=file)
+
+def generateSpriteDatabase(atlasData):
+    assert len(atlasData) % kNumResolutions == 0
+
+    with open(os.path.join(kOutDir, 'spriteDatabase.h'), 'w') as f:
+        out = getOutputFunc(f)
+
+        out(kHeader)
+
+        maxFiles, files, fileMap = generateFileMap(atlasData, kFixedSpritePrefixes)
+        outputTextureFilenames(maxFiles, files, fileMap, out)
+
+        numBasicTextures, numTextures = getNumTexturesNeeded(files)
+        out(f'constexpr int kNumBasicTextures = {numBasicTextures};')
+        out(f'static std::array<std::array<SDL_Texture *, {numTextures}>, {kNumResolutions}> m_textures;\n')
+
+        outputSpritesArray(atlasData, out, files)
+
+def generateVariableSprites(atlasData):
+    with open(os.path.join(kOutDir, 'variableSprites.h'), 'w') as f:
+        out = getOutputFunc(f)
+
+        out(kHeader)
+
+        maxFiles, files, fileMap = generateFileMap(atlasData, kVariableSpritePrefixes)
+        outputTextureFilenames(maxFiles, files, fileMap, out)
+
+        outputVariableSprites(atlasData, out, files)
+
+def outputPitchIndices(pitches, out):
+    out(f'static const uint16_t kPitchIndices[{len(pitches)}][{kPitchHeight}][{kPitchWidth}] = {{')
+    for pitch in pitches:
+        indexFile = os.path.join(pitch, os.path.basename(pitch) + '.txt')
+        with open(indexFile, 'r') as f:
+            pitchMatrix = f.read().split()
+            assert len(pitchMatrix) == 55 * kPitchWidth
+
+            out('    {')
+            for i in range(1, 54):
+                out('        ', end='')
+                for j in range(kPitchWidth):
+                    out(f"{pitchMatrix[kPitchWidth * i + j]},{' ' if j < 41 else chr(10)}", end='')
+            out('    },')
+    out('};')
+
+def getPatterns(atlasData, pitches):
+    patterns = [[] for i in range(kNumResolutions)]
+    pitchStartPatterns = [0] * len(pitches)
+
+    texture = 0
+    maxAtlases = 0
+
+    # relies on the fact that the pitches are in original order
+    for i, resAtlasData in enumerate(atlasData):
+        res = i % kNumResolutions
+
+        pitchName = resAtlasData[0]['meta']['image']
+        if pitchName.startswith('pitch'):
+            if res == 0:
+                index = int(pitchName[5:pitchName.index('-')]) - 1
+                pitchStartPatterns[index] = len(patterns[res])
+
+            # careful, files within an atlas are arbitrarily ordered
+            atlasPatterns = []
+            for j, atlas in enumerate(resAtlasData):
+                for filename, pattern in atlas['frames'].items():
+                    index = int(filename[filename.index('-') + 1 : filename.index('.')])
+                    atlasPatterns.append((index, (pattern['frame']['x'], pattern['frame']['y'], texture + j)))
+
+            for pattern in (patterns[1] for patterns in sorted(atlasPatterns, key=operator.itemgetter(0))):
+                patterns[res].append(pattern)
+
+            if res == kNumResolutions - 1:
+                maxAtlases = max(map(len, atlasData[i - 3:i]))
+                texture += maxAtlases
+
+    return patterns, pitchStartPatterns
+
+def outputPitchPatterns(resPatterns, out):
+    out(f'static const std::array<std::array<PackedPitchPattern, {len(resPatterns[0])}>, {kNumResolutions}> kPatterns = {{{{')
+    for patterns in resPatterns:
+        out('    {{')
+        for i, pattern in enumerate(patterns):
+            out(f'        {{ {", ".join(map(str, pattern))} }}, '.ljust(32), f'// {i}')
+        out('    }},')
+    out('}};')
+
+def outputPitchPatternStartIndices(pitchStartPatterns, out):
+    out(f'static const std::array<int, {len(pitchStartPatterns)}> kPitchPatternStartIndices = {{{{')
+    out('   ', ', '.join(map(str, pitchStartPatterns)))
+    out('}};')
+
+def outputPitchPatternData(atlasData, pitches, out):
+    resPatterns, pitchStartPatterns = getPatterns(atlasData, pitches)
+    outputPitchPatterns(resPatterns, out)
+    out('')
+    outputPitchPatternStartIndices(pitchStartPatterns, out)
+
+def generatePitchDatabase(atlasData, pitches):
+    with (open(os.path.join(kOutDir, 'pitchDatabase.h'), 'w')) as f:
+        out = getOutputFunc(f)
+
+        out(kWarning, '#include "windowManager.h"', kAssert, sep='\n\n', end='\n\n')
+        out(f'static constexpr int kNumPitches = {len(pitches)};')
+        out(f'static constexpr int kPitchWidth = {kPitchWidth};')
+        out(f'static constexpr int kPitchHeight = {kPitchHeight};\n')
+
+        maxFiles, files, fileMap = generateFileMap(atlasData, 'pitch')
+        outputTextureFilenames(maxFiles, files, fileMap, out, generateTextureToFile=False)
+
+        out(f'static std::array<std::array<SDL_Texture *, {maxFiles}>, {kNumResolutions}> m_pitchTextures;\n')
+
+        patternSizes = map(lambda mul: str(mul * 16), kResMultipliers)
+        out('constexpr int kPatternSizes[static_cast<int>(AssetResolution::kNumResolutions)] = {', end='')
+        out(f' {", ".join(patternSizes)} }};')
+        out('''
+struct PackedPitchPattern {
+    int16_t x;
+    int16_t y;
+    int8_t texture;
+};
+''')
+
+        outputPitchIndices(pitches, out)
+        out('')
+        outputPitchPatternData(atlasData, pitches, out)
+
+def formDir(dir1, dir2):
+    return os.path.join('sprites', 'game', dir1, dir2)
+
+def getPitches():
+    seenPitches = set()
+    pitches = []
+
+    for entry in os.scandir(kPitchesDir):
+        if entry.is_dir():
+            pitchIndex = extractIndex(entry.name, 'pitch')
+            if pitchIndex >= 0:
+                if pitchIndex in seenPitches:
+                    sys.exit(f'Duplicate pitch {pitchIndex} encountered')
+                pitchDir = os.path.join(kPitchesDir, entry.name)
+                pitches.append(pitchDir)
+
+    return pitches
+
+def addSinglePixelBorders(image, data):
+    pa = image.load()
+    width, height = image.size
+
+    for sprite in data['frames'].values():
+        x = sprite['frame']['x']
+        y = sprite['frame']['y']
+        w = sprite['frame']['w']
+        h = sprite['frame']['h']
+
+        if y > 0:
+            for i in range(w):
+                pa[x + i, y - 1] = pa[x + i, y]
+
+        if y + h < height:
+            for i in range(w):
+                pa[x + i, y + h] = pa[x + i, y + h - 1]
+
+        if x > 0:
+            for i in range(h):
+                pa[x - 1, y + i] = pa[x, y + i]
+
+        if x + w < width:
+            for i in range(h):
+                pa[x + w, y + i] = pa[x + w - 1, y + i]
+
+        if x > 0 and y > 0:
+            pa[x - 1, y - 1] = pa[x, y]
+
+        if x + w < width and y > 0:
+            pa[x + w, y - 1] = pa[x + w - 1, y]
+
+        if x > 0 and y + h < height:
+            pa[x - 1, y + h] = pa[x, y + h - 1]
+
+        if x + w < width and y + h < height:
+            pa[x + w, y + h] = pa[x + w - 1, y + h - 1]
+
+    return image
+
+def getOptions(pitches):
+    gameSprites = tuple(map(str, pathlib.Path('sprites').joinpath('game').glob('spr*.png')))
+
+    options = [
+        dict(input=gameSprites, atlasNamePattern='gameSprites%d'),
+        dict(input=os.path.join('sprites', 'menu'), atlasNamePattern='charset%d'),
+    ]
+
+    for root, subdir in getVariableSpritePaths():
+        # disable rotation since SDL surfaces don't support it
+        options.append(dict(enable_rotated=False, input=formDir(root, subdir), atlasNamePattern=f'{root}-{subdir}%d'))
+
+    for i, pitch in enumerate(pitches, 1):
+        assert pitch.endswith(f'pitch{i}')
+        options.append(dict(input=pitch, enable_rotated=False, inner_padding=0,
+            post_process_routine=addSinglePixelBorders, atlasNamePattern=f'pitch{i}-%d'))
+
+    result = []
+    for option in options:
+        # turn off trimming and duplicate removal for background so it can be used as a destination
+        if 'background' in option['input']:
+            option['trim_mode'] = 0
+            option['detect_duplicates'] = 0
+
+        result.append(dict(option, outputPath=k4kDir))
+        result.append(dict(option, outputPath=kHdDir, scale=0.5, scale_filter='LANCZOS'))
+        result.append(dict(option, outputPath=kLowResDir, scale=0.25, scale_filter='LANCZOS'))
+
+    return result
+
+def main():
+    createDirs()
+
+    pool = multiprocessing.Pool()
+
+    pitches = getPitches()
+    options = getOptions(pitches)
+
+    atlasData = pool.map(pack, options)
+
+    pool.close()
+    pool.join()
+
+    generateSpriteDatabase(atlasData)
+    generateVariableSprites(atlasData)
+    generatePitchDatabase(atlasData, pitches)
+
+if __name__ == '__main__':
+    main()

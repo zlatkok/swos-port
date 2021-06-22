@@ -379,13 +379,15 @@ static void playXmi()
 
 static void playMenuSong()
 {
+    static constexpr char kMenuXmi[] = "menu.xmi";
+
     finishAdl();
 
     m_menuMusic = playMixSong("menu", true, m_menuMusic);
 
     if (!m_menuMusic) {
-        if (loadXmi(swos.aMenu_xmi, true)) {
-            logInfo("Playing menu music \"%s\"", swos.aMenu_xmi);
+        if (loadXmi(kMenuXmi, true)) {
+            logInfo("Playing menu music \"%s\"", kMenuXmi);
             m_state = State::kPlayingMenuSong;
             playXmi();
         } else {

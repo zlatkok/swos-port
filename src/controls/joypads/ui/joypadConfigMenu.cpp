@@ -1,6 +1,7 @@
 #include "JoypadConfig.h"
 #include "joypads.h"
 #include "text.h"
+#include "textInput.h"
 #include "selectGameControlEventsMenu.h"
 #include "configureHatMenu.h"
 #include "configureAxisMenu.h"
@@ -389,7 +390,7 @@ static void inputCurrentElementIndex()
     });
     assert(it != kElementEntries.end());
 
-    if (it != kElementEntries.end() && inputNumber(entry, m_maxElementNumDigits, 1, *it->numberOf))
+    if (it != kElementEntries.end() && inputNumber(*entry, m_maxElementNumDigits, 1, *it->numberOf))
         *it->currentVar = entry->fg.number - 1;
 }
 

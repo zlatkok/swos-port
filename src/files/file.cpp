@@ -153,18 +153,10 @@ static void loadFileImp()
 //
 __declspec(naked) int SWOS::LoadFile()
 {
-#ifdef SWOS_VM
     loadFileImp();
     D0 = 0;
     SwosVM::flags.zero = true;
     return 0;
-#else
-    __asm {
-        call loadFileImp
-        xor  eax, eax
-        retn
-    }
-#endif
 }
 
 bool saveFile(const char *path, void *buffer, size_t size)
@@ -204,18 +196,10 @@ static int writeFileImp()
 //
 __declspec(naked) int SWOS::WriteFile()
 {
-#ifdef SWOS_VM
     auto result = writeFileImp();
     SwosVM::flags.zero = result != 0;
     D0 = !result;
     return 0;
-#else
-    __asm {
-        call writeFileImp
-        call setZeroFlagAndD0FromAl
-        retn
-    }
-#endif
 }
 
 bool renameFile(const char *oldPath, const char *newPath)

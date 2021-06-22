@@ -4,6 +4,7 @@
 #include "JoypadConfig.h"
 #include "windowManager.h"
 #include "render.h"
+#include "game.h"
 #include "util.h"
 
 constexpr Uint32 kShowTouchMarkDelay = 2'000;
@@ -263,8 +264,7 @@ void VirtualJoypad::createTexture()
         return;
     }
 
-    if (SDL_MUSTLOCK(surface))
-        SDL_LockSurface(surface);
+    bool locked = SDL_MUSTLOCK(surface) && SDL_LockSurface(surface) >= 0;
 
     auto pixels = reinterpret_cast<Uint32 *>(surface->pixels);
     auto pixel = SDL_MapRGBA(surface->format, 255, 255, 255, 255);
@@ -310,7 +310,7 @@ void VirtualJoypad::createTexture()
         alphaFrac -= alphaDec;
     }
 
-    if (SDL_MUSTLOCK(surface))
+    if (locked)
         SDL_UnlockSurface(surface);
 
     SDL_SetColorKey(surface, 1, SDL_MapRGBA(surface->format, 0, 0, 0, 0));
@@ -327,7 +327,7 @@ SDL_Surface *VirtualJoypad::allocateSurface()
     m_padHeight = kPadSegmentHeight * scaleFactor;
 
     while (scaleFactor) {
-        auto surface = SDL_CreateRGBSurface(0, m_padWidth, m_padHeight, 32, 0xff, 0xff00, 0xff0000, 0xff000000);
+        auto surface = SDL_CreateRGBSurface(0, m_padWidth, m_padHeight, 32, kRedMask, kGreenMask, kBlueMask, kAlphaMask);
         if (surface)
             return surface;
         logWarn("Failed to allocate %dx%d surface", m_padWidth, m_padHeight);

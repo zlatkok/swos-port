@@ -1,41 +1,15 @@
 #include "menus.h"
+#include "menuProc.h"
+#include "menuAlloc.h"
 #include "menuMouse.h"
-#include "log.h"
-#include "util.h"
+#include "menuItemRenderer.h"
 #include "render.h"
-#include "sprites.h"
-#include "options.h"
-#include "controls.h"
 #include "menuControls.h"
 #include "mainMenu.h"
 
 #ifdef SWOS_TEST
 # include "unitTest.h"
 #endif
-
-// Copies string to entry's text and removes spaces from beginning and end.
-void MenuEntry::copyString(const char *str)
-{
-    assert(type == kEntryString && str);
-
-    while (*str == ' ')
-        str++;
-
-    auto start = string();
-    auto end = start + kStdMenuTextSize;
-    auto p = start;
-
-    while (p < end && *str)
-        *p++ = *str++;
-
-    if (p < end)
-        *p = '\0';
-    else
-        *--p = '\0';
-
-    while (--p >= start && *p == ' ')
-        *p = '\0';
-}
 
 void setEntriesVisibility(const std::vector<int>& entryIndices, bool visible)
 {
@@ -56,8 +30,7 @@ void selectEntry(MenuEntry *entry, int controlMask /* = kShortFireMask */)
         swos.controlMask = controlMask;
 
         A5 = entry;
-        auto func = entry->onSelect;
-        SAFE_INVOKE(func);
+        entry->onSelect();
 
         restore68kRegisters();
     }
@@ -71,12 +44,6 @@ void selectEntry(int ordinal)
         auto entry = getMenuEntry(ordinal);
         selectEntry(entry);
     }
-}
-
-void SWOS::FlipInMenu()
-{
-    frameDelay(2);
-    updateScreen();
 }
 
 static void menuDelay()
@@ -98,21 +65,12 @@ static void menuDelay()
 static void menuProcCycle()
 {
     menuDelay();
-    SWOS::MenuProc();
+    menuProc();
 }
 
 void SWOS::WaitRetrace()
 {
     menuDelay();
-}
-
-void SWOS::MainMenu()
-{
-    logInfo("Initializing main menu");
-    InitMainMenu();
-
-    while (true)
-        menuProcCycle();
 }
 
 static const char *entryText(int entryOrdinal)
@@ -195,21 +153,8 @@ void SWOS::ToMainGameLoop()
     logInfo("Starting the game...");
 
     saveCurrentMenu();
-    safeInvokeWithSaved68kRegisters(StartMainGameLoop);
+    invokeWithSaved68kRegisters(StartMainGameLoop);
     restorePreviousMenu();
-}
-
-__declspec(naked) void SWOS::DoUnchainSpriteInMenus_OnEnter()
-{
-#ifdef SWOS_VM
-    SwosVM::ecx = 0;
-#else
-    // only cx is loaded, but later whole ecx is tested; make this right
-    _asm {
-        xor ecx, ecx
-        retn
-    }
-#endif
 }
 
 // ActivateMenu
@@ -258,183 +203,16 @@ void activateMenu(const void *menu)
         SDL_UNUSED auto menuMark = menuAlloc(0);
 
         A6 = swos.g_currentMenu;
-        auto proc = currentMenu->onInit;
-        SAFE_INVOKE(proc);
+        currentMenu->onInit();
 
         assert(menuMark == menuAlloc(0));
     }
 
     assert(currentMenu->numEntries < 256);
 
+    cacheMenuItemBackgrounds();
+
     resetMenuMouseData();
-}
-
-void SWOS::InitMainMenu()
-{
-    InitMenuMusic();
-    InitMainMenuStuff();
-    // speed up starting up in debug mode
-#ifdef DEBUG
-    swos.menuFade = 0;
-    setPalette(swos.g_workingPalette);
-#else
-    swos.menuFade = 1;
-#endif
-}
-
-void SWOS::InitMainMenuStuff()
-{
-    ZeroOutStars();
-    swos.twoPlayers = -1;
-    swos.flipOnOff = 1;
-    swos.inFriendlyMenu = 0;
-    swos.isNationalTeam = 0;
-
-    D0 = kGameTypeNoGame;
-    InitCareerVariables();
-
-    swos.menuFade = 0;
-    swos.g_exitMenu = 0;
-    swos.fireResetFlag = 0;
-    swos.dseg_10E848 = 0;
-    swos.dseg_10E846 = 0;
-    swos.dseg_11F41C = -1;
-    swos.coachOrPlayer = 1;
-    SetDefaultNameAndSurname();
-    swos.plNationality = kEng;       // English is the default
-    swos.competitionOver = 0;
-    InitHighestScorersTable();
-    swos.teamsLoaded = 0;
-    swos.poolplyrLoaded = 0;
-    swos.importTacticsFilename[0] = 0;
-    swos.chooseTacticsTeamPtr = nullptr;
-    InitUserTactics();
-
-    activateMainMenu();
-}
-
-void SWOS::ExitEuropeanChampionshipMenu()
-{
-    activateMainMenu();
-}
-
-bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum)
-{
-    assert(entry->type == kEntryNumber);
-
-    int num = static_cast<int16_t>(entry->fg.number);
-    assert(num >= minNum && num <= maxNum);
-
-    auto buf = menuAlloc(16);
-    SDL_itoa(num, buf, 10);
-    assert(static_cast<int>(strlen(buf)) <= maxDigits);
-
-    auto end = buf + strlen(buf);
-    *end++ = kCursorChar;
-    *end = '\0';
-
-    entry->type = kEntryString;
-    entry->setString(buf);
-
-    auto cursorPtr = end - 1;
-
-    TextInputScope textInput;
-
-    while (true) {
-        processControlEvents();
-        SWOS::DrawMenu();
-        SWOS::WaitRetrace();
-
-        SWOS::GetKey();
-
-        while (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON_RMASK) {
-            swos.lastKey = kKeyEscape;
-            processControlEvents();
-            SDL_Delay(15);
-        }
-
-        switch (swos.lastKey) {
-        case kKeyEnter:
-            memmove(cursorPtr, cursorPtr + 1, end - cursorPtr);
-            entry->type = kEntryNumber;
-            entry->fg.number = atoi(buf);
-            return true;
-
-        case kKeyEscape:
-            A5 = entry;
-            entry->type = kEntryNumber;
-            entry->fg.number = num;
-            return false;
-
-        case kKeyLShift:
-        case kKeyArrowLeft:
-            if (cursorPtr != buf) {
-                std::swap(cursorPtr[-1], cursorPtr[0]);
-                cursorPtr--;
-            }
-            break;
-
-        case kKeyRShift:
-        case kKeyArrowRight:
-            if (cursorPtr[1]) {
-                std::swap(cursorPtr[0], cursorPtr[1]);
-                cursorPtr++;
-            }
-            break;
-
-        case kKeyHome:
-        case kKeyArrowDown:
-            memmove(buf + 1, buf, cursorPtr - buf);
-            *(cursorPtr = buf) = kCursorChar;
-            break;
-
-        case kKeyEnd:
-        case kKeyArrowUp:
-            if (cursorPtr[1]) {
-                memmove(cursorPtr, cursorPtr + 1, end - cursorPtr);
-                *(cursorPtr = end - 1) = kCursorChar;
-            }
-            break;
-
-        case kKeyBackspace:
-            if (cursorPtr != buf) {
-                memmove(cursorPtr, cursorPtr + 1, end - cursorPtr);
-                *--cursorPtr = kCursorChar;
-                end--;
-            }
-            break;
-
-        case kKeyDelete:
-            if (cursorPtr[1]) {
-                memmove(cursorPtr, cursorPtr + 1, end - cursorPtr);
-                *cursorPtr = kCursorChar;
-                end--;
-            }
-            break;
-
-        case kKeyMinus: case kKeyKpMinus:
-            if (cursorPtr != buf || minNum >= 0)
-                break;
-
-            swos.convertedKey = '-';
-            // assume fall-through
-
-        case kKey0: case kKey1: case kKey2: case kKey3: case kKey4:
-        case kKey5: case kKey6: case kKey7: case kKey8: case kKey9:
-            if (end - buf - 1 < maxDigits) {
-                *cursorPtr++ = swos.convertedKey;
-                auto newValue = atoi(buf);
-
-                if (newValue >= minNum && newValue <= maxNum && (newValue != 0 || end == buf + 1 || swos.lastKey != kKey0)) {
-                    memmove(cursorPtr + 1, cursorPtr, end++ - cursorPtr + 1);
-                    *cursorPtr = kCursorChar;
-                } else {
-                    *--cursorPtr = kCursorChar;
-                }
-            }
-            break;
-        }
-    }
 }
 
 bool showContinueAbortPrompt(const char *header, const char *continueText,

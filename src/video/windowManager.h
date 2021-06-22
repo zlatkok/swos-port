@@ -10,9 +10,20 @@ enum WindowMode
     kModeFullScreen, kModeWindow, kModeBorderlessMaximized, kNumWindowModes,
 };
 
+enum class AssetResolution {
+    k4k, kHD, kLowRes, kNumResolutions, kInvalid = kNumResolutions,
+};
+
+constexpr auto kNumAssetResolutions = static_cast<size_t>(AssetResolution::kNumResolutions);
+
+using AssetResolutionChangeHandler = std::function<void(AssetResolution, AssetResolution)>;
+
 SDL_Window *createWindow();
 void destroyWindow();
 std::pair<int, int> getWindowSize();
+AssetResolution getAssetResolution();
+void registerAssetResolutionChangeHandler(AssetResolutionChangeHandler handler);
+const char *getAssetDir();
 void setWindowSize(int width, int height);
 bool getWindowResizable();
 WindowMode getWindowMode();
@@ -33,6 +44,9 @@ void centerWindow();
 
 bool hasMouseFocus();
 bool mapCoordinatesToGameArea(int& x, int& y);
+float getXScale();
+float getYScale();
+SDL_Rect mapRect(int x, int y, int width, int height);
 
 #ifdef VIRTUAL_JOYPAD
 bool getShowTouchTrails();

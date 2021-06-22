@@ -8,7 +8,7 @@
 #include "OutputException.h"
 
 constexpr int kStructVarsCapacity = 5'000;
-constexpr int kGlobalOffsetMapCapacity = 368'000;
+constexpr int kGlobalOffsetMapCapacity = 410'000;
 
 DataBank::DataBank(const SymbolFileParser& symFileParser)
 :
@@ -28,7 +28,6 @@ auto DataBank::processRegion(const OutputItemStream& items, const StructStream& 
     for (const auto& item : items) {
         if (item.type() == OutputItem::kDataItem) {
             auto dataItem = item.getItem<DataItem>();
-
             addVariable(item, dataItem, structs, defines, varList);
             addPotentialStructVar(dataItem, item.comment(), firstMembersMap, structVars);
         } else if (item.type() == OutputItem::kInstruction) {

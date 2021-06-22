@@ -3,7 +3,9 @@
 #include "VirtualJoypad.h"
 #include "windowManager.h"
 #include "windowModeMenu.h"
+#include "render.h"
 
+static int16_t m_useLinearFiltering = 0;
 static int16_t m_flashCursor = 1;
 static int16_t m_showTouchTrails;
 static int16_t m_transparentButtons = 1;
@@ -19,6 +21,7 @@ void showVideoOptionsMenu()
 
 static void videoOptionsMenuOnInit()
 {
+    m_useLinearFiltering = getLinearFiltering();
     m_flashCursor = cursorFlashingEnabled();
 #ifdef VIRTUAL_JOYPAD
     m_showTouchTrails = getShowTouchTrails();
@@ -48,6 +51,13 @@ static void videoOptionsMenuOnInit()
 
     showWindowModeEntry.y -= diff;
 #endif
+}
+
+static void switchLinearFiltering()
+{
+    m_useLinearFiltering = !m_useLinearFiltering;
+    logInfo("Linear filtering %s", m_useLinearFiltering ? "enabled" : "disabled");
+    setLinearFiltering(m_useLinearFiltering != 0);
 }
 
 static void changeFlashCursor()

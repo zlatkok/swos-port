@@ -70,9 +70,6 @@
     <ClInclude Include="..\..\..\src\video\render.h">
       <Filter>Source Files\video</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\video\sprites.h">
-      <Filter>Source Files\video</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\android\pch.h">
       <Filter>Source Files\android</Filter>
     </ClInclude>
@@ -80,12 +77,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\crash.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\game.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\log.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\options.h">
@@ -202,6 +193,45 @@
     <ClInclude Include="..\..\..\src\video\windowModeMenu.h">
       <Filter>Source Files\video</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\menus\menuItemRenderer.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\menus\menuProc.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\menus\MenuEntry.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\menus\menuBackground.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\menus\menuAlloc.h">
+      <Filter>Source Files\menus</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\sprites\sprites.h">
+      <Filter>Source Files\sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\game.h">
+      <Filter>Source Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\gameTime.h">
+      <Filter>Source Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\sprites\colorizeSprites.h">
+      <Filter>Source Files\sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\pitch.h">
+      <Filter>Source Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\util\log.h">
+      <Filter>Source Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\sprites\loadTexture.h">
+      <Filter>Source Files\sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\camera.h">
+      <Filter>Source Files\game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
@@ -260,6 +290,12 @@
     </Filter>
     <Filter Include="Source Files\controls\joypads\ui">
       <UniqueIdentifier>{3de1dad7-dc41-48ee-90ec-590d3d5de456}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sprites">
+      <UniqueIdentifier>{3f812fc3-eb0e-405e-9b21-a85827f333ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\game">
+      <UniqueIdentifier>{610c4129-7816-4a21-8965-2e0a657b0ef5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -329,31 +365,19 @@
     <ClCompile Include="..\..\..\src\video\render.cpp">
       <Filter>Source Files\video</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\video\sprites.cpp">
-      <Filter>Source Files\video</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\video\videoOptionsMenu.cpp">
       <Filter>Source Files\video</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\crash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\init.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\options.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\pitch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\text\text.cpp">
@@ -456,6 +480,33 @@
     <ClCompile Include="..\..\..\src\video\windowManager.cpp">
       <Filter>Source Files\video</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\text\textInput.cpp">
+      <Filter>Source Files\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\video\windowModeMenu.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\menus\menuItemRenderer.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\menus\MenuEntry.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\menus\menuBackground.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\menus\menuAlloc.cpp">
+      <Filter>Source Files\menus</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\sprites\sprites.cpp">
+      <Filter>Source Files\sprites</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\game.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\gameTime.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\tmp\swos-cpp-gen-32\swos-01.cpp">
       <Filter>Source Files\swos-cpp</Filter>
     </ClCompile>
@@ -480,14 +531,29 @@
     <ClCompile Include="..\..\..\tmp\swos-cpp-gen-32\swos-08.cpp">
       <Filter>Source Files\swos-cpp</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\game\replayExitMenu.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\sprites\colorizeSprites.cpp">
+      <Filter>Source Files\sprites</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\tmp\swos-cpp-gen-32\vm.cpp">
       <Filter>Source Files\swos-cpp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\text\textInput.cpp">
-      <Filter>Source Files\text</Filter>
+    <ClCompile Include="..\..\..\src\game\pitch.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\video\windowModeMenu.cpp">
-      <Filter>Source Files\video</Filter>
+    <ClCompile Include="..\..\..\src\util\log.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\sprites\loadTexture.cpp">
+      <Filter>Source Files\sprites</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\camera.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\result.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

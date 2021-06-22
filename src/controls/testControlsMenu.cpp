@@ -1,5 +1,5 @@
 #include "testControlsMenu.h"
-#include "menus.h"
+#include "menuBackground.h"
 #include "text.h"
 
 constexpr int kHeaderY = 20;
@@ -23,7 +23,7 @@ static void drawFixedPart(const char *title, const char *controlsTitle, bool all
 {
     assert(controlsTitle[strlen(controlsTitle) - 1] == ':');
 
-    redrawMenuBackground();
+    drawMenuBackground();
     drawMenuTextCentered(kCenterX, kHeaderY, title);
     drawMenuTextCentered(kColumn1X, kDescriptionY, controlsTitle);
     drawMenuTextCentered(kColumn2X, kDescriptionY, "EVENTS TRIGGERING:");
@@ -32,7 +32,7 @@ static void drawFixedPart(const char *title, const char *controlsTitle, bool all
 #else
     drawMenuTextCentered(kCenterX, kAbortInfoY, allowEscapeExit ? "(MOUSE CLICK/ESCAPE EXITS)" : "(MOUSE CLICK EXITS)");
 #endif
-    SWOS::FlipInMenu();
+    updateScreen();
 }
 
 static void drawControls(GetControlsFn getControls)
@@ -100,10 +100,10 @@ void showTestControlsMenu(const char *title, const char *controlsTitle, bool all
     waitForKeyboardAndMouseIdle();
 
     while (!aborted(allowEscapeExit)) {
-        redrawMenuBackground(kControlsAndEventsY, kAbortInfoY);
+        drawMenuBackground(kControlsAndEventsY, kAbortInfoY);
         drawControls(getControls);
         drawEvents(getEvents);
-        SWOS::FlipInMenu();
+        updateScreen();
 
         processControlEvents();
         SDL_Delay(50);

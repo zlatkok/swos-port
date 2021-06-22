@@ -1,0 +1,9 @@
+// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
+// such as names of functions and macros.
+// For more information see https://go.microsoft.com/fwlink/?linkid=865984
+#define swos (*SwosVM::vars)
+// Hint files help the Visual Studio IDE interpret Visual C++ identifiers
+// such as names of functions and macros.
+// For more information see https://go.microsoft.com/fwlink/?linkid=865984
+#define ENABLE_FLAGS(ENUM) constexpr ENUM operator|(ENUM a, int b) { return static_cast<ENUM>(static_cast<int>(a) | b); } constexpr ENUM operator|(ENUM a, ENUM b) { return a | static_cast<int>(b); } constexpr ENUM operator|=(ENUM& a, int b) { return a = a | b; } constexpr ENUM operator|=(ENUM& a, ENUM b) { return a = a | b; } constexpr ENUM operator&(ENUM a, int b) { return static_cast<ENUM>(static_cast<int>(a) & b); } constexpr ENUM operator&(ENUM a, ENUM b) { return a & static_cast<int>(b); } constexpr ENUM operator&=(ENUM& a, int b) { return a = a & b; } constexpr ENUM operator&=(ENUM& a, ENUM b) { return a = a & b; } constexpr ENUM operator<<(ENUM a, int b) { return static_cast<ENUM>(static_cast<int>(a) << b); } constexpr ENUM operator<<=(ENUM& a, int b) { return a = a << b; } constexpr ENUM operator^(ENUM a, int b) { return static_cast<ENUM>(static_cast<int>(a) ^ b); } constexpr ENUM operator^(ENUM a, ENUM b) { return a ^ static_cast<int>(b); } constexpr ENUM operator~(ENUM a) { return static_cast<ENUM>(~static_cast<int>(a)); }
+#define ENABLE_FLAGS(ENUM) inline ENUM operator|(ENUM a, ENUM b) { return static_cast<ENUM>(static_cast<int>(a) | static_cast<int>(b)); } inline ENUM operator|=(ENUM& a, ENUM b) { return a = a | b; } inline ENUM operator|=(ENUM& a, int b) { return a = a | static_cast<ENUM>(b); } inline ENUM operator&(ENUM a, int b) { return static_cast<ENUM>(static_cast<int>(a) & b); }

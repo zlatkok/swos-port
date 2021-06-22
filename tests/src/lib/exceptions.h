@@ -2,6 +2,7 @@
 
 #include "file.h"
 #include "util.h"
+#include "MenuEntry.h"
 
 namespace SWOS_UnitTest
 {
@@ -160,7 +161,6 @@ namespace SWOS_UnitTest
     template<typename T1, typename T2>
     struct FailedEqualAssertException : public BaseException
     {
-        suppressConstQualifierOnFunctionWarning();
         FailedEqualAssertException(bool mustBeEqual, const T1& t1, const T2& t2, const char *t1Str,
             const char *t2Str, const char *file, int line)
             : BaseException(file, line) {

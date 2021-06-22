@@ -215,13 +215,12 @@ void printString(char *str, int x, int y, int color, bool big /* = false */, int
             D0 = swos.vsPtr + y * kGameScreenWidth + x;
             D4 = swos.spritesIndex[c]->wquads * 16;
             D5 = dy;
-            SavePixelsBehindSprite();
 
             D0 = c;
             D1 = x;
             D2 = y;
             D3 = color;
-            DrawSpriteInColor();
+            SWOS::DrawSpriteInColor();
 
             x += dx + 1;
         }
@@ -230,11 +229,11 @@ void printString(char *str, int x, int y, int color, bool big /* = false */, int
 
 void dumpVariables()
 {
-    if (m_debugOutput) {
-        char buf[256];
-        snprintf(buf, sizeof(buf), "%hd", swos.topTeamData.direction);
-        printString(buf, 0, 16, kYellowText, false, ALIGN_LEFT);
-    }
+    //if (m_debugOutput) {
+    //    char buf[256];
+    //    snprintf(buf, sizeof(buf), "%hd", swos.topTeamData.direction);
+    //    printString(buf, 0, 16, kYellowText, false, ALIGN_LEFT);
+    //}
 }
 
 void toggleDebugOutput()

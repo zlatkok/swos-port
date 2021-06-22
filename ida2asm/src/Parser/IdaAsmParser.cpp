@@ -334,10 +334,10 @@ CToken *IdaAsmParser::parseInstruction(CToken *token, TokenList& comments)
         switch (token->type) {
         case Token::T_ID:
             opTypes[operandNo] |= instructionToken->instructionType == Token::kBranchInstruction ? Instruction::kLabel : Instruction::kVariable;
-            // need to look it up to know the size
-            // opSizes[operandNo] = 4;
             addOperandToken();
-            addReference(token, sizeOperator);
+            // skip non-proc references since this code will most likely be removed
+            if (m_currentProc)
+                addReference(token, sizeOperator);
             break;
 
         case Token::T_SHORT:

@@ -39,7 +39,7 @@ void EditTacticsMenuTest::setupShowTacticsMenuTest()
 {
     // simple test, but here to cover crash at menu start
     swos.chosenTactics = kTacticsData[m_currentDataIndex].first;
-    SAFE_INVOKE(EditTacticsMenu);
+    EditTacticsMenu();
 }
 
 void EditTacticsMenuTest::showTacticsMenu()

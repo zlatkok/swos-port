@@ -1,4 +1,6 @@
+#include "menuProc.h"
 #include "menus.h"
+#include "drawMenu.h"
 #include "menuMouse.h"
 #include "music.h"
 
@@ -58,7 +60,7 @@ static void highlightEntry(Menu *currentMenu, MenuEntry *entry)
         currentMenu->selectedEntry = entry;
 
         if (entry->background == kEntryNoBackground) {
-            SWOS::DrawMenu();
+            drawMenu();
         } else {
             A5 = entry;
             SWOS::DrawMenuItem();
@@ -123,11 +125,11 @@ static void selectEntryWithControlMask(MenuEntry *entry)
     }
 }
 
-void SWOS::MenuProc()
+void menuProc()
 {
     ReadTimerDelta();
-    DrawMenu();
-    swos.menuCycleTimer = 0;        // must come after DrawMenu(), set to 1 to slow down input
+    drawMenu();
+    swos.menuCycleTimer = 0;        // must come after drawMenu(), set to 1 to slow down input
 
     updateMouse();
 
@@ -136,7 +138,7 @@ void SWOS::MenuProc()
         swos.menuFade = 0;
     }
 
-    MenuCheckControls();
+    SWOS::MenuCheckControls();
     updateSongState();
 
     auto currentMenu = getCurrentMenu();

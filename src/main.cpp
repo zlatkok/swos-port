@@ -1,4 +1,5 @@
 #include "log.h"
+#include "init.h"
 #include "options.h"
 #include "render.h"
 #include "audio.h"
@@ -41,6 +42,11 @@ int main(int argc, char **argv)
     installCrashHandler();
     loadOptions();
     setSdlHints();
+
+    auto flags = IMG_INIT_JPG | IMG_INIT_PNG;
+    if (IMG_Init(flags) != flags)
+        logWarn("Failed to properly initialize SDL Image");
+
     initRendering();
     normalizeOptions();
     initJoypads();
@@ -48,10 +54,11 @@ int main(int argc, char **argv)
     atexit(finishRendering);
     atexit(saveOptions);        // must be set after finishRendering
     atexit(finishAudio);
+    atexit(IMG_Quit);
 
     SDL_StopTextInput();
 
-    SWOS::SWOS();
+    startMainMenuLoop();
 
     return EXIT_SUCCESS;
 }

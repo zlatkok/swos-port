@@ -24,6 +24,20 @@ std::pair<int, int> getWindowSize()
     return { m_windowWidth, m_windowHeight };
 }
 
+AssetResolution getAssetResolution()
+{
+    return AssetResolution::kInvalid;
+}
+
+void registerAssetResolutionChangeHandler(AssetResolutionChangeHandler handler)
+{
+}
+
+const char *getAssetDir()
+{
+    return nullptr;
+}
+
 void setWindowSize(int width, int height)
 {
     m_windowWidth = width;
@@ -124,6 +138,31 @@ bool hasMouseFocus()
 bool mapCoordinatesToGameArea(int &x, int &y)
 {
     return false;
+}
+
+float getXScale()
+{
+    return 1.0;
+}
+
+float getYScale()
+{
+    return 1.0;
+}
+
+std::pair<int, int> mapPoint(int x, int y)
+{
+    return { x, y };
+}
+
+std::pair<float, float> mapPoint(float x, float y)
+{
+    return { x, y };
+}
+
+SDL_Rect mapRect(int x, int y, int width, int height)
+{
+    return {};
 }
 
 bool getShowTouchTrails()

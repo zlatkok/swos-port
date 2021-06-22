@@ -33,7 +33,7 @@ bool SWOS_UnitTest::exitMenuProc()
     if (m_menuCallback) {
         static bool result;
         auto invokeCallback = []() { result = m_menuCallback(); };
-        safeInvokeWithSaved68kRegisters(invokeCallback);
+        invokeWithSaved68kRegisters(invokeCallback);
         return result;
     }
 

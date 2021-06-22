@@ -1,13 +1,13 @@
 #pragma once
 
 #include "fetch.h"
+#include "FixedPoint.h"
 
 using dword = uint32_t;
 using word = uint16_t;
 using byte = uint8_t;
 
 #pragma pack(push, 1)
-#ifdef SWOS_VM
 // dependency cycle breaker
 namespace SwosVM {
     extern dword ptrToOffset(const void *ptr);
@@ -146,10 +146,6 @@ public:
     }
 };
 
-#else
-# error "Define SWOS Proc & Data Pointers"
-#endif
-
 struct MenuEntry;
 
 struct BaseMenu {};
@@ -185,6 +181,21 @@ enum MenuEntryBackground : word
     kEntryBackgroundFunction = 1,
     kEntryFrameAndBackColor = 2,
     kEntrySprite1 = 3,
+};
+
+enum MenuEntryBackgrounds
+{
+    kNoBackground = 0,
+    kNoFrame = 0,
+    kGray = 7,
+    kDarkBlue = 3,
+    kLightBrownWithOrangeFrame = 4,
+    kLightBrownWithYellowFrame = 6,
+    kRed = 10,
+    kPurple = 11,
+    kLightBlue = 13,
+    kGreen = 14,
+    kYellow = 15,
 };
 
 enum MenuEntryContent : word
@@ -305,157 +316,6 @@ struct CharTable
     char conversionTable[224];
 };
 
-struct MenuEntry
-{
-    word drawn;
-    word ordinal;
-    word invisible;
-    word disabled;
-    byte leftEntry;
-    byte rightEntry;
-    byte upEntry;
-    byte downEntry;
-    byte leftDirection;
-    byte rightDirection;
-    byte upDirection;
-    byte downDirection;
-    byte leftEntryDis;
-    byte rightEntryDis;
-    byte upEntryDis;
-    byte downEntryDis;
-    int16_t x;
-    int16_t y;
-    word width;
-    word height;
-    MenuEntryBackground background;
-    union BackgroundData {
-        BackgroundData() {}
-        SwosProcPointer entryFunc;
-        word entryColor;
-        word spriteIndex;
-    } bg;
-    MenuEntryContent type;
-    word stringFlags;
-    union ContentData {
-        ContentData() {}
-        SwosProcPointer contentFunction;
-        SwosDataPointer<char> string;
-        SwosDataPointer<const char> constString;
-        word spriteIndex;
-        SwosDataPointer<StringTable> stringTable;
-        SwosDataPointer<void> multiLineText;
-        word number;
-        SwosDataPointer<void> spriteCopy;
-    } fg;
-    SwosProcPointer onSelect;
-    int16_t controlMask;
-    SwosProcPointer beforeDraw;
-    SwosProcPointer afterDraw;
-
-    MenuEntry() {}
-
-    int centerX() const {
-        return x + width / 2;
-    }
-    int endX() const {
-        return x + width;
-    }
-    int endY() const {
-        return y + height;
-    }
-
-    enum Direction {
-        kInitialDirection,
-        kUp = 0,
-        kRight,
-        kDown,
-        kLeft,
-        kNumDirections,
-    };
-
-    inline const char *typeToString() const {
-        switch (type) {
-        case kEntryNoForeground: return "empty";
-        case kEntryContentFunction: return "function";
-        case kEntryString: return "string";
-        case kEntrySprite2: return "sprite";
-        case kEntryStringTable: return "string table";
-        case kEntryMultilineText: return "multi-line string";
-        case kEntryNumber: return "number";
-        case kEntryColorConvertedSprite: return "color converted sprite";
-        default: assert(false); return "";
-        }
-    }
-
-    bool visible() const {
-        return !invisible;
-    }
-    void hide() {
-        invisible = 1;
-    }
-    void show() {
-        invisible = 0;
-    }
-    void setVisible(bool visible) {
-        invisible = !visible;
-    }
-    void disable() {
-        disabled = 1;
-    }
-    void enable() {
-        disabled = 0;
-    }
-    void setEnabled(bool enabled) {
-        disabled = !enabled;
-    }
-    bool selectable() const {
-        return !invisible && !disabled;
-    }
-    bool isString() const {
-        return type == kEntryString;
-    }
-    char *string() {
-        assert(type == kEntryString);
-        return fg.string.asAlignedCharPtr();
-    }
-    const char *string() const {
-        assert(type == kEntryString);
-        return fg.string.asAlignedConstCharPtr();
-    }
-    void setString(char *str) {
-        assert(type == kEntryString);
-        fg.string.set(str);
-    }
-    void setString(const char *str) {
-        assert(type == kEntryString);
-        fg.string.set(const_cast<char *>(str));
-    }
-    void copyString(const char *str);
-    void setNumber(int number) {
-        assert(type == kEntryNumber);
-        fg.number = number;
-    }
-    void setBackgroundColor(int color) {
-        bg.entryColor = color;
-    }
-    void setFrameColor(int color) {
-        bg.entryColor = (bg.entryColor & 0x0f) | (color << 4);
-    }
-    word backgroundColor() const {
-        assert(background == kEntryFrameAndBackColor);
-        return bg.entryColor & 0x0f;
-    }
-    word frameColor() const {
-        assert(background == kEntryFrameAndBackColor);
-        return (bg.entryColor >> 4) & 0x0f;
-    }
-    int solidTextColor() const {
-        assert(type == kEntryString || type == kEntryStringTable || type == kEntryMultilineText || type == kEntryNumber);
-        int color = stringFlags & 0xf;
-        return color ? color : kWhiteText2;
-    }
-};
-
 constexpr int kStdMenuTextSize = 70;
 
 /* sprite graphics structure - from *.dat files */
@@ -500,12 +360,9 @@ struct Sprite
     word frameDelay;
     word cycleFramesTimer;
     word delayedFrameTimer;
-    int16_t xFraction;      // fixed point, 16.16, signed, whole part high word
-    int16_t x;
-    int16_t yFraction;
-    int16_t y;
-    int16_t zFraction;
-    int16_t z;
+    FixedPoint x;
+    FixedPoint y;
+    FixedPoint z;
     int16_t direction;
     int16_t speed;
     dword deltaX;
@@ -515,7 +372,7 @@ struct Sprite
     int16_t destY;
     byte unk003[6];
     word visible;           // skip it when rendering if false
-    int16_t spriteIndex;    // -1 if none
+    int16_t pictureIndex;   // -1 if none
     word saveSprite;
     dword ballDistance;
     word unk004;
@@ -534,6 +391,13 @@ struct Sprite
     int16_t injuryLevel;
     word tacklingTimer;
     word sentAway;
+
+    void hide() {
+        visible = 0;
+    }
+    void show() {
+        visible = 1;
+    }
 };
 
 struct PlayerGame
@@ -743,9 +607,18 @@ constexpr int xsrf = sizeof(TeamGeneralInfo);
 static_assert(sizeof(TeamGeneralInfo) == 145, "TeamGeneralInfo is invalid");
 #pragma pack(pop)
 
+enum ShirtTypes
+{
+    kShirtOrdinary = 0,
+    kShirtColoredSleeves = 1,
+    kShirtVerticalStripes = 2,
+    kShirtHorizontalStripes = 3,
+};
+
 enum SpriteIndices
 {
-    kBlockSpriteIndex = 44,
+    kSmallZeroSprite = 8,
+    kBlockSprite = 44,
     kLeftArrowSprite = 179,
     kRightArrowSprite = 175,
     kUpArrowSprite = 183,
@@ -761,7 +634,11 @@ enum SpriteIndices
     kTimeSprite88Mins = 329,
     kTimeSprite118Mins = 330,
     kBigTimeDigitSprite0 = 331,
+    kTeam1PlayerSpriteStart = 341,
+    kTeam2PlayerSpriteStart = 644,
+    kTeam1GoalkeeperSpriteStart = 947,
     kReplayFrame00Sprite = 1209,
+    kTeam1BenchPlayerSpriteStart = 1310,
     kNumSprites = 1334,
 };
 
@@ -800,21 +677,6 @@ enum MenuControlMask
     kDownRightMask = 0x80,
     kUpRightMask = 0x100,
     kDownLeftMask = 0x200,
-};
-
-enum MenuEntryBackgrounds
-{
-    kNoBackground = 0,
-    kNoFrame = 0,
-    kGray = 7,
-    kDarkBlue = 3,
-    kLightBrownWithOrangeFrame = 4,
-    kLightBrownWithYellowFrame = 6,
-    kRed = 10,
-    kPurple = 11,
-    kLightBlue = 13,
-    kGreen = 14,
-    kYellow = 15,
 };
 
 enum PCKeys
@@ -907,6 +769,24 @@ enum Tactics
 enum class GameState : word
 {
     kGameStarting = 0,
+    kCornerLeft = 4,
+    kCornerRight = 5,
+    kThrowInForwardRight = 15,
+    kThrowInCenterRight = 16,
+    kThrowInBackRight = 17,
+    kThrowInForwardLeft = 18,
+    kThrowInCenterLeft = 19,
+    kThrowInBackLeft = 20,
+    kStartingGame = 21,
+    kCameraGoingToShowers = 22,
+    kGoingToHalftime = 23,
+    kPlayersGoingToShower = 24,
+    kResultOnHalftime = 25,
+    kResultAfterTheGame = 26,
+    kFirstExtraStarting = 27,
+    kFirstExtraEnded = 28,
+    kFirstHalfEnded = 29,
+    kGameEnded = 30,
     kInProgress = 100,
     kStopped = 101,
     kWaitingOnPlayer = 102,

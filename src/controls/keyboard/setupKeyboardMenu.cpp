@@ -3,6 +3,7 @@
 #include "text.h"
 #include "keyBuffer.h"
 #include "menuMouse.h"
+#include "menuBackground.h"
 #include "selectGameControlEventsMenu.h"
 #include "redefineKeysMenu.h"
 #include "testKeyboardMenu.h"
@@ -220,7 +221,7 @@ static void drawInputKeyPrompt()
     constexpr int kPressKeyYLine1 = 30;
     constexpr int kPressKeyYLine2 = 40;
 
-    redrawMenuBackground();
+    drawMenuBackground();
     drawMenuTextCentered(kMenuScreenWidth / 2, kPressKeyYLine1, "PRESS A KEY ON THE KEYBOARD");
 #ifdef __ANDROID__
     drawMenuTextCentered(kMenuScreenWidth / 2, kPressKeyYLine2, "(TAP CANCELS)");
@@ -228,7 +229,7 @@ static void drawInputKeyPrompt()
     drawMenuTextCentered(kMenuScreenWidth / 2, kPressKeyYLine2, "(MOUSE CLICK CANCELS)");
 #endif
 
-    SWOS::Flip();
+    updateScreen();
 }
 
 static void addKeyMapping()

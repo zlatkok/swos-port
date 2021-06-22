@@ -170,33 +170,6 @@ int getRandomInRange(int min, int max)
     return dist(m_mt);
 }
 
-#ifndef SWOS_VM
-__declspec(naked) int setZeroFlagAndD0FromAl()
-{
-    // SWOS expects 0 for success, 1 for error
-    __asm {
-        and  eax, 0xff
-        test eax, eax
-        jz   fail
-
-        xor  eax, eax
-        jmp  done
-
-fail:
-        inc  eax
-
-done:
-        mov  D0, eax
-        retn
-    }
-}
-#endif
-
-bool isMatchRunning()
-{
-    return swos.screenWidth == kGameScreenWidth;
-}
-
 void beep()
 {
 #ifdef _WIN32

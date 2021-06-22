@@ -436,6 +436,22 @@ static void playComment(CommentarySampleTableIndex tableIndex, bool interrupt = 
     }
 }
 
+#ifdef __ANDROID__
+static void vibrate()
+{
+    if (auto env = reinterpret_cast<JNIEnv *>(SDL_AndroidGetJNIEnv())) {
+        if (auto activity = reinterpret_cast<jobject>(SDL_AndroidGetActivity())) {
+            if (auto swosClass = env->FindClass("com/sensible_portware/SWOS")) {
+                if (auto vibrateMethodId = env->GetMethodID(swosClass, "vibrate", "()V"))
+                    env->CallVoidMethod(activity, vibrateMethodId);
+                env->DeleteLocalRef(swosClass);
+            }
+            env->DeleteLocalRef(activity);
+        }
+    }
+}
+#endif
+
 //
 // SWOS sound hooks
 //
@@ -555,6 +571,9 @@ void SWOS::FixPenaltyBug()
 void SWOS::PlayOwnGoalComment()
 {
     playComment(kOwnGoal);
+#ifdef __ANDROID__
+    vibrate();
+#endif
 }
 
 void SWOS::PlayGoalComment()
@@ -563,6 +582,9 @@ void SWOS::PlayGoalComment()
         PlayPenaltyGoalComment();
     else
         playComment(kGoal);
+#ifdef __ANDROID__
+    vibrate();
+#endif
 }
 
 void SWOS::PlayYellowCardSample()

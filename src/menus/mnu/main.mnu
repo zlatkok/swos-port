@@ -4,6 +4,8 @@
 
 Menu mainMenu
 {
+    kExitIconSprite = 1335
+
     y: 1
     onInit: swos.SWOSMainMenuInit
     initialEntry: friendly
@@ -192,7 +194,7 @@ Menu mainMenu
         upEntry: loadOldCompetition
         rightEntry: loadOldCompetition
 
-        customDrawForeground: drawExitIcon
+        sprite: kExitIconSprite
         onSelect: showQuitMenu
     }
 }

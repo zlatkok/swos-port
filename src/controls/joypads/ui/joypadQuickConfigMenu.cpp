@@ -1,7 +1,7 @@
 #include "joypadQuickConfigMenu.h"
 #include "quickConfigMenu.h"
 #include "joypads.h"
-#include "menus.h"
+#include "menuBackground.h"
 #include "text.h"
 #include "util.h"
 
@@ -269,7 +269,7 @@ static void drawCalibrateMenu()
 {
     constexpr int kTextY = kMenuScreenHeight / 2 - 12;
 
-    redrawMenuBackground();
+    drawMenuBackground();
 
     drawMenuTextCentered(kMenuScreenWidth / 2, kTextY, "WHEN THE CONTROLLER IS IDLE PRESS ANY BUTTON");
 #ifdef __ANDROID__
@@ -278,7 +278,7 @@ static void drawCalibrateMenu()
     drawMenuTextCentered(kMenuScreenWidth / 2, kTextY + 10, "(MOUSE CLICK/ESCAPE CANCELS)");
 #endif
 
-    SWOS::FlipInMenu();
+    updateScreen();
 }
 
 static bool calibrate(int joypadIndex)

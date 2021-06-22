@@ -162,7 +162,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -179,7 +179,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -196,7 +196,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -211,7 +211,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -226,7 +226,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -241,7 +241,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -256,7 +256,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;DEBUG;_DEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -271,7 +271,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>..\..\..\src\android\pch.h</PrecompiledHeaderFile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\tmp\mnu2h;..\..\..\include;..\..\..\include\SDL2;..\..\..\include\SDL2_image;..\..\..\include\SDL_net;..\..\..\include\adlmidi;..\..\..\include\crashrpt;..\..\..\include\simpleini;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(SolutionDir)..\..\lib\src\ConvertUTF;$(IncludePath);$(StlIncludeDirectories);$(Sysroot)\usr\include;$(Sysroot)\usr\include\$(AndroidHeaderTriple);$(VS_NdkRoot)\sources\android\support\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SWOS_VM;VIRTUAL_JOYPAD;NDEBUG;__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-Wno-unused-private-field -Wno-undefined-inline -Wno-parentheses -Wno-missing-braces -Wno-switch -fwrapv %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -326,10 +326,19 @@
     <ClInclude Include="..\..\..\src\debug\dump.h" />
     <ClInclude Include="..\..\..\src\files\file.h" />
     <ClInclude Include="..\..\..\src\files\selectFilesMenu.h" />
-    <ClInclude Include="..\..\..\src\game.h" />
-    <ClInclude Include="..\..\..\src\log.h" />
+    <ClInclude Include="..\..\..\src\game\camera.h" />
+    <ClInclude Include="..\..\..\src\game\game.h" />
+    <ClInclude Include="..\..\..\src\game\gameTime.h" />
+    <ClInclude Include="..\..\..\src\game\pitch.h" />
+    <ClInclude Include="..\..\..\src\sprites\loadTexture.h" />
+    <ClInclude Include="..\..\..\src\util\log.h" />
     <ClInclude Include="..\..\..\src\menus\drawMenu.h" />
     <ClInclude Include="..\..\..\src\menus\mainMenu.h" />
+    <ClInclude Include="..\..\..\src\menus\menuAlloc.h" />
+    <ClInclude Include="..\..\..\src\menus\menuBackground.h" />
+    <ClInclude Include="..\..\..\src\menus\MenuEntry.h" />
+    <ClInclude Include="..\..\..\src\menus\menuItemRenderer.h" />
+    <ClInclude Include="..\..\..\src\menus\menuProc.h" />
     <ClInclude Include="..\..\..\src\menus\menus.h" />
     <ClInclude Include="..\..\..\src\menus\menuCodes.h" />
     <ClInclude Include="..\..\..\src\menus\menuMouse.h" />
@@ -338,6 +347,7 @@
     <ClInclude Include="..\..\..\src\replays\replayOptions.h" />
     <ClInclude Include="..\..\..\src\replays\replays.h" />
     <ClInclude Include="..\..\..\src\replays\replaysMenu.h" />
+    <ClInclude Include="..\..\..\src\sprites\colorizeSprites.h" />
     <ClInclude Include="..\..\..\src\stdinc.h" />
     <ClInclude Include="..\..\..\src\swos.h" />
     <ClInclude Include="..\..\..\src\text\text.h" />
@@ -345,7 +355,7 @@
     <ClInclude Include="..\..\..\src\util\fetch.h" />
     <ClInclude Include="..\..\..\src\util\util.h" />
     <ClInclude Include="..\..\..\src\video\render.h" />
-    <ClInclude Include="..\..\..\src\video\sprites.h" />
+    <ClInclude Include="..\..\..\src\sprites\sprites.h" />
     <ClInclude Include="..\..\..\src\video\videoOptionsMenu.h" />
     <ClInclude Include="..\..\..\src\video\windowManager.h" />
     <ClInclude Include="..\..\..\src\video\windowModeMenu.h" />
@@ -393,28 +403,38 @@
     <ClCompile Include="..\..\..\src\debug\dump.cpp" />
     <ClCompile Include="..\..\..\src\files\file.cpp" />
     <ClCompile Include="..\..\..\src\files\selectFilesMenu.cpp" />
-    <ClCompile Include="..\..\..\src\game.cpp" />
+    <ClCompile Include="..\..\..\src\game\camera.cpp" />
+    <ClCompile Include="..\..\..\src\game\game.cpp" />
+    <ClCompile Include="..\..\..\src\game\gameTime.cpp" />
+    <ClCompile Include="..\..\..\src\game\replayExitMenu.cpp" />
+    <ClCompile Include="..\..\..\src\game\result.cpp" />
     <ClCompile Include="..\..\..\src\init.cpp" />
-    <ClCompile Include="..\..\..\src\log.cpp" />
+    <ClCompile Include="..\..\..\src\sprites\loadTexture.cpp" />
+    <ClCompile Include="..\..\..\src\util\log.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />
     <ClCompile Include="..\..\..\src\menus\drawMenu.cpp" />
     <ClCompile Include="..\..\..\src\menus\mainMenu.cpp" />
+    <ClCompile Include="..\..\..\src\menus\menuAlloc.cpp" />
+    <ClCompile Include="..\..\..\src\menus\menuBackground.cpp" />
+    <ClCompile Include="..\..\..\src\menus\MenuEntry.cpp" />
+    <ClCompile Include="..\..\..\src\menus\menuItemRenderer.cpp" />
     <ClCompile Include="..\..\..\src\menus\menuProc.cpp" />
     <ClCompile Include="..\..\..\src\menus\menus.cpp" />
     <ClCompile Include="..\..\..\src\menus\menuMouse.cpp" />
     <ClCompile Include="..\..\..\src\menus\unpackMenu.cpp" />
     <ClCompile Include="..\..\..\src\options.cpp" />
-    <ClCompile Include="..\..\..\src\pitch.cpp" />
+    <ClCompile Include="..\..\..\src\game\pitch.cpp" />
     <ClCompile Include="..\..\..\src\replays\ReplayData.cpp" />
     <ClCompile Include="..\..\..\src\replays\replayOptions.cpp" />
     <ClCompile Include="..\..\..\src\replays\replays.cpp" />
     <ClCompile Include="..\..\..\src\replays\replaysMenu.cpp" />
+    <ClCompile Include="..\..\..\src\sprites\colorizeSprites.cpp" />
     <ClCompile Include="..\..\..\src\substitutes\substitutes.cpp" />
     <ClCompile Include="..\..\..\src\text\text.cpp" />
     <ClCompile Include="..\..\..\src\text\textInput.cpp" />
     <ClCompile Include="..\..\..\src\util\util.cpp" />
     <ClCompile Include="..\..\..\src\video\render.cpp" />
-    <ClCompile Include="..\..\..\src\video\sprites.cpp" />
+    <ClCompile Include="..\..\..\src\sprites\sprites.cpp" />
     <ClCompile Include="..\..\..\src\video\videoOptionsMenu.cpp" />
     <ClCompile Include="..\..\..\src\video\windowManager.cpp" />
     <ClCompile Include="..\..\..\src\video\windowModeMenu.cpp" />

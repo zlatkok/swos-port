@@ -6,6 +6,7 @@
 #include "mainMenu.h"
 #include "controls.h"
 #include "windowManager.h"
+#include "game.h"
 
 constexpr int kScrollRateMs = 100;
 

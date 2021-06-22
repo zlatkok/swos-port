@@ -1,4 +1,5 @@
 #include "quickConfigMenu.h"
+#include "menuBackground.h"
 #include "menus.h"
 #include "text.h"
 #include "controls.h"
@@ -134,7 +135,7 @@ static void drawControls(const QuickConfigContext& context)
     }
 
     if (context.currentSlot < kNumDefaultGameControlEvents)
-        drawMenuSprite(kBlockSpriteX, y, kBlockSpriteIndex);
+        drawMenuSprite(kBlockSpriteX, y, kBlockSprite);
 }
 
 static void drawQuickConfigMenu(const QuickConfigContext& context)
@@ -146,7 +147,7 @@ static void drawQuickConfigMenu(const QuickConfigContext& context)
     char buf[128];
     snprintf(buf, sizeof(buf), "SELECT %sS FOR PLAYER %d", context.selectWhat, context.player == kPlayer1 ? 1 : 2);
 
-    redrawMenuBackground();
+    drawMenuBackground();
     drawMenuTextCentered(kRedefineKeysPromptX, kRedefineKeysHeaderY, buf);
 
     drawMenuText(kRedefineKeysColumn1X, kRedefineKeysStartY, "UP:");
@@ -168,7 +169,7 @@ static void drawQuickConfigMenu(const QuickConfigContext& context)
 
     drawControls(context);
 
-    SWOS::FlipInMenu();
+    updateScreen();
 }
 
 enum LineDirection { kVertical, kHorizontal };
@@ -208,7 +209,7 @@ static void drawConfirmationMenu()
         drawLine(x + kSegmentLength, kBottomLineY - kVerticalSegmentLength + 1, kVerticalSegmentLength - 1, kVertical);
     }
 
-    SWOS::FlipInMenu();
+    updateScreen();
 }
 
 static FinalPromptResult handleConfirmationClick(int x, int y)
@@ -261,9 +262,9 @@ static FinalPromptResult waitForConfirmation()
 static void clearWarningIfNeeded(Uint32& showWarningTicks, int warningY)
 {
     if (showWarningTicks && showWarningTicks < SDL_GetTicks()) {
-        redrawMenuBackground(warningY, warningY + 13);
+        drawMenuBackground(warningY, warningY + 13);
         showWarningTicks = 0;
-        SWOS::FlipInMenu();
+        updateScreen();
     }
 }
 
@@ -278,9 +279,9 @@ static Uint32 printWarning(QuickConfigStatus status, const char *control, const 
 
     auto showWarningTicks = SDL_GetTicks() + kWarningInterval;
 
-    redrawMenuBackground(context.warningY, context.warningY + 13);
+    drawMenuBackground(context.warningY, context.warningY + 13);
     drawMenuTextCentered(kVgaWidth / 2, context.warningY, warningBuffer, -1, kYellowText);
-    SWOS::FlipInMenu();
+    updateScreen();
 
     return showWarningTicks;
 }

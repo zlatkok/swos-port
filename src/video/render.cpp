@@ -5,15 +5,10 @@
 #include "dump.h"
 #include "joypads.h"
 #include "VirtualJoypad.h"
-#include <SDL_image.h>
 
 static SDL_Renderer *m_renderer;
-static SDL_Texture *m_texture;
-static SDL_PixelFormat *m_pixelFormat;
 
-constexpr int kNumColors = 256;
-constexpr int kPaletteSize = 3 * kNumColors;
-static uint8_t m_palette[kPaletteSize];
+static bool m_useLinearFiltering;
 
 static Uint64 m_lastRenderStartTime;
 static Uint64 m_lastRenderEndTime;
@@ -33,17 +28,16 @@ void initRendering()
     if (!m_renderer)
         sdlErrorExit("Could not create renderer");
 
-    auto format = SDL_PIXELFORMAT_RGBA8888;
-    m_texture = SDL_CreateTexture(m_renderer, format, SDL_TEXTUREACCESS_STREAMING, kVgaWidth, kVgaHeight);
-    if (!m_texture)
-        sdlErrorExit("Could not create surface");
+    SDL_RendererInfo info;
+    SDL_GetRendererInfo(m_renderer, &info);
+    logInfo("Renderer \"%s\" created successfully, maximum texture width: %d, height: %d",
+        info.name, info.max_texture_width, info.max_texture_height);
 
-    m_pixelFormat = SDL_AllocFormat(format);
-    if (!m_pixelFormat)
-        sdlErrorExit("Could not allocate pixel format");
+    logInfo("Supported texture formats:");
+    for (size_t i = 0; i < info.num_texture_formats; i++)
+        logInfo("    %s", SDL_GetPixelFormatName(info.texture_formats[i]));
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
-    SDL_RenderSetLogicalSize(m_renderer, kVgaWidth, kVgaHeight);
 
 #ifdef VIRTUAL_JOYPAD
     getVirtualJoypad().setRenderer(m_renderer);
@@ -52,12 +46,6 @@ void initRendering()
 
 void finishRendering()
 {
-    if (m_pixelFormat)
-        SDL_FreeFormat(m_pixelFormat);
-
-    if (m_texture)
-        SDL_DestroyTexture(m_texture);
-
     if (m_renderer)
         SDL_DestroyRenderer(m_renderer);
 
@@ -66,27 +54,17 @@ void finishRendering()
     SDL_Quit();
 }
 
+SDL_Renderer *getRenderer()
+{
+    assert(m_renderer);
+    return m_renderer;
+}
+
 SDL_Rect getViewport()
 {
     SDL_Rect viewport;
     SDL_RenderGetViewport(m_renderer, &viewport);
     return viewport;
-}
-
-void setPalette(const char *palette, int numColors /* = kVgaPaletteNumColors */)
-{
-    assert(numColors >= 0 && numColors <= kVgaPaletteNumColors);
-
-    for (int i = 0; i < numColors * 3; i++) {
-        assert(palette[i] >= 0 && palette[i] < 64);
-        m_palette[i] = palette[i] * 255 / 63;
-    }
-}
-
-void getPalette(char *palette)
-{
-    for (int i = 0; i < kPaletteSize; i++)
-        palette[i] = m_palette[i] * 63 / 255;
 }
 
 static void determineIfDelayNeeded()
@@ -102,78 +80,24 @@ static void determineIfDelayNeeded()
     m_delay = 2 * sum >= m_lastFramesDelay.size();
 }
 
-template <typename F>
-static void requestPixelAccess(F drawFunction)
-{
-    Uint32 *pixels;
-    int pitch;
-
-    if (SDL_LockTexture(m_texture, nullptr, (void **)&pixels, &pitch)) {
-        logWarn("Failed to lock drawing texture");
-        return;
-    }
-
-    drawFunction(pixels, pitch);
-
-    SDL_UnlockTexture(m_texture);
-}
-
-void clearScreen()
-{
-    requestPixelAccess([](Uint32 *pixels, int pitch) {
-        auto color = &m_palette[0];
-        auto rgbaColor = SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
-
-        for (int y = 0; y < kVgaHeight; y++) {
-            for (int x = 0; x < kVgaWidth; x++) {
-                pixels[y * pitch / sizeof(Uint32) + x] = rgbaColor;
-            }
-        }
-    });
-}
-
 void skipFrameUpdate()
 {
     m_lastRenderStartTime = m_lastRenderEndTime = SDL_GetPerformanceCounter();
 }
 
-void updateScreen(const char *inData /* = nullptr */, int offsetLine /* = 0 */, int numLines /* = kVgaHeight */)
+void updateScreen()
 {
-    assert(offsetLine >= 0 && offsetLine <= kVgaHeight);
-    assert(numLines >= 0 && numLines <= kVgaHeight);
-    assert(offsetLine + numLines <= kVgaHeight);
-
     m_lastRenderStartTime = SDL_GetPerformanceCounter();
 
-    auto data = reinterpret_cast<const uint8_t *>(inData ? inData : (swos.vsPtr ? swos.vsPtr : swos.linAdr384k));
-
-#ifdef DEBUG
-    if (swos.screenWidth == kGameScreenWidth)
-        dumpVariables();
-    SwosVM::verifySafeMemoryAreas();
-#endif
-
-    requestPixelAccess([&](Uint32 *pixels, int pitch) {
-        for (int y = offsetLine; y < numLines; y++) {
-            for (int x = 0; x < kVgaWidth; x++) {
-                auto color = &m_palette[data[y * swos.screenWidth + x] * 3];
-                pixels[y * pitch / sizeof(Uint32) + x] = SDL_MapRGBA(m_pixelFormat, color[0], color[1], color[2], 255);
-            }
-        }
-    });
-
-    // not clearing the buffer causes artefacts on Samsung phone
-    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
-    SDL_RenderClear(m_renderer);
-
-    SDL_RenderCopy(m_renderer, m_texture, nullptr, nullptr);
 #ifdef VIRTUAL_JOYPAD
     getVirtualJoypad().render(m_renderer);
 #endif
     SDL_RenderPresent(m_renderer);
+    // must clear the renderer or there will be display artefacts on Samsung phone
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+    SDL_RenderClear(m_renderer);
 
     m_lastRenderEndTime = SDL_GetPerformanceCounter();
-
     determineIfDelayNeeded();
 }
 
@@ -247,6 +171,21 @@ void fadeIfNeeded()
     }
 }
 
+bool getLinearFiltering()
+{
+    return m_useLinearFiltering;
+}
+
+void setLinearFiltering(bool useLinearFiltering)
+{
+    if (useLinearFiltering != m_useLinearFiltering) {
+        if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, useLinearFiltering ? "1" : "0"))
+            m_useLinearFiltering = useLinearFiltering;
+        else
+            logWarn("Couldn't %s linear filtering", useLinearFiltering ? "enable" : "disable");
+    }
+}
+
 std::string ensureScreenshotsDirectory()
 {
     auto path = pathInRootDir("screenshots");
@@ -267,33 +206,21 @@ void makeScreenshot()
     const auto& screenshotsPath = ensureScreenshotsDirectory();
     const auto& path = joinPaths(screenshotsPath.c_str(), filename);
 
-    requestPixelAccess([&](Uint32 *pixels, int pitch) {
-        Uint32 rMask, gMask, bMask, aMask;
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-        rMask = 0xff000000;
-        gMask = 0x00ff0000;
-        bMask = 0x0000ff00;
-        aMask = 0x000000ff;
-#else
-        rMask = 0x000000ff;
-        gMask = 0x0000ff00;
-        bMask = 0x00ff0000;
-        aMask = 0xff000000;
-#endif
+    auto viewPort = getViewport();
 
-        auto surface = SDL_CreateRGBSurfaceFrom(pixels, kVgaWidth, kVgaHeight, 32, pitch, rMask, gMask, bMask, aMask);
-        bool surfaceLocked = surface ? SDL_LockSurface(surface) >= 0 : false;
-
-        if (surface && surfaceLocked && IMG_SavePNG(surface, path.c_str()) >= 0)
-            logInfo("Created screenshot %s", filename);
-        else
-            logWarn("Failed to save screenshot %s", filename);
-
-        if (surfaceLocked)
-            SDL_UnlockSurface(surface);
-
+    if (auto surface = SDL_CreateRGBSurface(0, viewPort.w, viewPort.h, 32, 0, 0, 0, 0)) {
+        if (SDL_RenderReadPixels(m_renderer, nullptr, surface->format->format, surface->pixels, surface->pitch)) {
+            if (IMG_SavePNG(surface, path.c_str()) >= 0)
+                logInfo("Screenshot created: %s", filename);
+            else
+                logWarn("Failed to save screenshot %s: %s", filename, IMG_GetError());
+        } else {
+            logWarn("Failed to read the data from the renderer: %s", SDL_GetError());
+        }
         SDL_FreeSurface(surface);
-    });
+    } else {
+        logWarn("Failed to create a surface for the screenshot: %s", SDL_GetError());
+    }
 }
 
 void SWOS::Flip()

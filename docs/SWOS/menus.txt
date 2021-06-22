@@ -53,12 +53,13 @@ Menu entries, following the header:
             1: custom draw function -- don't draw anything, but invoke function
                from offset 30 (dword) with x and y arguments in D0 and D1
                (custom draw background function)
-            2: standard entry -- has background and frame
-               Ofs. 30 low byte is background color, high byte is color of the
-               internal frame. If the color of internal frame is zero, don't
-               draw it. Outer frame is drawn only if there is room (height is
-               greater than 6 or 8). If background color is zero, no frame is
-               drawn, and the background is colored with color 15
+            2: standard entry -- has a colored background and frame
+               Ofs. 30 low byte is background color (low nibble) and outer
+               frame color (high nibble), high byte is color of the internal
+               frame. If the color of internal frame is zero, don't draw it.
+               Outer frame is drawn only if there is room (height is greater
+               than 6 or 8). If background color is zero, no frame is drawn,
+               and the background is colored with color 15
                (yellow-green-black).
             3: sprite -- at offset 30 is its index into sprite.dat (word)
 
@@ -69,8 +70,8 @@ Menu entries, following the header:
                 ofs30 = pointer to a function getting x and y as parameters
                         (in D0 and D1)
             case 2:
-                ofs30 = lo nibble: entry background color
-                        hi nibble: frame color
+                ofs30 = lo nibble: entry background and outer frame color
+                        hi nibble: inner frame color
             case 3:
                 ofs30 = sprite index
             }
@@ -169,7 +170,7 @@ Example of an entry (variable size):
        12
        13
        14 - type (4)
-       16 - frame and background color
+       16 - frame and background and frame color
        18 - type (8)
        20 - string flags
        22 - pointer to entry text
@@ -226,7 +227,7 @@ When entry is drawn, this function is invoked, and no background is drawn
 TYPE 4:  (entry frame)
 
 ofs28 = 2
-ofs30 = word (background color)
+ofs30 = word (background and frame color)
 ofs32 = 0
 ---------------------------
 TYPE 5:  (sprite 1 (background))
@@ -336,6 +337,9 @@ from 'fill.256' are added to it. Those pixels are designed to form a gradient
 -- only question is in which color. 'fill.256' uses only 32 colors (indices
 0..31), so the shade groups from working palette can have 32 colors at maximum.
 
+Lower values are bottom left, higher top right. So the color is darker bottom
+left and brighter top right.
+
 Shade groups:
 
 (lower index colors are darker)
@@ -397,7 +401,7 @@ line, most likely a frame), then fill.256 isn't used. Only thing added to a
 color is g_deltaColor value.
 
 --------------
-DrawThickFrame(int color, int x, int y, int width, int height);
+DrawMenuItemOuterFrame(int color, int x, int y, int width, int height);
 
 Parameters:
      D0 - color
@@ -410,33 +414,34 @@ frameColorsTable db 1, 9, 1, 9, 1, 9, 1, 9, 6, 9, 6, 4, 15, 4, 1, 9, 1, 9, 1,
                  db 3, 1, 9, 13, 8, 10, 9, 1, 9, 1, 9, 1, 9
 
 - first convert the color with the help of the above table
-- na x i y koordinatama nacrtaj vertikalnu liniju duzine width
-- zatim na istim koordinatama iscrtaj horizontalnu liniju duzine height
-- horizontalna linija na x, y + height - 1, duzine width
-- vertikalna linija na x + width - 1, y, duzine height
-- tako se dobija rectangle oko zadane stavke
+- draw rectangle line by line around the entry:
+    - vertical line x, y, width
+    - horizontal line x, y, height
+    - horizontal line x, y + height - 1, width
+    - vertical line x + width - 1, y, height
 
-Iz frameColorsTable se koristi svaka druga boja (parna), jer se indeksira
-wordom. Moguce boje za okvir su:
+Thickness of the frame is always one.
+Only every other color is used from frameColorsTable (even), since it's indexed
+by a word. Possible frame colors:
 
-0  - siva
-1  - siva
-2  - siva
-3  - siva
-4  - narandzasta
-5  - narandzasta
-6  - zuta
-7  - siva
-8  - siva
-9  - siva
-10 - siva
-11 - bledo plava
-12 - crvena
-13 - siva
-14 - siva
-15 - siva
+0  - gray
+1  - gray
+2  - gray
+3  - gray
+4  - orange
+5  - orange
+6  - yellow
+7  - gray
+8  - gray
+9  - gray
+10 - gray
+11 - pale blue
+12 - red
+13 - gray
+14 - gray
+15 - gray
 
-Jedinstvenih boja ima 5.
+There are 5 unique colors.
 
 Shining cursor
 --------------

@@ -329,25 +329,30 @@ void VmFileWriter::outputVariablesStruct()
 void VmFileWriter::outputVariablesEnum()
 {
     xfputs("\nenum class Offsets : dword\n{\n");
-    const DataBank::Var *firstVar = nullptr, *lastVar;
+    const DataBank::Var *lastVar = nullptr;
+
+    std::vector<const DataBank::Var *> varsToCheck;
+    varsToCheck.reserve(32);
+    int varOrd = 0;
 
     m_dataBank.traverseVars([&](const auto& var) {
         if (var.exportedDecl) {
-            if (!firstVar)
-                firstVar = &var;
-            else
-                lastVar = &var;
+            lastVar = &var;
+            if (varOrd++ % 16 == 0)
+                varsToCheck.push_back(&var);
 
             xfprintf("    %.*s = %u,\n", var.name.length(), var.name.data(), var.offset);
         }
     });
     xfputs("};\n\n");
 
-    assert(firstVar);
-    xfprintf("static_assert(offsetof(SwosVariables, %.*s) == %u, \"Variable offsets are broken\");\n",
-        firstVar->name.length(), firstVar->name.data(), firstVar->offset);
-    xfprintf("static_assert(offsetof(SwosVariables, %.*s) == %u, \"Variable offsets are broken\");\n",
-        lastVar->name.length(), lastVar->name.data(), lastVar->offset);
+    assert(lastVar);
+    if (varsToCheck.back() != lastVar)
+        varsToCheck.push_back(lastVar);
+
+    for (auto var : varsToCheck)
+        xfprintf("static_assert(offsetof(SwosVariables, %.*s) == %u, \"Variable offsets are broken\");\n",
+            var->name.length(), var->name.data(), var->offset);
 }
 
 void VmFileWriter::outputProcIndices()
@@ -418,6 +423,9 @@ size_t VmFileWriter::outputPointerVariable(const DataBank::Var& var, size_t byte
     xfputs(buf);
 
     assert(j < sizeof(buf));
+
+    if (var.dup == 1 && var.exportedArraySize > 0)
+        byteSkip *= var.exportedArraySize;
 
     return byteSkip;
 }

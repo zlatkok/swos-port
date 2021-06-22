@@ -1,5 +1,5 @@
 #pragma once
 
-void activateMainMenu();
+void showMainMenu();
 bool mainMenuActive();
 void activateExitGameButton();

@@ -1,0 +1,65 @@
+MoveCamera():
+- if showFansCounter is non-zero bail
+- initialize camera destination coordinates
+    cameraDestX = ballSprite.deltaX
+    cameraDestY = ballSprite.deltaY
+    this is used in state #8 when the game is in progress for deciding next camera x/y direction
+- check for main states:
+    1) referee booking a player
+    2) penalties shootout after the game
+    3) leaving bench
+    4) on bench or going to
+    5) waiting on players to leave
+    6) showing result on half-time
+    7) showing result after the game
+    8) standard follow-the-ball mode
+
+1) referee booking a player (whichCard has non-zero value)
+    - destination is the position of booked player
+    - vertical limit is 37 (standard game paused limit)
+    - velocity is 0
+2) penalties after the game (playingPenalties is true)
+    - destination: x = 336, y = 107
+    - vertical limit is 0
+    - velocity is 0
+3) leaving bench (g_leavingSubsMenu is true)
+    - destination: x = 211, y = 449
+    - vertical limit is 37
+    - velocity is 0
+4) camera at bench or going to
+    - destination: x = g_cameraLeavingSubsLimit, y = 449
+    - vertical limit is variable here, if player is being substituted (coming or going) it moves to 51, while
+      going to bench it's 37 (throw-in line), and when reaching bench area (y in [339..359]) it's 0 (all the way
+      to the left edge)
+    - velocity is 0
+
+...
+
+8)
+    - maximum velocity is 40 pixels
+
+- after destination coordinates, vertical limit and velocity have been set, velocity gets applied
+- notice that velocity is added additionally to delta x/y, on top of standard deltas
+- then the vertical limit is applied, it stretches on both sides of the pitch, depending on the state
+    x gets clamped: limit <= x <= 352 - limit
+- y limits:
+    80 <= y <= 616
+    16 <= y <= 664
+    top:
+        training game: >= 80
+        normal game:   >= 16
+    bottom:
+        training game: <= 616
+        normal game:   <= 664
+- camera delta x and y are derived, by subtracting g_cameraX and g_cameraY from destination; only whole parts
+  are used
+- if there is no movement the function returns
+- deltas are divided by 4 (with truncation), and multiplied with 0.25
+- they are then clipped against maximum camera movement (= 5.0, or -5.0 if going up/left)
+- after clipping, complete camera variables (whole+fractional) are added to the deltas, and they now become
+  the current camera coordinates
+- in the end absolute clipping limits are applied to camera coordinates:
+    0 <= x <= 352
+    16 <= y <= 680
+- only the whole parts are clipped, and applied to global camera variables
+- set cameraCoordinatesValid to zero

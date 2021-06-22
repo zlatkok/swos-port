@@ -1,3 +1,4 @@
+#include "menuAlloc.h"
 #include "menus.h"
 #include "menuCodes.h"
 #include "menuMouse.h"
@@ -6,21 +7,12 @@
 // last menu sent here for unpacking
 static const void *m_currentMenu;
 
-constexpr int kMenuMemorySize = 1024;
-static char *m_menuMemory;
-
 static void initMenuEntry(MenuEntry& entry);
 static void finalizeMenu(Menu *dstMenu, char *menuEnd, int numEntries);
 static void handleSkip(MenuEntry *dstEntry, size_t index, const int16_t *& data);
-#ifdef SWOS_VM
 static dword fetchAndTranslateProc(const int16_t *& data);
 static dword translateStringTable(const StringTableNative& strTable);
 static dword translateMultilineTable(const MultilineTextNative& text);
-#endif
-static void resetMenuAllocator();
-static dword menuAllocString(const char *str);
-static char *menuAllocStringTable(size_t size);
-static char *menuAllocMultilineText(size_t numLines);
 
 const void *getCurrentPackedMenu()
 {
@@ -247,7 +239,6 @@ void unpackMenu(const void *src, char *dst)
                 data += 2;
                 break;
 
-#ifdef SWOS_VM
             case kCustomBackgroundFuncNative:
                 dstEntry->background = kEntryBackgroundFunction;
                 dstEntry->bg.entryFunc.set(fetchAndTranslateProc(data));
@@ -323,7 +314,6 @@ void unpackMenu(const void *src, char *dst)
                     data += sizeof(void *) / 2;
                 }
                 break;
-#endif
 
             default:
                 assert(false);
@@ -433,7 +423,6 @@ void handleSkip(MenuEntry *dstEntry, size_t index, const int16_t *& data)
     (&dstEntry->leftDirection)[index] = direction;
 }
 
-#ifdef SWOS_VM
 dword fetchAndTranslateProc(const int16_t *& data)
 {
     auto proc = fetch<SwosVM::VoidFunction>(data);
@@ -489,73 +478,4 @@ dword translateMultilineTable(const MultilineTextNative& text)
     }
 
     return SwosVM::ptrToOffset(swosMem);
-}
-#endif
-
-//
-// Menu allocation routines
-//
-// These routines allocate memory from the unused space in the menu buffer.
-// This memory is only valid for the duration of the current menu.
-//
-
-inline static void verifyMenuMemoryPtr()
-{
-    assert(m_menuMemory >= swos.g_currentMenu + sizeof(swos.g_currentMenu) - kMenuMemorySize &&
-        m_menuMemory < swos.g_currentMenu + sizeof(swos.g_currentMenu));
-}
-
-void resetMenuAllocator()
-{
-    m_menuMemory = swos.g_currentMenu + sizeof(swos.g_currentMenu) - kMenuMemorySize;
-}
-
-char *menuAlloc(size_t size)
-{
-    auto buf = m_menuMemory;
-    m_menuMemory += size;
-
-    verifyMenuMemoryPtr();
-    return buf;
-}
-
-void menuFree(size_t size)
-{
-    m_menuMemory -= size;
-    verifyMenuMemoryPtr();
-}
-
-dword menuAllocString(const char *str)
-{
-    auto buf = m_menuMemory;
-
-    int len = 0;
-    while (*str)
-        buf[len++] = *str++;
-
-    buf[len] = '\0';
-    m_menuMemory += len + 1;
-
-    verifyMenuMemoryPtr();
-    return SwosVM::ptrToOffset(buf);
-}
-
-char *menuAllocStringTable(size_t size)
-{
-    auto buf = m_menuMemory;
-    auto alignment = (~reinterpret_cast<uintptr_t>(buf) + 1) & 3;
-    m_menuMemory += alignment + size;
-
-    verifyMenuMemoryPtr();
-    return buf + alignment;
-}
-
-char *menuAllocMultilineText(size_t numLines)
-{
-    auto buf = m_menuMemory;
-    auto alignment = ~reinterpret_cast<uintptr_t>(buf) & 3;
-
-    m_menuMemory += alignment + numLines * 4 + 1;
-    verifyMenuMemoryPtr();
-    return buf + alignment;
 }

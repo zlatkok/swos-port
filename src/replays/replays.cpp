@@ -6,6 +6,8 @@
 #include "ReplayData.h"
 #include "replayOptions.h"
 #include "menus.h"
+#include "drawMenu.h"
+#include "game.h"
 #include "file.h"
 #include "sprites.h"
 #include "render.h"
@@ -44,6 +46,8 @@ void initReplays()
 void initNewReplay()
 {
     m_replayData.startNewReplay();
+    swos.replayState = kNotReplaying;
+    swos.currentHilPtr = swos.goalBasePtr;
 }
 
 // Called when game or program end.
@@ -142,7 +146,7 @@ static bool highlightsAborted()
     swos.statsFireExit = 1;
     swos.replayState = kNotReplaying;
     swos.paused = 0;
-    SAFE_INVOKE(FadeOutToBlack);
+    FadeOutToBlack();
     RestoreCameraPosition();
 
     return true;
@@ -186,6 +190,7 @@ static void initInstantReplayFrame(dword packedCoordinates)
 
     swos.replayState = kReplaying;
 
+//TODO: save full 32-bit coordinates
     swos.savedCameraX = swos.g_cameraX;
     swos.savedCameraY = swos.g_cameraY;
 
@@ -194,18 +199,16 @@ static void initInstantReplayFrame(dword packedCoordinates)
     swos.g_oldCameraY = 0;
     swos.g_cameraY = 349;
 
-    SWOS::ResetAnimatedPatternsForBothTeams();
+//    SWOS::ResetAnimatedPatternsForBothTeams();
 
-    InitSavedSprites();
-    InitBackground();
-    ScrollToCurrent();
+    SWOS::ScrollToCurrent();
 
     clearHiBit(packedCoordinates);
 
     swos.g_cameraX = loWord(packedCoordinates);
     swos.g_cameraY = hiWord(packedCoordinates);
 
-    ScrollToCurrent();
+    SWOS::ScrollToCurrent();
 }
 
 static void drawResult()
@@ -305,12 +308,12 @@ void showHighlights()
     swos.teamsLoaded = 0;
     swos.poolplyrLoaded = 0;
 
-    SAFE_INVOKE(CopyTeamsAndHeader);
+    CopyTeamsAndHeader();
 
     if (swos.g_menuMusic)
-        safeInvokeWithSaved68kRegisters(StopMidi);
+        invokeWithSaved68kRegisters(StopMidi);
 
-    safeInvokeWithSaved68kRegisters([] {
+    invokeWithSaved68kRegisters([] {
         showMenu(swos.stadiumMenu);
     });
 
@@ -320,8 +323,6 @@ void showHighlights()
     if (swos.g_menuMusic)
         TryMidiPlay();
 
-    SAFE_INVOKE(LoadFillAndSwtitle);
-    swos.vsPtr = swos.linAdr384k;
     swos.screenWidth = kMenuScreenWidth;
     swos.g_cameraX = 0;
     swos.g_cameraY = 0;
@@ -329,7 +330,7 @@ void showHighlights()
     m_playing = false;
 
     swos.menuFade = 1;
-    SWOS::DrawMenu();
+    drawMenu();
 }
 
 void toggleFastReplay()
@@ -350,7 +351,7 @@ void SWOS::ViewHighlightsWrapper()
     auto currentMenu = getCurrentPackedMenu();
     auto currentEntry = getCurrentMenu()->selectedEntry->ordinal;
 
-    SAFE_INVOKE(ViewHighlights);
+    ViewHighlights();
     restore68kRegisters();
 
     restoreMenu(currentMenu, currentEntry);
@@ -379,7 +380,7 @@ void SWOS::SaveCoordinatesForHighlights()
         dword packedCoordinates = (y << 16) | x | 0x80000000;
         registerPackedCoordinates(packedCoordinates);
 
-        dword packedGoals = (swos.team2Goals << 16) | swos.team1Goals;
+        dword packedGoals = (swos.team2TotalGoals << 16) | swos.team1TotalGoals;
         registerPackedCoordinates(packedGoals);
 
         // repeated two times, probably to keep it aligned
@@ -410,7 +411,6 @@ void SWOS::PlayInstantReplayLoop()
             break;
         }
 
-        SAFE_INVOKE(ClearBackground);
         ReplayFrame();
 
         if (swos.replayState == kNotReplaying)
@@ -431,8 +431,7 @@ void SWOS::PlayInstantReplayLoop()
         fadeIfNeeded();
     }
 
-    SAFE_INVOKE(FadeOutToBlack);
-    SAFE_INVOKE(ClearBackground);
+    FadeOutToBlack();
     RestoreCameraPosition();
 }
 
@@ -454,7 +453,6 @@ void SWOS::PlayHighlightsLoop()
             if (highlightsAborted())
                 break;
 
-            SAFE_INVOKE(ClearBackground);
             ReplayFrame();
 
             if (swos.replayState != kNotReplaying) {
@@ -463,7 +461,7 @@ void SWOS::PlayHighlightsLoop()
                 fadeIfNeeded();
                 continue;
             } else {
-                SAFE_INVOKE(FadeOutToBlack);
+                FadeOutToBlack();
                 RestoreCameraPosition();
                 swos.paused = 0;
             }
@@ -488,7 +486,7 @@ static std::pair<dword *, dword> handleCameraPositionAndResult(dword *p, dword d
 
         D1 = loWord(d);
         D2 = hiWord(d);
-        MoveView();
+//move camera
 
         d = *p++;
         p = validateHilPointerAdd(p);
@@ -501,7 +499,7 @@ static std::pair<dword *, dword> handleCameraPositionAndResult(dword *p, dword d
 
         swos.animPatternsState = hiWord(d);
 
-        invokeWithSaved68kRegisters(DrawAnimatedPatterns);
+        //invokeWithSaved68kRegisters(DrawAnimatedPatterns);
 
         d = *p++;
     }
@@ -527,9 +525,7 @@ static std::pair<dword *, dword> handleSprites(dword *p, dword d)
 
 static void drawBigRotatingLetterR()
 {
-    swos.g_deltaColor = 0x70;
     drawSprite(((swos.stoppageTimer >> 1) & 0x1f) + kReplayFrame00Sprite, 11, 14);
-    swos.g_deltaColor = 0;
 }
 
 void SWOS::ReplayFrame()

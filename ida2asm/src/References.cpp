@@ -57,17 +57,13 @@ void References::addReference(const String& str)
 
 void References::markImport(const String& str)
 {
-    auto ref = m_references.get(str);
-    if (ref) {
-        assert(ref->type == kNone);
+    if (auto ref = m_references.get(str))
         ref->type = kNear;
-    }
 }
 
 void References::markExport(const String& str)
 {
-    auto label = m_labels.get(str);
-    if (label)
+    if (auto label = m_labels.get(str))
         label->pub = 1;
 }
 

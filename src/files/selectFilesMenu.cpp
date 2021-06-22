@@ -66,7 +66,8 @@ static const char *codeToExtension(dword packedExt)
         dword packed;
     };
 
-    auto ext = reinterpret_cast<Ext *>(swos.animatedPatterns);
+    // just some random unused piece of memory
+    auto ext = (*swos.g_spriteGraphicsPtr).as<Ext *>();
     ext->packed = packedExt;
 
     std::swap(ext->str[0], ext->str[3]);
@@ -137,17 +138,9 @@ static bool getFilenameAndExtension()
 //
 __declspec(naked) int SWOS::GetFilenameAndExtension()
 {
-#ifdef SWOS_VM
     auto result = getFilenameAndExtension();
     SwosVM::flags.zero = result;
     return D0 = !result;
-#else
-    __asm {
-        call getFilenameAndExtension
-        call setZeroFlagAndD0FromAl
-        retn
-    }
-#endif
 }
 
 static bool selectFileToSaveDialog()

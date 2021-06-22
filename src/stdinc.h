@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <iostream>
 #include <cstdarg>
@@ -32,20 +34,24 @@
 
 #include <SDL2/SDL.h>
 #include <SDL_mixer.h>
+#include <SDL2_Image/SDL_image.h>
 
 #if SDL_BYTEORDER != SDL_LIL_ENDIAN
 #error "Big endian not supported!"
 #endif
+
+constexpr int kRedMask = 0xff;
+constexpr int kGreenMask = 0xff00;
+constexpr int kBlueMask = 0xff0000;
+constexpr int kAlphaMask = 0xff000000;
 
 #include "assert.h"
 #include "swos.h"
 #include "swossym.h"
 #include "log.h"
 
-#ifdef SWOS_VM
-# include "vm.h"
-# define __declspec(naked)
-#endif
+#include "vm.h"
+#define __declspec(naked)
 
 using namespace std::string_literals;
 

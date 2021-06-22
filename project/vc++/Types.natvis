@@ -66,6 +66,16 @@
       <Item Name="lookupNodes">m_nodes,[m_count]</Item>
     </Expand>
   </Type>
+  <Type Name="FixedPoint">
+    <DisplayString>{(m_value &gt;&gt; 16) + float((unsigned)m_value &amp; 0xffff) / 0x10000}</DisplayString>
+    <Expand>
+      <Item Name="integer">m_value &gt;&gt; 16</Item>
+      <Item Name="fraction">float(m_value &amp; 0xffff) / 0x10000</Item>
+      <Item Name="fractionRaw">m_value &amp; 0xffff,d</Item>
+      <Item Name="fractionHex">m_value &amp; 0xffff,h</Item>
+      <Item Name="valueHex">m_value,h</Item>
+    </Expand>
+  </Type>
   <Type Name="SwosDataPointer&lt;*&gt;">
     <Expand>
       <Item Name="ptr" Condition="m_offset &amp;&amp; m_offset != -1">($T1 *)(SwosVM::g_memByte + m_offset)</Item>

@@ -3,6 +3,7 @@
 #include "text.h"
 #include "util.h"
 #include "gameControlEvents.h"
+#include "textInput.h"
 #include "selectGameControlEventsMenu.h"
 #include "configureHat.mnu.h"
 
@@ -68,7 +69,7 @@ static void inputCurrentBinding()
 {
     auto entry = A5.asMenuEntry();
 
-    if (inputNumber(entry, m_maxBindingDigits, 1, m_bindings->size()))
+    if (inputNumber(*entry, m_maxBindingDigits, 1, m_bindings->size()))
         m_currentBinding = entry->fg.number - 1;
 }
 

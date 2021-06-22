@@ -163,7 +163,7 @@ offset:  size:  description:
    1       1    ??? (looks like a boolean)
    2       1    player's shirt number
    3      23    player name (null terminated)
-  26       1    bit-packed player position (in the field) and face
+  26       1    bit-packed player position (in the field) and face/hair color
                                  position:
                 face:    G    RB   LB   D    RW   LW   M    A
                 black   0x10 0x30 0x50 0x70 0x90 0xB0 0xD0 0xF0

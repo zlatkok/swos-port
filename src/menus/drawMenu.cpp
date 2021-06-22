@@ -1,18 +1,17 @@
 #include "drawMenu.h"
 #include "menus.h"
+#include "menuBackground.h"
+#include "menuItemRenderer.h"
 #include "sprites.h"
 #include "text.h"
 #include "windowManager.h"
 
-static void initializeMenuBackground();
 static void clearAllItemsDrawnFlag();
 static void executeMenuOnDrawFunction();
 static void drawMenuItems();
 static void drawSelectedFrame();
-static void drawMenuItem(MenuEntry *entry);
 static void drawMenuItemBackground(MenuEntry *entry);
 static void drawMenuItemContent(MenuEntry *entry);
-static void drawMenuItemSolidBackground(MenuEntry *entry);
 static void drawStringMenuItem(MenuEntry *entry, const char *string);
 static void drawStringTableMenuItem(MenuEntry *entry);
 static void drawMultilineTextMenuItem(MenuEntry *entry);
@@ -22,24 +21,27 @@ static void drawColorConvertedSpriteMenuItem(MenuEntry *entry);
 static void executeEntryContentFunction(MenuEntry *entry);
 static const CharTable *getCharTable(const MenuEntry *entry);
 static void getTextBox(int& x, int& y, int& width, const MenuEntry *entry, int charHeight);
-static void drawMenuItemInnerFrame(int x, int y, int width, int height, word color);
-static void drawMenuItemOuterFrame(MenuEntry *entry);
 
 constexpr int kTooSmallHeightForFrame = 8;
 
-void SWOS::DrawMenu()
+void drawMenu()
 {
     // must save A5 for InputText(), old DrawMenu accidentally sets it to the selected entry (which happened to be the original value)
     auto savedA5 = A5;
 
-    initializeMenuBackground();
+    drawMenuBackground();
     clearAllItemsDrawnFlag();
     executeMenuOnDrawFunction();
     drawMenuItems();
     drawSelectedFrame();
-    FlipInMenu();
+    flipInMenu();
 
     A5 = savedA5;
+}
+
+void SWOS::DrawMenu()
+{
+    drawMenu();
 }
 
 // in:
@@ -47,10 +49,17 @@ void SWOS::DrawMenu()
 //
 void SWOS::DrawMenuItem()
 {
-    auto entry = A5.asMenuEntry();
+    drawMenuItem(A5.asMenuEntry());
+}
+
+void drawMenuItem(MenuEntry *entry)
+{
+    assert(entry);
 
     if (entry->invisible)
         return;
+
+    A5 = entry;
 
     entry->drawn = 1;
     entry->beforeDraw();
@@ -62,13 +71,13 @@ void SWOS::DrawMenuItem()
     drawMenuItemBackground(entry);
     drawMenuItemContent(entry);
 
-    A5 = entry;
     entry->afterDraw();
 }
 
-static void initializeMenuBackground()
+void flipInMenu()
 {
-    memcpy(swos.linAdr384k, swos.linAdr384k + kMenuBackgroundOffset, kVirtualScreenSize);
+    frameDelay(2);
+    updateScreen();
 }
 
 static void clearAllItemsDrawnFlag()
@@ -120,9 +129,18 @@ static void drawSelectedFrame()
 {
     auto entry = getCurrentMenu()->selectedEntry;
     if (entry && entry->width && entry->height) {
+        constexpr int kFlashInterval = 32;
+        static Uint32 s_lastFlashTime;
+
         auto color = swos.kColorTableShine[swos.menuCursorFrame & 7];
-        if (cursorFlashingEnabled())
-            swos.menuCursorFrame++;
+
+        if (cursorFlashingEnabled()) {
+            auto now = SDL_GetTicks();
+            if (now - s_lastFlashTime > kFlashInterval) {
+                swos.menuCursorFrame++;
+                s_lastFlashTime = now;
+            }
+        }
 
         drawMenuItemInnerFrame(entry->x, entry->y, entry->width, entry->height, color);
     }
@@ -138,8 +156,8 @@ static void drawMenuItemBackground(MenuEntry *entry)
             drawMenuItemSolidBackground(entry);
             if (entry->height > kTooSmallHeightForFrame)
                 drawMenuItemOuterFrame(entry);
-            if (auto frameColor = entry->frameColor())
-                drawMenuItemInnerFrame(entry->x + 1, entry->y + 1, entry->width - 2, entry->height - 2, frameColor);
+            if (auto innerFrameColor = entry->innerFrameColor())
+                drawMenuItemInnerFrame(entry->x + 1, entry->y + 1, entry->width - 2, entry->height - 2, innerFrameColor);
         }
         break;
     case kEntrySprite1:
@@ -205,13 +223,9 @@ static void drawStringMenuItem(MenuEntry *entry, const char *string)
         int color = entry->solidTextColor();
 
         if (entry->stringFlags & kTextLeftAligned) {
-            swos.g_deltaColor = 0;
-
             getTextBox(x, y, width, entry, charTable->charHeight);
             drawMenuText(x, y, string, width, color, bigFont);
         } else if (entry->stringFlags & kTextRightAligned) {
-            swos.g_deltaColor = 0;
-
             getTextBox(x, y, width, entry, charTable->charHeight);
             x += width;
             drawMenuTextRightAligned(x, y, string, width, color, bigFont);
@@ -262,8 +276,6 @@ static void drawMultilineTextMenuItem(MenuEntry *entry)
         x += width / 2;
         y = entry->y + frameThickness + spaceBetweenLines.quot + (spaceBetweenLines.rem-- > 0);
 
-        swos.g_deltaColor = 0;
-
         while (numLines--) {
             drawMenuTextCentered(x, y, text, width, color, bigFont);
             y += spaceBetweenLines.quot + charTable->charHeight + (spaceBetweenLines.rem-- > 0);
@@ -287,11 +299,11 @@ static void drawSpriteMenuItem(MenuEntry *entry, int spriteIndex)
     assert(entry && (entry->type == kEntrySprite2 || entry->type == kEntryColorConvertedSprite));
 
     if (spriteIndex) {
-        auto sprite = getSprite(spriteIndex);
-        int x = entry->x + entry->width / 2 - sprite->width / 2;
-        int y = entry->y + entry->height / 2 - sprite->height / 2;
-        swos.g_deltaColor = 0;
-        drawMenuSprite(x, y, spriteIndex);
+        int spriteWidth, spriteHeight;
+        std::tie(spriteWidth, spriteHeight) = getSpriteDimensions(spriteIndex);
+        int x = entry->x + entry->width / 2 - spriteWidth / 2;
+        int y = entry->y + entry->height / 2 - spriteHeight / 2;
+        drawSprite(spriteIndex, x, y);
     }
 }
 
@@ -305,12 +317,9 @@ static void drawColorConvertedSpriteMenuItem(MenuEntry *entry)
 
     D0 = srcIndex;
     D1 = dstIndex;
-    SAFE_INVOKE(CopyWholeSprite);
+    CopyWholeSprite();
 
-    auto conversionTableAddress = entry->fg.spriteCopy.getRaw() + 4;
-    A0 = conversionTableAddress;
-    D0 = dstIndex;
-    SAFE_INVOKE(ConvertSpriteColors);
+//TODO
 
     drawSpriteMenuItem(entry, dstIndex);
 }
@@ -346,7 +355,7 @@ static void getTextBox(int& x, int& y, int& width, const MenuEntry *entry, int c
             width -= 2;
             height -= 2;
         }
-        if (entry->frameColor()) {
+        if (entry->innerFrameColor()) {
             x++;
             y++;
             width -= 2;
@@ -359,36 +368,4 @@ static void getTextBox(int& x, int& y, int& width, const MenuEntry *entry, int c
         verticalSlack = verticalSlack == 3 ? 2 : verticalSlack / 2;
 
     y += verticalSlack;
-}
-
-static void drawMenuItemSolidBackground(MenuEntry *entry)
-{
-    D0 = entry->backgroundColor();
-    D1 = entry->x;
-    D2 = entry->y;
-    D3 = entry->width;
-    D4 = entry->height;
-    SAFE_INVOKE(DrawMenuItemBackground);
-}
-
-static void drawMenuItemInnerFrame(int x, int y, int width, int height, word color)
-{
-    D0 = color;
-    D1 = x;
-    D2 = y;
-    D3 = width;
-    D4 = height;
-    assert(D1.asInt() >= 0 && D1 + D3 <= kMenuScreenWidth && D2.asInt() >= 0 && D2 + D4 <= kMenuScreenHeight);
-    SAFE_INVOKE(DrawMenuItemInnerFrame);
-}
-
-static void drawMenuItemOuterFrame(MenuEntry *entry)
-{
-    D0 = entry->backgroundColor();
-    D1 = entry->x;
-    D2 = entry->y;
-    D3 = entry->width;
-    D4 = entry->height;
-    assert(D1.asInt() >= 0 && D1 + D3 <= kMenuScreenWidth && D2.asInt() >= 0 && D2 + D4 <= kMenuScreenHeight);
-    SAFE_INVOKE(DrawMenuItemOuterFrame);
 }

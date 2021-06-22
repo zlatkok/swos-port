@@ -27,7 +27,6 @@ static const char kHeader[] =
     "    Register(const char *p) : data(reinterpret_cast<dword>(p)) {}\n"
     "#endif\n"
     "    template<typename T> Register(const SwosDataPointer<T>& ptr) : data(ptr.getRaw()) {}\n"
-    "#ifdef SWOS_VM\n"
     "    template <typename T, typename std::enable_if_t<std::is_pointer<T>::value, T> = nullptr>\n"
     "    Register(T t) {\n"
     "        auto offset = SwosVM::ptrToOffset(t);\n"
@@ -45,15 +44,6 @@ static const char kHeader[] =
     "    void assign(typename std::enable_if<!std::is_convertible<T, dword>::value, T>::type t) {\n"
     "        data = reinterpret_cast<dword>(t);\n"
     "    }\n"
-    "#else\n"
-    "    template <typename T> Register(T t) { assign<T>(t); }\n"
-    "    template <typename T> void assign(typename std::enable_if<std::is_convertible<T, dword>::value, T>::type t) {\n"
-    "        data = static_cast<dword>(t);\n"
-    "    }\n"
-    "    template <typename T> void assign(typename std::enable_if<!std::is_convertible<T, dword>::value, T>::type t) {\n"
-    "        data = reinterpret_cast<dword>(t);\n"
-    "    }\n"
-    "#endif\n"
     "    word asWord() const { return static_cast<word>(data); }\n"
     "    int16_t asInt16() const { return static_cast<int16_t>(data); }\n"
     "    dword asDword() const { return static_cast<dword>(data); }\n"
@@ -61,7 +51,6 @@ static const char kHeader[] =
     "    template <typename T> typename std::enable_if<std::is_convertible<T, dword>::value, T>::type as() {\n"
     "         return static_cast<T>(data);\n"
     "    }\n"
-    "#ifdef SWOS_VM\n"
     "    template <typename T> typename std::enable_if<std::is_pointer<T>::value, T>::type as() {\n"
     "        return reinterpret_cast<T>(SwosVM::offsetToPtr(data));\n"
     "    }\n"
@@ -72,16 +61,6 @@ static const char kHeader[] =
     "    const char *asConstPtr() const { return reinterpret_cast<char *>(SwosVM::offsetToPtr(data)); }\n"
     "    template <typename T> operator T*() const { return reinterpret_cast<T *>(SwosVM::offsetToPtr(data)); }\n"
     "    MenuEntry *asMenuEntry() { return as<MenuEntry *>(); }\n"
-    "#else\n"
-    "    template <typename T> typename std::enable_if<!std::is_convertible<T, dword>::value, T>::type as() {\n"
-    "        return reinterpret_cast<T>(data);\n"
-    "    }\n"
-    "    template <typename T> const T as() const { return reinterpret_cast<T>(data); }\n"
-    "    char *asPtr() { return reinterpret_cast<char *>(data); }\n"
-    "    const char *asConstPtr() const { return reinterpret_cast<char *>(data); }\n"
-    "    template <typename T> operator T*() const { return reinterpret_cast<T *>(data); }\n"
-    "    MenuEntry *asMenuEntry() { return reinterpret_cast<MenuEntry *>(data); }\n"
-    "#endif\n"
     "    operator dword() const { return data; }\n"
     "    Register& operator+=(size_t n) { data += n; return *this; }\n"
     "    Register& operator^=(size_t n) { data ^= n; return *this; }\n"
@@ -759,6 +738,8 @@ void SymbolFileParser::parseRemoveAndNullLine(SymbolAction action, const char *s
             m_symbolTable.addSymbolAction(start, end, kRemoveEndRange, symStart, symEnd);
         else
             flags |= kRemoveSolo;
+    } else if (end > start) {
+        error("range expression not supported in this context");
     }
     m_symbolTable.addSymbolAction(symStart, symEnd, flags, start, end);
 }

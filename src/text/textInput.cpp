@@ -1,7 +1,9 @@
 #include "textInput.h"
 #include "controls.h"
 #include "keyBuffer.h"
-#include "menus.h"
+#include "MenuEntry.h"
+#include "drawMenu.h"
+#include "menuAlloc.h"
 #include "util.h"
 
 static char keyToChar(SDL_Scancode key, bool allowShift)
@@ -90,12 +92,12 @@ static bool inputText(MenuEntry& entry, size_t maxLength, bool allowShift, std::
         return false;
 
     char *buf = menuAlloc(maxLength);
-    strncpy_s(buf, entry.string(), maxLength);
+    strncpy_s(buf, entry.string(), maxLength + 1);
 
     auto originalString = entry.string();
     entry.setString(buf);
 
-    auto sentinel = buf + maxLength;
+    auto sentinel = buf + maxLength + 2;    // + 1 for the cursor
     auto end = buf + strlen(buf);
 
     *end++ = kCursorChar;
@@ -107,7 +109,7 @@ static bool inputText(MenuEntry& entry, size_t maxLength, bool allowShift, std::
 
     while (true) {
         processControlEvents();
-        SWOS::DrawMenu();
+        drawMenu();
         SWOS::WaitRetrace();
 
         auto key = getKey();
@@ -211,7 +213,21 @@ bool inputText(MenuEntry& entry, size_t maxLength, InputTextAllowedChars allowEx
     });
 }
 
-bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum)
+static int calculateCurrentValue(const char *start, int newDigit)
+{
+    int value = 0;
+
+    for (; *start; start++) {
+        if (*start != kCursorChar) {
+            assert(*start >= '0' && *start <= '9');
+            value = value * 10 + *start - '0';
+        }
+    }
+
+    return value * 10 + newDigit;
+}
+
+bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum, bool allowNegative /* = false */)
 {
     assert(entry.type == kEntryNumber);
 
@@ -226,11 +242,11 @@ bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum)
     entry.type = kEntryString;
     entry.setString(buf);
 
-    auto result = inputText(entry, sizeof(buf), false, [maxDigits, minNum, maxNum](auto key, auto start, auto size, auto cursorPtr) {
+    auto result = inputText(entry, sizeof(buf), false, [&](auto key, auto start, auto size, auto cursorPtr) {
         switch (key) {
         case SDL_SCANCODE_MINUS:
         case SDL_SCANCODE_KP_MINUS:
-            return cursorPtr != start || minNum >= 0;
+            return allowNegative ? cursorPtr != start || minNum >= 0 : false;
 
         case SDL_SCANCODE_0: case SDL_SCANCODE_1:
         case SDL_SCANCODE_2: case SDL_SCANCODE_3:
@@ -238,7 +254,8 @@ bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum)
         case SDL_SCANCODE_6: case SDL_SCANCODE_7:
         case SDL_SCANCODE_8: case SDL_SCANCODE_9:
             if (static_cast<int>(size) < maxDigits) {
-                auto newValue = atoi(start);
+                auto newDigit = key == SDL_SCANCODE_0 ? 0 : key - SDL_SCANCODE_1 + 1;
+                auto newValue = calculateCurrentValue(start, newDigit);
                 bool inRange = newValue >= minNum && newValue <= maxNum;
                 bool multipleZeros = newValue != 0 || size > 1 || key != SDL_SCANCODE_0;
                 return inRange && multipleZeros;
@@ -259,7 +276,7 @@ bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum)
 
 // in:
 //      D0 -  input length (max 99) + 1 for zero terminator
-//      A5 -> current menu entry (must be string type)
+//      A5 -> menu entry to input text into (must be string type)
 // out:
 //      D0 - 0, zf set = OK, ended with carriage
 //           1, zf clear = aborted, escape pressed

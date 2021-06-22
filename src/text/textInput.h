@@ -7,4 +7,4 @@ enum InputTextAllowedChars {
 };
 
 bool inputText(MenuEntry& entry, size_t maxLength, InputTextAllowedChars allowExtraChars = kLimitedCharset);
-bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum);
+bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum, bool allowNegative = false);

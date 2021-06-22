@@ -8,6 +8,8 @@
 #include "controls.h"
 #include "mockLog.h"
 #include "menuMouse.h"
+#include "menuProc.h"
+#include "drawMenu.h"
 
 #define SWOS_STUB_MENU_DATA
 static int16_t m_windowResizable = 1;
@@ -292,9 +294,9 @@ void VideoOptionsMenuTest::scrollResolutionListOneLine(int direction, ScrollMeth
     }
 
     processControlEvents();
-    SWOS::MenuProc();
-    SWOS::MenuProc();   // twice to get around too-fast-clicking protection ;)
-    SWOS::DrawMenu();
+    menuProc();
+    menuProc(); // twice to get around too-fast-clicking protection ;)
+    drawMenu();
     resetSdlInput();
     updateMouse();      // to register mouse button up and go out of scrolling mode
 //    pl1LastFired = 0;   // don't allow any fire from this cycle to turn into long fire
@@ -345,7 +347,7 @@ void VideoOptionsMenuTest::testCustomWindowSize()
     SWOS_UnitTest::queueKeys(heightKeys);
     selectItem(customHeight);
 
-    SWOS::DrawMenu();
+    drawMenu();
 
     assertItemIsNumber(customWidth, endingWidth);
     assertItemIsNumber(customHeight, endingHeight);
@@ -375,7 +377,7 @@ void VideoOptionsMenuTest::testResolutionSwitchFailure()
     LogSilencer logSilencer;
 
     selectItem(resolutionField4);
-    SWOS::DrawMenu();
+    drawMenu();
 
     assertEqual(getCurrentMenu()->numEntries, 2);
     assertItemIsString(1, "CONTINUE");
@@ -416,11 +418,11 @@ void VideoOptionsMenuTest::testResolutionListRebuildWhenChangingScreen()
 
     DisplayModeList secondHalf(kDisplayModes.begin() + kDisplayModes.size() / 2, kDisplayModes.end());
     setFakeDisplayModes(secondHalf);
-    SWOS::DrawMenu();
+    drawMenu();
     verifyResolutionListStrings(kDisplayModes);
 
     setFakeDisplayModesForced(secondHalf);
-    SWOS::DrawMenu();
+    drawMenu();
     verifyResolutionListStrings(secondHalf);
 }
 
@@ -609,7 +611,7 @@ void VideoOptionsMenuTest::switchToMode(size_t mode)
         break;
     }
 
-    SWOS::DrawMenu();
+    drawMenu();
 }
 
 const char *VideoOptionsMenuTest::getResolutionString(int width, int height)

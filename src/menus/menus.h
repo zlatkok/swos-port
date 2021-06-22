@@ -1,8 +1,8 @@
 #pragma once
 
+#include "MenuEntry.h"
 #include "menuCodes.h"
 #include "util.h"
-#include "render.h"
 
 constexpr int kMenuStringLength = 70;
 constexpr int kMenuOffset = 8;
@@ -37,19 +37,7 @@ static inline void drawMenuSprite(int x, int y, int index)
     D0 = index;
     D1 = x;
     D2 = y;
-    SAFE_INVOKE(DrawSprite);
-}
-
-static inline void redrawMenuBackground()
-{
-    memcpy(swos.linAdr384k, swos.linAdr384k + 128 * 1024, kVgaScreenSize);
-}
-
-static inline void redrawMenuBackground(int lineFrom, int lineTo)
-{
-    int offset = lineFrom * kMenuScreenWidth;
-    int length = (lineTo - lineFrom) * kMenuScreenWidth;
-    memcpy(swos.linAdr384k + offset, swos.linAdr384k + 128 * 1024 + offset, length);
+    DrawSprite();
 }
 
 static inline void highlightEntry(MenuEntry *entry)
@@ -99,9 +87,5 @@ void restoreMenu(const void *menu, int selectedEntry);
 void activateMenu(const void *menu);
 const void *getCurrentPackedMenu();
 
-bool inputNumber(MenuEntry *entry, int maxDigits, int minNum, int maxNum);
 bool showContinueAbortPrompt(const char *header, const char *continueText,
     const char *abortText, const std::vector<const char *>& messageLines);
-
-char *menuAlloc(size_t size);
-void menuFree(size_t size);

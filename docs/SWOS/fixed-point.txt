@@ -1,0 +1,22 @@
+Fixed point format
+------------------
+For more precise calculations SWOS uses 32-bit fixed point numbers, with 16 bits for integer part and 16 bits
+for fractional part. Integer part has a sign bit (highest bit), while fraction has no sign, and is always
+positive.
+
+s|aaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbb
+
+Value = a + 2^-16 * b
+or
+Value = a + b / 0x10000
+
+Some examples (in hex notation):
+ 0.5  0000.8000
+-0.5  ffff.8000
+ 3.25 0003.0400
+
+When stored in memory, first word is fractional part, second word is integer part (offset +2) - most of the
+time only integer part is used.
+
+They can be added and subtracted as 32-bit numbers. Shifting left and right also works. After multiplying two
+numbers result needs to be shifter right 16 bits.

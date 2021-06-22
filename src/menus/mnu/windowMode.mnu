@@ -198,6 +198,7 @@ Menu windowModeMenu
 
         upEntry: <
         downEntry: >
+        rightEntry: #{i >= kNumResolutionFieldsShort / 2 ? :scrollDownArrow : :scrollUpArrow}
     }
 #endRepeat
 
@@ -205,6 +206,10 @@ Menu windowModeMenu
 
     entryAlias firstResolutionField = resolutionField0
     entryAlias lastResolutionField = #join(resolutionField, #{kNumResolutionFieldsFull - 1})
+    entryAlias lastResolutionFieldShort = #join(resolutionField, #{kNumResolutionFieldsShort - 1})
+
+    firstResolutionField.upEntry = borderlessMaximized
+    lastResolutionFieldShort.downEntry = exit
 
     Entry scrollUpArrow {
         x: kScrollArrowX
@@ -233,18 +238,6 @@ Menu windowModeMenu
         downEntry: exit
         leftEntry: resolutionField5
     }
-
-    resolutionField0.upEntry = borderlessMaximized
-
-    resolutionField0.rightEntry = scrollUpArrow
-    resolutionField1.rightEntry = scrollUpArrow
-    resolutionField2.rightEntry = scrollUpArrow
-
-    resolutionField3.rightEntry = scrollDownArrow
-    resolutionField4.rightEntry = scrollDownArrow
-    resolutionField5.rightEntry = scrollDownArrow
-
-    resolutionField5.downEntry = exit
 
     Entry exit {
         x: kBaseX

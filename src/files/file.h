@@ -12,6 +12,12 @@ void setRootDir(const char *dir);
 std::string rootDir();
 std::string pathInRootDir(const char *filename);
 
+#ifdef _WIN32
+# define DIR_SEPARATOR "\\"
+#else
+# define DIR_SEPARATOR "/"
+#endif
+
 inline char getDirSeparator()
 {
 #ifdef _WIN32

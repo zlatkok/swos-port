@@ -31,14 +31,16 @@ Menu videoOptionsMenu
         color: kOptionsColumn1Color
     }
 
-    Entry flashMenuCursorLabel {
+    Entry linearFilteringLabel {
         y: kGamePlayOptionsStartY
-        text: "FLASH MENU CURSOR"
+        text: "LINEAR FILTERING"
     }
+
+    Entry flashMenuCursorLabel { text: "FLASH MENU CURSOR" }
     Entry showTouchTrailsLabel { text: "SHOW TOUCH TRAILS" }
     Entry transparentVirtualJoypadButtonsLabel { text: "BLEND VIRTUAL JOYPAD" }
 
-    entryAlias firstLabel = flashMenuCursorLabel
+    entryAlias firstLabel = linearFilteringLabel
 
     defaultX: kOptionsColumn2X
 
@@ -46,8 +48,16 @@ Menu videoOptionsMenu
         color: kOptionsColumn2Color
     }
 
-    Entry flashCursor {
+    Entry linearFiltering {
         y: kGamePlayOptionsStartY
+        downEntry: >
+
+        stringTable: [ ~m_useLinearFiltering, swos.aOff, swos.aOn ]
+        onSelect: switchLinearFiltering
+    }
+
+    Entry flashCursor {
+        upEntry: <
         downEntry: >
 
         stringTable: [ ~m_flashCursor, swos.aOff, swos.aOn ]
@@ -70,7 +80,7 @@ Menu videoOptionsMenu
         onSelect: changeVirtualJoypadTransparentButtons
     }
 
-    entryAlias firstChangerItem = flashCursor
+    entryAlias firstChangerItem = linearFiltering
 
     Entry showWindowMode {
         x: (@kScreenWidth - kOptionWidth) / 2 - kMenuOffset

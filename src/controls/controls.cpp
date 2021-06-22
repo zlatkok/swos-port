@@ -402,19 +402,3 @@ void SWOS::GetKey()
         }
     }
 }
-
-__declspec(naked) void SWOS::JoyKeyOrCtrlPressed()
-{
-#ifdef SWOS_VM
-    auto result = anyInputActive();
-    SwosVM::flags.zero = result;
-#else
-    __asm {
-        push ecx
-        call anyInputActive
-        test eax, eax
-        pop  ecx
-        retn
-    }
-#endif
-}

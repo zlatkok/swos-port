@@ -2606,7 +2606,7 @@ earlier:
 - now have to figure out how to reconcile using menu variables from both SWOS and C++, since the pointer size
   is potentially different... tough problem, will need to think hard on this
 10.09.2020.
-- the bug I reported is under consideration, got a reply to try making constuctor constexpr, which works in
+- the bug I reported is under consideration, got a reply to try making constructor constexpr, which works in
   simple example, but unfortunately it wouldn't work in the real project (maybe I've missed something, or
   something else triggers it, such as copy constructor)
 - started working on a system to add external pointers into SWOS VM, they will have the highest bit set and
@@ -2727,7 +2727,7 @@ earlier:
 - the menu is still garbled but the text looks a little bit more like a proper text :D off to get bicycle
   from the bike repair shop and then will see wth is going on :D
 - dumped memory after sprite uncrunching and compared it, it's the same (save for pointers); so uncrunching
-  routine has cleared suspicion and restored it's good name
+  routine has cleared suspicion and restored its good name
 - changed 8 and 16 bit registers to unsigned to avoid problems with signed right shift
 - seems flags optimization was too aggressive since I changed node.flowChange flag to only include
   instructions jumped to and not jumped from (alleviated with instruction->isBranch() check)
@@ -2940,7 +2940,7 @@ earlier:
 - compiled SDL2_Image
 - trying to make a sample program that loads a PNG and displays it, but I realized I have no idea how to
   prepare files so IMG_Load() can find them :P I think they must go to assets directory, but now realized I
-  haven't properly compiled SDL_Image: PNG support is missing, and must be added via external libpng library
+  haven't properly compiled SDL_image: PNG support is missing, and must be added via external libpng library
   and now have to figure out how to compile and integrate that...
 - managed to build static libpng, after the usual long fighting with this build system
 - woohoo! hello world is finally running! it works on the emulator, good phone and mediocre phone, only fails
@@ -3349,7 +3349,7 @@ earlier:
 - started implementing setup keyboard menu & belonging code
 31.01.2021.
 - [mnu2h] disabled lower case strings warning, makes no sense anymore with improved menu text rendering;
-  still, I let it live via a warning switch #lowerCaseStringsWarning[On|Off] which is off by default, in the
+  still, I let it live via a warning switch #lowerCaseStringsWarning[On|Off] which is off by default, in
   case it's needed for something in the future
 - [mnu2h] fixed a bug when a result of join wasn't re-parsed as an expression member, causing dot expressions
   to go unevaluated (e.g. y: #join(some, Previous, Entry).endY + 2)
@@ -3632,7 +3632,7 @@ earlier:
 - implemented keyboard config saving and loading to/from ini file
 - [ida2asm] fixed a bug in optimizer, when shifting constant memory address values nodes weren't copied
   correctly, also optimized rotate routines a bit; fortune in misfortune: the code wasn't even been executed
-- [ida2asm] fixed possible overflow when generating 32-bit multiplication instruction
+- [ida2asm] fixed a possible overflow when generating 32-bit multiplication instruction
 - added opposite direction events cancelling, with new event having precedence
 - finally pushed an update to repository!
 - somehow I feel it's harder to do long kicks now (on keyboard), and that the controls are a bit worse, but
@@ -3872,3 +3872,364 @@ earlier:
   operation, guess I wasn't doing it as an optimization since the game texture covers entire field anyway;
   leaving it for now in case there are some other devices that act strangely, no idea about the performance
   hit, it's probably negligible, will measure when the time comes
+07.04.2021.
+- released a new version
+- [android] added phone vibration when a goal is scored
+- explored pitch rendering ideas
+08.04.2021.
+- added an option to turn linear filtering on or off, it looks blurry and kind of crappy on PC but it could
+  be useful for other devices, who knows
+- planning and researching about rendering architecture that would be able to handle 4k pitches and sprites
+09.04.2021.
+/
+10.04.2021.
+- how things stand currently:
+    - projected required sizes of textures scaled to 4k resolution are simply too big (200-400mb per pitch),
+      tiles will have to be used (again ;))
+    - detail maps will be used to reduce repetitiveness (need to figure them out first, but luckily this can
+      be done at a later point)
+    - sprites and tile pitches will be held within as small as possible number of textures
+    - some sort of texture manager will be tracking the individual sprites and tiles inside big texture
+      atlases, and will keep atlases within the maximum texture size the graphics card is capable of handling
+    - decided to do the sprites 1st, specifically menu sprites
+    - managed to batch resize them with IrfanView, they look awful but it will have to do for 1st iteration
+    - magnification is 12x (3840 / 320 = 12)
+    - messing with TexturePacker to create nice & efficient sprite sheets (it would be great to find a free
+      tool with the same capabilities)
+11.04.2021.
+- added printing of some renderer info to the log, namely max texture dimensions supported, on PC it's 8k,
+  on two older phones 2k, and on Samsung 16k, so 2k should be a pretty safe bet
+12.04.2021.
+/
+13.04.2021.
+/
+14.04.2021.
+/
+15.04.2021.
+- started converting VGA-drawing routines to high-res drawing routines and implemented initial version of
+  menu background (got some crash but too tired to chase it down now)
+16.04.2021.
+- fixed the crash: tracked it down to releasing a surface gotten from SDL_image; turned out it was caused by
+  SDL_image being linked to older SDL version -- it got forgotten when switching to new SDL; good thing to
+  remember in the future
+- divided assets into 3 categories: 1) low-res (960x540) 2) HD (1920x1080) 3) 4k (3840x2060)
+- and finally, menu background is showing
+- started implementing a cache of menu item background textures
+17.04.2021.
+- finished initial version of menu item background rendering and caching (not debugged!)
+    - initially pondered whether to include the menu item background effect at all (gradient between two
+      colors), but decided it should be there since the menu should at least look similar to the original
+    - guessed algorithm used to create fill.256 (distance from the lower left corner -> square root of x^2 +
+      y^2 divided by the number of colors in gradient (originally 32, increased to 256))
+    - removed dither since it's complicated and it's not really needed with 24-bit color: generated two
+      gradient patterns in Gimp, one with and one without gradient and it takes zoom of 10x or so to notice
+      the difference, and even then it's barely visible
+    - to speed up things used technique similar to Goraud shading: calculated exact values for vertices of
+      the rectangle, and then used those values to interpolate everything in the middle; hope it will look
+      good! :)
+18.04.2021.
+- been debugging and fixing menu item backgrounds, got them to a level where they're kind of similar to the
+  original, but perhaps differing a bit too much; will try matching them closer tomorrow, as well as adding
+  menu frames and cursor, sprites too if I get that far
+- also progressed a bit in transition from VGA-like to modern rendering
+19.04.2021.
+- seems the distance formula isn't precise, need to rethink it or include 32 element color table from
+  the original into calculations
+- yup, color changes too irregularly, have to include the table
+20.04.2021.
+- included the original color tables into the calculation, now it looks quite similar to the original, and
+  the gradient is actually quite nice; now that the things are in high res maybe some even nicer effects
+  could be added, but more important things await
+21.04.2021.
+- added menu items inner and outer frames rendering; compared to 320x200 version it's looking almost
+  identical (only nicer) ;)
+- started planning for including sprite packing into build process
+22.04.2021.
+- tried to reverse engineer TexturePacker, but gave up, at least for now, it could take way too long
+- eventually found an open source Python library (PyTexturePacker) that's trying to mimic what TexturePacker
+  is doing, will try improving it a bit and it might just cut it
+23.04.2021.
+- [PyTexturePacker] added detect duplicates option
+- [PyTexturePacker] added ignore blank option
+- seems there's an inexplicable hole in second texture, that could be filled with third texture contents,
+  must debug that somehow
+24.04.2021.
+- [PyTexturePacker] added draw border option (red frame around sprites for debugging)
+- the inexplicable "hole" is actually correct! third texture was a left-over from previous runs, with new
+  options it actually packed everything into just two textures and the hole is a space to spare :)
+- [PyTexturePacker] added option to not save atlas data, and return it for further processing
+- [PyTexturePacker] added scale and scale_filter options, to rescale the sprites before processing
+- created script that creates sprite maps via multiprocessing
+25.04.2021.
+- set inner_padding and shape_padding options to 2 pixels each, to be safer when rendering sprites, it
+  introduced 3rd texture, but it was inevitable since I needed to add some more sprites anyway; but now I
+  noticed the textures are always created at max size (2048x2048) regardless of their real size
+- [PyTexturePacker] added crop_atlas option to size the texture atlas to the content
+- option above solved the problem, but now I noticed that one texture has all the content next to the left
+  edge, disrespecting both border_padding (2 pixels) and inner_padding (1 pixel)
+- fixed the missing padding pixels problem with some hacking without fully understanding the code, so that's
+  a bit concerning, but at least it was done in record time; will be doing a lot of packing and hopefully
+  will notice if anything goes wrong
+26.04.2021.
+/
+27.04.2021.
+- finished initial version of packed sprite data array generator script
+- fixed menu item frame rendering that somehow got broken
+- writing sprite rendering routines (for menus)
+28.04.2021.
+- implemented loading of the texture atlases (menus)
+- got the sprites rendering, although some are missing 1 pixel line on the top
+- fixed shining frame drawing; had to add some timing code, it seemed to cycle colors too fast
+29.04.2021.
+- added exit icon to sprite sheet
+- fixed rotated sprites rendering
+- fixed a crash in audio options menu: A5 wasn't set before calling beforeDraw() function, strange how it
+  didn't manifest sooner
+- fixed last two entries in video resolution list being unselectable
+30.04.2021.
+- fixed menu movement going wild (consequence of switching to different screen update procedure & missing
+  timing code)
+01.05.2021.
+/
+02.05.2021.
+- worked out player sprites customization scheme
+03.05.2021.
+/
+04.05.2021.
+/
+05.05.2021.
+/
+06.05.2021.
+- did some reverse engineering on the details of the team and skin color coloring of player/goalkeeper
+  sprites (done in ConvertColorsAndTextSprites())
+07.05.2021.
+/
+08.05.2021.
+/
+09.05.2021.
+- went through SWOS code for sprite coloring, I think I got the gist of it; wrote the findings to sprites.txt
+  as well
+- removed duplicate sprite bitmaps, though there are still some empty and weird sprites
+10.05.2021.
+- cleaned up some unused routines, mainly sprites, will need to do it again later more thoroughly
+- figured out what the useIndividualPlayerSkinColor variable is used for (former doSpriteColorConversion)
+- started writing game sprite conversion script
+11.05.2021.
+- trying to break player sprites into layers, but it's still quite buggy
+12.05.2021.
+- noticed there are some stray hair pixels in the goalkeeper sprites, marked as hair but located near the
+  legs, decided not to bother fixing since it's a graphics problem
+- recompiled swpe and fixed saving big R/S sprites with invalid palette (needed ORing with 0x70); so they
+  won't look like complete garbage even in POC version
+- finished with the game sprites conversion script
+13.05.2021.
+- added a check for number of images processed to conversion script
+- reorganized game sprites into directories, it's much more manageable now and easier to convert into sheets
+- began with sheet compilation script modifications, made it handle more than just charsets and integrated
+  fixed game sprites into game array (those that don't require color conversion)
+- started replacing game initialization routine, so the new team sprites could be colored properly
+- removing left-over SWOS code (did up to CopyAdvertisementsData)
+14.05.2021.
+- cleaned up ConvertColorsAndTextSprites() and belonging references, will have to create some tool to analyze
+  cross-references and do this automatically sometime
+- generated sheets for all the sprites in the game, looks good except for a couple of sheets with low number
+  of sprites that got packed a bit inefficiently, must check if that can be avoided
+15.05.2021.
+- generated metadata for C++ for sprites that are going to be colorized
+- began implementing coloring code for players
+16.05.2021.
+- removed SWOS_VM ifdef's, will be going with VM for 32-bit version too (in order to use the optimizations)
+- moved coloring code some
+17.05.2021.
+- did a little on the sprite coloring code, but it still hasn't advanced much + is quite buggy atm
+18.05.2021.
+- fixed wrongly assigned texture indices in sprite array
+- got all the layers except the shirt rendering nicely
+19.05.2021.
+- got the shirt layer rendering, the whole thing's looking good! however, I missed sprites of players with
+  colored sleeves
+- disabled duplicate removal for background level sprite sheets so certain sprites wouldn't merge; I'm
+  starting to think that duplicate removal might be connected to the poorly packed sheets problem
+- fixed a silly crash in swpe on ctrl+T (needed it to pull out colored sleeves variant of player sprites)
+- added colored sleeves support
+20.05.2021.
+- got player sprites tied into sprites array, trying to get into the game but experiencing unknown crashes
+  (consequence of removing a lot of pitch related code)
+21.05.2021.
+- been fixing crashes using the scientific method: running the game and adding more stuff back if it crashes;
+  fixed a bunch, but still not quite there
+- [ida2asm] fixed invalid variable size when exported array size differs from ASM source, and the base size
+  is same and equal to 4 bytes
+- added frame indices calculation for players, but need to fix up goalkeepers too
+22.05.2021.
+- [ida2asm] turns out invalid variable size from yesterday wasn't fixed, it just bypassed static assert with
+  invalid size on both ends; undid the previous change and fixed the fill size in memory array, now it seems
+  to work fine; also increased static asserts to every 16th exported variable while I was at it -- should
+  help debug these kinds of problems in the future
+- fixed sprite compile script to expand textures array for goalkeeper slots
+- implemented goalkeeper coloring, but still couldn't run the game; there's too many stuff missing from
+  InitGameRestoreTeams(), will need to focus on it and restore missing function calls
+23.05.2021.
+- removed lot of old code (mostly dealing with palettes and VGA drawing (+ old 320x200 texture))
+- swos-port 32-bit x86 ASM project officially killed
+- added all the initialization code (at least I think), but still couldn't run the game: discovered I'm
+  lacking metadata about SWOS sprites (such as center x, y) to be able to render them, so gotta figure out a
+  way to include that in the sprite script; until tomorrow!
+24.05.2021.
+- modified swpe to save a txt file along with each bmp with center x and y coordinates (if they're not zero)
+- distributed txt files to proper places and scaled their dimensions
+- extended sprite compile script and sprite struct to include center x and y information
+- ha, ran the game for a little bit before it crashed; unfortunately, dreaded UpdatePlayersAndBall() is
+  accessing spriteGraphicsPtr and reading sprite width out of it (with few other places doing it too), will
+  need to fill it in or patch all the access points
+25.05.2021.
+- refactored sprites, broke off colorizeSprites() out of it, it's much neater now
+- created fake old sprites array and placed it within the pitch patterns buffer: only copied dimensions and
+  the rest of the sprite data except the pixels (pixel pointer was set to null), and it worked! :) I'm in the
+  game and playing, even though it looks awful, has no pitches and player sprites are smearing all over the
+  field (background should really be cleared, but will look into that later), it's working and is not
+  crashing! :)
+26.05.2021.
+- implemented bench player sprites colorization and made them displayable
+- fixed smeared sprites, seems clear call got lost in conversion; anyway, I see now that there are some
+  rendering problems, some sprites don't display properly, while some are drawn with incorrect offsets
+- adapted directory structure slightly to accommodate pitches
+27.05.2021.
+- added sub-pixel precision to sprite drawing (by using fractional component)
+- debugged rendering problems, but couldn't solve them
+28.05.2021.
+- sprites were killing me, but finally fixed the bastards! fixed flickering, fixed invalid sprites that
+  sometimes showed up, but the ball and player numbers kept getting drawn too close to the top; checked and
+  rechecked drawing and rotation algorithms but the culprit was bad data generation: compile script kept
+  invalid paths when I reorganized the directory tree and didn't pick up text files with center x/y
+  coordinates, argh... anyway it's pretty good now, played a game and didn't see anything wrong with the
+  coordinates (at least of those sprites that do get rendered)
+29.05.2021.
+- optimized packed sprite structure, added float fields to avoid conversions, actually all the fields in SWOS
+  engine should be converted from fixed to floating point, but it's too early for that now
+- reintroduced sub-pixel precision (had to remove it for debugging), it looks fine now, except for the corner
+  flag and goal net which kind of wobble a bit, will investigate that further later on
+- started adding darkened rectangles, those in stats look fine, but when the result is shown there are some
+  artefacts, it seems the game is drawing it with multiple 252 sprites and there is some overlap between them
+  which looks ugly with blending
+30.05.2021.
+- expanded swpe with the ability to save all the patterns from a pitch, together with a txt file containing
+  placement of all the patterns on the pitch (pitch pattern matrix)
+- extracted all pitch patterns, converted them to PNG and placed in a directory structure for compiling
+  future pitches
+31.05.2021.
+- integrated pitch patterns packing into asset compilation script, it takes quite a bit longer now :/
+- compared output with TexturePacker: if a sheet is about half filled, results are much worse; it's very
+  annoying, will have to dig deep to learn details of that algorithm, and fix it properly sometime
+- been modifying asset compilation script to include pitch patterns, but haven't managed to finish it
+01.06.2021.
+- finished with pitch part of C++ code generation in asset compilation script
+- removed plenty of pitch initialization related SWOS code
+- started implementing pitch loading
+02.06.2021.
+- implemented pitch loading
+- [ida2asm] error is reported if ranges are used in @null and @type-sizes sections
+- [ida2asm] stopped registering references out of procs (since those instructions are getting removed anyway)
+- surgically removed SWOS code that does pitch scrolling and drawing, and all the EGA crap + AIL & C lib;
+  operation: success! patient... dead?
+03.06.2021.
+- total weirdness, the game wouldn't start at the kick off after latest changes, and only after lot of
+  debugging it suddenly began working normally, I'm blaming Microsoft's flaky incremental linker :D
+  (it still happens occasionally though :/)
+- did pitch rendering, the algorithm is off and displays wrong coordinates and sometimes lines between
+  patterns, but at least something is on the screen ;)
+04.06.2021.
+- debugged pitches a bit, it's still messy but at least it's not completely off anymore
+- eliminated inner padding when packing pitch patterns, to avoid pixel gaps between them
+- had to switch from float to int coordinates, now the nasty stitches are gone, but the scrolling feels jumpy
+  and awful
+05.06.2021.
+- finally got the formula right ;) the pitch is looking very good now, I notice some irregularities around
+  certain pattern edges, but I believe it's a consequence of a resize algorithm, if created manually that
+  shouldn't appear (really hope so! :P)
+- optimized pitch pattern drawing by drawing each texture patterns sequentially, in order to minimize texture
+  switching calls to the graphics card driver
+- trying to figure out the camera fractional part calculation, but it's not clear; currently considering if
+  there could be an error there, as the camera fraction part coordinate keeps getting some nonsensical
+  values, causing the camera to wobble at certain points on the pitch; update: there's some weird
+  multiplication with 0x4000, when I change it to left shift 16 the wobbling goes away, but the camera feels
+  too fast and abrupt; must be a way to preserve identical behavior but without the numerical instability
+06.06.2021.
+- trying to fully understand MoveCamera() and convert it to C++
+07.06.2021.
+- camera implementation in C++ on the way
+08.06.2021.
+- MoveCamera() conversion finally complete! and amazingly, with just a bit of debugging it works too;
+  wobbling is solved completely, and my subjective feel is that movement is quite smooth (not sure of any way
+  to reliably compare with the original)
+- had to return topTeamSaved and bottomTeamSaved buffers since they overlap DIY competition buffer (and a
+  crash was happening without them)
+- added the code to decrement showFansCounter, this should fix camera sometimes being locked to goal and
+  refusing to travel to the pitch center at the start of the game
+- just realized the fixed point number representation I was using was not quite right, the fraction must be
+  always positive (instead of having the sign of the whole part), otherwise -0.something can't be
+  represented; if it's positive all numbers can be represented: -0.something would be -1.(1 - something)
+09.06.2021.
+- used newly renovated fractional camera coordinates to improve precision of pitch rendering, but gave up on
+  floating point SDL calls: when using them visible stitches where patterns connect would occasionally show
+  up, so I went with integer call and did the rounding myself, will have to test how it looks like with
+  random window sizes -- sprites are using floating point calls, and therefore a different rounding algorithm
+  (than pitches), gotta bring them to integer coordinates as well
+10.06.2021.
+- changed precalculated float fields in sprites database from float to fixed point
+- fixed wiggling corner post (it's still a bit weird, but it might be from the pixel conversion); width and
+  height needed swapping for rotated sprites when filling legacy sprites array info
+- something is wrong with colors, they're too bright, white background might be bleeding through to the
+  pitches, I need to investigate it in more details
+- result overlay rectangle would sometimes miss 1 pixel to the right side, it's because ShowResult truncates
+  camera coordinates instead of rounding, so it has to be converted; it's quite a big function, so it might
+  not go so fast
+11.06.2021.
+- implemented game time display; discovered that time digit sprites were missing, fixed sprite conversion
+  script to include them too; added special handling for digit '1' which is shorter; added "mins." sprite but
+  had to chop off leading digits to avoid a lot of complications
+- started converting ShowResult, need to figure out what to do with scorer name widths array, it's populated
+  by GoalScored which is itself a big routine, converting all that might take a while, so I'll probably
+  ignore scorer names for now
+12.06.2021.
+/
+13.06.2021.
+/
+14.06.2021.
+/
+15.06.2021.
+- started converting ShowResult()
+16.06.2021.
+- rough version of ShowResult() is running, it's got no team and scorer names and 1st leg result; there are
+  still problems with the game, pitch seams are visible on resolutions non-divisible by VGA dimensions + SDL
+  returns the wrong window size (1280x720 when it should be 3840x2060)
+17.06.2021.
+- turned on option "reduce border artifacts" in PyTexturePacker and that solved dark seams; now I notice that
+  patterns aren't aligning properly, particularly grass ones, not sure if it's an artifact of scaling up or
+  something more serious, will need to figure out a way to check; another problem is that the sprite packing
+  has become awfully slow with this option, will need to look if it's possible to optimize the code
+18.06.2021.
+/
+19.06.2021.
+- fixed invalid assumption that pitch patterns would be assigned in file order (causing some pitches to show
+  up messed up)
+- tried with and without linear filtering, but it doesn't make a difference as far as dark halos at pattern
+  edges go; it's weird, I can't see the difference with/without alpha bleeding reduction, and yet it
+  successfully removes dark halos
+20.06.2021.
+- [PyTexturePacker] did a compromise solution: added post processing routine to the lib, installed my routine
+  to go over each pitch atlas sprite and add 1 pixel border around the frame (since I know they are all
+  rectangular); works perfectly, no dark halo and only slows the compilation down by about a second
+- float API is back in black, after clearing its good name; now I notice some weird transparency in player
+  shirts, well there's always gotta be something
+- seems rotated sprites are a bit off position, so the letters don't line up properly in 1280x720; so far
+  can't get to the bottom of it
+21.06.2021.
+- fixed sprite rendering! (particularly text issue); width and height were swapped for rotated sprites, and
+  then x and y scale factors got mixed up (multiplying wrong dimension)
+- removed sprite 1208, seems it's never used
+- added UINT16_MAX as a special pitch patter value, meaning don't draw anything (not used currently, but can
+  be pretty useful if pitch sprites are implemented and in full use)
+- fixed missing result dash sprite
+- made the app DPI aware
+- fixed number input (it was calling the wrong function when I tested it initially, d-oh!)

@@ -2,6 +2,7 @@
 #include "windowManager.h"
 #include "menuMouse.h"
 #include "text.h"
+#include "textInput.h"
 
 #ifndef  __ANDROID__
 constexpr auto kSelectedColor = kSoftBlueText;
@@ -276,7 +277,7 @@ static void inputWindowWidthOrHeight(Dimension dimension)
 {
     if (getWindowMode() == kModeWindow) {
         auto entry = A5.as<MenuEntry *>();
-        auto numberEntered = inputNumber(entry, 5, 0, 99999);
+        auto numberEntered = inputNumber(*entry, 5, 0, 9999);
 
         if (numberEntered) {
             int widthOrHeight = entry->fg.number;

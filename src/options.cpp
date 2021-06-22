@@ -349,10 +349,12 @@ void SWOS::OptionsMenuSelected()
 
 static void exitOptions()
 {
+    static int s_counter;
+
     if (swos.controlMask == kShortFireMask) {
         SetExitMenuFlag();
         saveOptions();
-    } else if (swos.controlMask == (kShortFireMask | kDownMask) && ++swos.showPrereleaseCounter == 15) {
+    } else if (swos.controlMask == (kShortFireMask | kDownMask) && ++s_counter == 15) {
         auto entry = getMenuEntry(OptionsMenu::Entries::secret);
         entry->show();
     }

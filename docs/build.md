@@ -7,6 +7,7 @@ installed and available in the system path:
 - Visual Studio 2019 for the tests, 2015 for the rest (maybe older would work too)
 - Python 3.6+
   - ddt (for mnu2h tests)
+  - PyTexturePacker, for building sprite maps
 - MASM at least version 8
 - gperf (optional, for tokenizer performance test)
 - Cygwin (optional, for backup script)
@@ -23,8 +24,11 @@ Required libraries (as *.lib files in lib dir):
 Include only libraries:
 - SimpleIni
 
+
 [Android]
-- TODO
+- Android Studio
+- TODO...
+
 
 Also corresponding dll's are required to run.
 

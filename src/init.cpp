@@ -1,12 +1,15 @@
-#include "log.h"
 #include "file.h"
 #include "util.h"
 #include "audio.h"
 #include "render.h"
 #include "options.h"
 #include "replays.h"
+#include "sprites.h"
+#include "pitch.h"
 #include "controls.h"
 #include "menuControls.h"
+#include "menuBackground.h"
+#include "mainMenu.h"
 
 #ifndef SWOS_TEST
 static_assert(offsetof(SwosVM::SwosVariables, g_selectedTeams) -
@@ -21,15 +24,15 @@ constexpr int kSentinelSize = sizeof(kSentinelMagic);
 #endif
 
 // sizes of all SWOS buffers in DOS and extended memory
-constexpr int kDosMemBufferSize = 342'402 + kSentinelSize;
-// allocate buffer big enough to hold every single pitch pattern (if each would be unique)
-constexpr int kPitchPatternsBufferSize = (42 * 53 + 42) * 256 + kSentinelSize;
+constexpr int kDosMemBufferSize = 167'682 + kSentinelSize;
+// allocate buffer to hold every SWOS sprite (but only structs, no data)
+constexpr int kSpritesBuffer = kNumSprites * sizeof(SpriteGraphics) + kSentinelSize;
 
 static SDL_RWops *m_soccerBinHandle;
 static char *m_soccerBinPtr;
 
 constexpr int kExtendedMemoryBufferSize = 393'216 + kSentinelSize;
-SDL_UNUSED constexpr int kTotalExtraMemorySize = kDosMemBufferSize + kPitchPatternsBufferSize + kExtendedMemoryBufferSize;
+SDL_UNUSED constexpr int kTotalExtraMemorySize = kDosMemBufferSize + kSpritesBuffer + kExtendedMemoryBufferSize;
 
 #ifdef DEBUG
 void verifyBlock(const char *array, size_t size)
@@ -41,14 +44,14 @@ void checkMemory()
 {
     auto extraMemStart = SwosVM::getExtraMemoryArea();
 
-    assert(swos.dosMemLinAdr == extraMemStart);
+    assert(swos.dosMemOfs30000h == extraMemStart);
     verifyBlock(extraMemStart, kDosMemBufferSize);
 
-    assert(swos.g_pitchPatterns == extraMemStart + kDosMemBufferSize);
-    verifyBlock(extraMemStart + kDosMemBufferSize, kPitchPatternsBufferSize);
+    assert(*swos.g_spriteGraphicsPtr == reinterpret_cast<SpriteGraphics *>(extraMemStart + kDosMemBufferSize));
+    verifyBlock(extraMemStart + kDosMemBufferSize, kSpritesBuffer);
 
-    assert(swos.linAdr384k == extraMemStart + kDosMemBufferSize + kPitchPatternsBufferSize);
-    verifyBlock(extraMemStart + kDosMemBufferSize + kPitchPatternsBufferSize, kExtendedMemoryBufferSize);
+    assert(swos.linAdr384k == extraMemStart + kDosMemBufferSize + kSpritesBuffer);
+    verifyBlock(extraMemStart + kDosMemBufferSize + kSpritesBuffer, kExtendedMemoryBufferSize);
 }
 #endif
 
@@ -69,28 +72,29 @@ static void setupExtraMemory()
     auto extraMemStart = SwosVM::getExtraMemoryArea();
     assert(reinterpret_cast<uintptr_t>(extraMemStart) % sizeof(void *) == 0);
 
-    swos.dosMemLinAdr = extraMemStart;
-    swos.dosMemOfs30000h = extraMemStart + 0x30000;
-    swos.dosMemOfs4fc00h = extraMemStart + 0x3d400; // names don't match offsets anymore, but are left for historical preservation ;)
-    swos.dosMemOfs60c00h = extraMemStart + 0x4e400;
+    swos.dosMemOfs30000h = extraMemStart;
+    swos.dosMemOfs4fc00h = extraMemStart + 0xd400;  // names don't match offsets anymore, but are left for historical preservation ;)
+    swos.dosMemOfs60c00h = extraMemStart + 0x1e400;
 
-    swos.g_pitchPatterns = extraMemStart + kDosMemBufferSize;
+    *swos.g_spriteGraphicsPtr = reinterpret_cast<SpriteGraphics *>(extraMemStart + kDosMemBufferSize);
 
-    swos.linAdr384k = extraMemStart + kDosMemBufferSize + kPitchPatternsBufferSize;
+    swos.linAdr384k = extraMemStart + kDosMemBufferSize + kSpritesBuffer;
 
     swos.g_memAllOk = 1;
     swos.g_gotExtraMemoryForSamples = 1;
 
 #ifdef DEBUG
     SwosVM::initSafeMemoryAreas();
-    memcpy(swos.dosMemLinAdr + kDosMemBufferSize - kSentinelSize, kSentinelMagic, kSentinelSize);
-    memcpy(swos.g_pitchPatterns + kPitchPatternsBufferSize - kSentinelSize, kSentinelMagic, kSentinelSize);
+    memcpy(swos.dosMemOfs30000h + kDosMemBufferSize - kSentinelSize, kSentinelMagic, kSentinelSize);
+    memcpy((*swos.g_spriteGraphicsPtr).asCharPtr() + kSpritesBuffer - kSentinelSize, kSentinelMagic, kSentinelSize);
     memcpy(swos.linAdr384k + kExtendedMemoryBufferSize - kSentinelSize, kSentinelMagic, kSentinelSize);
 #endif
 }
 
 static void init()
 {
+    logInfo("Initializing the game...");
+
     swos.skipIntro = 0;
     printIntroString();
 
@@ -101,8 +105,10 @@ static void init()
     setupExtraMemory();
 
     initAudio();
-
     initReplays();
+    initMenuBackground();
+    initSprites();
+    initPitches();
 }
 
 // showImageReel
@@ -113,48 +119,8 @@ static void init()
 //
 static bool showImageReel(SwosDataPointer<const char> *imageList)
 {
-    assert(imageList);
-
-    constexpr int k256ImageSize = kVgaScreenSize + kVgaPaletteSize;
-
-    auto imageBuffer = swos.linAdr384k;
-    auto currentImageBuffer = imageBuffer + kVgaScreenSize;
-
-    // 3 image buffer will be used, images 0 and 2 being empty
-    memset(imageBuffer, 0, 3 * kVgaScreenSize);
-
-    // first image palette is used for all scrolling images
-    if (loadFile(*imageList, currentImageBuffer, -1) != k256ImageSize)
-        return true;
-
-    setPalette(currentImageBuffer + kVgaScreenSize);
-
-    do {
-        // clear palette area
-        memset(currentImageBuffer + kVgaScreenSize, 0, kVgaPaletteSize);
-
-        // scroll down line by line
-        for (int lineOffset = 0; lineOffset < 2 * kVgaHeight * kVgaWidth; lineOffset += kVgaWidth) {
-            frameDelay();
-            updateScreen(imageBuffer + lineOffset);
-
-            if (anyInputActive()) {
-                // copy image at the proper position to linAdr384k so it can fade-out properly (when menu comes in)
-                memmove(swos.linAdr384k, imageBuffer + lineOffset, kVgaScreenSize);
-                return false;
-            }
-        }
-
-        while (true) {
-            if (*++imageList == (const char *)-1)
-                return true;
-
-            if (loadFile(*imageList, currentImageBuffer, -1, false) == k256ImageSize)
-                break;
-        }
-    } while (true);
-
-    return true;
+    // re-implement or remove
+    return false;
 }
 
 static void initRandomSeed()
@@ -174,8 +140,8 @@ static bool initIntroAnimation()
 {
     resetGameAudio();
 
-    m_soccerBinPtr = swos.dosMemLinAdr;
-    swos.introCurrentSoundBuffer = swos.dosMemLinAdr + kVirtualScreenSize;
+//    m_soccerBinPtr = swos.dosMemLinAdr;
+//    swos.introCurrentSoundBuffer = swos.dosMemLinAdr + kVirtualScreenSize;
     swos.soccerBinSoundChunkBuffer = swos.introCurrentSoundBuffer + 47628;
     swos.introCurrentSoundBufferChunk = swos.soccerBinSoundChunkBuffer;
     swos.soccerBinSoundDataPtr = swos.soccerBinSoundChunkBuffer + 47628;
@@ -216,7 +182,7 @@ static bool initIntroAnimation()
             swos.introCurrentFrameDataPtr = m_soccerBinPtr + 47628;
         }
 
-        clearScreen();
+        //clearScreen();
         return false;
     } while (false);
 
@@ -281,8 +247,8 @@ static char *introDrawFrame(char *frameData)
     swos.introCurrentFrameDataPtr = frameData;
 
     if (!swos.introAnimationTimer) {
-        setPalette(frameData, kVgaPaletteNumColors / 2);
-        frameData += kVgaPaletteSize / 2;
+        //setPalette(frameData, kVgaPaletteNumColors / 2);
+        //frameData += kVgaPaletteSize / 2;
 
         int index = 0;
         auto dest = swos.introScreenBuffer;
@@ -325,7 +291,7 @@ static char *introDrawFrame(char *frameData)
             src += kVgaWidth;
         }
 
-        updateScreen(swos.introScreenBuffer, 32, 148);
+        updateScreen();
         while (swos.introCountDownTimer) {
             introDelay();
             timerProc();
@@ -352,7 +318,7 @@ static char *introDrawFrame(char *frameData)
         timerProc();
     }
 
-    SAFE_INVOKE(IntroFillSoundBuffer);
+    IntroFillSoundBuffer();
     frameData += 1764;
 
     return frameData;
@@ -360,19 +326,9 @@ static char *introDrawFrame(char *frameData)
 
 __declspec(naked) void SWOS::IntroDrawFrame()
 {
-#ifdef SWOS_VM
     auto frameData = SwosVM::esi.asPtr();
     auto result = introDrawFrame(frameData);
     SwosVM::esi = result;
-#else
-    __asm {
-        push esi
-        call introDrawFrame
-        add  esp, 4
-        mov  esi, eax
-        retn
-    }
-#endif
 }
 
 static void SDL_UNUSED showImageReelsAndIntro()
@@ -383,19 +339,24 @@ static void SDL_UNUSED showImageReelsAndIntro()
         aborted = !showImageReel(swos.partOneImages) || !showImageReel(swos.partTwoImages);
     }
 
-    getPalette(swos.g_fadePalette);
-    SAFE_INVOKE(FadeOutToBlack);
+//    getPalette(swos.g_fadePalette);
+    FadeOutToBlack();
 
     if (!disableIntro() && !aborted && initIntroAnimation()) {
         logInfo("Playing intro");
-        PlayIntroAnimation();
-        getPalette(swos.g_fadePalette);
-        SAFE_INVOKE(FadeOutToBlack);
+//        PlayIntroAnimation();
+//        getPalette(swos.g_fadePalette);
+        FadeOutToBlack();
     }
 }
 
-// called from SWOS at the start
-void SWOS::SWOS()
+static void startMusic()
+{
+    if (swos.g_menuMusic)
+        TryMidiPlay();
+}
+
+void startMainMenuLoop()
 {
     init();
 
@@ -412,27 +373,19 @@ void SWOS::SWOS()
 
     resetControls();
 
-    logInfo("Loading title and menu music");
-    SAFE_INVOKE(LoadTitleAndStartMusic);
+    startMusic();
     initRandomSeed();
 
-    swos.doSpriteColorConversion = 1;    // not sure what this is
+    // must keep it for now, but it's a candidate for removal
+    swos.useIndividualPlayerSkinColor = 1;
 
     swos.goalBasePtr = swos.currentHilBuffer;
     swos.nextGoalPtr = reinterpret_cast<dword *>(swos.hilFileBuffer);
 
-    loadFile(swos.aSprite_dat, swos.spritesIndex);
-    loadFile(swos.aCharset_dat, swos.dosMemOfs30000h);
-
-    logInfo("Fixing up initial charset");
-    SAFE_INVOKE(FixupInitialCharset);
     D0 = 0;
-    SAFE_INVOKE(ChainFont);
-    SAFE_INVOKE(Randomize2);
+    Randomize2();
 
-    swos.vsPtr = swos.linAdr384k;
     swos.screenWidth = kVgaWidth;
-    swos.spriteFixupFlag = 0;
 
     // flush controls
     SDL_FlushEvents(SDL_KEYDOWN, SDL_KEYUP);
@@ -450,6 +403,6 @@ void SWOS::SWOS()
 
 #ifndef SWOS_TEST
     logInfo("Going to main menu");
-    MainMenu();
+    showMainMenu();
 #endif
 }

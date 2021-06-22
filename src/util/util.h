@@ -31,14 +31,32 @@ std::string formatNumberWithCommas(int64_t num);
 int numDigits(int num);
 
 static inline int sgn(int num) {
-    if (!num)
-        return 0;
     return num < 0 ? -1 : 1;
+}
+
+static inline char *stpcpy(char *dest, const char *src)
+{
+    while (*dest++ = *src++)
+        ;
+
+    return dest - 1;
 }
 
 struct TextInputScope {
     TextInputScope() { SDL_StartTextInput(); }
     ~TextInputScope() { SDL_StopTextInput(); }
+};
+
+struct Color {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
+
+struct ColorF {
+    float r;
+    float g;
+    float b;
 };
 
 void save68kRegisters();
@@ -55,8 +73,6 @@ void invokeWithSaved68kRegisters(F f)
 unsigned hash(const char *str);
 unsigned hash(const void *buffer, size_t length);
 int getRandomInRange(int min, int max);
-int setZeroFlagAndD0FromAl();
-bool isMatchRunning();
 void beep();
 bool isDebuggerPresent();
 
@@ -78,34 +94,3 @@ inline word loWord(dword d) {
 inline word hiWord(dword d) {
     return d >> 16;
 }
-
-#ifdef SWOS_VM
-// we're safe by default ;)
-# define SAFE_INVOKE(proc) (proc)()
-#else
-// preserve registers VC++ doesn't expect to change between calls
-# define SAFE_INVOKE(proc) \
-{                   \
-    __asm push ebx  \
-    __asm push esi  \
-    __asm push edi  \
-    __asm push ebp  \
-    __asm call proc \
-    __asm pop  ebp  \
-    __asm pop  edi  \
-    __asm pop  esi  \
-    __asm pop  ebx  \
-}
-#endif
-
-// this had to be added since they banned inline assembly in lambda in VS2019
-static inline void safeInvokeWithSaved68kRegisters(void (*f)())
-{
-    save68kRegisters();
-    SAFE_INVOKE(f);
-    restore68kRegisters();
-}
-
-#ifdef _MSC_VER
-#define suppressConstQualifierOnFunctionWarning() __pragma(warning(suppress:4180))
-#endif

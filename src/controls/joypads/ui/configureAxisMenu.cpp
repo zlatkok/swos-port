@@ -3,6 +3,7 @@
 #include "util.h"
 #include "text.h"
 #include "gameControlEvents.h"
+#include "textInput.h"
 #include "selectGameControlEventsMenu.h"
 #include "configureAxis.mnu.h"
 
@@ -87,7 +88,7 @@ static void inputCurrentInterval()
 {
     auto entry = A5.asMenuEntry();
 
-    if (inputNumber(entry, m_maxIntervalDigits, 1, m_intervals->size())) {
+    if (inputNumber(*entry, m_maxIntervalDigits, 1, m_intervals->size())) {
         m_currentInterval = entry->fg.number - 1;
         applyCurrentInterval();
     }
@@ -114,7 +115,7 @@ static void inputCurrentAxis()
     auto entry = A5.asMenuEntry();
     auto oldAxis = entry->fg.number;
 
-    if (inputNumber(entry, m_maxAxesDigits, 1, m_numAxes) && entry->fg.number != oldAxis) {
+    if (inputNumber(*entry, m_maxAxesDigits, 1, m_numAxes) && entry->fg.number != oldAxis) {
         m_currentInterval = entry->fg.number - 1;
         applyCurrentAxis();
     }
@@ -135,7 +136,7 @@ static void inputIntervalBoundary(bool inputFrom)
     entry->type = kEntryNumber;
     entry->setNumber(*boundary);
 
-    if (inputNumber(entry, 6, INT16_MIN, INT16_MAX)) {
+    if (inputNumber(*entry, 6, INT16_MIN, INT16_MAX)) {
         *boundary = static_cast<int16_t>(entry->fg.number);
 
         if ((inputFrom && *boundary > *otherBoundary) || (!inputFrom && *boundary < *otherBoundary))

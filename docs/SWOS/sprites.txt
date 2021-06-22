@@ -194,6 +194,8 @@ trophies
 222 - World Championship
 223 - European Championship
 
+224 - unused game logo from the Amiga version
+
 227-234 first scrolling ad
 235-242 second   -||-
 243-250 third    -||-
@@ -201,7 +203,9 @@ trophies
 255-270 numbers + player names, written in top left corner of the screen, that
         mark the player with the ball
 271-286 numbers + player names for team 2
-These sprites are filled before the game, initally they're empty.
+These sprites are filled before the game, initially they're empty.
+
+287-306 two sets of large digits, for result
 
 307 - first team name
 308 - second team name
@@ -209,7 +213,7 @@ These sprites are filled before the game, initally they're empty.
 310-317 - space to use for goal scorers, for team 1
 318-325 -         - || -                     team 2
 
-330 - sprite for current game time ("118 mins." when uninitialized)
+330 - sprite for the current game time ("118 mins." when uninitialized)
 
 During the game, sprites [341..1178] will be adapted to colors of playing
 teams. Hair and skin color are handled by having three sets of images, and
@@ -222,11 +226,11 @@ team 1
 543-643  set 3 (       -||-       - black)
 
 team 2
-745-845  set 1 (all player images - white)
-846-946  set 2 (       -||-       - ginger)
-947-1004 set 3 (       -||-       - black)
+644-744  set 1 (all player images - white)
+745-845  set 2 (       -||-       - ginger)
+846-946  set 3 (       -||-       - black)
 
-940-1004  team1 main goalkeeper
+947-1004  team1 main goalkeeper
 1005-1062 team1 reserve goalkeeper
 
 1063-1120 team2 main goalkeeper
@@ -234,6 +238,12 @@ team 2
 
 team1 bench players
 1310-1315 sitting
+    1310 - white goalkeeper
+    1311 - ginger goalkeeper
+    1312 - black goalkeeper
+    1313 - white player
+    1314 - ginger player
+    1315 - black player
 1316-1321 standing
 
 team2 bench players
@@ -347,19 +357,19 @@ offset  length  description
   62        6   ??? (ball sprite: 62, 64 = 0, 66 = -1 const.)
   68        2   is sprite visible? !0 - yes, 0 - no
   70        2   sprite picture index, if negative no image
-  72        2   flag za snimanje sprajta: 1 - nemoj da snimas, !1 - snimaj
-  74        4   sqr(x igraca - x lopte) + sqr(y igraca - y lopte)
+  72        2   save sprite background pixels flag: 1 = don't save, !1 = save
+  74        4   sqr(player x - ball x) + sqr(player y - ball y)
   78        4
-  82        2   rezultat iz tmp01 (pravac i smer 0..255)
-  84        2   da li je sprajt crtan u prethodnom ciklusu? 0 = ne, 1 = da
+  82        2   direction (0..255)
+  84        2   was sprite drawn in previous cycle? 0 = no, 1 = yes
                 is ball out of play, or with goalkeeper
-  86        2   ??? mozda true za igraca, false za golmana
-                kod lopte uvek nula
+  86        2   ??? maybe true for a player, false for a goalkeeper
+                always zero in ball sprite
                 is goalkeeper playing like an ordinary player
-  88        4   ??? kod lopte uvek nula
-  92        2   pravac u kome je igrac okrenut 0..7 (0 = gore, 4 = dole...)
-  94        2   ako se igrac krece, vrednost je 255, ako stoji 0
-                (tretira se kao bajt)
+  88        4   ??? always zero in ball sprite
+  92        2   direction player is facing 0..7 (0 = up, 4 = down...)
+  94        2   if the player is moving, value is 255, if standing 0
+                (treated as a byte)
   96        2   nesto u vezi faulova (setuje se na 1 pri prvom faulu i ostaje
                 tako dugo vreme, resetuje se gotovo random)
                 ako je 2, nakon krljanja ce se samo pustiti komentar za faul
@@ -367,21 +377,24 @@ offset  length  description
                 (uspeva da pokupi loptu)
   98        2   ??? nesto u vezi udaranja glavudzom
                 set to 1 after strong header
- 100        2   ??? vrednosti 0,1,2,3
+ 100        2   some sort of state when game is stopped, when they're running to their positions
+                values: 0,1,2,3
+                initialized to 1 when the game is starting
+                3 is when they're arrived at their destination and are ready for kick off
                 izgleda se inicijalizuje na 1, ako je ofs 142 tima != 0 (za igrace)
                 za golmane = 3
                 u MovePlayers, ako je lopta van igre ako je 1 stavi na 2
  102        2   ako je < 0, igrac ima crveni karton, ako je > 0 igrac ima zuti
                 karton, ako je nula, nema kartona
- 104        2   izgleda nesto u vezi povreda, izgleda ako je -2 => povreda
-                moze biti i -1 i -2
-                stepen povrede, pocetna vrednost za tajmer povrede (koliko ce
-                se dugo igrac valjati po terenu) (bajt)
-                video sam vrednosti 60, 70 i 80
- 106        2   brojac, umanjuje se za jedan dok je igrac u klizecem startu
-                moze se i povecavati za jedan, nepoznato zasto
-                menja se samo dok je igrac blizu lopte
- 108        2   da li je igrac izbacen, tj. da li je dobio crveni karton?
+ 104        2   seems like something about injuries, seems if -2 => injury
+                can be -1 and -2
+                injury level, starting value for injury timer (how long the
+                player would be rolling on the grass) (byte)
+                values 60, 70 and 80 have been observed
+ 106        2   counter, decreases by 1 while the player is tackling
+                can increase by 1, unknown why
+                only changes while the player is near the ball
+ 108        2   was the player sent off? (got a red card)
                 (1 = true)
 
 Length 110 bytes.
@@ -389,26 +402,61 @@ Length 110 bytes.
 
 === Sprite color conversion
 
-Boje:
+Colors:
 
  0 - \
- 1 - +- bez izmene
+ 1 - +- no change
  2 - |
  3 - /
- 4 - boja koze (tamna nijansa)
- 5 - boja koze (srednja nijansa)
- 6 - boja koze (svetla nijansa)
- 7 - ide u nulu
- 8 - ne menja se
- 9 - boja kose (srednja nijansa)
-10 - osnovna boja majice
-11 - boja pruga majice (menja se sa 10 u slucaju vertikalnih pruga)
-12 - boja kose (tamna nijansa)
-13 - boja kose (svetla nijansa)
-14 - boja sortsa
-15 - boja carapa
+ 4 - skin color (darker shade) <108, 136, 0>
+ 5 - skin color (medium shade) <180, 72, 0>
+ 6 - skin color (brighter shade) <252, 108, 0>
+ 7 - goes to zero <108, 108, 108>
+ 8 - no change
+ 9 - hair color (medium shade) <72, 72, 72>
+10 - basic shirt color <252, 0, 0>
+11 - shirt stripe color (gets swapped with 10 in case of vertical stripes) <0, 0, 252>
+12 - hair color (darker shade) <108, 0, 36>
+13 - hair color (brighter shade) <144, 144, 252>
+14 - shorts color <36, 144, 0>
+15 - socks color <252, 252, 0>
+
+- result digits (287-306) are color converted where only colors 10 and 11 are converted to white
+  (weird conversion I might say)
+- bench players (1310-1321 team1, 1322-1333 team2):
+    2x standing/sitting
+    2x goalkeepers/players
+    3x skin color (white/ginger/black)
+  total: 12
+  colors:
+    15 - primary shirt color
+    11 - shirts are single-color (shirt color == stripes color) ? shorts color : stripes color
+- make 3 groups of duplicated player sprites, one for each skin color, and convert colors;
+  goalkeepers aren't duplicated, they are converted to real skin/hair color
+
+    341-441  team1 white
+    442-542  team1 ginger
+    543-643  team1 black
+    947-1004 team1 main goalkeeper
+   1005-1062 team1 reserve goalkeeper
+    644-744  team2 white
+    745-845  team2 ginger
+    846-946  team2 black
+   1063-1120 team2 main goalkeeper
+   1121-1178 team2 reserve goalkeeper
+
+  colors converted:
+    color 10 - shirt type == vertical stripes ? shirt color : stripes color
+    color 11 - shirt type == vertical stripes ? stripes color : shirt color
+    color 14 - shorts color
+    color 15 - socks color
+
+The split into 3 groups of players according to skin color is later used in
+InitializePlayerSpriteFrameIndices(). This routine knows how to select the proper sprite index based on the
+player color. As for the goalkeepers there is no need to do that, as they already have their proper skin color
+applied.
 
 
-=== Razno
+=== Miscellaneous
 
-- igrac koji je postigao gol se raduje u 78.90625% frejmova, dok se njegovi saigraci raduju u 50%
+- player who scored raises arms in celebration in 78.90625% frames, while his teammates do it in 50%

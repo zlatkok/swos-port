@@ -81,6 +81,7 @@ echo "Creating archive: $destPath"
     'project/vc++/*.filters' \
     'project/vc++/*.tmLanguage' \
     'project/vc++/Types.natvis' \
+    'assets/*.py' \
     tests/meson.build \
     tests/sdl-address-table-fetcher/meson.build \
     backup.sh \

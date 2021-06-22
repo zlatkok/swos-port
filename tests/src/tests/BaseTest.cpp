@@ -2,6 +2,7 @@
 #include "unitTest.h"
 #include "util.h"
 #include "render.h"
+#include "init.h"
 #include "menus.h"
 #include "bmpWriter.h"
 #include <iomanip>
@@ -23,8 +24,7 @@ int BaseTest::runTests(const TestOptions& options)
     auto testsToRun = validateTestNames(options.testsToRun);
 
     // initialize SWOS stuff first
-    SWOS::SWOS();
-    SWOS::InitMainMenu();
+    startMainMenuLoop();
 
     auto startTime = std::chrono::high_resolution_clock::now();
 

@@ -264,7 +264,7 @@ static void setPl1JoypadIndex(int index)
     m_pl1Joypad = index;
 
     if (index != kNoJoypad) {
-        logInfo("Player 1 using joypad '%s'", joypadName(index));
+        logInfo("Player 1 using joypad \"%s\"", joypadName(index));
         updateJoypadLastSelected(index);
     }
 }
@@ -276,7 +276,7 @@ static void setPl2JoypadIndex(int index)
     m_pl2Joypad = index;
 
     if (index != kNoJoypad) {
-        logInfo("Player 2 using joypad '%s'", joypadName(index));
+        logInfo("Player 2 using joypad \"%s\"", joypadName(index));
         updateJoypadLastSelected(index);
     }
 }

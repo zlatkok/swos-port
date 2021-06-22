@@ -124,20 +124,9 @@ int playIntroSample(void *buffer, int size, int volume, int loopCount)
     return -1;
 }
 
-__declspec(naked) void SWOS::PlaySoundSample()
+//TODO: remove this
+void SWOS::PlaySoundSample()
 {
-#ifdef SWOS_VM
-#else
-    __asm {
-    //    push ecx
-    //    push ebx
-    //    push eax
-    //    push edx
-    //    call playIntroSample
-    //    add  esp, 16
-        retn
-    }
-#endif
 }
 
 //

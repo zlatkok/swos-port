@@ -2,8 +2,10 @@
 #include "selectFilesMenu.h"
 #include "unitTest.h"
 #include "mockFile.h"
+#include "init.h"
 #include "file.h"
 #include "menus.h"
+#include "menuProc.h"
 #include "text.h"
 #include "controls.h"
 #include "sdlProcs.h"
@@ -21,25 +23,20 @@ static std::string m_swosDir;
 
 static void drawSpriteToBuffer(int spriteIndex, char *buf)
 {
-    auto savedVsPtr = swos.vsPtr;
     auto savedScreenWidth = swos.screenWidth;
-    auto savedDeltaColor = swos.g_deltaColor;
 
     auto vmBuffer = reinterpret_cast<char *>(swos.g_currentMenu);
     auto sprite = swos.spritesIndex[spriteIndex];
 
-    swos.vsPtr = vmBuffer;
     swos.screenWidth = sprite->width;
 
     D0 = spriteIndex;
     D1 = D2 = 0;
-    SAFE_INVOKE(DrawSprite);
+    DrawSprite();
 
     memcpy(buf, vmBuffer, sprite->width * sprite->height);
 
-    swos.g_deltaColor = savedDeltaColor;
     swos.screenWidth = savedScreenWidth;
-    swos.vsPtr = savedVsPtr;
 }
 
 void SelectFilesMenuTest::init()
@@ -389,7 +386,7 @@ void SelectFilesMenuTest::testLayout()
 static void simulateKey(SDL_Scancode keyCode)
 {
     queueSdlKeyDown(keyCode);
-    SWOS::MenuProc();
+    menuProc();
     queueSdlKeyUp(keyCode);
 }
 
@@ -674,7 +671,7 @@ static void scrollList(int direction, bool useWheel)
     if (useWheel) {
         queueSdlMouseWheelEvent(direction);
         processControlEvents();
-        SWOS::MenuProc();
+        menuProc();
     } else {
         auto entryIndex = direction < 0 ? arrowDown : arrowUp;
         selectEntry(entryIndex);
@@ -878,8 +875,8 @@ void SelectFilesMenuTest::testSaveCompetition()
     MockFile canadaDiy(path.c_str(), kCanadaDiyData, kCanadaDiySize);
     addFakeFile(canadaDiy);
 
-    SWOS::InitMainMenu();
-    SWOS::MenuProc();
+    startMainMenuLoop();
+    menuProc();
 
     SWOS_UnitTest::setMenuCallback([] {
         auto menu = getCurrentMenu();
@@ -899,7 +896,7 @@ void SelectFilesMenuTest::testSaveCompetition()
         return false;
     });
 
-    SAFE_INVOKE(LoadOldCompetitionMenu);
+    LoadOldCompetitionMenu();
 
     SWOS_UnitTest::setMenuCallback([] {
         auto entry = getMenuEntry(inputSaveFilename);
@@ -938,8 +935,8 @@ void SelectFilesMenuTest::testSaveCompetitionByClick()
     MockFile filler(fillerPath.c_str());
     addFakeFile(filler);
 
-    SWOS::InitMainMenu();
-    SWOS::MenuProc();
+    startMainMenuLoop();
+    menuProc();
 
     SWOS_UnitTest::setMenuCallback([] {
         auto menu = getCurrentMenu();
@@ -959,7 +956,7 @@ void SelectFilesMenuTest::testSaveCompetitionByClick()
         return false;
     });
 
-    SAFE_INVOKE(LoadOldCompetitionMenu);
+    LoadOldCompetitionMenu();
 
     SWOS_UnitTest::setMenuCallback([] {
         auto exitEntry = findEntry("CANADA", true);

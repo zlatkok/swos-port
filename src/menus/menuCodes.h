@@ -30,7 +30,6 @@ enum EntryElementCode : int16_t
     kUpSkip,
     kDownSkip,
     kColorConvertedSprite,
-#ifdef SWOS_VM
     kCustomBackgroundFuncNative,
     kCustomForegroundFuncNative,
     kStringNative,
@@ -41,18 +40,6 @@ enum EntryElementCode : int16_t
     kBeforeDrawNative,
     kAfterDrawNative,
     kColorConvertedSpriteNative,
-#else
-    kCustomBackgroundFuncNative = kCustomBackgroundFunc,
-    kCustomForegroundFuncNative = kCustomForegroundFunc,
-    kStringNative = kString,
-    kStringTableNative = kStringTable,
-    kMultilineTextNative = kMultilineText,
-    kOnSelectNative = kOnSelect,
-    kOnSelectWithMaskNative = kOnSelectWithMask,
-    kBeforeDrawNative = kBeforeDraw,
-    kAfterDrawNative = kAfterDraw,
-    kColorConvertedSpriteNative = kColorConvertedSprite,
-#endif
 };
 
 static_assert(kColorConvertedSprite == 21, "Element code enum is broken");
