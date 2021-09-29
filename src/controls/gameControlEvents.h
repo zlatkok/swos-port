@@ -14,12 +14,15 @@ enum GameControlEvents : int32_t
     kGameEventPause = 64,
     kGameEventReplay = 128,
     kGameEventSaveHighlight = 256,
+    kGameEventZoomIn = 512,
+    kGameEventZoomOut = 1'024,
     kMaxGameEvent = kGameEventSaveHighlight,
 };
 
 ENABLE_FLAGS(GameControlEvents)
 
-constexpr auto kGameEventMovementMask = kGameEventUp | kGameEventDown | kGameEventLeft | kGameEventRight;
+constexpr auto kGameEventMovementMask = kGameEventUp | kGameEventDown | kGameEventLeft | kGameEventRight |
+    kGameEventZoomIn | kGameEventZoomOut;
 constexpr auto kGameEventNonMovementMask = ~kGameEventMovementMask;
 constexpr auto kMinimumGameEventsMask = kGameEventUp | kGameEventDown | kGameEventLeft | kGameEventRight | kGameEventKick;
 constexpr auto kGameEventAll = static_cast<GameControlEvents>(2 * kMaxGameEvent - 1);

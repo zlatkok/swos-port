@@ -14,11 +14,6 @@ constexpr int kBigDotSprite = 63;
 constexpr int kSmallDotWidth = 2;
 constexpr int kBigDotWidth = 3;
 
-constexpr int kBigExclamationMarkWidth = 3;
-constexpr int kBigExclamationMarkHeight = 8;
-constexpr int kSmallExclamationMarkWidth = 2;
-constexpr int kSmallExclamationMarkHeight = 6;
-
 static int charToSprite(unsigned char c, bool bigFont)
 {
     int spriteIndex = 0;
@@ -57,45 +52,6 @@ static int charToSprite(unsigned char c, bool bigFont)
     return spriteIndex;
 }
 
-static int drawExclamationMark(int x, int y, int color, bool bigFont)
-{
-    static const uint8_t kSmallData[kSmallExclamationMarkWidth * kSmallExclamationMarkHeight] = {
-        2, 0,
-        2, 8,
-        2, 8,
-        0, 8,
-        2, 0,
-        0, 8,
-    };
-    static const uint8_t kBigData[kBigExclamationMarkWidth * kBigExclamationMarkHeight] = {
-        2, 2, 0,
-        2, 2, 8,
-        2, 2, 8,
-        2, 2, 8,
-        0, 0, 0,
-        2, 2, 0,
-        2, 2, 8,
-        0, 8, 8,
-    };
-
-    int width = bigFont ? 3 : 2;
-    int height = bigFont ? 8 : 6;
-    auto data = bigFont ? kBigData : kSmallData;
-
-    auto dest = swos.linAdr384k + kMenuScreenWidth * (y + (swos.g_cameraY & 0x0f)) + x;
-
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            auto pixel = *data++;
-            if (pixel)
-                dest[j] = pixel == kNearBlackText ? pixel : color;
-        }
-        dest += kMenuScreenWidth;
-    }
-
-    return width;
-}
-
 static bool isBlank(char c)
 {
     return c == ' ' || c == '_';
@@ -109,8 +65,6 @@ static int charSpriteWidth(char c, bool bigFont)
         return bigFont ? kBigFontSpace : kSmallFontSpace;
     else if (c == '\t')
         return kTabSpace;
-    else if (c == '!')
-        return bigFont ? kBigExclamationMarkWidth : kSmallExclamationMarkWidth;
 
     auto spriteIndex = charToSprite(c, bigFont);
     return spriteIndex ? getSprite(spriteIndex).width : 0;
@@ -184,8 +138,6 @@ static void drawText(int x, int y, const char *str, const char *limit, int color
             x += bigFont ? kBigFontSpace : kSmallFontSpace;
         } else if (c == '\t') {
             x += kTabSpace;
-        } else if (c == '!') {
-            x += drawExclamationMark(x, y, color, bigFont);
         } else if (int spriteIndex = charToSprite(c, bigFont)) {
             drawCharSprite(spriteIndex, x, y);
             x += getSprite(spriteIndex).width;

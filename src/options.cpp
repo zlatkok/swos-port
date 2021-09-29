@@ -5,6 +5,7 @@
 #include "audio.h"
 #include "music.h"
 #include "windowManager.h"
+#include "pitch.h"
 #include "replayOptions.h"
 #include "controlOptionsMenu.h"
 #include "videoOptionsMenu.h"
@@ -16,7 +17,6 @@ static int16_t m_spinBigS;
 #include "options.mnu.h"
 
 enum SoundEnabledState { kUnspecified, kOn, kOff, } static m_soundState;
-static bool m_noIntro;
 
 using OptionalControls = std::pair<bool, Controls>;
 using OptionalJoypadGuid = std::pair<bool, std::string>;
@@ -29,6 +29,8 @@ OptionalJoypadGuid m_pl2Joypad;
 
 static constexpr char kIniFilename[] = "swos.ini";
 static constexpr char kStandardSection[] = "standardOptions";
+
+static constexpr char kZoomKey[] = "zoom";
 
 static const std::array<Option<int16_t>, 9> kStandardOptions = {
     "gameLength",  &swos.g_gameLength, 0, 3, 0,
@@ -66,6 +68,9 @@ void loadOptions()
     if (errorCode >= 0) {
         loadOptions(ini, kStandardOptions, kStandardSection);
 
+        auto zoom = static_cast<float>(ini.GetDoubleValue(kStandardSection, kZoomKey));
+        setZoomFactor(zoom);
+
         loadControlOptions(ini);
 
         loadAudioOptions(ini);
@@ -87,6 +92,8 @@ void saveOptions()
         "; Careful when editing the file -- the changes might get lost!\n" );
 
     saveOptions(ini, kStandardOptions, kStandardSection);
+    ini.SetDoubleValue(kStandardSection, kZoomKey, getZoomFactor());
+
     saveControlOptions(ini);
 
     saveAudioOptions(ini);
@@ -229,7 +236,6 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
 
     const char kSwosDir[] = "--swos-dir=";
     const char kSound[] = "--sound=";
-    const char kNoIntro[] = "--no-intro";
     const char kNoPreMatchMenus[] = "--no-pre-match-menus";
     const char kPl1Controls[] = "--pl1controls=";
     const char kPl2Controls[] = "--pl2controls=";
@@ -246,8 +252,6 @@ std::vector<LogItem> parseCommandLine(int argc, char **argv)
         } else if (strstr(argv[i], kSound) == argv[i]) {
             auto setting = argv[i] + sizeof(kSound) - 1;
             m_soundState = (tolower(setting[0]) != 'o' || tolower(setting[1]) != 'n') && setting[0] != '1' ? kOff : kOn;
-        } else if (!strcmp(argv[i], kNoIntro)) {
-            m_noIntro = true;
         } else if (!strcmp(argv[i], kNoPreMatchMenus)) {
             m_showPreMatchMenus = 1;
         } else if (strstr(argv[i], kPl1Controls) == argv[i] || strstr(argv[i], kPl2Controls)) {
@@ -290,11 +294,6 @@ void normalizeOptions()
 
     if (!keyboardPresent())
         unsetKeyboardControls();
-}
-
-bool disableIntro()
-{
-    return m_noIntro;
 }
 
 bool showPreMatchMenus()

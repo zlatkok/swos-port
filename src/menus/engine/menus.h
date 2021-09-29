@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Menu.h"
 #include "MenuEntry.h"
 #include "menuCodes.h"
 #include "util.h"

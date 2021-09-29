@@ -1,8 +1,9 @@
 #include "result.h"
-#include "gameSprites.h"
 #include "gameTime.h"
-#include "camera.h"
+#include "windowManager.h"
 #include "text.h"
+#include "renderSprites.h"
+#include "darkRectangle.h"
 
 constexpr int kMaxScorersForDisplay = 8;
 constexpr int kMaxGoalsPerScorer = 10;
@@ -14,21 +15,22 @@ constexpr int kCharactersPerLine = 61;  // theoretical maximum (all characters 2
 
 constexpr int kResultX = 160;
 constexpr int kDashX = 157;
-constexpr int kDashY = 249;
+constexpr int kDashY = 185;
 
 constexpr int kLeftMargin = 128;
 constexpr int kRightMargin = 192;
-constexpr int kRightGridX = 152;
 
 constexpr int kBigLeftResultDigitX = 143;
-constexpr int kBigLeftResultDigitY = 241;
+constexpr int kBigResultDigitY = 177;
 
 constexpr int kSmallLeftResultDigitX = 150;
 constexpr int kSmallRightResultDigitX = 163;
 constexpr int kBigRightResultSecondDigitX = 165;
 
-constexpr int kFirstLineBelowResultY = 263;
-constexpr int kTeamNameY = 246;
+constexpr int kFirstLineBelowResultY = 199;
+constexpr int kTeamNameY = 182;
+constexpr int kGridTopY = kTeamNameY - 15;
+constexpr int kPeriodEndSpriteY = kGridTopY - 10;
 
 constexpr int kResultBigDigitWidth = 12;
 constexpr int kResultSmallDigitWidth = 6;
@@ -41,10 +43,6 @@ constexpr int kEndOfHalfResult = 30'000;
 constexpr int kGameBreakResult = 31'000;
 constexpr int kMaxResultTicks = 32'000;
 constexpr int kResultTickClamped = 29'000;
-
-constexpr int kResultTextZ = 10'000;
-constexpr int kResultGridZ = 9'000;
-constexpr int kSmallDigitZ = 10'002;
 
 struct GoalInfo
 {
@@ -89,22 +87,21 @@ static const char *m_team1Name;
 static const char *m_team2Name;
 static int m_team1NameLength;
 
+static bool m_showResult;
+
 static void resetResultTimer();
-static void showResultSprites();
-static void hideResultSprites();
+static void drawGrid(int scorerListOffsetY);
+static void drawTeamNames(int scorerListOffsetY);
+static void drawCurrentResult(int scorerListOffsetY);
+static void draw1stLegResult(int scorerListOffsetY);
+static void drawScorerList(int scorerListOffsetY);
+static void drawHalfAndFullTimeSprites(int scorerListOffsetY);
 static int getScorerListOffsetY();
-static void positionTeamNameSprites(int scorerListOffsetY);
-static void positionResultGridSprites();
-static void positionResultDigitSprites(int scorerListOffsetY);
-static void positionDashSprite(int scorerListOffsetY);
-static void positionResultSprites();
-static void positionScorerNameSprites(int scorerListOffsetY);
 static void updateScorersText(const Sprite& scorer, const TeamGame& team, int teamNum, ScorerInfo& scorerInfo, int currentLine);
 
 void resetResult(const char *team1Name, const char *team2Name)
 {
-    swos.team1NameSprite.pictureIndex = kTeam1NameSprite;
-    swos.team2NameSprite.pictureIndex = kTeam2NameSprite;
+    m_showResult = false;
 
     for (int i = 0; i < kMaxScorersForDisplay; i++) {
         m_team1Scorers[i].shirtNum = 0;
@@ -113,21 +110,19 @@ void resetResult(const char *team1Name, const char *team2Name)
         m_team2ScorerLines[i][0] = '\0';
     }
 
-    hideResultSprites();
-
     m_team1Name = team1Name;
     m_team2Name = team2Name;
     m_team1NameLength = getStringPixelLength(team1Name, true);
 }
 
-void showAndPositionResult()
+void updateResult()
 {
     if (swos.resultTimer < 0) {
         hideResult();
     } else if (swos.resultTimer > 0) {
         if (swos.resultTimer == kEndOfHalfResult || swos.resultTimer == kGameBreakResult || swos.resultTimer == kMaxResultTicks) {
             resetResultTimer();
-            showResultSprites();
+            m_showResult = true;
         }
 
         swos.resultTimer -= swos.timerDifference;
@@ -135,14 +130,6 @@ void showAndPositionResult()
             if (swos.gameState == GameState::kResultOnHalftime || swos.gameState == GameState::kResultAfterTheGame)
                 swos.statsTimer = kMaxResultTicks;
             hideResult();
-        } else {
-            int scorerListOffsetY = getScorerListOffsetY();
-            positionTeamNameSprites(scorerListOffsetY);
-            positionResultGridSprites();
-            positionResultDigitSprites(scorerListOffsetY);
-            positionDashSprite(scorerListOffsetY);
-            positionScorerNameSprites(scorerListOffsetY);
-            positionResultSprites();
         }
     }
 }
@@ -150,9 +137,20 @@ void showAndPositionResult()
 void hideResult()
 {
     swos.resultTimer = 0;
+    m_showResult = false;
+}
 
-    if (swos.team1NameSprite.visible)
-        hideResultSprites();
+void drawResult()
+{
+    if (m_showResult) {
+        int scorerListOffsetY = getScorerListOffsetY();
+        drawGrid(scorerListOffsetY);
+        drawTeamNames(scorerListOffsetY);
+        drawCurrentResult(scorerListOffsetY);
+        draw1stLegResult(scorerListOffsetY);
+        drawScorerList(scorerListOffsetY);
+        drawHalfAndFullTimeSprites(scorerListOffsetY);
+    }
 }
 
 void registerScorer(const Sprite& scorer, int teamNum, GoalType goalType)
@@ -209,33 +207,6 @@ void registerScorer(const Sprite& scorer, int teamNum, GoalType goalType)
     }
 }
 
-void drawScorers(int teamNum)
-{
-    const auto& sprite = teamNum == 1 ? swos.team1Scorer1Sprite : swos.team2Scorer1Sprite;
-    const auto& lines = teamNum == 1 ? m_team1ScorerLines : m_team2ScorerLines;
-
-    assert(!sprite.x.fraction() && !sprite.y.fraction() && !sprite.z.fraction());
-
-    int y = sprite.y.whole() - sprite.z.whole();
-    auto drawTextRoutine = teamNum == 2 ? drawText : drawTextRightAligned;
-
-    for (size_t i = 0; i < lines.size() && lines[i][0]; i++) {
-        int x = sprite.x.whole();
-        drawTextRoutine(x, y, lines[i].data(), -1, kWhiteText, false);
-        y += kScorerLineHeight;
-    }
-}
-
-void drawTeamName(int teamNum)
-{
-    const auto& sprite = teamNum == 1 ? swos.team1NameSprite : swos.team2NameSprite;
-    const auto teamName = teamNum == 1 ? m_team1Name : m_team2Name;
-
-    assert(!sprite.x.fraction() && !sprite.y.fraction() && !sprite.z.fraction());
-
-    drawText(sprite.x.whole(), sprite.y.whole() - sprite.z.whole(), teamName, -1, kWhiteText, true);
-}
-
 static void resetResultTimer()
 {
     assert(swos.resultTimer == kEndOfHalfResult || swos.resultTimer == kGameBreakResult || swos.resultTimer == kMaxResultTicks);
@@ -253,84 +224,109 @@ static void resetResultTimer()
     }
 }
 
-static void showResultSprites()
+static void drawGrid(int scorerListOffsetY)
 {
-    if (swos.gameState == GameState::kResultOnHalftime)
-        swos.resultOnHalftimeSprite.show();
-    else if (swos.gameState == GameState::kResultAfterTheGame)
-        swos.resultAfterTheGameSprite.show();
+    float width = kVgaWidth + 2 * getScreenXOffset();
+    float y = static_cast<float>(kGridTopY + scorerListOffsetY);
+    float height = kVgaHeight - y;
 
-    if (swos.dontShowScorers || swos.secondLeg) {
-        swos.team1TotalGoalsDigit2Sprite.show();
-        if (swos.team1TotalGoals / 10)
-            swos.team1TotalGoalsDigit1Sprite.show();
+    drawDarkRectangle({ 0, y, width, height });
+}
 
-        swos.team2TotalGoalsDigit2Sprite.show();
-        if (swos.team2TotalGoals / 10)
-            swos.team2TotalGoalsDigit1Sprite.show();
-    }
+static void drawTeamNames(int scorerListOffsetY)
+{
+    int team1X = kLeftMargin - m_team1NameLength;
+    int team2X = kRightMargin;
+    int y = kTeamNameY + scorerListOffsetY;
 
-    swos.gridUpperRowLeftSprite.show();
-    swos.gridUpperRowRightSprite.show();
-    swos.gridMiddleRowLeftSprite.show();
-    swos.gridMiddleRowRightSprite.show();
-    swos.gridBottomRowLeftSprite.show();
-    swos.gridBottomRowRightSprite.show();
-    swos.team1NameSprite.show();
-    swos.team2NameSprite.show();
-    swos.team1GoalsDigit2Sprite.show();
+    drawText(team1X, y, m_team1Name, -1, kWhiteText, true);
+    drawText(team2X, y, m_team2Name, -1, kWhiteText, true);
+}
 
+static void drawCurrentResult(int scorerListOffsetY)
+{
+    int x = kBigLeftResultDigitX;
+    int y = kBigResultDigitY + scorerListOffsetY;
+
+    drawMenuSprite(kBigZeroSprite + swos.team1GoalsDigit2, x, y);
     if (swos.team1GoalsDigit1)
-        swos.team1GoalsDigit1Sprite.show();
+        drawMenuSprite(kBigZeroSprite + swos.team1GoalsDigit1, x - kResultBigDigitWidth, y);
 
-    swos.team2GoalsDigit2Sprite.show();
+    drawMenuSprite(kBigDashSprite, kDashX, kDashY + scorerListOffsetY);
 
+    x = kBigRightResultSecondDigitX;
+
+    drawMenuSprite(kBigZeroSprite + swos.team2GoalsDigit2, x, y);
     if (swos.team2GoalsDigit1)
-        swos.team2GoalsDigit1Sprite.show();
+        drawMenuSprite(kBigZeroSprite + swos.team2GoalsDigit1, x + kResultBigDigitWidth, y);
+}
 
-    swos.team1NameSprite.show();
-    swos.dashSprite.show();
+static void draw1stLegResult(int scorerListOffsetY)
+{
+    if (swos.dontShowScorers || swos.secondLeg) {
+        int team1GoalsDigit1 = swos.team1TotalGoals / 10;
+        int team1GoalsDigit2 = swos.team1TotalGoals % 10;
 
+        int x = kSmallLeftResultDigitX;
+        int y = kFirstLineBelowResultY + scorerListOffsetY;
+
+        if (team1GoalsDigit2 == 1)
+            x += kResultDigit1Offset;
+        drawMenuSprite(kSmallZeroSprite + team1GoalsDigit2, x, y);
+
+        if (team1GoalsDigit1) {
+            x -= kResultSmallDigitWidth;
+            if (team1GoalsDigit1 == 1)
+                x += kResultDigit1Offset;
+            drawMenuSprite(kSmallZeroSprite + team1GoalsDigit1, x, y);
+        }
+
+        int team2GoalsDigit1 = swos.team2TotalGoals / 10;
+        int team2GoalsDigit2 = swos.team2TotalGoals % 10;
+
+        x = kSmallRightResultDigitX;
+        drawMenuSprite(kSmallZeroSprite + team2GoalsDigit2, x, y);
+
+        if (team2GoalsDigit1) {
+            x += kResultSmallDigitWidth;
+            if (team2GoalsDigit1 == 1)
+                x -= kResultDigit1Offset;
+            drawMenuSprite(kSmallZeroSprite + team2GoalsDigit1, x, y);
+        }
+    }
+}
+
+static void drawScorerList(int scorerListOffsetY)
+{
     if (!swos.dontShowScorers) {
-        static const std::pair<const ScorerLines&, Sprite *> kTeamScorerData[] = {
-            { std::ref(m_team1ScorerLines), &swos.team1Scorer1Sprite, },
-            { std::ref(m_team2ScorerLines), &swos.team2Scorer1Sprite, },
+        static const auto kTeamScorerData = {
+            std::make_tuple(std::cref(m_team1ScorerLines), kLeftMargin, drawTextRightAligned),
+            std::make_tuple(std::cref(m_team2ScorerLines), kRightMargin, drawText),
         };
+
         for (const auto& scorerData : kTeamScorerData) {
+            const auto& lines = std::get<0>(scorerData);
+            auto drawTextRoutine = std::get<2>(scorerData);
+
+            int x = std::get<1>(scorerData);
+            int y = kFirstLineBelowResultY + scorerListOffsetY;
+
             for (size_t i = 0; i < kMaxScorersForDisplay; i++) {
-                if (scorerData.first[i][0]) {
-                    scorerData.second->show();
-                    break;
+                if (lines[i][0]) {
+                    drawTextRoutine(x, y, lines[i].data(), -1, kWhiteText, false);
+                    y += kScorerLineHeight;
                 }
             }
         }
     }
-
-    initDisplaySprites();
 }
 
-static void hideResultSprites()
+static void drawHalfAndFullTimeSprites(int scorerListOffsetY)
 {
-    static Sprite * const kResultSprites[] = {
-        &swos.resultOnHalftimeSprite, &swos.resultAfterTheGameSprite,
-        &swos.team1NameSprite, &swos.team2NameSprite,
-        &swos.dashSprite,
-        &swos.gridUpperRowLeftSprite, &swos.gridUpperRowRightSprite,
-        &swos.gridMiddleRowLeftSprite, &swos.gridMiddleRowRightSprite,
-        &swos.gridBottomRowLeftSprite, &swos.gridBottomRowRightSprite,
-        &swos.team1GoalsDigit2Sprite, &swos.team1GoalsDigit1Sprite,
-        &swos.team1TotalGoalsDigit2Sprite, &swos.team1TotalGoalsDigit1Sprite,
-        &swos.team2GoalsDigit2Sprite, &swos.team2GoalsDigit1Sprite,
-        &swos.team2TotalGoalsDigit2Sprite, &swos.team2TotalGoalsDigit1Sprite,
-    };
-
-    for (auto sprite : kResultSprites)
-        sprite->hide();
-
-    swos.team1Scorer1Sprite.hide();
-    swos.team2Scorer1Sprite.hide();
-
-    initDisplaySprites();
+    if (swos.gameState == GameState::kResultOnHalftime)
+        drawMenuSprite(kHalftimeSprite, kResultX, kPeriodEndSpriteY + scorerListOffsetY);
+    else if (swos.gameState == GameState::kResultAfterTheGame)
+        drawMenuSprite(kFullTimeSprite, kResultX, kPeriodEndSpriteY + scorerListOffsetY);
 }
 
 static int getScorerListOffsetY()
@@ -342,156 +338,7 @@ static int getScorerListOffsetY()
         scorerListOffsetY -= kScorerLineHeight;
 
     // force at least 14 pixels between team name and scorer list
-    return std::min(scorerListOffsetY, -2 * kScorerLineHeight) - 64;
-}
-
-static void positionTeamNameSprites(int scorerListOffsetY)
-{
-    swos.team1NameSprite.x = kLeftMargin - m_team1NameLength;
-    swos.team1NameSprite.y = kTeamNameY + scorerListOffsetY + kResultTextZ;
-    swos.team1NameSprite.z = kResultTextZ;
-
-    swos.team2NameSprite.x = kRightMargin;
-    swos.team2NameSprite.y = swos.team1NameSprite.y;
-    swos.team2NameSprite.z = kResultTextZ;
-}
-
-static void positionResultGridSprites()
-{
-    auto cameraX = getCameraX();
-
-    auto y = swos.team1NameSprite.y - 1'015 + getCameraY(); // team 1 name y + 9,000 - 15
-
-    swos.gridUpperRowLeftSprite.x = cameraX;
-    swos.gridUpperRowLeftSprite.y = y;
-    swos.gridUpperRowLeftSprite.z = kResultGridZ;
-
-    swos.gridUpperRowRightSprite.x = cameraX + kRightGridX;
-    swos.gridUpperRowRightSprite.y = y;
-    swos.gridUpperRowRightSprite.z = kResultGridZ;
-
-    y += 32;
-
-    swos.gridMiddleRowLeftSprite.x = cameraX;
-    swos.gridMiddleRowLeftSprite.y = y;
-    swos.gridMiddleRowLeftSprite.z = kResultGridZ;
-
-    swos.gridMiddleRowRightSprite.x = cameraX + kRightGridX;
-    swos.gridMiddleRowRightSprite.y = y;
-    swos.gridMiddleRowRightSprite.z = kResultGridZ;
-
-    y += 32;
-
-    swos.gridBottomRowLeftSprite.x = cameraX;
-    swos.gridBottomRowLeftSprite.y = y;
-    swos.gridBottomRowLeftSprite.z = kResultGridZ;
-
-    swos.gridBottomRowRightSprite.x = cameraX + kRightGridX;
-    swos.gridBottomRowRightSprite.y = y;
-    swos.gridBottomRowRightSprite.z = kResultGridZ;
-}
-
-static void positionResultDigitSprites(int scorerListOffsetY)
-{
-    auto cameraX = getCameraX();
-    auto cameraY = getCameraY();
-
-    swos.team1GoalsDigit2Sprite.x = cameraX + kBigLeftResultDigitX;
-    swos.team1GoalsDigit2Sprite.y = cameraY + kBigLeftResultDigitY + scorerListOffsetY + kResultTextZ;
-    swos.team1GoalsDigit2Sprite.z = kResultTextZ;
-    swos.team1GoalsDigit2Sprite.pictureIndex = kBigZeroSprite + swos.team1GoalsDigit2;
-
-    if (swos.team1GoalsDigit1Sprite.visible) {
-        swos.team1GoalsDigit1Sprite.x = swos.team1GoalsDigit2Sprite.x - kResultBigDigitWidth;
-        swos.team1GoalsDigit1Sprite.y = swos.team1GoalsDigit2Sprite.y;
-        swos.team1GoalsDigit1Sprite.z = swos.team1GoalsDigit2Sprite.z;
-        swos.team1GoalsDigit1Sprite.pictureIndex = kBigZeroSprite + swos.team1GoalsDigit1;
-    }
-
-    if (swos.team1TotalGoalsDigit2Sprite.visible) {
-        auto team1GoalsDigit1 = swos.team1TotalGoals / 10;
-        auto team1GoalsDigit2 = swos.team1TotalGoals % 10;
-
-        swos.team1TotalGoalsDigit2Sprite.x = cameraX + kSmallLeftResultDigitX;
-        if (team1GoalsDigit2 == 1)
-            swos.team1TotalGoalsDigit2Sprite.x += kResultDigit1Offset;
-        swos.team1TotalGoalsDigit2Sprite.y = cameraY + kFirstLineBelowResultY + scorerListOffsetY + kSmallDigitZ;
-        swos.team1TotalGoalsDigit2Sprite.z = kSmallDigitZ;
-        swos.team1TotalGoalsDigit2Sprite.pictureIndex = kSmallZeroSprite + team1GoalsDigit2;
-
-        if (swos.team1TotalGoalsDigit1Sprite.visible) {
-            swos.team1TotalGoalsDigit1Sprite.x = swos.team1TotalGoalsDigit2Sprite.x - kResultSmallDigitWidth;
-            if (team1GoalsDigit1 == 1)
-                swos.team1TotalGoalsDigit1Sprite.x += kResultDigit1Offset;
-
-            swos.team1TotalGoalsDigit1Sprite.y = swos.team1TotalGoalsDigit2Sprite.y - 1;
-            swos.team1TotalGoalsDigit1Sprite.z = swos.team1TotalGoalsDigit2Sprite.z - 1;
-            swos.team1TotalGoalsDigit1Sprite.pictureIndex = kSmallZeroSprite + team1GoalsDigit1;
-        }
-    }
-
-    swos.team2GoalsDigit2Sprite.x = cameraX + kBigRightResultSecondDigitX;
-    swos.team2GoalsDigit2Sprite.y = cameraY + kBigLeftResultDigitY + scorerListOffsetY + kResultTextZ;
-    swos.team2GoalsDigit2Sprite.z = kResultTextZ;
-    swos.team2GoalsDigit2Sprite.pictureIndex = swos.team2GoalsDigit2 + kBigZeroSprite;
-
-    if (swos.team2GoalsDigit1Sprite.visible) {
-        swos.team2GoalsDigit1Sprite.x = swos.team2GoalsDigit2Sprite.x;
-        swos.team2GoalsDigit2Sprite.x += kResultBigDigitWidth;
-        swos.team2GoalsDigit1Sprite.y = swos.team2GoalsDigit2Sprite.y;
-        swos.team2GoalsDigit1Sprite.z = swos.team2GoalsDigit2Sprite.z;
-        swos.team2GoalsDigit1Sprite.pictureIndex = swos.team2GoalsDigit1 + kBigZeroSprite;
-    }
-
-    if (swos.team2TotalGoalsDigit2Sprite.visible) {
-        auto team2GoalsDigit1 = swos.team2TotalGoals / 10;
-        auto team2GoalsDigit2 = swos.team2TotalGoals % 10;
-
-        swos.team2TotalGoalsDigit2Sprite.x = cameraX + kSmallRightResultDigitX;
-        swos.team2TotalGoalsDigit2Sprite.y = cameraY + kFirstLineBelowResultY + scorerListOffsetY + kSmallDigitZ;
-        swos.team2TotalGoalsDigit2Sprite.z = kSmallDigitZ;
-        swos.team2TotalGoalsDigit2Sprite.pictureIndex = kSmallZeroSprite + team2GoalsDigit2;
-
-        if (swos.team2TotalGoalsDigit1Sprite.visible) {
-            swos.team2TotalGoalsDigit1Sprite.x = swos.team2TotalGoalsDigit2Sprite.x;
-            swos.team2TotalGoalsDigit2Sprite.x += kResultSmallDigitWidth;
-            if (team2GoalsDigit1 == 1)
-                swos.team2TotalGoalsDigit1Sprite.x -= kResultDigit1Offset;
-            swos.team2TotalGoalsDigit1Sprite.y = swos.team2TotalGoalsDigit2Sprite.y - 1;
-            swos.team2TotalGoalsDigit1Sprite.z = swos.team2TotalGoalsDigit2Sprite.z - 1;
-            swos.team2TotalGoalsDigit1Sprite.pictureIndex = kSmallZeroSprite + team2GoalsDigit1;
-        }
-    }
-}
-
-static void positionDashSprite(int scorerListOffsetY)
-{
-    swos.dashSprite.x = getCameraX() + kDashX;
-    swos.dashSprite.y = getCameraY() + kDashY + scorerListOffsetY + kResultTextZ;
-    swos.dashSprite.z = kResultTextZ;
-}
-
-void positionResultSprites()
-{
-    swos.resultOnHalftimeSprite.x = getCameraX() + kResultX;
-    swos.resultOnHalftimeSprite.y = swos.gridUpperRowLeftSprite.y + 990;
-    swos.resultOnHalftimeSprite.z = kResultTextZ;
-
-    swos.resultAfterTheGameSprite.x = swos.resultOnHalftimeSprite.x;
-    swos.resultAfterTheGameSprite.y = swos.resultOnHalftimeSprite.y;
-    swos.resultAfterTheGameSprite.z = swos.resultOnHalftimeSprite.z;
-}
-
-static void positionScorerNameSprites(int scorerListOffsetY)
-{
-    // don't add camera coordinates, we'll have special handling routine for this
-    swos.team1Scorer1Sprite.x = kLeftMargin;
-    swos.team1Scorer1Sprite.y = kFirstLineBelowResultY + scorerListOffsetY + kResultTextZ;
-    swos.team1Scorer1Sprite.z = kResultTextZ;
-
-    swos.team2Scorer1Sprite.x = kRightMargin;
-    swos.team2Scorer1Sprite.y = kFirstLineBelowResultY + scorerListOffsetY + kResultTextZ;
-    swos.team2Scorer1Sprite.z = kResultTextZ;
+    return std::min(scorerListOffsetY, -2 * kScorerLineHeight);
 }
 
 static const char *getPlayerName(int playerOrdinal, const TeamGame& team)

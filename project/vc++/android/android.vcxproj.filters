@@ -193,9 +193,6 @@
     <ClInclude Include="..\..\..\src\sprites\colorizeSprites.h">
       <Filter>Source Files\sprites</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\game\pitch.h">
-      <Filter>Source Files\game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\util\log.h">
       <Filter>Source Files\util</Filter>
     </ClInclude>
@@ -283,14 +280,20 @@
     <ClInclude Include="..\..\..\src\menus\continueMenu.h">
       <Filter>Source Files\menus</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\game\pitchConstants.h">
-      <Filter>Source Files\game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\replays\LegacyReplayConverter.h">
       <Filter>Source Files\replays</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\video\timer.h">
       <Filter>Source Files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\pitch\pitch.h">
+      <Filter>Source Files\game\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\pitch\pitchConstants.h">
+      <Filter>Source Files\game\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\referee.h">
+      <Filter>Source Files\game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -356,6 +359,9 @@
     </Filter>
     <Filter Include="Source Files\menus\engine">
       <UniqueIdentifier>{f0dab818-5f7c-4da5-8efe-889b111e7bf3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\game\pitch">
+      <UniqueIdentifier>{c22f13eb-9965-441c-afe3-f154e4b00cda}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -573,9 +579,6 @@
     <ClCompile Include="..\..\..\tmp\swos-cpp-gen-32\vm.cpp">
       <Filter>Source Files\swos-cpp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\game\pitch.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\util\log.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -668,6 +671,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\video\timer.cpp">
       <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\pitch\pitch.cpp">
+      <Filter>Source Files\game\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\referee.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

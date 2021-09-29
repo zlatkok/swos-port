@@ -30,18 +30,19 @@ static std::vector<AssetResolutionChangeHandler> m_resChangeHandlers;
 
 static int m_windowWidth = kWindowWidth;
 static int m_windowHeight = kWindowHeight;
-static int m_fieldWidth = kGameScreenWidth;
-static int m_fieldHeight = kVgaHeight;
 
 // full-screen dimensions
 static int m_displayWidth = kDefaultFullScreenWidth;
 static int m_displayHeight = kDefaultFullScreenHeight;
 static bool m_windowResizable = true;
 
-static float m_scaleX;
-static float m_scaleY;
+static float m_scale;
+static float m_xOffset;
+static float m_yOffset;
 
 static bool m_flashMenuCursor = true;
+static bool m_showFps;
+
 #ifdef VIRTUAL_JOYPAD
 static bool m_showTouchTrails = true;
 static bool m_transparentButtons = true;
@@ -52,12 +53,11 @@ const char kVideoSection[] = "video";
 const char kWindowMode[] = "windowMode";
 const char kWindowWidthKey[] = "windowWidth";
 const char kWindowHeightKey[] = "windowHeight";
-const char kFieldWidthKey[] = "fieldWidth";
-const char kFieldHeightKey[] = "fieldHeight";
 const char kWindowResizable[] = "windowResizable";
 const char kFullScreenWidth[] = "fullScreenWidth";
 const char kFullScreenHeight[] = "fullScreenHeight";
 const char kFlashMenuCursor[] = "flashMenuCursor";
+const char kShowFps[] = "showFps";
 const char kUseLinearFiltering[] = "useLinearFiltering";
 #ifdef VIRTUAL_JOYPAD
 const char kShowTouchTrails[] = "showTouchTrails";
@@ -122,10 +122,17 @@ static void updateAssetResolution()
             handler(oldResolution, m_resolution);
 }
 
-static void updateScaleFactors()
+static void updateScaleFactor()
 {
-    m_scaleX = static_cast<float>(m_windowWidth) / kVgaWidth;
-    m_scaleY = static_cast<float>(m_windowHeight) / kVgaHeight;
+    auto scaleX = static_cast<float>(m_windowWidth) / kVgaWidth;
+    auto scaleY = static_cast<float>(m_windowHeight) / kVgaHeight;
+    m_scale = std::min(scaleX, scaleY);
+}
+
+static void updateXYOffsets()
+{
+    m_xOffset = (m_windowWidth - kVgaWidth * m_scale) / 2;
+    m_yOffset = (m_windowHeight - kVgaHeight * m_scale) / 2;
 }
 
 static void updateWindowDimensions(int width, int height)
@@ -134,7 +141,8 @@ static void updateWindowDimensions(int width, int height)
         m_windowWidth = width;
         m_windowHeight = height;
         updateAssetResolution();
-        updateScaleFactors();
+        updateScaleFactor();
+        updateXYOffsets();
     }
 }
 
@@ -251,11 +259,6 @@ bool isInFullScreenMode()
 std::pair<int, int> getFullScreenDimensions()
 {
     return { m_displayWidth, m_displayHeight };
-}
-
-std::pair<int, int> getVisibleFieldSize()
-{
-    return { m_fieldWidth, m_fieldHeight };
 }
 
 static bool setDisplayMode(int width, int height)
@@ -428,49 +431,42 @@ bool mapCoordinatesToGameArea(int &x, int &y)
 {
     int windowWidth, windowHeight;
 
-    SDL_Rect viewport = getViewport();
-
     if (isInFullScreenMode())
         std::tie(windowWidth, windowHeight) = getFullScreenDimensions();
     else
         std::tie(windowWidth, windowHeight) = getWindowSize();
 
-    int slackWidth = 0;
-    int slackHeight = 0;
+    auto scale = getScale();
+    auto xOffset = getScreenXOffset();
+    auto yOffset = getScreenYOffset();
 
-    if (viewport.x) {
-        auto logicalWidth = kVgaWidth * windowHeight / kVgaHeight;
-        slackWidth = (windowWidth - logicalWidth) / 2;
-    } else if (viewport.y) {
-        auto logicalHeight = kVgaHeight * windowWidth / kVgaWidth;
-        slackHeight = (windowHeight - logicalHeight) / 2;
-    }
-
-    if (y < slackHeight || y >= windowHeight - slackHeight)
+    if (x < xOffset || y < yOffset)
         return false;
 
-    if (x < slackWidth || x >= windowWidth - slackWidth)
-        return false;
-
-    x = (x - slackWidth) * kVgaWidth / (windowWidth - 2 * slackWidth);
-    y = (y - slackHeight) * kVgaHeight / (windowHeight - 2 * slackHeight);
+    x = static_cast<int>(std::round((x - xOffset) / scale));
+    y = static_cast<int>(std::round((y - yOffset) / scale));
 
     return true;
 }
 
-float getXScale()
+float getScale()
 {
-    return m_scaleX;
+    return m_scale;
 }
 
-float getYScale()
+float getScreenXOffset()
 {
-    return m_scaleY;
+    return m_xOffset;
+}
+
+float getScreenYOffset()
+{
+    return m_yOffset;
 }
 
 SDL_FRect mapRect(int x, int y, int width, int height)
 {
-    return { x * m_scaleX, y * m_scaleY, width * m_scaleX, height * m_scaleY };
+    return { m_xOffset + x * m_scale, m_yOffset + y * m_scale, width * m_scale, height * m_scale };
 }
 
 #ifdef VIRTUAL_JOYPAD
@@ -502,6 +498,16 @@ void setFlashMenuCursor(bool flashMenuCursor)
     m_flashMenuCursor = flashMenuCursor;
 }
 
+bool getShowFps()
+{
+    return m_showFps;
+}
+
+void setShowFps(bool showFps)
+{
+    m_showFps = showFps;
+}
+
 void loadVideoOptions(const CSimpleIniA& ini)
 {
 #ifdef __ANDROID__
@@ -517,9 +523,6 @@ void loadVideoOptions(const CSimpleIniA& ini)
     int height = ini.GetLongValue(kVideoSection, kWindowHeightKey, kWindowHeight);
     updateWindowDimensions(width, height);
 
-    m_fieldWidth = ini.GetLongValue(kVideoSection, kFieldWidthKey, kGameScreenWidth);
-    m_fieldHeight = ini.GetLongValue(kVideoSection, kFieldHeightKey, kVgaHeight);
-
     normalizeWindowSize(m_windowWidth, m_windowHeight);
 
     m_displayWidth = ini.GetLongValue(kVideoSection, kFullScreenWidth);
@@ -532,6 +535,7 @@ void loadVideoOptions(const CSimpleIniA& ini)
 
     m_windowResizable = ini.GetLongValue(kVideoSection, kWindowResizable, 1) != 0;
     m_flashMenuCursor = ini.GetBoolValue(kVideoSection, kFlashMenuCursor, true);
+    m_showFps = ini.GetBoolValue(kVideoSection, kShowFps, false);
     setLinearFiltering(ini.GetBoolValue(kVideoSection, kUseLinearFiltering, false));
 
 #ifdef VIRTUAL_JOYPAD
@@ -556,6 +560,7 @@ void saveVideoOptions(CSimpleIniA& ini)
     ini.SetLongValue(kVideoSection, kWindowResizable, m_windowResizable);
 
     ini.SetBoolValue(kVideoSection, kFlashMenuCursor, m_flashMenuCursor);
+    ini.SetBoolValue(kVideoSection, kShowFps, m_showFps);
     ini.SetBoolValue(kVideoSection, kUseLinearFiltering, getLinearFiltering());
 
 #ifdef VIRTUAL_JOYPAD

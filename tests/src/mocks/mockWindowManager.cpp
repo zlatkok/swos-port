@@ -140,15 +140,13 @@ bool mapCoordinatesToGameArea(int &x, int &y)
     return false;
 }
 
-float getXScale()
+float getScale()
 {
     return 1.0;
 }
 
-float getYScale()
-{
-    return 1.0;
-}
+float getScreenXOffset() { return 0; }
+float getScreenYOffset() { return 0; }
 
 std::pair<int, int> mapPoint(int x, int y)
 {
@@ -194,6 +192,9 @@ void setFlashMenuCursor(bool flashMenuCursor)
 {
     m_displayHeight = flashMenuCursor;
 }
+
+bool getShowFps() { return false; }
+void setShowFps(bool showFps) {}
 
 void loadVideoOptions(const CSimpleIniA&) {}
 void saveVideoOptions(CSimpleIniA&) {}

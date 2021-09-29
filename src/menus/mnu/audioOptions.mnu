@@ -49,11 +49,6 @@ Menu audioOptionsMenu
         color: kOptionsColumn2Color
     }
 
-    kChangerWidth = 16
-    kChangerColorPlus = @kGreen
-    kChangerColorMinus = @kDarkBlue
-    kChangerOptionWidth = kOptionWidth - 2 * kChangerWidth - 2
-
     Entry masterSound {
         y: kOptionsStartY
 
@@ -94,7 +89,7 @@ Menu audioOptionsMenu
     Entry decreaseVolumeButton {
         width: kChangerWidth
 
-        color: kChangerColorMinus
+        color: kChangerColor
         text: swos.aMinus
 
         onSelect: decreaseVolume
@@ -119,8 +114,8 @@ Menu audioOptionsMenu
         y: @prevY
         width: kChangerWidth
 
-        color: kChangerColorPlus
-        text: swos.aPlus
+        color: kChangerColor
+        text: "+"
 
         onSelect: increaseVolume
 
@@ -132,8 +127,8 @@ Menu audioOptionsMenu
     Entry decreaseMusicVolumeButton {
         width: kChangerWidth
 
-        color: kChangerColorMinus
-        text: swos.aMinus
+        color: kChangerColor
+        text: "-"
 
         onSelect: decreaseMusicVolume
 
@@ -157,7 +152,7 @@ Menu audioOptionsMenu
         y: @prevY
         width: kChangerWidth
 
-        color: kChangerColorPlus
+        color: kChangerColor
         text: swos.aPlus
 
         onSelect: increaseMusicVolume

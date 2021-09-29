@@ -3,7 +3,8 @@
 #include "SoundSample.h"
 
 enum SfxSampleIndex {
-    kBackgroundCrowd, kBounce, kHomeGoal, kKick, kWhistle, kMissGoal, kEndGameWhistle, kFoulWhistle, kChant4l, kChant10l, kChant8l,
+    kBackgroundCrowd, kBounce, kHomeGoal, kKick, kWhistle, kMissGoal,
+    kEndGameWhistle, kFoulWhistle, kChant4l, kChant10l, kChant8l,
     kNumSoundEffects,
 };
 
@@ -16,3 +17,4 @@ SfxSamplesArray& sfxSamples();
 void playCrowdNoise();
 void stopBackgroudCrowdNoise();
 void playEndGameWhistleSample();
+void playSfx(int sample, int volume);

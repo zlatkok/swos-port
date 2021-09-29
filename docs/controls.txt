@@ -62,6 +62,11 @@ check if it is in the SDL's game controller database. If so, SDL configuration w
 controller elements onto X-Box compatible joypad. SWOS will use A as kick, B as bench and D-Pad and left/right
 sticks as directional controls.
 
+SDL controller database is found in the file called "SDL_gamecontrollerdb.h". Low level SDL events (input) are
+b<num> - button with index, e.g. b0, b1, ...
+a<num> - axis with index, e.g. a0, a1, ...
+h<num>.<flags> - hat with index and flags value, e.g. h0.1, h1.4, ...
+
 If the controller is not in the SDL database, a simple default configuration will be created: button 0 - kick,
 button 1 - bench, axis 0 - left/right, axis 1 - up/down, hat 0 and trackball 0 as directions. If the
 controller doesn't support some of the configured elements they will simply be ignored.

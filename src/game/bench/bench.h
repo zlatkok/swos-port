@@ -14,6 +14,6 @@ int getOpponentBenchY();
 void swapBenchWithOpponent();
 bool getBenchOff();
 void setBenchOff();
-int benchCameraX();
+float benchCameraX();
 const PlayerGame& getBenchPlayer(int index);
 int getBenchPlayerPosition(int index);

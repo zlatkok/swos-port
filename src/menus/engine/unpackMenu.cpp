@@ -2,6 +2,7 @@
 #include "menus.h"
 #include "menuCodes.h"
 #include "menuMouse.h"
+#include "drawMenu.h"
 #include "menuItemRenderer.h"
 #include "menuControls.h"
 
@@ -46,6 +47,8 @@ void unpackMenu(const void *src, char *dst /* = swos.g_currentMenu */)
 
     if (m_onDestroy)
         m_onDestroy();
+
+    clearMenuLocalSprites();
 
     if (headerMark == kMenuHeaderV2Mark) {
         auto header = reinterpret_cast<const MenuHeaderV2 *>(src);

@@ -9,7 +9,7 @@
 #include "audio.h"
 #include "comments.h"
 #include "music.h"
-#include "windowManager.h"
+#include "sfx.h"
 #include "pitch.h"
 #include "controls.h"
 #include "gameControls.h"
@@ -31,7 +31,7 @@
 #include "file.h"
 #include "util.h"
 
-constexpr int kStandardFrameOffset = 70;
+constexpr int kStandardFrameOffset = 80;
 constexpr int kLargeFrameOffset = 5 * kStandardFrameOffset;
 constexpr int kExtraLargeFrameOffset = 60 * kStandardFrameOffset;
 
@@ -46,6 +46,8 @@ enum class Status
 
 static HilV2Header m_header;
 static ReplayDataStorage m_replayData;
+
+static bool m_recordingEnabled;
 
 static bool m_replaying;
 static bool m_paused;
@@ -62,12 +64,13 @@ static void runReplay(bool inGame, bool isReplay);
 static Status replayScene(bool inGame, bool isReplay, bool userRequested = false);
 static Status checkReplayControlKeys(bool inGame, bool userRequested);
 static void showIntroMenus();
+static bool fetchAndRenderFrame(bool isReplay);
 static void drawResultAndTime(const ReplayDataStorage::FrameData& frameData, bool replay);
 static void drawResult(int leftTeamGoals, int rightTeamGoals, bool showTime);
-static void drawOverlayAndUpdateScreen(const ReplayDataStorage::FrameData& frameData, bool isReplay, bool& doFadeIn, bool aborted);
+static void drawOverlay(const ReplayDataStorage::FrameData& frameData, bool isReplay);
 static void drawBigRotatingLetterR();
 static void drawPercentage(bool isReplay);
-static void replaysUpdateScreen(bool& doFadeIn, bool aborted, bool skipFrame = false);
+static void updateScreen(bool isReplay, bool& doFadeIn, bool aborted);
 static bool shouldAbortCurrentScene(Status status);
 static bool isReplayAborted(bool blockNonScorerFire);
 static bool shouldRecordReplayData();
@@ -122,6 +125,11 @@ void finishCurrentReplay()
     }
 }
 
+void setReplayRecordingEnabled(bool enabled)
+{
+    m_recordingEnabled = enabled;
+}
+
 void startNewHighlightsFrame()
 {
     if (shouldRecordReplayData()) {
@@ -131,7 +139,7 @@ void startNewHighlightsFrame()
     }
 }
 
-void saveCoordinatesForHighlights(int spriteIndex, FixedPoint x, FixedPoint y)
+void saveCoordinatesForHighlights(int spriteIndex, float x, float y)
 {
     assert(spriteIndex >= 0 && spriteIndex < kNumSprites);
 
@@ -139,10 +147,16 @@ void saveCoordinatesForHighlights(int spriteIndex, FixedPoint x, FixedPoint y)
         m_replayData.recordSprite(spriteIndex, x, y);
 }
 
-void showStatsForHighlights(const GameStats& stats)
+void saveStatsForHighlights(const GameStats& stats)
 {
     if (shouldRecordReplayData())
         m_replayData.recordStats(stats);
+}
+
+void saveSfxForHighlights(int sampleIndex, int volume)
+{
+    if (shouldRecordReplayData())
+        m_replayData.recordSfx(sampleIndex, volume);
 }
 
 bool replayingNow()
@@ -181,6 +195,9 @@ void playInstantReplay(bool userRequested)
 
     m_replaying = false;
     m_instantReplay = false;
+
+    markFrameStartTime();
+
     logInfo("Instant replay done");
 }
 
@@ -245,11 +262,12 @@ static void runReplay(bool inGame, bool isReplay)
     m_fastReplay = false;
     m_slowMotion = false;
 
-    if (!inGame && showPreMatchMenus())
+    if (!inGame)
         showIntroMenus();
 
     unloadMenuBackground();
     initGameAudio();
+    playCrowdNoise();
 
     if (isReplay) {
         m_replayData.setupForFullReplay();
@@ -287,13 +305,11 @@ static void runReplay(bool inGame, bool isReplay)
 
 static Status replayScene(bool inGame, bool isReplay, bool userRequested /* = false */)
 {
-    int screenWidth, screenHeight;
-    std::tie(screenWidth, screenHeight) = getWindowSize();
-
-    ReplayDataStorage::FrameData frameData;
     bool doFadeIn = true;
     bool aborted = false;
     auto status = Status::kNormal;
+
+    m_paused = false;
 
     do {
         status = checkReplayControlKeys(inGame, userRequested);
@@ -308,41 +324,12 @@ static Status replayScene(bool inGame, bool isReplay, bool userRequested /* = fa
             continue;
         }
 
-        if (!m_replayData.fetchFrameData(frameData))
+        markFrameStartTime();
+
+        if (!fetchAndRenderFrame(isReplay))
             break;
 
-        drawPitch(frameData.cameraX, frameData.cameraY);
-
-        ReplayDataStorage::ObjectType type;
-        int pictureIndex;
-        FixedPoint x, y;
-        GameStats stats;
-        bool gotStats = false;
-
-        while (m_replayData.fetchObject(type, pictureIndex, x, y, stats)) {
-            switch (type) {
-            case ReplayDataStorage::ObjectType::kSprite:
-                if (m_replayData.isLegacyFormat()) {
-                    const auto& sprite = getSprite(pictureIndex);
-                    x += FixedPoint::fromFloat(sprite.centerXF) + FixedPoint::fromFloat(sprite.xOffsetF);
-                    y += FixedPoint::fromFloat(sprite.centerYF) + FixedPoint::fromFloat(sprite.yOffsetF);
-                }
-                drawSprite(pictureIndex, x, y, screenWidth, screenHeight);
-                break;
-
-            case ReplayDataStorage::ObjectType::kStats:
-                gotStats = true;
-                break;
-
-            default:
-                logWarn("Unknown replay object type %d", type);
-            }
-        }
-
-        if (gotStats)
-            drawStats(frameData.team1Goals, frameData.team2Goals, stats);
-
-        drawOverlayAndUpdateScreen(frameData, isReplay, doFadeIn, aborted);
+        updateScreen(isReplay, doFadeIn, aborted);
     } while (!aborted);
 
     return status;
@@ -354,6 +341,11 @@ static Status checkReplayControlKeys(bool inGame, bool userRequested)
 
     SDL_Scancode key;
     SDL_Keymod mod;
+
+    if (checkZoomKeys() && m_paused) {
+        m_replayData.skipFrames(0);
+        return Status::kNormal;
+    }
 
     while (std::get<0>(std::tie(key, mod) = getKeyAndModifier()) != SDL_SCANCODE_UNKNOWN) {
         switch (key) {
@@ -413,16 +405,61 @@ static void showIntroMenus()
 {
     startFadingOutMusic();
 
-    drawMenu(false);
-    fadeOut();
+    menuFadeOut();
 
     auto currentMenu = getCurrentPackedMenu();
     auto currentEntry = getCurrentMenu()->selectedEntry->ordinal;
 
-    initMatch(&m_header.team1, &m_header.team2, true);
     showStadiumScreenAndFadeOutMusic(&m_header.team1, &m_header.team2, m_header.numMaxSubstitutes);
 
     restoreMenu(currentMenu, currentEntry);
+}
+
+static bool fetchAndRenderFrame(bool isReplay)
+{
+    ReplayDataStorage::FrameData frameData;
+    if (!m_replayData.fetchFrameData(frameData))
+        return false;
+
+    float xOffset, yOffset;
+    std::tie(xOffset, yOffset) = drawPitch(frameData.cameraX, frameData.cameraY);
+
+    GameStats stats;
+    bool gotStats = false;
+    ReplayDataStorage::Object obj;
+
+    while (m_replayData.fetchObject(obj)) {
+        switch (obj.type) {
+        case ReplayDataStorage::ObjectType::kSprite:
+            if (m_replayData.isLegacyFormat()) {
+                const auto& sprite = getSprite(obj.pictureIndex);
+                obj.x += sprite.centerXF + sprite.xOffsetF;
+                obj.y += sprite.centerYF + sprite.yOffsetF;
+            }
+            drawSprite(obj.pictureIndex, obj.x, obj.y, true, xOffset, yOffset);
+            break;
+
+        case ReplayDataStorage::ObjectType::kStats:
+            stats = obj.stats;
+            gotStats = true;
+            break;
+
+        case ReplayDataStorage::ObjectType::kSfx:
+            if (!m_instantReplay)
+                playSfx(obj.sampleIndex, obj.volume);
+            break;
+
+        default:
+            logWarn("Unknown replay object type %d", obj.type);
+        }
+    }
+
+    if (gotStats)
+        drawStats(frameData.team1Goals, frameData.team2Goals, stats);
+
+    drawOverlay(frameData, isReplay);
+
+    return true;
 }
 
 static void drawResultAndTime(const ReplayDataStorage::FrameData& frameData, bool isReplay)
@@ -476,7 +513,7 @@ static void drawResult(int leftTeamGoals, int rightTeamGoals, bool showTime)
     drawMenuSprite(rightScoreDigit2 + kBigZero2Sprite, x, y);
 }
 
-static void drawOverlayAndUpdateScreen(const ReplayDataStorage::FrameData& frameData, bool isReplay, bool& doFadeIn, bool aborted)
+static void drawOverlay(const ReplayDataStorage::FrameData& frameData, bool isReplay)
 {
     if (m_instantReplay)
         drawBigRotatingLetterR();
@@ -485,19 +522,6 @@ static void drawOverlayAndUpdateScreen(const ReplayDataStorage::FrameData& frame
 
     if (!m_instantReplay && getShowReplayPercentage())
         drawPercentage(isReplay);
-
-    bool frameSkip = false;
-
-    if (!m_paused && m_fastReplay) {
-        static bool s_frameSkip;
-        s_frameSkip = !s_frameSkip;
-        frameSkip = s_frameSkip;
-    } else if (!m_paused && m_slowMotion) {
-        frameDelay();
-        skipFrameUpdate();
-    }
-
-    replaysUpdateScreen(doFadeIn, aborted, frameSkip);
 }
 
 static void drawBigRotatingLetterR()
@@ -516,17 +540,32 @@ static void drawPercentage(bool isReplay)
     drawText(isReplay ? 276 : 254, 190, buf, -1, kGrayText);
 }
 
-static void replaysUpdateScreen(bool& doFadeIn, bool aborted, bool skipFrame /* = false */)
+static void updateScreen(bool isReplay, bool& doFadeIn, bool aborted)
 {
-    if (doFadeIn) {
-        fadeIn();
-        doFadeIn = false;
+    bool frameSkip = false;
+
+    if (!m_paused && m_fastReplay) {
+        static bool s_frameSkip;
+        s_frameSkip = !s_frameSkip;
+        frameSkip = s_frameSkip;
+    } else if (!m_paused && m_slowMotion) {
+        frameDelay();
+        markFrameStartTime();
     }
 
-    if (!m_replayData.hasAnotherFullFrame() || aborted)
-        fadeOut();
-    else if (!skipFrame)
+    auto showCurrentFrame = [&]() {
+        m_replayData.skipFrames(0);
+        fetchAndRenderFrame(isReplay);
+    };
+
+    if (doFadeIn) {
+        fadeIn(showCurrentFrame);
+        doFadeIn = false;
+    } else if (!m_replayData.hasAnotherFullFrame() || aborted) {
+        fadeOut(showCurrentFrame);
+    } else if (!frameSkip) {
         updateScreen(true);
+    }
 }
 
 static bool shouldAbortCurrentScene(Status status)
@@ -574,7 +613,7 @@ static bool isReplayAborted(bool blockNonScorerFire)
 
 static bool shouldRecordReplayData()
 {
-    return !m_replaying && !inBenchOrGoingTo();
+    return m_recordingEnabled && !m_replaying && !inBenchOrGoingTo();
 }
 
 static void createDirectories()
@@ -606,7 +645,7 @@ static int getGameTime()
 {
     int gameTime = -1;
 
-    if (swos.currentTimeSprite.visible) {
+    if (gameTimeShowing()) {
         int digit1, digit2, digit3;
         std::tie(digit1, digit2, digit3) = gameTimeAsBcd();
         gameTime = (digit1 << 16) | (digit2 << 8) | digit3;

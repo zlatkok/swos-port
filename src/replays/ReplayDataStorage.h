@@ -3,7 +3,8 @@
 
 #pragma once
 
-struct GameStats;
+#include "stats.h"
+
 struct HilV1Header;
 struct HilV2Header;
 
@@ -20,15 +21,34 @@ public:
     enum class ObjectType {
         kStats,
         kSprite,
+        kSfx,
         kUnknown,
+    };
+
+    struct Object {
+        Object() : type(ObjectType::kUnknown) {}
+
+        ObjectType type;
+        union {
+            struct {
+                int pictureIndex;
+                float x;
+                float y;
+            };
+            GameStats stats;
+            struct {
+                int sampleIndex;
+                int volume;
+            };
+        };
     };
 
     struct FrameData {
         FrameData() = default;
-        FrameData(FixedPoint cameraX, FixedPoint cameraY, int team1Goals, int team2Goals, int gameTime)
+        FrameData(float cameraX, float cameraY, int team1Goals, int team2Goals, int gameTime)
             : cameraX(cameraX), cameraY(cameraY), team1Goals(team1Goals), team2Goals(team2Goals), gameTime(gameTime) {}
-        FixedPoint cameraX;
-        FixedPoint cameraY;
+        float cameraX;
+        float cameraY;
         int team1Goals;
         int team2Goals;
         int gameTime;
@@ -44,9 +64,10 @@ public:
     void recordFrame(const FrameData& data);
 
     bool fetchFrameData(FrameData& data);
-    void recordSprite(int spriteIndex, FixedPoint x, FixedPoint y);
+    void recordSprite(int spriteIndex, float x, float y);
     void recordStats(const GameStats& stats);
-    bool fetchObject(ObjectType& type, int& pictureIndex, FixedPoint& x, FixedPoint& y, GameStats& stats);
+    void recordSfx(int sampleIndex, int volume);
+    bool fetchObject(Object& obj);
     bool checkFetchRange(int numElements) const;
 
     bool hasAnotherFullFrame() const;
@@ -69,7 +90,11 @@ private:
 struct RawInt32 {
     RawInt32() {}
     RawInt32(int data) : data(data) {}
+    RawInt32(unsigned data) : data(data) {}
+    RawInt32(float data) : dataF(data) {}
     operator int() const { return data; }
+    explicit operator float() const { return dataF; }
+    float asFloat() const { return dataF; }
     RawInt32& operator+=(int value) {
         data += value;
         return *this;
@@ -78,7 +103,11 @@ struct RawInt32 {
         data -= value;
         return *this;
     }
-    int32_t data;
+    union {
+        int32_t data;
+        float dataF;
+    };
+    static_assert(sizeof(float) == sizeof(int32_t), "Comet");
 };
 #pragma pack(pop)
     static_assert(sizeof(RawInt32) == sizeof(int32_t), "Life is full of obstacles");
@@ -88,6 +117,7 @@ struct RawInt32 {
     void updateFrameSceneOffsets();
     void updateSpriteSceneOffsets();
     void updateStatsSceneOffsets();
+    void updateSfxSceneOffsets();
     void updateSceneOffsets(int numElements, bool newFrame = false);
 
     FileStatus loadHeader(SDL_RWops *f, HilV2Header& header, int& headerSize);

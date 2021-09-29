@@ -124,7 +124,7 @@ private:
     void removeEmptyEvents();
     template<typename C>
     void sortElements(C& c);
-    void mapAxis(SdlMappingParser::OutputType output, int index, int hatMask, SdlMappingParser::Range range, bool inverted);
+    void mapAxis(GameControlEvents minEvent, GameControlEvents maxEvent, int index, SdlMappingParser::Range range, bool inverted);
 
     template<typename T> T& findOrCreate(std::vector<T>& set, int index);
     Hat& findOrCreateHat(int index) { return findOrCreate(m_hats, index); }

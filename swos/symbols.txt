@@ -26,17 +26,16 @@ big_S_Sprite - advertIngameSprites
 # advertisements
 CopyAdvertisementsData - BumpAllPlayersLastPlayedHalfAtGameStart
 
-# result
+# result + bunch of sprites
+refereeSprite - playerMarkSprite
 isGoalAttempt - resultTimer
-team1Scorer2Sprite - team2Scorer1Sprite
-team2Scorer2Sprite - playerMarkSprite
 team1NameLength - dseg_114C96
 
 # sprites
 aSprite_dat
 UnchainSpriteInMenus - DrawEmptyMenuItem
 ClearSprite - ShowMenu
-SortSprites
+InitDisplaySprites - InitTeamsData
 DrawSprite_entry2
 MakeSpritesFromPlayerNames - AI_SetControlsDirection
 # + game time + pitch type color tables
@@ -85,10 +84,8 @@ g_allowExtraCharsFlag
 inMenuKeyboardBuffer
 
 # menus
-MainMenu
-InitMainMenu - ReadTimerDelta
+LoadFillAndSwtitle - ReadTimerDelta
 InitMainMenuStuff
-LoadFillAndSwtitle
 MenuProc
 UnpackMenu
 RestorePreviousMenu
@@ -116,12 +113,9 @@ FindFirstFile - SelectFileToSaveDialog
 
 # controls/joypads
 # + FadeOut & SetPalette
-FadeOut - InitMenuMusic
+FadeOutToBlack - InitMenuMusic
 # + camera vars
-# restore when ActivateReferee is converted
-#cameraXMod320 - pl1Fire
-cameraXMod320 - g_cameraYFraction
-pl1LastFired - pl1Fire
+cameraXMod320 - pl1Fire
 pl1SecondaryFire - pl2Fire
 pl2SecondaryFire - fadingMenuDeadVar01
 # pitch patterns + setup.dat vars
@@ -129,12 +123,9 @@ dstBytesDiv4 - g_joy1Fire1
 g_joy1Fire2 - dosMemOfs60c00h
 
 # commentary & SFX
-PlayCommentarySample
-PlaySampleFromTable
 PlayHitFrameComment
 ChangeCommentary
 SetVolumeOrStopChants - EnqueueCornerSample
-PlayGoodJumpHeaderComment
 PlayFansChant4lSample
 PlayEndGameWhistleSample
 #g_commentary   # career file buffer
@@ -147,13 +138,19 @@ itsAnInterestingGame - soundEffectsTable
 ChangeMenuMusic
 #g_menuMusic    # career file buffer
 
-# intro, chairman and win/lose animations, sample loading
-LoadChairmanAnimation - RingABell
+# some comments, intro, chairman and win/lose animations, sample loading
+PlayCommentarySample - RingABell
 # + SWOS(), game loop, statistics
 InitIntroAnimation - Rand
 # merge with top range
 introSampleStarted - menuCursorFrame
-g_gotExtraMemoryForSamples - playingRedCardTimer
+g_gotExtraMemoryForSamples - playingCornerSample
+substituteSampleTimer - playingThrowInSample
+
+# referee
+UpdateReferee
+InitRefereeAnimationTable
+refereeSpeed
 
 # big S sprite + some misc.
 big_S_pictureIndexArray - passingState
@@ -174,7 +171,8 @@ sfxLowerQualityTable - introTeamChantsTable
 aSfxFx11Bgcrd3l - aSfxFxCombrown_
 
 # bench
-EnqueueTacticsChangedSample - EnqueueRedCardSample
+EnqueueTacticsChangedSample - PlayPenaltyComment
+PlayGoodPassComment
 subsWriteOnly
 subTeamsSwapped - g_inSubstitutesMenu
 benchOff - g_waitForPlayerToGoInTimer
@@ -222,6 +220,7 @@ ReplayExitMenuAfterFriendly - PlayMissGoalSample
 SetPitchTypeAndNumber - cseg_67646
 dseg_1327EE
 hilStarted
+deadHilVar
 currentHilBuffer - menuCycleTimer
 goalBasePtr - userRequestedReplay
 currentGoalPtr - cameraCoordinatesValid
@@ -254,9 +253,6 @@ DrawSpriteCentered
 
 # pitch patterns
 ResetAnimatedPatternsForBothTeams
-
-# color palette
-FadeOutToBlack
 
 # animations
 FadeAndPlayWinCupAnimation
@@ -297,7 +293,6 @@ ZeroOutStars
 SetDefaultNameAndSurname
 InitHighestScorersTable
 InitUserTactics
-InitDisplaySprites
 EndFirstHalf
 BumpAllPlayersLastPlayedHalfAtGameStart
 BumpAllPlayersLastPlayedHalfPostGame
@@ -465,7 +460,6 @@ team1CurPlayerNumSprite, Sprite
 team2CurPlayerNumSprite, Sprite
 playerMarkSprite, Sprite
 bookedPlayerCardOrNumberSprite, Sprite
-refereeSprite, Sprite
 
 # pitch
 pitchNumberAndType, word
@@ -491,8 +485,6 @@ aSaveHighlights, array const char
 aNotAHighlights, array const char
 
 # camera
-g_cameraY, word
-g_cameraYFraction, word
 cameraCoordinatesValid, word
 cameraDirection, word
 cameraXVelocity, int16_t
@@ -500,13 +492,9 @@ cameraYVelocity, int16_t
 breakCameraMode, word
 
 # comments
-playingYellowCardTimer, int16_t
-playingRedCardTimer, int16_t
 playingGoodPassTimer, int16_t
 playingThrowInSample, int16_t
 playingCornerSample, int16_t
-substituteSampleTimer, int16_t
-tacticsChangedSampleTimer, int16_t
 goalCounter, int16_t
 
 goodPassTimer, word
@@ -520,7 +508,7 @@ resultChantFilenames, array const char *
 endGameCrowdSamples, array const char *
 
 # bench
-SetAnimationTable, function
+SetPlayerAnimationTable, function
 GoalkeeperClaimedTheBall, function
 StopAllPlayers, function
 g_inSubstitutesMenu, word
@@ -528,7 +516,7 @@ g_substituteInProgress, int16_t
 plComingX, word
 plComingY, word
 hideBallShadow, word
-playerNormalStandingAnimTable, AnimationTable
+playerNormalStandingAnimTable, PlayerAnimationTable
 stoppageTimerTotal, word
 stoppageTimerActive, word
 pl1Tactics, word
@@ -555,7 +543,6 @@ linAdr384k, char *
 # game loop
 UpdateBall, function
 MovePlayers, function
-UpdateReferee, function
 DoGoalKeeperSprites, function
 MarkPlayer, function
 BookPlayer, function
@@ -595,7 +582,7 @@ plg_D3_param, word
 team1Computer, word
 team2Computer, word
 whichCard, word
-refVar, word
+refState, word
 lastTeamBooked, TeamGeneralInfo *
 currentScorer, Sprite *
 lastTeamScored, TeamGeneralInfo *
@@ -603,30 +590,21 @@ lastPlayerPlayed, Sprite *
 lastPlayerBeforeGoalkeeper, Sprite *
 penalty, word
 strikeDestX, word
+playersLeavingPitchBottom, array word[22]
+playersLeavingPitchTop, array word[22]
+
+# referee
+CalculateDeltaXAndY, function
+refComingAnimTable, word
+refWaitingAnimTable, word
+refYellowCardAnimTable, word
+refRedCardAnimTable, word
+refSecondYellowAnimTable, word
+foulXCoordinate, word
+foulYCoordinate, word
 
 # result
 resultTimer, int16_t
-resultOnHalftimeSprite, Sprite
-resultAfterTheGameSprite, Sprite
-dashSprite, Sprite
-gridUpperRowLeftSprite, Sprite
-gridUpperRowRightSprite, Sprite
-gridMiddleRowLeftSprite, Sprite
-gridMiddleRowRightSprite, Sprite
-gridBottomRowLeftSprite, Sprite
-gridBottomRowRightSprite, Sprite
-team1NameSprite, Sprite
-team2NameSprite, Sprite
-team1GoalsDigit1Sprite, Sprite
-team1GoalsDigit2Sprite, Sprite
-team1TotalGoalsDigit1Sprite, Sprite
-team1TotalGoalsDigit2Sprite, Sprite
-team2GoalsDigit1Sprite, Sprite
-team2GoalsDigit2Sprite, Sprite
-team2TotalGoalsDigit1Sprite, Sprite
-team2TotalGoalsDigit2Sprite, Sprite
-team1Scorer1Sprite, Sprite
-team2Scorer1Sprite, Sprite
 
 # goals
 team1TotalGoals, word
@@ -758,7 +736,6 @@ EndFirstHalf, function
 EndFirstExtraTime, function
 EndOfGame, function
 StartFirstExtraTime, function
-currentTimeSprite, Sprite
 timerDifference, word
 extraTimeState, word
 ingameGameLength, word
@@ -836,12 +813,14 @@ SetCurrentEntry
 DoContinueAbortMenu
 ShowErrorMenu
 
-# fades
-FadeIn
-
 # controls
 Player1StatusProc
 Player2StatusProc
+
+# referee
+ActivateReferee
+SetRefereeToLeavingState
+RemoveReferee
 
 # game
 InitializeIngameTeamsAndStartGame
@@ -851,8 +830,6 @@ UpdateAndApplyTeamControls
 GameOver
 
 # sprites/game graphics
-DrawSprites
-InitDisplaySprites
 CopySprite
 DrawStatistics
 ScrollToCurrent
@@ -877,13 +854,9 @@ OptionsMenuSelected
 PlayMatchSelected
 
 # commentary/sfx
-PlayPenaltyGoalComment
-PlayPenaltyMissComment
-PlayPenaltySavedComment
 PlayPenaltyComment
 PlayFoulComment
 PlayDangerousPlayComment
-PlayGoodPassComment
 PlayGoodTackleComment
 PlayPostHitComment
 PlayBarHitComment
@@ -892,13 +865,6 @@ PlayNearMissComment
 PlayGoalkeeperSavedComment
 PlayOwnGoalComment
 PlayGoalComment
-PlayYellowCardSample
-PlayRedCardSample
-PlayCornerSample
-PlayTacticsChangeSample
-PlaySubstituteSample
-PlayThrowInSample
-PlaySensationalGameComment
 PlayMissGoalSample
 PlayHomeGoalSample
 PlayAwayGoalSample
@@ -910,8 +876,6 @@ PlayFansChant8lSample
 PlayFansChant10lSample
 PlayIntroChantSample
 PlayResultSample
-PlayDrawComment
-PlayItsBeenACompleteRoutComment
 
 EndProgram
 Int2Ascii
@@ -925,5 +889,5 @@ PackedMenu, 16
 GameState, 2
 TeamStatsData, 14
 FixedPoint, 4
-AnimationTable, 130
+PlayerAnimationTable, 130
 PositionsTable, 72

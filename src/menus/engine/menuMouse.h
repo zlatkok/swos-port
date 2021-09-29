@@ -11,6 +11,7 @@ struct MouseWheelEntryGroup {
 
 using MouseWheelEntryGroupList = std::vector<MouseWheelEntryGroup>;
 
+void initMenuMouse();
 void resetMenuMouseData();
 void menuMouseOnAboutToShowNewMenu();
 void menuMouseOnOldMenuRestored();

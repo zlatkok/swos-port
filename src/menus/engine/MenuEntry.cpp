@@ -131,7 +131,7 @@ void MenuEntry::setNumber(int number)
 
 void MenuEntry::setSprite(int index)
 {
-    assert(type == kEntrySprite2);
+    assert(type == kEntrySprite2 || type == kEntryMenuSpecificSprite);
     fg.spriteIndex = index;
 }
 

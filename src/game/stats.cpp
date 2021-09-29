@@ -1,7 +1,6 @@
 #include "stats.h"
 #include "result.h"
 #include "replays.h"
-#include "windowManager.h"
 #include "darkRectangle.h"
 #include "pitchConstants.h"
 #include "text.h"
@@ -145,7 +144,7 @@ static void drawStats()
 
     if (!m_showingUserRequestedStats) {
         GameStats stats{ *leftStats, *rightStats };
-        showStatsForHighlights(stats);
+        saveStatsForHighlights(stats);
     }
 }
 
@@ -157,18 +156,7 @@ static void drawDarkRectangles()
         { 16, 165, 288, 16 }, { 16, 183, 288, 16 },
     }};
 
-    auto xScale = getXScale();
-    auto yScale = getYScale();
-
     auto rects = kDarkRects;
-
-    for (auto& rect : rects) {
-        rect.x = rect.x * xScale;
-        rect.y = rect.y * yScale;
-        rect.w = rect.w * xScale;
-        rect.h = rect.h * yScale;
-    }
-
     darkenRectangles(rects.data(), rects.size());
 }
 

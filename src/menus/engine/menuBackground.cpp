@@ -9,7 +9,7 @@
 static std::string m_backgroundName;
 static SDL_Texture *m_background;
 
-static void loadMenuBackground(const std::string& name);
+static void loadMenuBackground(std::string name);
 static void reloadMenuBackground(AssetResolution = AssetResolution::kInvalid, AssetResolution = AssetResolution::kInvalid);
 static SDL_RWops *openImageFile(const std::string& path);
 
@@ -66,7 +66,8 @@ void unloadMenuBackground()
     m_backgroundName.clear();
 }
 
-static void loadMenuBackground(const std::string& name)
+// Not a reference since background name gets cleared when the old background is destroyed.
+static void loadMenuBackground(std::string name)
 {
     if (name.empty() || m_background)
         unloadMenuBackground();
@@ -74,10 +75,12 @@ static void loadMenuBackground(const std::string& name)
         auto path = getPathInAssetDir(name.c_str());
         if (auto f = openImageFile(path)) {
             m_background = IMG_LoadTexture_RW(getRenderer(), f, true);
-            if (!m_background)
-                logWarn("Failed to load background image \"%s\", error: %s", name.c_str(), IMG_GetError());
-            else
+            if (m_background) {
+                m_backgroundName = name;
                 logInfo("Menu background set to \"%s\"", name.c_str());
+            } else {
+                logWarn("Failed to load background image \"%s\", error: %s", name.c_str(), IMG_GetError());
+            }
         } else {
             logWarn("Failed to open background image file \"%s\"", name.c_str());
         }

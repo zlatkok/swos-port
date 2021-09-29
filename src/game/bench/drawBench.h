@@ -1,4 +1,4 @@
 #pragma once
 
 void initBenchMenusBeforeMatch();
-void drawBench();
+void drawBench(float xOffset, float yOffset);

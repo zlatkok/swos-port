@@ -84,28 +84,43 @@ void JoypadConfig::initWithMapping(const char *mapping)
         case SdlMappingParser::OutputType::kAxisLeftY:
         case SdlMappingParser::OutputType::kAxisRightX:
         case SdlMappingParser::OutputType::kAxisRightY:
-            switch (input) {
-            // these don't make much sense but we'll handle them anyway
-            case SdlMappingParser::InputType::kButton:
-            case SdlMappingParser::InputType::kHat:
-                {
-                    bool horizontal = output == SdlMappingParser::OutputType::kAxisLeftX || output == SdlMappingParser::OutputType::kAxisRightX;
-                    auto onEvent = horizontal ? kGameEventRight : kGameEventDown;
-                    auto offEvent = horizontal ? kGameEventLeft : kGameEventUp;
-
-                    if (input == SdlMappingParser::InputType::kButton) {
-                        m_buttons.emplace_back(index, onEvent, inverted);
-                        m_buttons.emplace_back(index, offEvent, !inverted);
-                    } else {
-                        auto& hat = findOrCreateHat(index);
-                        hat.bindings.emplace_back(hatMask, onEvent, inverted);
-                        hat.bindings.emplace_back(hatMask, offEvent, !inverted);
-                    }
+            {
+                GameControlEvents minEvent, maxEvent;
+                switch (output) {
+                case SdlMappingParser::OutputType::kAxisLeftX:
+                case SdlMappingParser::OutputType::kAxisRightX:
+                    maxEvent = kGameEventRight;
+                    minEvent = kGameEventLeft;
+                    break;
+                case SdlMappingParser::OutputType::kAxisLeftY:
+                    maxEvent = kGameEventDown;
+                    minEvent = kGameEventUp;
+                    break;
+                case SdlMappingParser::OutputType::kAxisRightY:
+                    maxEvent = kGameEventZoomOut;
+                    minEvent = kGameEventZoomIn;
+                    break;
                 }
-                break;
-            case SdlMappingParser::InputType::kAxis:
-                mapAxis(output, index, hatMask, range, inverted);
-                break;
+
+                switch (input) {
+                    // these don't make much sense but we'll handle them anyway
+                case SdlMappingParser::InputType::kButton:
+                case SdlMappingParser::InputType::kHat:
+                    {
+                        if (input == SdlMappingParser::InputType::kButton) {
+                            m_buttons.emplace_back(index, maxEvent, inverted);
+                            m_buttons.emplace_back(index, minEvent, !inverted);
+                        } else {
+                            auto& hat = findOrCreateHat(index);
+                            hat.bindings.emplace_back(hatMask, maxEvent, inverted);
+                            hat.bindings.emplace_back(hatMask, minEvent, !inverted);
+                        }
+                    }
+                    break;
+                case SdlMappingParser::InputType::kAxis:
+                    mapAxis(minEvent, maxEvent, index, range, inverted);
+                    break;
+                }
             }
         }
     });
@@ -351,12 +366,8 @@ void JoypadConfig::sortElements(C& c)
     });
 }
 
-void JoypadConfig::mapAxis(SdlMappingParser::OutputType output, int index, int hatMask, SdlMappingParser::Range range, bool inverted)
+void JoypadConfig::mapAxis(GameControlEvents minEvent, GameControlEvents maxEvent, int index, SdlMappingParser::Range range, bool inverted)
 {
-    bool horizontal = output == SdlMappingParser::OutputType::kAxisLeftX || output == SdlMappingParser::OutputType::kAxisRightX;
-    auto maxEvent = horizontal ? kGameEventRight : kGameEventDown;
-    auto minEvent = horizontal ? kGameEventLeft : kGameEventUp;
-
     int minFrom, minTo, maxFrom, maxTo;
 
     switch (range) {

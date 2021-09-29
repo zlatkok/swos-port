@@ -3,16 +3,23 @@
 #include "VirtualJoypad.h"
 #include "windowManager.h"
 #include "windowModeMenu.h"
-#include "render.h"
+#include "pitch.h"
+
+constexpr float kZoomIncrement = 0.1f;
 
 static int16_t m_useLinearFiltering = 0;
 static int16_t m_flashCursor = 1;
 static int16_t m_showTouchTrails;
 static int16_t m_transparentButtons = 1;
+static int16_t m_showFps;
 
 #include "videoOptions.mnu.h"
 
 using namespace VideoOptionsMenu;
+
+#ifndef VIRTUAL_JOYPAD
+static void hideVirtualJoypadOptions();
+#endif
 
 void showVideoOptionsMenu()
 {
@@ -23,34 +30,55 @@ static void videoOptionsMenuOnInit()
 {
     m_useLinearFiltering = getLinearFiltering();
     m_flashCursor = cursorFlashingEnabled();
+    m_showFps = getShowFps();
 #ifdef VIRTUAL_JOYPAD
     m_showTouchTrails = getShowTouchTrails();
     m_transparentButtons = getTransparentVirtualJoypadButtons();
 #else
-    int diff = 0;
-    auto label = &firstLabelEntry;
-    auto changer = &firstChangerItemEntry;
-
-    static_assert(transparentVirtualJoypadButtonsLabel > showTouchTrailsLabel, "Stop! Hammer time!");
-
-    while (label != &firstChangerItemEntry) {
-        if (label->ordinal == showTouchTrailsLabel) {
-            diff = 2 * (label == &firstChangerItemEntry ? label[1].y - label->y : label->y - label[-1].y);
-            label->hide();
-            changer->hide();
-        } else if (label->ordinal == transparentVirtualJoypadButtonsLabel) {
-            label->hide();
-            changer->hide();
-        } else if (label->ordinal > showTouchTrailsLabel) {
-            label->y -= diff;
-            changer->y -= diff;
-        }
-        label++;
-        changer++;
-    }
-
-    showWindowModeEntry.y -= diff;
+    hideVirtualJoypadOptions();
 #endif
+}
+
+#ifndef VIRTUAL_JOYPAD
+static void hideVirtualJoypadOptions()
+{
+    static_assert(transparentVirtualJoypadButtonsLabel > showTouchTrailsLabel &&
+        transparentVirtualJoypadButtons > showTouchTrails, "Stop! Hammer time!");
+
+    assert(transparentVirtualJoypadButtonsLabelEntry.y == transparentVirtualJoypadButtonsEntry.y &&
+        showTouchTrailsLabelEntry.y == showTouchTrailsEntry.y &&
+        transparentVirtualJoypadButtonsEntry.y > showTouchTrailsEntry.y);
+
+    int diff = 2 * (transparentVirtualJoypadButtonsEntry.y - showTouchTrailsEntry.y);
+
+    auto currentMenu = getCurrentMenu();
+    for (auto item = currentMenu->entries(); item < &exitEntry; item++) {
+        if (item == &transparentVirtualJoypadButtonsLabelEntry || item == &transparentVirtualJoypadButtonsEntry ||
+            item == &showTouchTrailsLabelEntry || item == &showTouchTrailsEntry)
+            item->hide();
+        else if (item->y > showTouchTrailsEntry.y)
+            item->y -= diff;
+    }
+}
+#endif
+
+static void zoomBeforeDraw()
+{
+    formatDoubleNoTrailingZeros(getZoomFactor(), zoomEntry.string(), kStdMenuTextSize, 4);
+}
+
+static void decreaseZoom()
+{
+    setZoomFactor(getZoomFactor() - kZoomIncrement);
+}
+
+static void increaseZoom()
+{
+    setZoomFactor(getZoomFactor() + kZoomIncrement);
+}
+
+static void enterZoom()
+{
 }
 
 static void switchLinearFiltering()
@@ -66,6 +94,12 @@ static void changeFlashCursor()
     logInfo("Flash cursor changed to %s", m_flashCursor ? "ON" : "OFF");
     setFlashMenuCursor(m_flashCursor != 0);
     swos.menuCursorFrame = 0;
+}
+
+static void changeShowFps()
+{
+    m_showFps = !m_showFps;
+    setShowFps(m_showFps != 0);
 }
 
 static void changeShowTouchTrails()

@@ -2,13 +2,9 @@
 #include "sprites.h"
 #include "renderSprites.h"
 #include "colorizeSprites.h"
-#include "playerNameDisplay.h"
-#include "result.h"
+#include "referee.h"
 #include "replays.h"
 #include "camera.h"
-#include "gameTime.h"
-#include "darkRectangle.h"
-#include "spinningLogo.h"
 
 static Sprite m_cornerFlagSpriteTopLeft, m_cornerFlagSpriteTopRight, m_cornerFlagSpriteBottomLeft, m_cornerFlagSpriteBottomRight;
 
@@ -43,34 +39,11 @@ static Sprite * const kAllSprites[] = {
     &swos.team2CurPlayerNumSprite,
     &swos.playerMarkSprite,
     &swos.bookedPlayerCardOrNumberSprite,
-    &swos.currentTimeSprite,
-    &swos.resultOnHalftimeSprite,
-    &swos.resultAfterTheGameSprite,
-    &swos.gridUpperRowLeftSprite,
-    &swos.gridUpperRowRightSprite,
-    &swos.gridMiddleRowLeftSprite,
-    &swos.gridMiddleRowRightSprite,
-    &swos.gridBottomRowLeftSprite,
-    &swos.gridBottomRowRightSprite,
-    &swos.team1NameSprite,
-    &swos.team2NameSprite,
-    &swos.dashSprite,
-    &swos.team1GoalsDigit1Sprite,
-    &swos.team2GoalsDigit1Sprite,
-    &swos.team1GoalsDigit2Sprite,
-    &swos.team2GoalsDigit2Sprite,
-    &swos.team1TotalGoalsDigit1Sprite,
-    &swos.team2TotalGoalsDigit1Sprite,
-    &swos.team1TotalGoalsDigit2Sprite,
-    &swos.team2TotalGoalsDigit2Sprite,
-    &swos.team1Scorer1Sprite,
-    &swos.team2Scorer1Sprite,
-    &swos.refereeSprite,
+    refereeSprite(),
     &m_cornerFlagSpriteTopLeft,
     &m_cornerFlagSpriteTopRight,
     &m_cornerFlagSpriteBottomLeft,
     &m_cornerFlagSpriteBottomRight,
-    spinningLogoSprite(),
     &swos.currentPlayerNameSprite,
 };
 
@@ -81,14 +54,12 @@ static const TeamGame *m_topTeam;
 static const TeamGame *m_bottomTeam;
 
 static void sortDisplaySprites();
-static bool handleSpecialSprites(const Sprite *sprite, int& i, int screenWidth, int screenHeight, FixedPoint cameraX, FixedPoint cameraY);
+static bool shouldZoomSprite(int pictureIndex);
 
 void initGameSprites(const TeamGame *topTeam, const TeamGame *bottomTeam)
 {
     m_topTeam = topTeam;
     m_bottomTeam = bottomTeam;
-
-    spinningLogoSprite()->show();
 
     initializePlayerSpriteFrameIndices();
 }
@@ -103,11 +74,6 @@ void initDisplaySprites()
             m_sortedSprites[m_numSpritesToRender++] = sprite;
 
     sortDisplaySprites();
-}
-
-void SWOS::InitDisplaySprites()
-{
-    initDisplaySprites();
 }
 
 void initializePlayerSpriteFrameIndices()
@@ -175,39 +141,11 @@ static void verifySprites()
             assert(sprite->pictureIndex >= kSmallDigit1 && sprite->pictureIndex <= kSmallDigit16 ||
                 sprite->pictureIndex == kRedCardSprite || sprite->pictureIndex == kYellowCardSprite ||
                 sprite->pictureIndex == -1);
-        else if (sprite == &swos.currentTimeSprite)
-            assert(sprite->pictureIndex == kTimeSprite118Mins || sprite->pictureIndex == -1);
-        else if (sprite == &swos.resultOnHalftimeSprite)
-            assert(sprite->pictureIndex == kHalfTimeSprite);
-        else if (sprite == &swos.resultAfterTheGameSprite)
-            assert(sprite->pictureIndex == kFullTimeSprite);
-        else if (sprite == &swos.gridUpperRowLeftSprite || sprite == &swos.gridUpperRowRightSprite ||
-            sprite == &swos.gridMiddleRowLeftSprite || sprite == &swos.gridMiddleRowRightSprite ||
-            sprite == &swos.gridBottomRowLeftSprite || sprite == &swos.gridBottomRowRightSprite)
-            assert(sprite->pictureIndex == kSquareGridForResultSprite);
-        else if (sprite == &swos.team1NameSprite)
-            assert(sprite->pictureIndex == kTeam1NameSprite);
-        else if (sprite == &swos.team2NameSprite)
-            assert(sprite->pictureIndex == kTeam2NameSprite);
-        else if (sprite == &swos.dashSprite)
-            assert(sprite->pictureIndex == kBigDashSprite);
-        else if (sprite == &swos.team1GoalsDigit1Sprite || sprite == &swos.team2GoalsDigit1Sprite ||
-            sprite == &swos.team1GoalsDigit2Sprite || sprite == &swos.team2GoalsDigit2Sprite)
-            assertIn(kBigZeroSprite, kBigNineSprite, true);
-        else if (sprite == &swos.team1TotalGoalsDigit1Sprite || sprite == &swos.team2TotalGoalsDigit1Sprite ||
-            sprite == &swos.team1TotalGoalsDigit2Sprite || sprite == &swos.team2TotalGoalsDigit2Sprite)
-            assertIn(kSmallZeroSprite, kSmallNineSprite, true);
-        else if (sprite == &swos.team1Scorer1Sprite)
-            assertIn(kTeam1Scorer1NameSprite, kTeam1Scorer8NameSprite);
-        else if (sprite == &swos.team2Scorer1Sprite)
-            assertIn(kTeam2Scorer1NameSprite, kTeam2Scorer8NameSprite);
-        else if (sprite == &swos.refereeSprite)
+        else if (sprite == refereeSprite())
             assertIn(kRefereeSpriteStart, kRefereeSpriteEnd, true);
         else if (sprite == &m_cornerFlagSpriteTopLeft || sprite == &m_cornerFlagSpriteTopRight ||
             sprite == &m_cornerFlagSpriteBottomLeft || sprite == &m_cornerFlagSpriteBottomRight)
             assertIn(kCornerFlagSpriteStart, kCornerFlagSpriteEnd);
-        else if (sprite == spinningLogoSprite())
-            assertIn(kBigSSpriteStart, kBigSSpriteEnd, true);
         else if (sprite == &swos.currentPlayerNameSprite)
             assertIn(kTeam1PlayerNamesStartSprite, kTeam2PlayerNamesEndSprite, true);
     }
@@ -215,7 +153,7 @@ static void verifySprites()
 #endif
 
 // The place where game sprites get drawn to the screen.
-void drawSprites()
+void drawSprites(float xOffset, float yOffset)
 {
 #ifdef DEBUG
     verifySprites();
@@ -232,16 +170,19 @@ void drawSprites()
     for (int i = 0; i < m_numSpritesToRender; i++) {
         auto sprite = m_sortedSprites[i];
 
-        if (handleSpecialSprites(sprite, i, screenWidth, screenHeight, cameraX, cameraY))
+        if (sprite->pictureIndex == -1)
             continue;
 
-        auto x = sprite->x - cameraX;
-        auto y = sprite->y - cameraY - sprite->z;
+        assert(sprite->visible);
 
-        sprite->onScreen = drawSprite(sprite->pictureIndex, x, y, screenWidth, screenHeight);
+        auto x = sprite->x.asFloat() - cameraX;
+        auto y = sprite->y.asFloat() - cameraY - sprite->z.asFloat();
+
+        auto zoom = shouldZoomSprite(sprite->pictureIndex);
+        sprite->onScreen = drawSprite(sprite->pictureIndex, x, y, zoom, xOffset, yOffset);
 
         // since screen can potentially be huge don't reject any sprites for highlights, just dump them all there
-        if (sprite != spinningLogoSprite() && sprite->teamNumber)
+        if (sprite->teamNumber)
             saveCoordinatesForHighlights(sprite->pictureIndex, x, y);
     }
 }
@@ -308,80 +249,8 @@ static void sortDisplaySprites()
     });
 }
 
-static void growRectangle(SDL_FRect& rect, float x, float y, int screenWidth, int screenHeight)
+static bool shouldZoomSprite(int pictureIndex)
 {
-    constexpr int kGridWidth = 168;
-    constexpr int kGridHeight = 32;
-
-    auto xScale = getXScale();
-    auto yScale = getYScale();
-
-    x *= xScale;
-    y *= yScale;
-
-    auto width = kGridWidth * xScale;
-    auto height = kGridHeight * yScale;
-
-    // use w/h as endX/endY coordinates
-    if (x < rect.x)
-        rect.x = x;
-    if (y < rect.y)
-        rect.y = y;
-    if (x + width > rect.w)
-        rect.w = x + width;
-    if (y + height > rect.h)
-        rect.h = y + height;
-}
-
-// SWOS draws darkened rectangles using special sprite which has a fixed width and height. That's why this
-// sprite is drawn many times to cover larger areas. The problem is that these areas overlap in the game
-// which causes problems since we're drawing it in blended mode (while they simply set high bit in the pixel
-// to take advantage of specially constructed palette). The solution is to combine the area into a single
-// rect first, and then draw this rect. It has to be done immediately and not at the end since it would
-// disrupt z-order.
-static void drawDarkRectangles(int& i, int screenWidth, int screenHeight, FixedPoint cameraX, FixedPoint cameraY)
-{
-    assert(m_sortedSprites[i]->pictureIndex == kSquareGridForResultSprite);
-
-    constexpr float kBigValue = 999'999;
-    SDL_FRect darkRectangle{ kBigValue, kBigValue, -kBigValue, -kBigValue };
-
-    for (; i < m_numSpritesToRender; i++) {
-        auto sprite = m_sortedSprites[i];
-        if (sprite->pictureIndex != kSquareGridForResultSprite)
-            break;
-
-        auto x = sprite->x - cameraX;
-        auto y = sprite->y - cameraY - sprite->z;
-
-        growRectangle(darkRectangle, x, y, screenWidth, screenHeight);
-    }
-
-    drawDarkRectangle(darkRectangle, screenWidth, screenHeight);
-}
-
-static bool handleSpecialSprites(const Sprite *sprite, int& i, int screenWidth, int screenHeight, FixedPoint cameraX, FixedPoint cameraY)
-{
-    assert(sprite && (sprite->pictureIndex == -1 || sprite->visible));
-
-    if (sprite->pictureIndex == -1) {
-        return true;
-    } else if (sprite == &swos.currentTimeSprite) {
-        drawGameTime(*sprite);
-        return true;
-    } else if (sprite->pictureIndex == kSquareGridForResultSprite) {
-        drawDarkRectangles(i, screenWidth, screenHeight, cameraX, cameraY);
-        return true;
-    } else if (sprite->pictureIndex >= kTeam1PlayerNamesStartSprite && sprite->pictureIndex <= kTeam2PlayerNamesEndSprite) {
-        drawPlayerName(sprite->pictureIndex);
-        return true;
-    } else if (sprite->pictureIndex == kTeam1Scorer1NameSprite || sprite->pictureIndex == kTeam2Scorer1NameSprite) {
-        drawScorers(sprite->pictureIndex == kTeam1Scorer1NameSprite ? 1 : 2);
-        return true;
-    } else if (sprite->pictureIndex == kTeam1NameSprite || sprite->pictureIndex == kTeam2NameSprite) {
-        drawTeamName(sprite->pictureIndex == kTeam1NameSprite ? 1 : 2);
-        return true;
-    }
-
-    return false;
+    return pictureIndex >= kTeam1WhitePlayerSpriteStart && pictureIndex <= kBottomGoalSprite ||
+        pictureIndex >= kRefereeSpriteStart;
 }

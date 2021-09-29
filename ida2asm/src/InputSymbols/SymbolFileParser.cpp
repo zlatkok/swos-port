@@ -15,6 +15,8 @@ static const char kHeader[] =
 
     "#include \"swos.h\"\n\n"
 
+    "struct MenuEntry;\n\n"
+
     "#pragma pack(push, 1)\n"
     "// 68k register, 32-bit value, support for accessing as byte/word/dword and various casts\n"
     "struct Register\n{\n"

@@ -1,5 +1,5 @@
 #pragma once
 
-void spinBigSLogo();
+void updateSpinningLogo();
+void drawSpinningLogo();
 void toggleSpinningLogo();
-Sprite *spinningLogoSprite();

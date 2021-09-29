@@ -15,6 +15,29 @@ enum MenuEntryContent : word
     kEntryMenuSpecificSprite,
 };
 
+enum MenuEntryBackground : word
+{
+    kEntryNoBackground = 0,
+    kEntryBackgroundFunction = 1,
+    kEntryFrameAndBackColor = 2,
+    kEntrySprite1 = 3,
+};
+
+enum MenuEntryBackgrounds
+{
+    kNoBackground = 0,
+    kNoFrame = 0,
+    kGray = 7,
+    kDarkBlue = 3,
+    kLightBrownWithOrangeFrame = 4,
+    kLightBrownWithYellowFrame = 6,
+    kRed = 10,
+    kPurple = 11,
+    kLightBlue = 13,
+    kGreen = 14,
+    kYellow = 15,
+};
+
 #pragma pack(push, 1)
 struct MenuEntry
 {

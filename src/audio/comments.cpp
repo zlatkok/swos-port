@@ -8,6 +8,7 @@
 #include <dirent.h>
 
 constexpr int kEnqueuedSampleDelay = 70;
+constexpr int kEnqueuedCardSampleDelay = 100;
 
 static SoundSample m_endGameCrowdSample;
 
@@ -21,7 +22,22 @@ static bool m_muteCommentary;
 
 static bool m_performingPenalty;
 
+static int m_tacticsChangedSampleTimer;
+static int m_substituteSampleTimer;
+static int m_playingYellowCardTimer;
+static int m_playingRedCardTimer;
+
+static void playGoodPassComment();
+static void playYellowCardSample();
+static void playRedCardSample();
+static void playCornerSample();
+static void playTacticsChangeSample();
+static void playThrowInSample();
+static void playSubstituteSample();
 static void loadAndPlayEndGameCrowdSample(int index);
+static void playDrawComment();
+static void playSensationalGameComment();
+static void playItsBeenACompleteRoutComment();
 
 //
 // sample loading
@@ -129,11 +145,11 @@ void loadAndPlayEndGameComment()
     int goalDiff = std::abs(swos.statsTeam1Goals - swos.statsTeam2Goals);
 
     if (goalDiff >= 3)
-        SWOS::PlayItsBeenACompleteRoutComment();
+        playItsBeenACompleteRoutComment();
     else if (!goalDiff)
-        SWOS::PlayDrawComment();
+        playDrawComment();
     else if (swos.statsTeam1Goals + swos.statsTeam2Goals >= 4)
-        SWOS::PlaySensationalGameComment();
+        playSensationalGameComment();
 }
 
 void clearCommentsSampleCache()
@@ -154,37 +170,47 @@ void initCommentsBeforeTheGame()
 
 void enqueueTacticsChangedSample()
 {
-    swos.tacticsChangedSampleTimer = kEnqueuedSampleDelay;
+    m_tacticsChangedSampleTimer = kEnqueuedSampleDelay;
 }
 
 void enqueueSubstituteSample()
 {
-    swos.substituteSampleTimer = kEnqueuedSampleDelay;
+    m_substituteSampleTimer = kEnqueuedSampleDelay;
+}
+
+void enqueueYellowCardSample()
+{
+    m_playingYellowCardTimer = kEnqueuedCardSampleDelay;
+}
+
+void enqueueRedCardSample()
+{
+    m_playingRedCardTimer = kEnqueuedCardSampleDelay;
 }
 
 void playEnqueuedSamples()
 {
-    if (swos.playingYellowCardTimer >= 0 && !--swos.playingYellowCardTimer) {
-        SWOS::PlayYellowCardSample();
-        swos.playingYellowCardTimer = -1;
-    } else if (swos.playingRedCardTimer >= 0 && !--swos.playingRedCardTimer) {
-        SWOS::PlayRedCardSample();
-        swos.playingRedCardTimer = -1;
+    if (m_playingYellowCardTimer >= 0 && !--m_playingYellowCardTimer) {
+        playYellowCardSample();
+        m_playingYellowCardTimer = -1;
+    } else if (m_playingRedCardTimer >= 0 && !--m_playingRedCardTimer) {
+        playRedCardSample();
+        m_playingRedCardTimer = -1;
     } else if (swos.playingGoodPassTimer >= 0 && !--swos.playingGoodPassTimer) {
-        SWOS::PlayGoodPassComment();
+        playGoodPassComment();
         swos.playingGoodPassTimer = -1;
     } else if (swos.playingThrowInSample >= 0 && !--swos.playingThrowInSample) {
-        SWOS::PlayThrowInSample();
+        playThrowInSample();
         swos.playingThrowInSample = -1;
     } else if (swos.playingCornerSample >= 0 && !--swos.playingCornerSample) {
-        SWOS::PlayCornerSample();
+        playCornerSample();
         swos.playingCornerSample = -1;
-    } else if (swos.substituteSampleTimer >= 0 && !--swos.substituteSampleTimer) {
-        SWOS::PlaySubstituteSample();
-        swos.substituteSampleTimer = -1;
-    } else if (swos.tacticsChangedSampleTimer >= 0 && !--swos.tacticsChangedSampleTimer) {
-        SWOS::PlayTacticsChangeSample();
-        swos.tacticsChangedSampleTimer = -1;
+    } else if (m_substituteSampleTimer >= 0 && !--m_substituteSampleTimer) {
+        playSubstituteSample();
+        m_substituteSampleTimer = -1;
+    } else if (m_tacticsChangedSampleTimer >= 0 && !--m_tacticsChangedSampleTimer) {
+        playTacticsChangeSample();
+        m_tacticsChangedSampleTimer = -1;
     }
 
     // strange place to decrement this...
@@ -436,19 +462,19 @@ void SWOS::PlayInjuryComment()
         playComment(kInjury);
 }
 
-void SWOS::PlayPenaltyGoalComment()
+static void playPenaltyGoalComment()
 {
     playComment(kPenaltyGoal);
     m_performingPenalty = false;
 }
 
-void SWOS::PlayPenaltyMissComment()
+static void playPenaltyMissComment()
 {
     playComment(kPenaltyMissed);
     m_performingPenalty = false;
 }
 
-void SWOS::PlayPenaltySavedComment()
+static void playPenaltySavedComment()
 {
     playComment(kPenaltySaved);
     m_performingPenalty = false;
@@ -470,7 +496,7 @@ void SWOS::PlayDangerousPlayComment()
     playComment(kDirtyTackle);
 }
 
-void SWOS::PlayGoodPassComment()
+static void playGoodPassComment()
 {
     playComment(kGoodPass, false);
 }
@@ -505,7 +531,7 @@ void SWOS::PlayKeeperClaimedComment()
 void SWOS::PlayNearMissComment()
 {
     if (m_performingPenalty || swos.penaltiesState == -1)
-        PlayPenaltyMissComment();
+        playPenaltyMissComment();
     else
         playComment(kNearMiss);
 }
@@ -513,7 +539,7 @@ void SWOS::PlayNearMissComment()
 void SWOS::PlayGoalkeeperSavedComment()
 {
     if (m_performingPenalty || swos.penaltiesState == -1)
-        PlayPenaltySavedComment();
+        playPenaltySavedComment();
     else
         playComment(kKeeperSaved);
 }
@@ -535,7 +561,7 @@ void SWOS::PlayOwnGoalComment()
 void SWOS::PlayGoalComment()
 {
     if (m_performingPenalty || swos.penaltiesState == -1)
-        PlayPenaltyGoalComment();
+        playPenaltyGoalComment();
     else
         playComment(kGoal);
 #ifdef __ANDROID__
@@ -543,34 +569,34 @@ void SWOS::PlayGoalComment()
 #endif
 }
 
-void SWOS::PlayYellowCardSample()
+static void playYellowCardSample()
 {
     playComment(kYellowCard);
 }
 
-void SWOS::PlayRedCardSample()
+static void playRedCardSample()
 {
     playComment(kRedCard);
 }
 
-void SWOS::PlayCornerSample()
+static void playCornerSample()
 {
     playComment(kCorner);
 }
 
-void SWOS::PlayTacticsChangeSample()
+static void playTacticsChangeSample()
 {
     playComment(kChangeTactics);
 }
 
-void SWOS::PlaySubstituteSample()
-{
-    playComment(kSubstitution);
-}
-
-void SWOS::PlayThrowInSample()
+static void playThrowInSample()
 {
     playComment(kThrowIn);
+}
+
+static void playSubstituteSample()
+{
+    playComment(kSubstitution);
 }
 
 static void loadAndPlayEndGameCrowdSample(int index)
@@ -598,17 +624,17 @@ static void loadAndPlayEndGameCrowdSample(int index)
     }
 }
 
-void SWOS::PlayDrawComment()
+static void playDrawComment()
 {
     playComment(kEndGameSoClose);
 }
 
-void SWOS::PlaySensationalGameComment()
+static void playSensationalGameComment()
 {
     playComment(kEndGameSensational);
 }
 
-void SWOS::PlayItsBeenACompleteRoutComment()
+static void playItsBeenACompleteRoutComment()
 {
     playComment(kEndGameRout);
 }

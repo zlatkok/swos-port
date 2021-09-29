@@ -1,73 +1,74 @@
 #include "camera.h"
 #include "bench.h"
+#include "referee.h"
 #include "render.h"
 #include "random.h"
 #include "pitchConstants.h"
 
-constexpr int kTrainingGameStartX = 168;
-constexpr int kTrainingGameStartY = 313;
+constexpr float kTrainingGameStartX = 168;
+constexpr float kTrainingGameStartY = 313;
 
-constexpr int kTopStartLocationY = 16;
-constexpr int kBottomStartLocationY = 664;
-constexpr int kCenterX = 176;
+constexpr float  kTopStartLocationY = 16;
+constexpr float  kBottomStartLocationY = 664;
+constexpr float kCenterX = 176;
 
-constexpr int kPenaltyShootoutCameraX = 336;
-constexpr int kPenaltyShootoutCameraY = 107;
-constexpr int kLeavingBenchCameraDestX = 211;
+constexpr float kPenaltyShootoutCameraX = 336;
+constexpr float kPenaltyShootoutCameraY = 107;
+constexpr float kLeavingBenchCameraDestX = 211;
 
 // once the camera reaches this area it's allowed to slide all the way left
-constexpr int kBenchSlideAreaStartY = 339;
-constexpr int kBenchSlideAreaEndY = 359;
+constexpr float kBenchSlideAreaStartY = 339;
+constexpr float kBenchSlideAreaEndY = 359;
 
-constexpr int kRightThrowInLine = 590;
-constexpr int kTopGoalLine = 129;
+constexpr float kPlayersOutsidePitchX = 590;
+constexpr float kTopGoalLine = 129;
 
-constexpr int kPitchMaxX = 352;
-constexpr int kPitchMinY = 16;
-constexpr int kPitchMaxY = 664;
-constexpr int kTrainingPitchMinY = 80;
-constexpr int kTrainingPitchMaxY = 616;
+constexpr float kPitchMaxX = 352;
+constexpr float kPitchMinY = 16;
+constexpr float kPitchMaxY = 664;
+constexpr float kTrainingPitchMinY = 80;
+constexpr float kTrainingPitchMaxY = 616;
 
-constexpr int kPitchSideCameraLimitDuringBreak = 37;
-constexpr int kPitchSideCameraLimitDuringGame = 63;
-constexpr int kSubstituteCameraLimit = 51;
+constexpr float kPitchSideCameraLimitDuringBreak = 37;
+constexpr float kPitchSideCameraLimitDuringGame = 63;
+constexpr float kSubstituteCameraLimit = 51;
 
-constexpr int kCameraMinX = 0;
-constexpr int kCameraMaxX = kPitchMaxX;
-constexpr int kCameraMinY = kPitchMinY;
-constexpr int kCameraMaxY = 680;
+constexpr float kCameraMinX = 0;
+constexpr float kCameraMaxX = kPitchMaxX;
+constexpr float kCameraMinY = kPitchMinY;
+constexpr float kCameraMaxY = 680;
 
-static FixedPoint m_cameraX;
+static float m_cameraX;
+static float m_cameraY;
 
-FixedPoint getCameraX()
+float getCameraX()
 {
     return m_cameraX;
 }
 
-FixedPoint getCameraY()
+float getCameraY()
 {
-    return FixedPoint(swos.g_cameraY, swos.g_cameraYFraction);
+    return m_cameraY;
 }
 
-void setCameraX(FixedPoint value)
+void setCameraX(float value)
 {
     m_cameraX = value;
 }
 
-void setCameraY(FixedPoint value)
+void setCameraY(float value)
 {
-    swos.g_cameraY = value.whole();
-    swos.g_cameraYFraction = value.fraction();
+    m_cameraY = value;
 }
 
 struct CameraParams {
     CameraParams() {}
-    CameraParams(FixedPoint xDest, FixedPoint yDest, int xLimit = 0, int xVelocity = 0, int yVelocity = 0)
+    CameraParams(float xDest, float yDest, float xLimit = 0, int xVelocity = 0, int yVelocity = 0)
         : xDest(xDest), yDest(yDest), xLimit(xLimit), xVelocity(xVelocity), yVelocity(yVelocity) {}
 
-    FixedPoint xDest;
-    FixedPoint yDest;
-    int xLimit;
+    float xDest;
+    float yDest;
+    float xLimit;
     int xVelocity;
     int yVelocity;
 };
@@ -86,7 +87,7 @@ void moveCamera()
 
     CameraParams params;
 
-    if (swos.whichCard)
+    if (cardHandingInProgress())
         params = bookingPlayerMode();
     else if (swos.playingPenalties)
         params = penaltyShootoutMode();
@@ -104,8 +105,8 @@ void moveCamera()
 
 void setCameraToInitialPosition()
 {
-    int startX = kTrainingGameStartX;
-    int startY = kTrainingGameStartY;
+    float startX = kTrainingGameStartX;
+    float startY = kTrainingGameStartY;
 
     if (!swos.g_trainingGame) {
         startX = kCenterX;
@@ -116,19 +117,19 @@ void setCameraToInitialPosition()
     setCameraY(startY);
 }
 
-static void clipCameraDestination(FixedPoint& xDest, FixedPoint& yDest, int xLimit)
+static void clipCameraDestination(float& xDest, float& yDest, float xLimit)
 {
     assert(xLimit >= 0);
 
     if (xDest < xLimit)
         xDest = xLimit;
 
-    int maxX = kPitchMaxX - xLimit;
+    auto maxX = kPitchMaxX - xLimit;
     if (xDest > maxX)
         xDest = maxX;
 
-    int minY = swos.g_trainingGame ? kTrainingPitchMinY : kPitchMinY;
-    int maxY = swos.g_trainingGame ? kTrainingPitchMaxY : kPitchMaxY;
+    auto minY = swos.g_trainingGame ? kTrainingPitchMinY : kPitchMinY;
+    auto maxY = swos.g_trainingGame ? kTrainingPitchMaxY : kPitchMaxY;
 
     if (yDest < minY)
         yDest = minY;
@@ -136,9 +137,9 @@ static void clipCameraDestination(FixedPoint& xDest, FixedPoint& yDest, int xLim
         yDest = maxY;
 }
 
-void clipCameraMovement(FixedPoint& deltaX, FixedPoint& deltaY)
+static void clipCameraMovement(float& deltaX, float& deltaY)
 {
-    constexpr FixedPoint kMaxCameraMovement(5, 0);
+    constexpr float kMaxCameraMovement = 5;
 
     if (deltaX > kMaxCameraMovement)
         deltaX = kMaxCameraMovement;
@@ -150,7 +151,7 @@ void clipCameraMovement(FixedPoint& deltaX, FixedPoint& deltaY)
         deltaY = -kMaxCameraMovement;
 }
 
-static void boundCameraToPitch(FixedPoint& cameraX, FixedPoint& cameraY)
+static void boundCameraToPitch(float& cameraX, float& cameraY)
 {
     if (cameraX < kCameraMinX)
         cameraX = kCameraMinX;
@@ -162,7 +163,7 @@ static void boundCameraToPitch(FixedPoint& cameraX, FixedPoint& cameraY)
         cameraY = kCameraMaxY;
 }
 
-static void updateCameraCoordinates(const FixedPoint& cameraX, const FixedPoint& cameraY)
+static void updateCameraCoordinates(const float& cameraX, const float& cameraY)
 {
     setCameraX(cameraX);
     setCameraY(cameraY);
@@ -183,11 +184,8 @@ static void updateCameraCoordinates(const CameraParams& params)
     auto cameraX = getCameraX();
     auto cameraY = getCameraY();
 
-    auto deltaX = xDest - cameraX;
-    auto deltaY = yDest - cameraY;
-
-    deltaX >>= 4;
-    deltaY >>= 4;
+    auto deltaX = (xDest - cameraX) / 16;
+    auto deltaY = (yDest - cameraY) / 16;
 
     clipCameraMovement(deltaX, deltaY);
 
@@ -210,12 +208,12 @@ static CameraParams penaltyShootoutMode()
 
 static CameraParams leavingBenchMode()
 {
-    return { kLeavingBenchCameraDestX, kPitchCenterY, kPitchSideCameraLimitDuringBreak };
+    return { kLeavingBenchCameraDestX, static_cast<float>(kPitchCenterY), kPitchSideCameraLimitDuringBreak };
 }
 
-static int getBenchCameraXLimit()
+static float getBenchCameraXLimit()
 {
-    int limit = kPitchSideCameraLimitDuringBreak;
+    auto limit = kPitchSideCameraLimitDuringBreak;
 
     bool cameraAtBenchLevel = getCameraY() >= kBenchSlideAreaStartY && getCameraY() <= kBenchSlideAreaEndY;
 
@@ -230,9 +228,9 @@ static int getBenchCameraXLimit()
 
 static CameraParams benchMode(bool substitutingPlayer)
 {
-    int limit = substitutingPlayer ? kSubstituteCameraLimit : getBenchCameraXLimit();
+    auto limit = substitutingPlayer ? kSubstituteCameraLimit : getBenchCameraXLimit();
 
-    return { benchCameraX(), kPitchCenterY, limit };
+    return { benchCameraX(), static_cast<float>(kPitchCenterY), limit };
 }
 
 static std::pair<int, int> getGameStoppedCameraDirections()
@@ -281,22 +279,22 @@ static std::pair<int, int> getStandardModeCameraVelocity(int xDirection, int yDi
     return { xVelocity, yVelocity };
 }
 
-static CameraParams waitingForPlayersToLeaveCameraLocation(int limit)
+static CameraParams waitingForPlayersToLeaveCameraLocation(float limit)
 {
-    return { kRightThrowInLine, kPitchCenterY, limit };
+    return { kPlayersOutsidePitchX, static_cast<float>(kPitchCenterY), limit };
 }
 
-static CameraParams showResultAtCenter(int limit)
+static CameraParams showResultAtCenter(float limit)
 {
-    return { kPitchCenterX, kPitchCenterY, limit };
+    return { static_cast<float>(kPitchCenterX), static_cast<float>(kPitchCenterY), limit };
 }
 
-static CameraParams showResultAtTop(int limit)
+static CameraParams showResultAtTop(float limit)
 {
-    return { kPitchCenterX, kTopGoalLine, limit };
+    return { static_cast<float>(kPitchCenterX), kTopGoalLine, limit };
 }
 
-static CameraParams followTheBall(int limit, int xVelocity, int yVelocity)
+static CameraParams followTheBall(float limit, int xVelocity, int yVelocity)
 {
     return { swos.ballSprite.x, swos.ballSprite.y, limit, xVelocity, yVelocity };
 }
@@ -315,7 +313,7 @@ static CameraParams standardMode()
     int xVelocity, yVelocity;
     std::tie(xVelocity, yVelocity) = getStandardModeCameraVelocity(xDirection, yDirection);
 
-    int limit = kPitchSideCameraLimitDuringGame;
+    auto limit = kPitchSideCameraLimitDuringGame;
 
     if (swos.gameStatePl != GameState::kInProgress) {
         bool cornerOrThrowIn = swos.gameState == GameState::kCornerLeft || swos.gameState == GameState::kCornerRight ||

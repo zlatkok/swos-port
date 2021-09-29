@@ -77,11 +77,6 @@ const PackedSprite& getSprite(int index)
     return m_packedSprites[m_res][index];
 }
 
-void setSprite(int index, const PackedSprite& sprite)
-{
-    m_packedSprites[m_res][index] = sprite;
-}
-
 SDL_Texture *getTexture(const PackedSprite& sprite)
 {
     assert(static_cast<size_t>(sprite.texture) < m_textures[m_res].size());

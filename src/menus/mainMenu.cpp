@@ -2,6 +2,7 @@
 #include "drawMenu.h"
 #include "replaysMenu.h"
 #include "render.h"
+#include "timer.h"
 #include "music.h"
 #include "main.mnu.h"
 
@@ -68,6 +69,7 @@ void initMainMenuGlobals()
 
 static void mainMenuOnInit()
 {
+    markFrameStartTime();
     swos.currentTeamNumber = -1;
     CommonMenuExit();
 }
@@ -89,8 +91,7 @@ constexpr char kQuitToOS[] = "QUIT TO "
 
 static void showQuitMenu()
 {
-    drawMenu(false);
-    fadeOut();
+    menuFadeOut();
     enqueueMenuFadeIn();
     showMenu(quitMenu);
     CommonMenuExit();
@@ -98,15 +99,13 @@ static void showQuitMenu()
 
 static void quitGame()
 {
-    drawMenu(false);
-    fadeOut();
+    menuFadeOut();
     std::exit(EXIT_SUCCESS);
 }
 
 static void returnToGame()
 {
-    drawMenu(false);
-    fadeOut();
+    menuFadeOut();
     enqueueMenuFadeIn();
     SetExitMenuFlag();
 }

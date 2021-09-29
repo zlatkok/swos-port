@@ -4641,3 +4641,112 @@ earlier:
   average, so included average render time into timing calculations
 - changed the timing algorithm slightly in order to accommodate slower machines, so far it's looking good but
   more thorough testing is required
+09.09.2021.
+- published a new version and pushed to Github
+- fixed delta time getting ridiculous values after pause and instant replay (must update frame render time,
+  there are probably more places like this in the code)
+- fixed mouse not working in replay/exit menu after the match
+- added FPS display indicator, and a way to toggle it in video options
+- FPS was quite unstable, until I hit the jackpot: SDL_RenderFlush(); calling it after the game engine update
+  has made the FPS much more stable; it's still just slightly below 70, maybe there's something that's
+  outside the frame time measurement, or the FPS calculation itself isn't perfect... that's the next thing
+  to investigate but it's pretty good even as it is now
+10.09.2021.
+- found a small error in timer code and fixed it, and with a small tweak FPS is now very, very close to 70,
+  almost there
+- simulation of slow machines fails miserably
+- added zoom to video options menu and fixed the menu code for hiding virtual joypad options
+11.09.2021.
+/
+12.09.2021.
+/
+13.09.2021.
+/
+14.09.2021.
+/
+15.09.2021.
+/
+16.09.2021.
+/
+17.09.2021.
+- implemented wide-mode pitch rendering, there's no more stretching, 16:10 proportion for sprites is upheld,
+  and extraneous space is filled with more of the pitch
+- implemented zoom, like in XBLA SWOS, it's a bit buggy, but otherwise works really well :)
+18.09.2021.
+/
+19.09.2021.
+- prevented zoom from showing area beyond pitch limits (added clipping)
+- prevented zoom from becoming too small (so that the screen is never less than pitch width/height)
+- fixed nasty jump in zoom at the top of the pitch
+- removed plenty of SWOS code from the comments
+- converted referee code (though broke it a bit in the process)
+- last remnant of the code that directly uses camera vars is gone... changed them to float
+- removed game time sprite, just calling the draw routine directly now
+- same with player name sprites
+- and result sprites
+20.09.2021.
+- added zooming by 0.25 increments when holding control key while pressing +/-
+- fixed menu item renderer constantly emptying the cache after the screen resolution changes
+- fixed entry mouse selection being off if the screen resolution isn't the exact multiple of 320x200
+- zoom is now properly shown in video options, and can be modified with +/- menu buttons
+- fixed bench sprites size and position not respecting the zoom
+- trying to fix the problem with visible bench on low zoom, but it's more complicated than I thought
+21.09.2021.
+- tweaked rectangle rendering routine and fixed issues with bottom menu item frames being cut off, and bench
+  menu rectangles horizontal lines being too "thick"
+- fixed invalid scorer names x positions
+- added zoom in/out as default action for XBOX-like joypads second stick up/down, just like on XBLA ;)
+- set a sensible default zoom value ;)
+- fixed replays which got broken when switching coordinates from fixed to floating point
+- transfered game data loading to stadium menu (but it brings its own set of problems)
+- fixing fades in progress, almost there, just slightly buggy
+22.09.2021.
+- split pre-game loading a bit, versus menu loads sprites, and stadium menu everything else, I think the show
+  times are a bit more balanced now
+- fixed the fades finally! no more flicker, they're sooo good now ;)
+- fixed sprite rendering in replays at pitch top/bottom when the zoom is less than one
+- fixed not resetting pause when instant replay starts, making it look like it froze
+- extended convert sprites script to create blocky assets
+- extended convert sprites script to create stadium layered sprites
+23.09.2021.
+- modified convert and compile assets script to create stadium layered sprites
+24.09.2021.
+/
+25.09.2021.
+/
+26.09.2021.
+- implemented menu local sprites registration and cleanup, and fixed their rendering
+- finished the code for loading and showing stadium sprites in C++
+- fixed unwanted player transparency
+- loading of match stuff is now transfered onto stadium menu (while it's shown), only thing versus menu loads
+  are stadium menu sprites
+27.09.2021.
+- shifted player's x destination when leaving the pitch a bit more to the right (to be off-screen), since it
+  looks very ugly on unzoomed pitch, they just all converge into one point
+- added sound effects to replays (e.g. ball kicks), sounds good ;)
+- fixed sprites failing to load when trying to view replays
+- made zoom work during replays too
+- finally solved the damn problem of horribly bright #$^%*! pitches... there was some transparency in images
+  processed by IrfanView, somehow it added it there during the conversion to 32-bit; I instructed the sprite
+  packer to ignore the transparency, which it did, but as it seems by blending it with white... argh!! and
+  all this time I thought it was some graphical programming problem :) guess not, the programming is
+  flawless ;) *shakes hands with self*; trying it out, looks great, and I immediately scored a goal, now that
+  can't be a coincidence! ;)
+28.09.2021.
+- fixed referee animation (missed frame index reset when assigning a new table)
+- fixed referee not showing up in replays
+- had to revert the code to force integer scale factor for multiples of HD resolution, since it makes game
+  screen bigger than the window vertically (200 doesn't divide 1080); this sucks as all the assets were
+  created with this resolution in mind
+29.09.2021.
+- returned the code that blocks mouse selection if the pointer didn't move at all (only this time better ;))
+  it's quite annoying that mouse pointer catches initial menu entry when I'm just using keyboard and not even
+  thinking of the mouse
+- lowered wild initial FPS values (it still starts high but it's tolerable :P)
+- fixed menu background not reloading properly when asset resolution changes
+- enabled zoom during paused game & replays
+- zoom can now be finely tuned by holding shift (single step increment until depressed)
+- implemented a bit of dynamic zoom, it will use larger steps when zoomed in more (otherwise it was too slow)
+- added missing playCrowdNoise() call to the start of replays
+- fixed video options of Android showing up on PC when returning from window mode menu
+- published a new version and pushed to Github

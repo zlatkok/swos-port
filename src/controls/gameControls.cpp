@@ -3,6 +3,7 @@
 #include "mouse.h"
 #include "joypads.h"
 #include "bench.h"
+#include "pitch.h"
 #include "game.h"
 #include "gameLoop.h"
 #include "replays.h"
@@ -44,7 +45,7 @@ void updateTeamControls()
 
     if (!team->resetControls) {
         if (inBench()) {
-            team->currentAllowedDirection = -1;
+            team->currentAllowedDirection = kNoDirection;
             team->quickFire = 0;
             team->normalFire = 0;
             team->firePressed = 0;
@@ -127,7 +128,7 @@ bool getShortFireAndBumpFireCounter(bool currentFire, PlayerNumber player /* = k
 
 int16_t eventsToDirection(GameControlEvents events)
 {
-    int16_t direction = -1;
+    int16_t direction = kNoDirection;
 
     bool left = (events & kGameEventLeft) != 0;
     bool right = (events & kGameEventRight) != 0;
@@ -135,21 +136,21 @@ int16_t eventsToDirection(GameControlEvents events)
     bool down = (events & kGameEventDown) != 0;
 
     if (up && right)
-        direction = 1;
+        direction = kFacingTopRight;
     else if (down && right)
-        direction = 3;
+        direction = kFacingBottomRight;
     else if (down && left)
-        direction = 5;
+        direction = kFacingBottomLeft;
     else if (up && left)
-        direction = 7;
+        direction = kFacingTopLeft;
     else if (up)
-        direction = 0;
+        direction = kFacingTop;
     else if (right)
-        direction = 2;
+        direction = kFacingRight;
     else if (down)
-        direction = 4;
+        direction = kFacingBottom;
     else if (left)
-        direction = 6;
+        direction = kFacingLeft;
 
     return direction;
 }
@@ -157,25 +158,25 @@ int16_t eventsToDirection(GameControlEvents events)
 GameControlEvents directionToEvents(int16_t direction)
 {
     switch (direction) {
-    case 0:
+    case kFacingTop:
         return kGameEventUp;
-    case 1:
+    case kFacingTopRight:
         return kGameEventUp | kGameEventRight;
-    case 2:
+    case kFacingRight:
         return kGameEventRight;
-    case 3:
+    case kFacingBottomRight:
         return kGameEventDown | kGameEventRight;
-    case 4:
+    case kFacingBottom:
         return kGameEventDown;
-    case 5:
+    case kFacingBottomLeft:
         return kGameEventDown | kGameEventLeft;
-    case 6:
+    case kFacingLeft:
         return kGameEventLeft;
-    case 7:
+    case kFacingTopLeft:
         return kGameEventUp | kGameEventLeft;
     default:
         assert(false);
-    case -1:
+    case kNoDirection:
         return kNoGameEvents;
     }
 }
@@ -240,6 +241,12 @@ static void updateGameControls(PlayerNumber player, GameControlEvents events)
 
     if (events & kGameEventSaveHighlight)
         requestFadeAndSaveReplay();
+
+    if (events & kGameEventZoomIn)
+        zoomIn();
+
+    if (events & kGameEventZoomOut)
+        zoomOut();
 }
 
 void SWOS::Player1StatusProc()

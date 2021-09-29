@@ -28,6 +28,7 @@ struct TimeInfo {
 uint64_t getMillisecondsSinceEpoch();
 TimeInfo getCurrentTime();
 std::string formatNumberWithCommas(int64_t num);
+void formatDoubleNoTrailingZeros(double value, char *buf, int bufLen, int digits);
 int numDigits(int num);
 
 static inline int sgn(int num) {

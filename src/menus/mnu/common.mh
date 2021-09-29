@@ -35,6 +35,10 @@ kOptionsRowDistance = 1
 kOptionsColumn1Color = @kGray
 kOptionsColumn2Color = @kLightBlue
 
+kChangerWidth = 16
+kChangerColor = @kDarkBlue
+kChangerOptionWidth = kOptionWidth - 2 * kChangerWidth - 2
+
 kScrollArrowWidth = 8
 kScrollArrowHeight = 14
 

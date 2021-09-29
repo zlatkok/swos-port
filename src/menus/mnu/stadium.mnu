@@ -16,6 +16,7 @@ Menu stadiumMenu
     y: -kTeamNameY
     initialEntry: nullEntry
     onInit: stadiumMenuOnInit
+    onDestroy: stadiumMenuOnDestroy
 
     // there is no vertical space to place game name and game round, keep them out for now
 
@@ -57,7 +58,7 @@ Menu stadiumMenu
     Entry #join(leftTeamPlayerSprite, #i) {
         x: 142
         y: 13 * #i
-        sprite: 0
+        menuSpecificSprite: -1
     }
 #endRepeat
 
@@ -85,7 +86,7 @@ Menu stadiumMenu
     Entry #join(rightTeamPlayerSprite, #i) {
         x: 162
         y: 13 * #i
-        sprite: 0
+        menuSpecificSprite: -1
     }
 #endRepeat
 

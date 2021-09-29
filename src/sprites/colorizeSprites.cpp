@@ -5,20 +5,7 @@
 #include "util.h"
 #include "color.h"
 
-constexpr int kNumFaces = 3;
-
 static_assert(kPlayerBackground.size() == kNumFaces, "The air is dry");
-
-using ColorPerFace = std::array<Color, kNumFaces>;
-
-static constexpr ColorPerFace kSkinColor = {{
-    { 252, 108, 0 }, { 252, 108, 0 }, { 54, 18, 0 },
-}};
-static constexpr ColorPerFace kHairColor = {{
-    { 60, 60, 60 }, { 180, 72, 0 }, { 60, 60, 60 },
-}};
-
-using FacesArray = std::array<int, kNumFaces>;
 
 static FacesArray m_topTeamGoalkeeperFaceToIndex;
 static FacesArray m_bottomTeamGoalkeeperFaceToIndex;
@@ -48,15 +35,12 @@ static void colorizeBenchPlayers();
 static bool gotPlayerTextures();
 static bool gotGoalkeeperTextures();
 static bool gotBenchPlayerTextures();
-static FacesArray faceTypesInTeam(const TeamGame *team);
 static PlayerSurfaces createPlayerFaceSurfaces(const FacesArray& faces);
 template <size_t N> static SDL_Surface *loadSurface(const std::array<std::array<PackedSprite, N>, kNumAssetResolutions>& sprites);
 template <size_t N> static void pastePlayerLayer(SDL_Surface *dstSurface, SDL_Surface *srcSurface,
     const std::array<std::array<PackedSprite, N>, kNumAssetResolutions>& background,
     const std::array<std::array<PackedSprite, N>, kNumAssetResolutions>& sprites);
 static void pastePlayerShirtLayer(const TeamGame *team, SDL_Surface *dstSurface, SDL_Surface *srcSurface);
-static void copyShirtPixels(int baseColor, int stripesColor, const PackedSprite& back, const PackedSprite& shirt,
-    const SDL_Surface *backSurface, const SDL_Surface *shirtSurface);
 static void convertTextures(SDL_Texture **textures, SDL_Surface **surfaces, int numTextures, bool free = true);
 GoalkeeperFaces determineGoalkeeperFaces(const TeamGame *team, FacesArray& faceToGoalkeeper);
 static GoalKeeperSurfaces createGoalkeeperSurfaces(const GoalkeeperFaces& faces);
@@ -97,6 +81,73 @@ int getGoalkeeperIndexFromFace(bool topTeam, int face)
     return topTeam ? m_topTeamGoalkeeperFaceToIndex[face] : m_bottomTeamGoalkeeperFaceToIndex[face];
 }
 
+SDL_Surface *loadSurface(const char *filename)
+{
+    auto path = joinPaths(getAssetDir(), filename);
+    if (auto f = openFile(path.c_str())) {
+        auto surface = IMG_Load_RW(f, 1);
+        if (!surface)
+            errorExit("Failed to load surface file %s: %s", path.c_str(), IMG_GetError());
+        return surface;
+    } else {
+        errorExit("Failed to open surface file %s", path.c_str());
+    }
+
+    return nullptr;
+}
+
+FacesArray faceTypesInTeam(const TeamGame *team, bool forGame)
+{
+    FacesArray result{};
+
+    auto allFound = [&result]() {
+        return std::all_of(result.begin(), result.end(), [](auto flag) { return flag; });
+    };
+
+    for (int i = 0; !allFound() && i < kNumPlayersInTeam; i++) {
+        auto face = forGame ? team->players[i].face : team->players[i].face2;
+        result[face] = 1;
+    }
+
+    return result;
+}
+
+void copyShirtPixels(int baseColor, int stripesColor, const PackedSprite& back, const PackedSprite& shirt,
+    const SDL_Surface *backSurface, const SDL_Surface *shirtSurface)
+{
+    assert(back.width == shirt.width && back.height == shirt.height);
+    assert(shirt.xOffset < back.frame.w && shirt.yOffset < back.frame.h);
+    assert(back.frame.x + shirt.xOffset + shirt.frame.w <= backSurface->w &&
+        back.frame.y + shirt.yOffset + shirt.frame.h <= backSurface->h);
+    assert(backSurface->pitch % 4 == 0);
+    assert(shirtSurface->pitch % 4 == 0);
+
+    auto src = reinterpret_cast<Uint32 *>(shirtSurface->pixels) + shirtSurface->pitch / 4 * shirt.frame.y + shirt.frame.x;
+    auto dst = reinterpret_cast<Uint32 *>(backSurface->pixels) + backSurface->pitch / 4 * (back.frame.y + shirt.yOffset) + back.frame.x + shirt.xOffset;
+
+    for (int y = 0; y < shirt.frame.h; y++) {
+        for (int x = 0; x < shirt.frame.w; x++) {
+            Uint8 rComponent, gComponent, bComponent, alpha;
+            auto pixel = src[x];
+            SDL_GetRGBA(pixel, shirtSurface->format, &rComponent, &gComponent, &bComponent, &alpha);
+
+            if (auto total = rComponent + bComponent) {
+                const auto& baseColorRgb = kTeamPalette[baseColor];
+                const auto& stripesColorRgb = kTeamPalette[stripesColor];
+
+                Uint32 r = (baseColorRgb.r * rComponent + stripesColorRgb.r * bComponent + total / 2) / total;
+                Uint32 g = (baseColorRgb.g * rComponent + stripesColorRgb.g * bComponent + total / 2) / total;
+                Uint32 b = (baseColorRgb.b * rComponent + stripesColorRgb.b * bComponent + total / 2) / total;
+
+                dst[x] = SDL_MapRGBA(backSurface->format, r, g, b, alpha);
+            }
+        }
+
+        dst += backSurface->pitch / 4;
+        src += shirtSurface->pitch / 4;
+    }
+}
+
 static void colorizePlayers()
 {
     assert(kPlayerBackground[m_res].size() == kPlayerSkin[m_res].size());
@@ -110,7 +161,7 @@ static void colorizePlayers()
         auto team = teamData.first;
         auto& textures = teamData.second;
 
-        auto faces = faceTypesInTeam(teamData.first);
+        auto faces = faceTypesInTeam(teamData.first, true);
         auto surfaces = createPlayerFaceSurfaces(faces);
 
         for (int i = 0; i < kNumFaces; i++) {
@@ -247,21 +298,6 @@ static bool gotBenchPlayerTextures()
     return m_topTeamBenchPlayersTexture && m_bottomTeamBenchPlayersTexture;
 }
 
-static FacesArray faceTypesInTeam(const TeamGame *team)
-{
-    FacesArray result;
-    auto allFound = [&result]() {
-        return std::all_of(result.begin(), result.end(), [](auto flag) { return flag; });
-    };
-
-    for (int i = 0; !allFound() && i < 16; i++) {
-        auto face = team->players[i].face;
-        result[face] = 1;
-    }
-
-    return result;
-}
-
 template <size_t N>
 static SDL_Surface *loadSurface(const std::array<std::array<PackedSprite, N>, kNumAssetResolutions>& sprites)
 {
@@ -272,17 +308,7 @@ static SDL_Surface *loadSurface(const std::array<std::array<PackedSprite, N>, kN
 
     assert(static_cast<size_t>(fileIndex) < kTextureFilenames.size());
 
-    auto path = joinPaths(getAssetDir(), kTextureFilenames[fileIndex]);
-    if (auto f = openFile(path.c_str())) {
-        auto surface = IMG_Load_RW(f, 1);
-        if (!surface)
-            errorExit("Failed to load surface file %s: %s", path.c_str(), IMG_GetError());
-        return surface;
-    } else {
-        errorExit("Failed to open surface file %s", path.c_str());
-    }
-
-    return nullptr;
+    return loadSurface(kTextureFilenames[fileIndex]);
 }
 
 static SDL_Surface *loadPlayerBackgroundSurface()
@@ -297,7 +323,7 @@ static SDL_Surface *loadGoalkeeperBackgroundSurface()
 
 static PlayerSurfaces createPlayerFaceSurfaces(const FacesArray& faces)
 {
-    PlayerSurfaces surfaces;
+    PlayerSurfaces surfaces{};
 
     auto surface = loadPlayerBackgroundSurface();
     bool copy = false;
@@ -338,52 +364,6 @@ static void pastePlayerLayer(SDL_Surface *dstSurface, SDL_Surface *srcSurface,
         assert(dest.x >= 0 && dest.y >= 0 && dest.x + dest.w <= dstSurface->w && dest.y + dest.h <= dstSurface->h);
 
         SDL_LowerBlit(srcSurface, &src, dstSurface, &dest);
-    }
-}
-
-static void copyShirtPixels(int baseColor, int stripesColor, const PackedSprite& back, const PackedSprite& shirt,
-    const SDL_Surface *backSurface, const SDL_Surface *shirtSurface)
-{
-    const auto& format = *backSurface->format;
-    auto src = reinterpret_cast<Uint32 *>(shirtSurface->pixels) + shirtSurface->pitch / 4 * shirt.frame.y + shirt.frame.x;
-    auto dst = reinterpret_cast<Uint32 *>(backSurface->pixels) + backSurface->pitch / 4 * (back.frame.y + shirt.yOffset) + back.frame.x + shirt.xOffset;
-
-    assert(shirt.xOffset < back.frame.w && shirt.yOffset < back.frame.h);
-    assert(back.frame.x + shirt.xOffset + shirt.frame.w < backSurface->w &&
-        back.frame.y + shirt.yOffset + shirt.frame.h < backSurface->h);
-
-    for (int y = 0; y < shirt.frame.h; y++) {
-        for (int x = 0; x < shirt.frame.w; x++) {
-            auto pixel = src[x];
-            auto rComponent = (pixel & format.Rmask) >> format.Rshift;
-            auto bComponent = (pixel & format.Bmask) >> format.Bshift;
-            auto total = rComponent + bComponent;
-
-            if (total) {
-                const auto& baseColorRgb = kTeamPalette[baseColor];
-                const auto& stripesColorRgb = kTeamPalette[stripesColor];
-
-                Uint32 r = (baseColorRgb.r * rComponent + stripesColorRgb.r * bComponent + total / 2) / total;
-                Uint32 g = (baseColorRgb.g * rComponent + stripesColorRgb.g * bComponent + total / 2) / total;
-                Uint32 b = (baseColorRgb.b * rComponent + stripesColorRgb.b * bComponent + total / 2) / total;
-
-                Uint32 alpha = rComponent;
-                if (!alpha)
-                    alpha = bComponent;
-                else if (bComponent)
-                    alpha = (alpha + bComponent) / 2;
-                auto pixelAlpha = (pixel & format.Amask) >> format.Ashift;
-                alpha = alpha * pixelAlpha / 255;
-
-                dst[x] = (r >> format.Rloss << format.Rshift) |
-                    (g >> format.Gloss << format.Gshift) |
-                    (b >> format.Bloss << format.Bshift) |
-                    ((alpha >> format.Aloss << format.Ashift) & format.Amask);
-            }
-        }
-
-        dst += backSurface->pitch / 4;
-        src += shirtSurface->pitch / 4;
     }
 }
 

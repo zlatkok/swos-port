@@ -14,15 +14,17 @@ constexpr int kHighlightSceneNumElements = 39'000;
 
 constexpr int kInitialReplayCapacity = 4'500'000;
 
-constexpr int kObjectTypeMask = 3 << 30;
+constexpr int kObjectTypeMask = 7 << 29;
 enum ObjectTypeMask
 {
     kStatsMask = 1 << 31,
+    kSfxMask = 1 << 30,
 };
 
 constexpr int kFrameNumElements = 6;
 constexpr int kSpriteNumElements = 3;
 constexpr int kStatsNumElements = 4 * 2;
+constexpr int kSfxNumElements = 1;
 
 constexpr int kNextFrameOffset = 0;
 constexpr int kPrevFrameOffset = 1;
@@ -70,8 +72,8 @@ void ReplayDataStorage::recordFrame(const FrameData& data)
     m_replayData.push_back(m_replayData.size() + kFrameNumElements);
     m_replayData.push_back(m_previousFrameOffset);
 
-    m_replayData.push_back(data.cameraX.raw());
-    m_replayData.push_back(data.cameraY.raw());
+    m_replayData.push_back(data.cameraX);
+    m_replayData.push_back(data.cameraY);
 
     m_replayData.push_back(data.team1Goals | (data.team2Goals << 16));
     m_replayData.push_back(data.gameTime);
@@ -82,7 +84,8 @@ bool ReplayDataStorage::fetchFrameData(FrameData& data)
     if (m_replayOffset >= std::min<size_t>(m_replayLimit, m_replayData.size()))
         return false;
 
-    m_replayNextFrame = m_replayData[m_replayOffset++];
+    m_previousFrameOffset = m_replayOffset;
+    m_replayNextFrame = m_replayData[m_replayOffset++ + kNextFrameOffset];
     assert(m_replayNextFrame >= m_replayOffset - 1 + kFrameNumElements);
 
     if (m_replayOffset + kFrameNumElements - 1 > std::min<size_t>(m_replayLimit, m_replayData.size()))
@@ -90,8 +93,8 @@ bool ReplayDataStorage::fetchFrameData(FrameData& data)
 
     m_replayOffset++;   // skip previous frame offset
 
-    data.cameraX.setRaw(m_replayData[m_replayOffset++]);
-    data.cameraY.setRaw(m_replayData[m_replayOffset++]);
+    data.cameraX = m_replayData[m_replayOffset++].asFloat();
+    data.cameraY = m_replayData[m_replayOffset++].asFloat();
 
     int goals = m_replayData[m_replayOffset++];
     data.team1Goals = goals & 0xffff;
@@ -102,13 +105,13 @@ bool ReplayDataStorage::fetchFrameData(FrameData& data)
     return true;
 }
 
-void ReplayDataStorage::recordSprite(int spriteIndex, FixedPoint x, FixedPoint y)
+void ReplayDataStorage::recordSprite(int spriteIndex, float x, float y)
 {
     updateSpriteSceneOffsets();
 
     m_replayData.push_back(spriteIndex);
-    m_replayData.push_back(x.raw());
-    m_replayData.push_back(y.raw());
+    m_replayData.push_back(x);
+    m_replayData.push_back(y);
 }
 
 void ReplayDataStorage::recordStats(const GameStats& stats)
@@ -126,25 +129,28 @@ void ReplayDataStorage::recordStats(const GameStats& stats)
     }
 }
 
-bool ReplayDataStorage::fetchObject(ObjectType& type, int& pictureIndex, FixedPoint& x, FixedPoint& y, GameStats& stats)
+void ReplayDataStorage::recordSfx(int sampleIndex, int volume)
+{
+    updateSfxSceneOffsets();
+
+    m_replayData.push_back(kSfxMask | sampleIndex | (volume << 8));
+}
+
+bool ReplayDataStorage::fetchObject(Object& obj)
 {
     if (m_replayOffset >= std::min<size_t>(std::min(m_replayLimit, m_replayNextFrame), m_replayData.size()))
         return false;
 
-    pictureIndex = m_replayData[m_replayOffset++];
-    auto objectType = pictureIndex & kObjectTypeMask;
-
-    type = ObjectType::kUnknown;
+    auto objectType = m_replayData[m_replayOffset] & kObjectTypeMask;
 
     switch (objectType) {
     case kStatsMask:
         if (!checkFetchRange(kStatsNumElements))
             return false;
 
-        type = ObjectType::kStats;
-        m_replayOffset--;
+        obj.type = ObjectType::kStats;
 
-        for (auto teamStats : { &stats.team1, &stats.team2 }) {
+        for (auto teamStats : { &obj.stats.team1, &obj.stats.team2 }) {
             int data = m_replayData[m_replayOffset++];
             teamStats->ballPossession = data & 0xffff;
             teamStats->goalAttempts = (data & ~kObjectTypeMask) >> 16;
@@ -158,16 +164,27 @@ bool ReplayDataStorage::fetchObject(ObjectType& type, int& pictureIndex, FixedPo
         }
         break;
 
-    default:
-        if (pictureIndex >= 0) {
-            type = ObjectType::kSprite;
+    case kSfxMask:
+        if (!checkFetchRange(kSfxNumElements))
+            return false;
 
-            if (m_replayOffset + kSpriteNumElements - 1 > m_replayNextFrame)
-                return false;
-
-            x.setRaw(m_replayData[m_replayOffset++]);
-            y.setRaw(m_replayData[m_replayOffset++]);
+        {
+            int sfxData = m_replayData[m_replayOffset++] & ~kObjectTypeMask;
+            obj.type = ObjectType::kSfx;
+            obj.sampleIndex = sfxData & 0xff;
+            obj.volume = sfxData >> 8;
         }
+        break;
+
+    default:
+        if (!checkFetchRange(kSpriteNumElements))
+            return false;
+
+        obj.type = ObjectType::kSprite;
+        obj.pictureIndex = m_replayData[m_replayOffset++] & ~kObjectTypeMask;
+
+        obj.x = m_replayData[m_replayOffset++].asFloat();
+        obj.y = m_replayData[m_replayOffset++].asFloat();
         break;
     }
 
@@ -176,13 +193,13 @@ bool ReplayDataStorage::fetchObject(ObjectType& type, int& pictureIndex, FixedPo
 
 bool ReplayDataStorage::checkFetchRange(int numElements) const
 {
-    return m_replayOffset + numElements - 1 <= m_replayNextFrame;
+    return m_replayOffset + numElements <= m_replayNextFrame;
 }
 
 bool ReplayDataStorage::hasAnotherFullFrame() const
 {
     return m_replayNextFrame < std::min<size_t>(m_replayLimit, m_replayData.size()) &&
-        static_cast<unsigned>(m_replayData[m_replayNextFrame]) <= std::min<size_t>(m_replayLimit, m_replayData.size());
+        static_cast<unsigned>(m_replayData[m_replayNextFrame + kNextFrameOffset]) <= std::min<size_t>(m_replayLimit, m_replayData.size());
 }
 
 float ReplayDataStorage::percentageAt() const
@@ -237,14 +254,21 @@ void ReplayDataStorage::setupForFullReplay()
 
 void ReplayDataStorage::skipFrames(int offset)
 {
-    assert(m_replayNextFrame = m_replayData[m_replayOffset]);
+    assert(m_replayNextFrame == m_replayOffset ||
+        m_replayNextFrame > static_cast<unsigned>(m_replayData[m_replayOffset + kNextFrameOffset]));
 
-    if (offset >= 0) {
+    if (offset > 0) {
         // decrement first, as the current frame hasn't been drawn yet, so it's effectively the next frame
         while (--offset && m_replayData[m_replayOffset + kNextFrameOffset] < static_cast<int>(m_replayLimit))
             m_replayOffset = m_replayData[m_replayOffset + kNextFrameOffset];
     } else {
         offset = -offset + 1;
+
+        if (m_replayOffset >= std::min(m_replayLimit, m_replayData.size())) {
+            m_replayOffset = m_previousFrameOffset;
+            offset--;
+        }
+
         while (offset-- && m_replayData[m_replayOffset + kPrevFrameOffset] >= static_cast<int>(m_replayStart)) {
             assert(m_replayData[m_replayOffset + kPrevFrameOffset] >= 0);
             m_replayOffset = m_replayData[m_replayOffset + kPrevFrameOffset];
@@ -351,6 +375,11 @@ void ReplayDataStorage::updateSpriteSceneOffsets()
 void ReplayDataStorage::updateStatsSceneOffsets()
 {
     updateSceneOffsets(kStatsNumElements);
+}
+
+void ReplayDataStorage::updateSfxSceneOffsets()
+{
+    updateSceneOffsets(kSfxNumElements);
 }
 
 void ReplayDataStorage::updateSceneOffsets(int numElements, bool newFrame /* = false */)

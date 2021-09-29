@@ -8,6 +8,7 @@
 #include "file.h"
 #include "util.h"
 #include "color.h"
+#include "text.h"
 
 static SDL_Renderer *m_renderer;
 static Uint32 m_windowPixelFormat;
@@ -16,7 +17,8 @@ static bool m_useLinearFiltering;
 
 static bool m_pendingScreenshot;
 
-static void fade(bool out, bool doubleFade = false, SDL_Surface *surface = nullptr, void (*callback)() = nullptr);
+static void showFps();
+static void fade(bool fadeOut, std::function<void()> render, double factor);
 static void doMakeScreenshot();
 static SDL_Surface *getScreenSurface();
 
@@ -91,6 +93,11 @@ void updateScreen(bool delay /* = false */)
         m_pendingScreenshot = false;
     }
 
+    // important call to keep the FPS stable
+    SDL_RenderFlush(m_renderer);
+
+    showFps();
+
     if (delay)
         frameDelay();
 
@@ -103,28 +110,35 @@ void updateScreen(bool delay /* = false */)
     SDL_RenderClear(m_renderer);
 }
 
-void fadeIn()
+void fadeIn(std::function<void()> render, double factor /* = 1.0 */)
 {
-    fade(false);
+    fade(false, render, factor);
 }
 
-void fadeOut()
+void fadeOut(std::function<void()> render, double factor /* = 1.0 */)
 {
-    fade(true);
-}
-
-void fadeInAndOut(void (*callback)() /* = nullptr */)
-{
-    fade(false, true, nullptr, callback);
+    fade(true, render, factor);
 }
 
 void drawRectangle(int x, int y, int width, int height, const Color& color)
 {
     SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, 255);
-    SDL_RenderSetScale(m_renderer, getXScale(), getYScale());
-    SDL_Rect dstRect{ x, y, width, height };
-    SDL_RenderDrawRect(m_renderer, &dstRect);
-    SDL_RenderSetScale(m_renderer, 1, 1);
+    auto scale = getScale();
+
+    auto x1 = x * scale + getScreenXOffset() - scale / 2;
+    auto y1 = y * scale + getScreenYOffset();
+    auto w = (width + 1) * scale;
+    auto h = height * scale;
+    auto x2 = x1 + w - scale;
+    auto y2 = y1 + h - scale;
+
+    SDL_FRect rects[4] = {
+        { x1, y1, w, scale },
+        { x1, y1, scale, h },
+        { x2, y1, scale, h },
+        { x1, y2, w, scale },
+    };
+    SDL_RenderFillRectsF(m_renderer, rects, std::size(rects));
 }
 
 bool getLinearFiltering()
@@ -154,50 +168,68 @@ void makeScreenshot()
     m_pendingScreenshot = true;
 }
 
-static void fade(bool out, bool doubleFade /* = false */, SDL_Surface *surface /* = nullptr */, void (*callback)() /* = nullptr */)
+static void showFps()
+{
+    if (getShowFps()) {
+        constexpr int kNumFramesForFps = 64;
+
+        auto now = SDL_GetPerformanceCounter();
+
+        static Uint64 s_lastFrameTick;
+        if (s_lastFrameTick) {
+            static std::array<Uint64, kNumFramesForFps> s_renderTimes;
+            static int s_renderTimesIndex;
+
+            auto frameTime = now - s_lastFrameTick;
+
+            s_renderTimes[s_renderTimesIndex] = frameTime;
+            s_renderTimesIndex = (s_renderTimesIndex + 1) % s_renderTimes.size();
+            int numFrames = 0;
+
+            auto totalRenderTime = std::accumulate(s_renderTimes.begin(), s_renderTimes.end(), 0ULL, [&](auto sum, auto current) {
+                if (current) {
+                    sum += current;
+                    numFrames++;
+                }
+                return sum;
+            });
+
+            auto fps = .0;
+            if (numFrames)
+                fps = 1. / (static_cast<double>(totalRenderTime) / numFrames / SDL_GetPerformanceFrequency());
+
+            char buf[32];
+            formatDoubleNoTrailingZeros(fps, buf, sizeof(buf), 2);
+
+            drawText(290, 4, buf);
+        }
+
+        s_lastFrameTick = now;
+    }
+}
+
+static void fade(bool fadeOut, std::function<void()> render, double factor)
 {
     constexpr int kFadeDelayMs = 900;
-    constexpr int kNumSteps = 255;
+    constexpr int kMaxAlpha = 255;
 
-    auto start = SDL_GetPerformanceCounter();
-    auto freq = SDL_GetPerformanceFrequency();
-    auto step = freq * kFadeDelayMs / 1'000 / kNumSteps;
+    auto numSteps = std::ceil(kFadeDelayMs * kTargetFps / factor / 1'000);
+    auto alphaPerFrame = kMaxAlpha / numSteps;
 
-    surface = surface ? surface : getScreenSurface();
+    for (auto i = .0; i <= numSteps; i++) {
+        markFrameStartTime();
 
-    if (surface) {
-        if (auto texture = SDL_CreateTextureFromSurface(m_renderer, surface)) {
-            SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
-            for (int i = 0; i < static_cast<int>(doubleFade) + 1; i++) {
-                for (int j = 0; j < kNumSteps; j++) {
-                    SDL_RenderCopy(m_renderer, texture, nullptr, nullptr);
-                    SDL_RenderFillRect(m_renderer, nullptr);
-                    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, out ? j + 1 : kNumSteps - j);
+        render();
 
-                    auto now = SDL_GetPerformanceCounter();
-                    if (now < start + step) {
-                        auto sleepInterval = (start + step - now) * 1'000 / freq;
-                        SDL_Delay(static_cast<Uint32>(sleepInterval));
-                        do {
-                            now = SDL_GetPerformanceCounter();
-                        } while (now < start + step);
-                    }
-                    start = now;
+        auto alpha = fadeOut ? i * alphaPerFrame : kMaxAlpha - i * alphaPerFrame;
+        SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, static_cast<int>(std::round(alpha)));
+        SDL_RenderFillRect(m_renderer, nullptr);
 
-                    SDL_RenderPresent(m_renderer);
-                }
-                out = !out;
-                if (callback)
-                    callback();
-            }
-
-            SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_NONE);
-            SDL_DestroyTexture(texture);
-        } else {
-            logWarn("Failed to create a texture for the fade: %s", SDL_GetError());
-        }
-        SDL_FreeSurface(surface);
+        updateScreen(true);
     }
+
+    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_NONE);
 }
 
 static void doMakeScreenshot()

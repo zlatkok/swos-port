@@ -24,8 +24,8 @@ kPitchHeight: Final = 53
 kResMultipliers: Final = (12, 6, 3)
 kNumResolutions: Final = 3
 
-kFixedSpritePrefixes = ('charset', 'gameSprites')
-kVariableSpritePrefixes = ('goalkeeper', 'player', 'bench')
+kFixedSpritePrefixes: Final = ('charset', 'gameSprites')
+kVariableSpritePrefixes: Final = ('goalkeeper', 'player', 'bench')
 
 kWrapLimit: Final = 120
 
@@ -251,7 +251,7 @@ def getVariableSpritePaths():
 
 def outputVariableSprites(atlasData, out, files):
     for root, subdir in getVariableSpritePaths():
-        sprites, numSprites = getSprites(atlasData, (f'{root}-{subdir}',), (os.path.join('game', root, subdir),), files)
+        sprites, numSprites = getSprites(atlasData, f'{root}-{subdir}', (os.path.join('game', root, subdir),), files)
         if subdir == 'background':
             if root == 'player':
                 out(f'constexpr int kNumPlayerSprites = {numSprites};')
@@ -336,7 +336,7 @@ def getPatterns(atlasData, pitches):
     texture = 0
     maxAtlases = 0
 
-    # relies on the fact that the pitches are in original order
+    # relies on the fact that the pitches are in the original order
     for i, resAtlasData in enumerate(atlasData):
         res = i % kNumResolutions
 
@@ -388,8 +388,8 @@ def generatePitchDatabase(atlasData, pitches):
 
         out(kWarning, '#include "windowManager.h"', kAssert, sep='\n\n', end='\n\n')
         out(f'static constexpr int kNumPitches = {len(pitches)};')
-        out(f'static constexpr int kPitchWidth = {kPitchWidth};')
-        out(f'static constexpr int kPitchHeight = {kPitchHeight};\n')
+        out(f'static constexpr int kPitchPatternWidth = {kPitchWidth};')
+        out(f'static constexpr int kPitchPatternHeight = {kPitchHeight};\n')
 
         maxFiles, files, fileMap = generateFileMap(atlasData, 'pitch')
         outputTextureFilenames(maxFiles, files, fileMap, out, generateTextureToFile=False)
@@ -410,6 +410,43 @@ struct PackedPitchPattern {
         outputPitchIndices(pitches, out)
         out('')
         outputPitchPatternData(atlasData, pitches, out)
+
+def generateStadiumSprites(atlasData):
+    with open(os.path.join(kOutDir, 'stadiumSprites.h'), 'w') as f:
+        out = getOutputFunc(f)
+
+        out(kHeader)
+
+        maxFiles, files, fileMap = generateFileMap(atlasData, 'stadium')
+        sprites, numSprites = getSprites(atlasData, 'stadium', os.path.join('game', 'stadium'), files)
+
+        if maxFiles > 1:
+            sys.exit("Can't handle multiple stadium sprite atlas files")
+
+        out(f'\nconstexpr char kStadiumSpritesAtlas[] = "{next(iter(files))}";')
+
+        assert numSprites == 9
+
+        for res, resSprites in enumerate(sprites):
+            for sprite in resSprites:
+                sprite[8] *= kResMultipliers[res]
+                sprite[9] *= kResMultipliers[res]
+
+        out('''
+enum StadiumSprites {
+    kPlayerSkin = 0,
+    kPlayerHair = 1,
+    kPlayerShirtVerticalStripes = 2,
+    kPlayerShorts = 3,
+    kPlayerSocks = 4,
+    kPlayerBackground = 5,
+    kPlayerShirtColoredSleeves = 6,
+    kPlayerShirtHorizontalStripes = 7,
+    kGoalkeeperBackground = 8,
+};\n''')
+
+        out(f'static const std::array<std::array<PackedSprite, {numSprites}>, {kNumResolutions}> m_stadiumSprites = {{{{')
+        outputSprites(sprites, out)
 
 def formDir(dir1, dir2):
     return os.path.join('sprites', 'game', dir1, dir2)
@@ -460,28 +497,6 @@ def getPitchAtlasSize(numPatterns, maxPatternsPerSide):
 
     return patternsX, patternsY
 
-def hashImage(image):
-    import hashlib
-
-    md5hash = hashlib.md5(image.tobytes())
-    return md5hash.hexdigest()
-
-def detectDuplicates(images):
-    hashes = {}
-    aliases = []
-    uniqueImages = []
-
-    for i, image in enumerate(images):
-        hash = hashImage(image)
-        originalIndex = hashes.get(hash, None)
-        if originalIndex is not None and uniqueImages[originalIndex].getdata() == images[i].getdata():
-            aliases.append((originalIndex, os.path.basename(images[i].filename)))
-        else:
-            hashes[hash] = i - len(aliases)
-            uniqueImages.append(image)
-
-    return uniqueImages, aliases
-
 def resizeImages(images, outputPatternSize, scale):
     if scale == 1:
         return images
@@ -497,8 +512,8 @@ def resizeImages(images, outputPatternSize, scale):
 
 def growPatternEdges(atlas, img, x, y):
     borders = (
-        ((x, y - 1), (0, 0, img.width, 1)),     # top
-        ((x - 1, y), (0, 0, 1, img.height)),    # left
+        ((x, y - 1), (0, 0, img.width, 1)),                                 # top
+        ((x - 1, y), (0, 0, 1, img.height)),                                # left
         ((x + img.width, y), (img.width - 1, 0, img.width, img.height)),    # right
         ((x, y + img.height), (0, img.height - 1, img.width, img.height)),  # bottom
     )
@@ -520,7 +535,6 @@ def packPitch(input, atlasNamePattern, outputPath, **kwargs):
 
     scale = kwargs.get('scale', 1)
     outputPatternSize = getOutputPatternSize(images, scale)
-    images, aliases = detectDuplicates(images)
     images = resizeImages(images, outputPatternSize, scale)
 
     maxPatternsPerSide = (kTextureDimension - kPadding) // (outputPatternSize + kPadding)
@@ -566,10 +580,6 @@ def packPitch(input, atlasNamePattern, outputPath, **kwargs):
 
             y += outputPatternSize + kPadding
 
-        for i, filename in aliases:
-            original = images[i]
-            atlasData['frames'][filename] = atlasData['frames'][os.path.basename(original.filename)]
-
         atlasPath = os.path.join(outputPath, atlasName)
         atlas.save(atlasPath)
 
@@ -583,6 +593,7 @@ def getOptions(pitches):
     options = [
         dict(input=gameSprites, atlasNamePattern='gameSprites%d'),
         dict(input=os.path.join('sprites', 'menu'), atlasNamePattern='charset%d'),
+        dict(input=os.path.join('sprites', 'game', 'stadium'), enable_rotated=False, atlasNamePattern='stadium%d'),
     ]
 
     for root, subdir in getVariableSpritePaths():
@@ -606,14 +617,23 @@ def getOptions(pitches):
 
     return result
 
+def parseCommandLine(options):
+    for arg in sys.argv[1:]:
+        if arg.lower().replace('-', '') == 'blocky':
+            for option in options:
+                option[input] = os.path.join('blocky', option[input])
+            break
+
+    return options
+
 def main():
     createDirs()
 
-    pool = multiprocessing.Pool()
-
     pitches = getPitches()
     options = getOptions(pitches)
+    options = parseCommandLine(options)
 
+    pool = multiprocessing.Pool()
     atlasData = pool.map(pack, options)
 
     pool.close()
@@ -622,6 +642,7 @@ def main():
     generateSpriteDatabase(atlasData)
     generateVariableSprites(atlasData)
     generatePitchDatabase(atlasData, pitches)
+    generateStadiumSprites(atlasData)
 
 if __name__ == '__main__':
     main()

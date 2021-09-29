@@ -110,6 +110,11 @@ void SWOS::MenuCheckControls()
     processControlEvents();
 
     auto events = getEventsFromAllControllers();
+    if (events & kGameEventZoomIn)
+        events |= kGameEventUp;
+    if (events & kGameEventZoomOut)
+        events |= kGameEventDown;
+
     events = filterResetEvents(events);
     auto shortFire = getShortFireAndBumpFireCounter((events & kGameEventNonMovementMask) != 0) || m_fire;
     m_fire = false;
@@ -123,8 +128,8 @@ void SWOS::MenuCheckControls()
     swos.fire = (events & kGameEventNonMovementMask) != 0;
     swos.left = (events & kGameEventLeft) != 0;
     swos.right = (events & kGameEventRight) != 0;
-    swos.up = (events & kGameEventUp) != 0;
-    swos.down = (events & kGameEventDown) != 0;
+    swos.up = (events & (kGameEventUp | kGameEventZoomIn)) != 0;
+    swos.down = (events & (kGameEventDown | kGameEventZoomOut)) != 0;
 
     auto direction = eventsToDirection(events);
     swos.menuControlsDirection = swos.menuControlsDirection2 = direction;

@@ -146,8 +146,6 @@ public:
     }
 };
 
-struct MenuEntry;
-
 struct BaseMenu {};
 struct PackedMenu : BaseMenu
 {
@@ -159,43 +157,6 @@ struct PackedMenu : BaseMenu
     const int16_t *data() const {
         return (int16_t *)(this + 1);
     }
-};
-
-struct Menu
-{
-    SwosProcPointer onInit;
-    SwosProcPointer onReturn;
-    SwosProcPointer onDraw;
-    SwosDataPointer<MenuEntry> selectedEntry;
-    word numEntries;
-    SwosDataPointer<char> endOfMenuPtr;
-
-    MenuEntry *entries() const {
-        return (MenuEntry *)(this + 1);
-    }
-};
-
-enum MenuEntryBackground : word
-{
-    kEntryNoBackground = 0,
-    kEntryBackgroundFunction = 1,
-    kEntryFrameAndBackColor = 2,
-    kEntrySprite1 = 3,
-};
-
-enum MenuEntryBackgrounds
-{
-    kNoBackground = 0,
-    kNoFrame = 0,
-    kGray = 7,
-    kDarkBlue = 3,
-    kLightBrownWithOrangeFrame = 4,
-    kLightBrownWithYellowFrame = 6,
-    kRed = 10,
-    kPurple = 11,
-    kLightBlue = 13,
-    kGreen = 14,
-    kYellow = 15,
 };
 
 enum TextColors
@@ -327,11 +288,30 @@ struct ImageIndicesTable
     int16_t index[1];
 };
 
-struct AnimationTable
+struct PlayerAnimationTable
 {
     word numCycles;
     // indexed as: indicesTable[player/goalkeeper][team1/2][direction]
     SwosDataPointer<ImageIndicesTable> indicesTable[2][2][8];
+};
+
+struct RefereeAnimationTable
+{
+    word numCycles;
+    SwosDataPointer<int16_t> indicesTable[8];
+};
+
+enum Direction
+{
+    kNoDirection = -1,
+    kFacingTop = 0,
+    kFacingTopRight = 1,
+    kFacingRight = 2,
+    kFacingBottomRight = 3,
+    kFacingBottom = 4,
+    kFacingBottomLeft = 5,
+    kFacingLeft = 6,
+    kFacingTopLeft = 7,
 };
 
 struct Sprite
@@ -339,13 +319,13 @@ struct Sprite
     word teamNumber;    // 1 or 2 for player controls, 0 for CPU
     word playerOrdinal; // 1-11 for players, 0 for other sprites
     word frameOffset;
-    SwosDataPointer<AnimationTable> animTablePtr;
+    SwosDataPointer<PlayerAnimationTable> animTablePtr;
     word startingDirection;
     PlayerState state;
     byte playerDownTimer;
     word unk001;
     word unk002;
-    SwosDataPointer<void> frameIndicesTable;
+    SwosDataPointer<int16_t> frameIndicesTable;
     word frameIndex;
     word frameDelay;
     word cycleFramesTimer;
@@ -642,6 +622,15 @@ enum ShirtTypes
     kShirtColoredSleeves = 1,
     kShirtVerticalStripes = 2,
     kShirtHorizontalStripes = 3,
+    kNumShirtTypes = 4,
+};
+
+enum FaceTypes
+{
+    kWhite,
+    kGinger,
+    kBlack,
+    kNumFaces,
 };
 
 enum SpriteIndices
@@ -671,7 +660,7 @@ enum SpriteIndices
     kTeam1Scorer8NameSprite = 317,
     kTeam2Scorer1NameSprite = 318,
     kTeam2Scorer8NameSprite = 325,
-    kHalfTimeSprite = 326,
+    kHalftimeSprite = 326,
     kFullTimeSprite = 327,
     kTimeSprite8Mins = 328,
     kTimeSprite88Mins = 329,

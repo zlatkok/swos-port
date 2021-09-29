@@ -7,6 +7,7 @@
 #include "menuControls.h"
 #include "mainMenu.h"
 #include "game.h"
+#include "init.h"
 
 #ifdef SWOS_TEST
 # include "unitTest.h"
@@ -53,14 +54,11 @@ static void menuDelay()
 # ifdef _WIN32
     assert(_CrtCheckMemory());
 # endif
-    extern void checkMemory();
     checkMemory();
 #endif
 
-    if (!swos.menuCycleTimer) {
-        timerProc();
-        timerProc();    // imitate int 8 ;)
-    }
+    if (!swos.menuCycleTimer)
+        timerProc(2);    // imitate int 8 ;) twice since the FPS is halved
 }
 
 static void menuProcCycle()
@@ -115,6 +113,7 @@ void showMenu(const BaseMenu& menu)
 
     while (!swos.g_exitMenu) {
         menuProcCycle();
+        markFrameStartTime();
 #ifdef SWOS_TEST
         // ask unit tests how long they want to run menu proc
         if (SWOS_UnitTest::exitMenuProc())

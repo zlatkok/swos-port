@@ -12,6 +12,8 @@ from enum import Enum, unique
 kSourceDir: Final = Path(__file__).parent / 'sprites' / 'src'
 kDestDir: Final = Path(__file__).parent / 'sprites' / 'game'
 
+kNumImages: Final = 1289
+
 # color indices to swap
 kSkin1: Final = 4
 kSkin2: Final = 5
@@ -25,6 +27,8 @@ kStripes: Final = 11
 kShorts: Final = 14
 kSocks: Final  = 15
 
+kStadiumSpritesStart: Final = 210
+kStadiumSpritesEnd: Final = 213
 kScoreDigitsStart: Final = 287
 kScoreDigitsEnd: Final = 306
 kPlayersStart: Final = 341
@@ -62,8 +66,8 @@ kPixelToLayer: Final = {
     kShorts: Layer.kShorts.value, kSocks: Layer.kSocks.value,
 }
 
-# actual number of images saved
-g_numImages = 0
+g_numImages = 0     # actual number of images saved
+g_blocky = False
 
 def newEmptyImage(image):
     return Image.new('RGBA', image.size, (0, 0, 0, 0))
@@ -85,10 +89,15 @@ def putPixel(image, x, y, pal, pixel):
 def saveImage(image, index, grayscale=False, dir1='', dir2='', metadata=None):
     if grayscale:
         image = ImageEnhance.Color(image).enhance(0)
-    image = image.resize((12 * image.width, 12 * image.height), Image.LANCZOS, None, 3.0)
+
+    global g_blocky
+    filter =  Image.NEAREST if g_blocky else Image.LANCZOS
+    reducingGap = None if g_blocky else 3.0
+
+    image = image.resize((12 * image.width, 12 * image.height), filter, None, reducingGap)
 
     name = f'spr{index:04}.png'
-    path = kDestDir / dir1 / dir2 / name
+    path = getDestDir() / dir1 / dir2 / name
     image.save(path)
 
     if metadata:
@@ -99,29 +108,55 @@ def saveImage(image, index, grayscale=False, dir1='', dir2='', metadata=None):
     global g_numImages
     g_numImages += 1
 
+def handleStadiumSprites(index, image, pal, metadata):
+    isGoalkeeper = index == kStadiumSpritesEnd
+    isFirst = index == kStadiumSpritesStart
+    index = 0 if isGoalkeeper else index - kStadiumSpritesStart
+    layerImages = handleLayeredSprite('stadium', isGoalkeeper, index, image, pal, metadata, doSave=False)
+    if isFirst:
+        saveLayers(layerImages, 0, isGoalkeeper=False, dir1='stadium', metadata=metadata, separateIntoDirs=False)
+    elif isGoalkeeper:
+        saveImage(layerImages[-1], len(Layer) + 3, dir1='stadium', metadata=metadata)
+    else:
+        saveImage(layerImages[Layer.kShirt.value], len(Layer) + index, dir1='stadium', metadata=metadata)
+
 def handlePlayersAndGoalkeepers(index, image, pal, metadata):
     isGoalkeeper = kGoalkeepersStart <= index <= kGoalkeepersEnd
 
-    dir1 = 'goalkeeper' if isGoalkeeper else 'player'
     index -= kGoalkeepersStart if isGoalkeeper else kPlayersStart   # start from 0
+    handleLayeredSprite('', isGoalkeeper, index, image, pal, metadata, True)
+
+def saveLayers(layerImages, index, isGoalkeeper, dir1, metadata, separateIntoDirs):
+    for layer in Layer:
+        if layer != Layer.kShirt or not isGoalkeeper:
+            dir2 = layerDirName(layer) if separateIntoDirs else ''
+            saveImage(layerImages[layer.value], index, grayscale=layer != Layer.kShirt, dir1=dir1, dir2=dir2)
+            if not separateIntoDirs:
+                index += 1
+
+    dir2 = 'background' if separateIntoDirs else ''
+    saveImage(layerImages[-1], index, dir1=dir1, dir2=dir2, metadata=metadata)
+
+def handleLayeredSprite(dirBase, isGoalkeeper, index, image, pal, metadata, doSave):
+    dir1 = 'goalkeeper' if isGoalkeeper else 'player'
+    dir1 = os.path.join(dirBase, dir1)
 
     layerImages = [newEmptyImage(image) for i in range(len(Layer) + 1)]
 
     def pixelHandler(x, y, pal, pixel):
         backLayerIndex = len(Layer)
         if pixel == kZero:
-            layerImage[backLayerIndex].putpixel((x, y), (0, 0, 36, 255))
+            layerImages[backLayerIndex].putpixel((x, y), (0, 0, 36, 255))
         else:
             layer = kPixelToLayer.get(pixel, backLayerIndex)
             putPixel(layerImages[layer], x, y, pal, pixel)
 
     processImage(image, pal, pixelHandler)
 
-    for layer in Layer:
-        if layer != Layer.kShirt or not isGoalkeeper:
-            saveImage(layerImages[layer.value], index, grayscale=layer != Layer.kShirt, dir1=dir1, dir2=layerDirName(layer))
-
-    saveImage(layerImages[-1], index, dir1=dir1, dir2='background', metadata=metadata)
+    if doSave:
+        saveLayers(layerImages, index, isGoalkeeper, dir1, metadata, separateIntoDirs=True)
+    else:
+        return layerImages
 
 def handleHorizontalStripeAndColoredSleevePlayers(index, image, pal, metadata):
     outImage = newEmptyImage(image)
@@ -177,12 +212,16 @@ def handleScoreDigits(index, image, pal, metadata):
     saveImage(outImage, index, metadata=metadata)
 
 def verifyNumImagesProcessed():
-    kNumImages: Final = 1280
     if g_numImages != kNumImages:
         sys.exit(f'Invalid number of images processed: {g_numImages}, required: {kNumImages}')
 
+def getDestDir():
+    global g_blocky
+    base = 'blocky' if g_blocky else ''
+    return Path(kDestDir) / base
+
 def mkdir(path):
-    (Path(kDestDir) / path).mkdir(parents=True, exist_ok=True)
+    (getDestDir() / path).mkdir(parents=True, exist_ok=True)
 
 def ensureDirectories():
     for root in ('goalkeeper', 'player'):
@@ -192,10 +231,20 @@ def ensureDirectories():
     for root, dir in (('player', 'shirt'), ('bench', 'background'), ('bench', 'shirt')):
         mkdir(Path(root) / dir)
 
+    mkdir(Path('stadium'))
+
+def parseCommandLine():
+    for arg in sys.argv[1:]:
+        if arg.lower().replace('-', '') == 'blocky':
+            global g_blocky
+            g_blocky = True
+
 def main():
+    parseCommandLine()
     ensureDirectories()
 
     kSpriteHandlers = (
+        ((kStadiumSpritesStart, kStadiumSpritesEnd), handleStadiumSprites),
         ((kPlayersStart, kPlayersEnd), handlePlayersAndGoalkeepers),
         ((kScoreDigitsStart, kScoreDigitsEnd), handleScoreDigits),
         ((kResultDashSprite, kResultDashSprite), handleScoreDigits),

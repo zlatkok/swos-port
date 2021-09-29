@@ -13,6 +13,7 @@
 #include "stats.h"
 #include "pitch.h"
 #include "pitchConstants.h"
+#include "referee.h"
 #include "menus.h"
 #include "menuBackground.h"
 #include "camera.h"
@@ -29,8 +30,8 @@
 #include "replayExitMenu.h"
 #include "util.h"
 
-constexpr int kGameEndCameraX = 176;
-constexpr int kGameEndCameraY = 80;
+constexpr float kGameEndCameraX = 176;
+constexpr float kGameEndCameraY = 80;
 
 static bool m_fadeAndSaveReplay;
 static bool m_fadeAndInstantReplay;
@@ -41,8 +42,11 @@ static bool m_doFadeIn;
 static bool m_playingMatch;
 
 static void initGameLoop();
-static void drawFrame();
+static void drawFrame(bool recordingEnabled);
+static void gameFadeOut();
+static void gameFadeIn();
 static void updateTimersHandlePauseAndStats();
+static void handleKeys();
 static void coreGameUpdate();
 static void handleHighlightsAndReplays();
 static void gameOver();
@@ -60,28 +64,35 @@ void gameLoop(TeamGame *topTeam, TeamGame *bottomTeam)
 
     do {
         initGameLoop();
+        markFrameStartTime();
 
         // the really real main game loop ;)
         while (true) {
-            updateTimersHandlePauseAndStats();
             loadCrowdChantSampleIfNeeded();
+            updateTimersHandlePauseAndStats();
+
+            handleKeys();
 
             coreGameUpdate();
-            drawFrame();
+            drawFrame(true);
+
+            bool skipUpdate = false;
 
             if (m_doFadeIn) {
-                fadeIn();
+                gameFadeIn();
                 m_doFadeIn = false;
+                skipUpdate = true;
             }
 
             handleHighlightsAndReplays();
 
             if (!swos.playGame) {
-                fadeOut();
+                gameFadeOut();
                 break;
             }
 
-            updateScreen(true);
+            if (!skipUpdate)
+                updateScreen(true);
         }
     } while (!gameEnded(topTeam, bottomTeam));
 
@@ -90,8 +101,13 @@ void gameLoop(TeamGame *topTeam, TeamGame *bottomTeam)
 
 void showStadiumScreenAndFadeOutMusic(TeamGame *topTeam, TeamGame *bottomTeam, int maxSubstitutes)
 {
-    if (showPreMatchMenus())
-        showStadiumMenu(topTeam, bottomTeam, maxSubstitutes);
+    if (showPreMatchMenus()) {
+        showStadiumMenu(topTeam, bottomTeam, maxSubstitutes, [&]() {
+            initMatch(topTeam, bottomTeam, true);
+        });
+    } else {
+        initMatch(topTeam, bottomTeam, true);
+    }
 
     waitForMusicToFadeOut();
 }
@@ -122,8 +138,6 @@ static void initGameLoop()
     m_doFadeIn = true;
 
     unloadMenuBackground();
-
-    playCrowdNoise();
 
     initGameAudio();
     playCrowdNoise();
@@ -157,13 +171,29 @@ static void initGameLoop()
     initFrameTicks();
 }
 
-static void drawFrame()
+static void drawFrame(bool recordingEnabled)
 {
-    drawPitchAtCurrentCamera();
+    setReplayRecordingEnabled(recordingEnabled);
+    float xOffset, yOffset;
+    std::tie(xOffset, yOffset) = drawPitchAtCurrentCamera();
     startNewHighlightsFrame();
-    drawSprites();
-    drawBench();
+    drawSprites(xOffset, yOffset);
+    drawBench(xOffset, yOffset);
+    drawPlayerName();
+    drawGameTime();
     drawStatsIfNeeded();
+    drawResult();
+    drawSpinningLogo();
+}
+
+static void gameFadeOut()
+{
+    fadeOut([]() { drawFrame(false); });
+}
+
+static void gameFadeIn()
+{
+    fadeIn([]() { drawFrame(false); });
 }
 
 void updateTimersHandlePauseAndStats()
@@ -180,8 +210,10 @@ void updateTimersHandlePauseAndStats()
 
     if (swos.spaceReplayTimer)
         swos.spaceReplayTimer--;
+}
 
-    // is this necessary?
+static void handleKeys()
+{
     processControlEvents();
     checkGameKeys();
 }
@@ -196,16 +228,16 @@ static void coreGameUpdate()
     updateTeamControls();
     UpdateBall();
     MovePlayers();
-    UpdateReferee();
+    updateReferee();
     updateCornerFlags();
-    spinBigSLogo();
+    updateSpinningLogo();
     //ManageAdvertisements();
     DoGoalKeeperSprites();
     UpdateControlledPlayerNumbers();
     MarkPlayer();
-    setCurrentPlayerName();
+    updateCurrentPlayerName();
     BookPlayer();
-    showAndPositionResult();
+    updateResult();
     SWOS::DrawAnimatedPatterns(); // remove/re-implement
     updateBench();
     updateStatistics();
@@ -220,7 +252,7 @@ static void handleHighlightsAndReplays()
     }
 
     if (m_fadeAndSaveReplay) {
-        fadeOut();
+        gameFadeOut();
         saveHighlightScene();
         m_doFadeIn = true;
         m_fadeAndSaveReplay = false;
@@ -228,7 +260,7 @@ static void handleHighlightsAndReplays()
 
     // remove instantReplayFlag when UpdateCameraBreakMode() is converted
     if (m_fadeAndInstantReplay || swos.instantReplayFlag) {
-        fadeOut();
+        gameFadeOut();
 
         bool userRequested = true;
         if (swos.instantReplayFlag) {
@@ -245,7 +277,7 @@ static void handleHighlightsAndReplays()
     }
 
     if (m_fadeAndReplayHighlights) {
-        fadeOut();
+        gameFadeOut();
         playHighlights(true);
         m_doFadeIn = true;
         m_fadeAndReplayHighlights = false;
@@ -255,8 +287,7 @@ static void handleHighlightsAndReplays()
 // Executed when the game is over.
 static void gameOver()
 {
-    drawFrame();
-    fadeOut();
+    gameFadeOut();
 
     setCameraX(kGameEndCameraX);
     setCameraY(kGameEndCameraY);
@@ -321,11 +352,18 @@ static bool gameEnded(TeamGame *topTeam, TeamGame *bottomTeam)
 static void pausedLoop()
 {
     while (true) {
-        processControlEvents();
-        checkGameKeys();
-
+        // make sure to first check if the game is actually paused since we're invoked unconditionally
         if (!isGamePaused())
             break;
+
+        processControlEvents();
+
+        if (checkGameKeys()) {
+            markFrameStartTime();
+            drawFrame(false);
+            updateScreen(true);
+            continue;
+        }
 
         auto events = getPlayerEvents(kPlayer1) | getPlayerEvents(kPlayer2);
         if (events & (kGameEventKick | kGameEventPause)) {
@@ -335,11 +373,14 @@ static void pausedLoop()
 
         SDL_Delay(100);
     }
+
+    // make sure to reset the timer or delta time will be heavily skewed after the pause
+    markFrameStartTime();
 }
 
 static void showStatsLoop()
 {
-    drawFrame();
+    drawFrame(false);
     updateScreen();
 
     do {

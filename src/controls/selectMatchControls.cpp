@@ -51,10 +51,8 @@ void SWOS::PlayMatchSelected()
         if (swos.squadChangesAllowed && getShowSelectMatchControlsMenu() && !showSelectMatchControlsMenu())
             return;
 
-        if (!m_fadedOut) {
-            drawMenu(false);
-            fadeOut();
-        }
+        if (!m_fadedOut)
+            menuFadeOut();
     }
 
     SetExitMenuFlag();
@@ -195,8 +193,7 @@ static void confirmSelection()
     m_success = true;
     SetExitMenuFlag();
 
-    drawMenu(false);
-    fadeOut();
+    menuFadeOut();
     m_fadedOut = true;
 }
 

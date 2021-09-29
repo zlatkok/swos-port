@@ -1,28 +1,23 @@
 // Handling of current player indicator displayed top-left (number + surname).
 #include "playerNameDisplay.h"
 #include "benchControls.h"
+#include "referee.h"
 #include "camera.h"
 #include "text.h"
 
+constexpr int kPlayerNameX = 12;
+constexpr int kPlayerNameY = 0;
+
+static bool m_topTeam;
+static int m_playerOrdinal;
+
+static void getPlayerNumberAndSurname(char *buf, const PlayerGame& player);
 static void hideCurrentPlayerName();
 static void showNameBlinking(const Sprite *lastPlayer, const TeamGeneralInfo *lastTeam);
 static void prolongLastPlayersName(const Sprite *lastPlayer, const TeamGeneralInfo *lastTeam);
 static void resetNobodysBallTimer();
 
-static void getPlayerNumberAndSurname(char *buf, const PlayerGame& player)
-{
-    SDL_itoa(player.shirtNumber, buf, 10);
-    int shirtNumberLen = strlen(buf);
-    buf[shirtNumberLen] = ' ';
-
-    A0 = player.shortName;
-    D0 = 0x4000 | 11;   // copy surname only, 11 characters max.
-    GetSurname();
-
-    strcpy(buf + shirtNumberLen + 1, A0.asPtr());
-}
-
-void setCurrentPlayerName()
+void updateCurrentPlayerName()
 {
     static int s_nobodysBallLastFrame;
 
@@ -30,7 +25,7 @@ void setCurrentPlayerName()
 
     if (swos.currentScorer) {
         showNameBlinking(swos.currentScorer, swos.lastTeamScored);
-    } else if (swos.whichCard) {
+    } else if (cardHandingInProgress()) {
         showNameBlinking(swos.bookedPlayer, swos.lastTeamBooked);
     } else if (swos.lastPlayerBeforeGoalkeeper) {
         prolongLastPlayersName(swos.lastPlayerBeforeGoalkeeper, swos.lastTeamScored);
@@ -59,50 +54,47 @@ void setCurrentPlayerName()
     }
 }
 
-void drawPlayerName(int pictureIndex)
+void drawPlayerName()
 {
-    assert(pictureIndex >= kTeam1PlayerNamesStartSprite && pictureIndex <= kTeam2PlayerNamesEndSprite);
+    if (m_playerOrdinal >= 0) {
+        assert(m_playerOrdinal >= 0 && m_playerOrdinal <= 16);
 
-    auto team1Player = pictureIndex < kTeam2PlayerNamesStartSprite;
+        auto team = m_topTeam ? swos.topTeamPtr : swos.bottomTeamPtr;
+        const auto& player = team->players[m_playerOrdinal];
 
-    auto team = team1Player ? swos.topTeamPtr : swos.bottomTeamPtr;
-    int playerIndex = pictureIndex - (team1Player ? kTeam1PlayerNamesStartSprite : kTeam2PlayerNamesStartSprite);
-    const auto& player = team->players[playerIndex];
+        char nameBuf[64];
+        getPlayerNumberAndSurname(nameBuf, player);
 
-    char nameBuf[64];
-    getPlayerNumberAndSurname(nameBuf, player);
+        drawText(kPlayerNameX, kPlayerNameY, nameBuf);
+    }
+}
 
-    drawText(12, 0, nameBuf);
+static void getPlayerNumberAndSurname(char *buf, const PlayerGame& player)
+{
+    SDL_itoa(player.shirtNumber, buf, 10);
+    int shirtNumberLen = strlen(buf);
+    buf[shirtNumberLen] = ' ';
+
+    A0 = player.shortName;
+    D0 = 0x4000 | 11;   // copy surname only, 11 characters max.
+    GetSurname();
+
+    strcpy(buf + shirtNumberLen + 1, A0.asPtr());
 }
 
 static void showCurrentPlayerName(const Sprite *lastPlayer, const TeamGeneralInfo *lastTeam)
 {
     assert(lastPlayer && lastTeam);
 
-    bool topTeam = lastTeam->inGameTeamPtr.asAligned() == &swos.topTeamIngame;
-    int startSpriteIndex = topTeam ? kTeam1PlayerNamesStartSprite : kTeam2PlayerNamesStartSprite;
+    m_topTeam = lastTeam->inGameTeamPtr.asAligned() == &swos.topTeamIngame;
 
     int index = lastPlayer->playerOrdinal - 1;
-    int playerOrdinal = getBenchPlayerShirtNumber(topTeam, index);
-    int spriteIndex = startSpriteIndex + playerOrdinal;
-
-    constexpr int kPlayerNameZ = 8'000;
-
-    swos.currentPlayerNameSprite.pictureIndex = spriteIndex;
-    swos.currentPlayerNameSprite.x = getCameraX();
-    swos.currentPlayerNameSprite.y = getCameraY() + kPlayerNameZ;
-    swos.currentPlayerNameSprite.z = kPlayerNameZ;
+    m_playerOrdinal = getBenchPlayerShirtNumber(m_topTeam, index);
 }
 
 static void hideCurrentPlayerName()
 {
-    constexpr int kOverTheHillsAndFarAway = 25'000;
-
-    swos.currentPlayerNameSprite.pictureIndex = -1;
-    swos.currentPlayerNameSprite.x = kOverTheHillsAndFarAway;
-    swos.currentPlayerNameSprite.y = kOverTheHillsAndFarAway;
-    swos.currentPlayerNameSprite.z = kOverTheHillsAndFarAway;
-
+    m_playerOrdinal = -1;
     swos.lastPlayerBeforeGoalkeeper = nullptr;
 }
 

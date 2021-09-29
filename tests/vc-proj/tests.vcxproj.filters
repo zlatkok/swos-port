@@ -71,6 +71,9 @@
     <Filter Include="Source Files\project-files\menus\engine">
       <UniqueIdentifier>{30536200-27f0-49b4-b4f3-63fac38e2771}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\project-files\game\pitch">
+      <UniqueIdentifier>{1908b90c-6ed3-4e0e-a7ce-5468379899d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -334,9 +337,6 @@
     <ClCompile Include="..\..\src\sprites\renderSprites.cpp">
       <Filter>Source Files\project-files\sprites</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\pitch.cpp">
-      <Filter>Source Files\project-files\game</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\sprites\loadTexture.cpp">
       <Filter>Source Files\project-files\sprites</Filter>
     </ClCompile>
@@ -417,6 +417,12 @@
     </ClCompile>
     <ClCompile Include="..\src\mocks\mockTimer.cpp">
       <Filter>Source Files\mocks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\pitch\pitch.cpp">
+      <Filter>Source Files\project-files\game\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\referee.cpp">
+      <Filter>Source Files\project-files\game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -622,9 +628,6 @@
     <ClInclude Include="..\..\src\sprites\gameSprites.h">
       <Filter>Source Files\project-files\sprites</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\pitch.h">
-      <Filter>Source Files\project-files\game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\sprites\loadTexture.h">
       <Filter>Source Files\project-files\sprites</Filter>
     </ClInclude>
@@ -700,11 +703,17 @@
     <ClInclude Include="..\..\src\menus\continueMenu.h">
       <Filter>Source Files\project-files\menus</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\pitchConstants.h">
-      <Filter>Source Files\project-files\game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\replays\LegacyReplayConverter.h">
       <Filter>Source Files\project-files\replays</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\pitch\pitch.h">
+      <Filter>Source Files\project-files\game\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\pitch\pitchConstants.h">
+      <Filter>Source Files\project-files\game\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\referee.h">
+      <Filter>Source Files\project-files\game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

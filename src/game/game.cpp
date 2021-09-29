@@ -14,9 +14,9 @@
 #include "util.h"
 #include "replays.h"
 #include "pitch.h"
-#include "sprites.h"
 #include "bench.h"
 #include "benchControls.h"
+#include "sprites.h"
 #include "gameSprites.h"
 #include "gameTime.h"
 #include "playerNameDisplay.h"
@@ -27,11 +27,14 @@
 #include "menus.h"
 #include "drawMenu.h"
 #include "versusMenu.h"
+#include "stadiumMenu.h"
 
 static TeamGame m_topTeamSaved;
 static TeamGame m_bottomTeamSaved;
 
 static bool m_gamePaused;
+
+static bool m_blockZoom;
 
 static void saveTeams();
 static void restoreTeams();
@@ -43,6 +46,7 @@ static void determineStartingTeamAndTeamPlayingUp();
 static void initPitchBallFactors();
 static void initGameVariables();
 
+// Initializes everything except the sprite graphics, which are needed for the stadium menu.
 void initMatch(TeamGame *topTeam, TeamGame *bottomTeam, bool saveOrRestoreTeams)
 {
     saveOrRestoreTeams ? saveTeams() : restoreTeams();
@@ -60,9 +64,9 @@ void initMatch(TeamGame *topTeam, TeamGame *bottomTeam, bool saveOrRestoreTeams)
 
         swos.gameRandValue = SWOS::rand();
 
-        A4 = &swos.topTeamIngame;
+        A4 = topTeam;
         invokeWithSaved68kRegisters(ApplyTeamTactics);
-        A4 = &swos.bottomTeamIngame;
+        A4 = bottomTeam;
         invokeWithSaved68kRegisters(ApplyTeamTactics);
 
         determineStartingTeamAndTeamPlayingUp();
@@ -72,7 +76,7 @@ void initMatch(TeamGame *topTeam, TeamGame *bottomTeam, bool saveOrRestoreTeams)
         initGameVariables();
 
         initDisplaySprites();
-        resetTime();
+        resetGameTime();
         resetResult(topTeam->teamName, bottomTeam->teamName);
         initStats();
 //    InitAnimatedPatterns();
@@ -86,6 +90,8 @@ void initMatch(TeamGame *topTeam, TeamGame *bottomTeam, bool saveOrRestoreTeams)
 
     loadSoundEffects();
     loadIntroChant();
+
+    m_blockZoom = false;
 }
 
 void initializeIngameTeams(int minSubs, int maxSubs, TeamFile *team1, TeamFile *team2)
@@ -172,10 +178,8 @@ void initializeIngameTeams(int minSubs, int maxSubs, TeamFile *team1, TeamFile *
 
     if (showPreMatchMenus()) {
         showVersusMenu(&swos.topTeamIngame, &swos.bottomTeamIngame, swos.gameName, swos.gameRound, []() {
-            initMatch(&swos.topTeamIngame, &swos.bottomTeamIngame, true);
+            loadStadiumSprites(&swos.topTeamIngame, &swos.bottomTeamIngame);
         });
-    } else {
-        initMatch(&swos.topTeamIngame, &swos.bottomTeamIngame, true);
     }
 
     if (!swos.isGameFriendly && swos.g_gameType != kGameTypeDiyCompetition)
@@ -233,16 +237,18 @@ void checkGlobalKeyboardShortcuts(SDL_Scancode scancode, bool pressed)
     lastScancode = scancode;
 }
 
-void checkGameKeys()
+bool checkGameKeys()
 {
+    bool zoomChanged = checkZoomKeys();
+
     auto key = getKey();
 
     if (key == SDL_SCANCODE_UNKNOWN || testForPlayerKeys(key))
-        return;
+        return zoomChanged;
 
     if (key == SDL_SCANCODE_D) {
         toggleDebugOutput();
-        return;
+        return zoomChanged;
     }
 
     if (isGamePaused()) {
@@ -307,6 +313,35 @@ void checkGameKeys()
             break;
         }
     }
+
+    return zoomChanged;
+}
+
+bool checkZoomKeys()
+{
+    constexpr auto kZoomStep = .25f;
+
+    auto keys = SDL_GetKeyboardState(nullptr);
+    bool controlHeld = keys[SDL_SCANCODE_LCTRL] || keys[SDL_SCANCODE_RCTRL];
+    bool shiftHeld = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
+    bool zoomKeysHeld = keys[SDL_SCANCODE_KP_PLUS] || keys[SDL_SCANCODE_KP_MINUS];
+
+    if ((controlHeld || shiftHeld) && zoomKeysHeld) {
+        if (m_blockZoom)
+            return false;
+        m_blockZoom = true;
+    } else {
+        m_blockZoom = false;
+    }
+
+    auto step = controlHeld ? kZoomStep : 0;
+
+    if (keys[SDL_SCANCODE_KP_PLUS])
+        return zoomIn(step);
+    else if (keys[SDL_SCANCODE_KP_MINUS])
+        return zoomOut(step);
+    else
+        return false;
 }
 
 void updateCursor(bool matchRunning)

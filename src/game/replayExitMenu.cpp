@@ -16,12 +16,16 @@ bool showReplayExitMenuAfterFriendly()
     return m_replaySelected;
 }
 
+bool replayExitMenuShown()
+{
+    return getCurrentPackedMenu() == &replayExitMenu;
+}
+
 static void replayExitMenuOnInit()
 {
     m_replaySelected = false;
 
-    drawMenu(false);    // redraw the menu so it's ready for the fade-in
-    fadeIn();
+    menuFadeIn();
 
     SDL_ShowCursor(SDL_ENABLE);
 }
@@ -34,7 +38,7 @@ static void replayExitMenuDone(bool replay)
         initNewReplay();
 
     drawMenu(false);
-    fadeOut();
+    menuFadeOut();
 
     SetExitMenuFlag();
 

@@ -1,8 +1,9 @@
 #pragma once
 
-void resetTime();
+void resetGameTime();
+bool gameTimeShowing();
 void updateGameTime();
-void drawGameTime(const Sprite& sprite);
+void drawGameTime();
 void drawGameTime(int digit1, int digit2, int digit3);
 dword gameTimeInMinutes();
 std::tuple<int, int, int> gameTimeAsBcd();

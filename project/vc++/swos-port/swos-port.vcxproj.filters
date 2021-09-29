@@ -59,6 +59,9 @@
     <Filter Include="Source Files\menus\engine">
       <UniqueIdentifier>{c529217a-2223-415b-8b64-39927307e623}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\pitch">
+      <UniqueIdentifier>{c1d057e2-d728-4ed1-97b0-03a75a3dc434}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\main.cpp">
@@ -277,9 +280,6 @@
     <ClCompile Include="..\..\..\src\sprites\colorizeSprites.cpp">
       <Filter>Source Files\sprites</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\game\pitch.cpp">
-      <Filter>Source Files\game</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\util\log.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
@@ -372,6 +372,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\video\timer.cpp">
       <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\pitch\pitch.cpp">
+      <Filter>Source Files\game\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\referee.cpp">
+      <Filter>Source Files\game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -576,9 +582,6 @@
     <ClInclude Include="..\..\..\src\util\log.h">
       <Filter>Source Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\game\pitch.h">
-      <Filter>Source Files\game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\sprites\loadTexture.h">
       <Filter>Source Files\sprites</Filter>
     </ClInclude>
@@ -672,14 +675,23 @@
     <ClInclude Include="..\..\..\src\menus\continueMenu.h">
       <Filter>Source Files\menus</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\game\pitchConstants.h">
-      <Filter>Source Files\game</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\replays\LegacyReplayConverter.h">
       <Filter>Source Files\replays</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\video\timer.h">
       <Filter>Source Files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\menus\engine\Menu.h">
+      <Filter>Source Files\menus\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\pitch\pitch.h">
+      <Filter>Source Files\game\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\pitch\pitchConstants.h">
+      <Filter>Source Files\game\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\referee.h">
+      <Filter>Source Files\game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

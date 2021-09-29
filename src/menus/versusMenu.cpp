@@ -7,19 +7,15 @@
 #include "replays.h"
 #include "versus.mnu.h"
 
-constexpr Uint32 kMinimumPreMatchScreenLength = 1'200;
-
 static const TeamGame *m_team1;
 static const TeamGame *m_team2;
 static const char *m_gameName;
 static const char *m_gameRound;
 static std::function<void()> m_callback;
 
-static Uint32 m_loadingStartTick;
-
 using namespace VersusMenu;
 
-static void insertPauseBeforeTheGame();
+static void invokeCallbackWithTimeout();
 
 void showVersusMenu(const TeamGame *team1, const TeamGame *team2,
     const char *gameName, const char *gameRound, std::function<void()> callback)
@@ -55,8 +51,6 @@ void setTeamNameAndColor(MenuEntry& entry, const TeamGame& team, word coachNo, w
 
 static void versusMenuOnInit()
 {
-    m_loadingStartTick = SDL_GetTicks();
-
     gameNameEntry.copyString(m_gameName);
     if (m_gameRound[0]) {
         gameRoundEntry.copyString(m_gameRound);
@@ -70,25 +64,26 @@ static void versusMenuOnInit()
 
     drawMenu(false);
 
-    fadeInAndOut([]() {
-        processControlEvents();
+    menuFadeIn();
 
-        if (m_callback)
-            m_callback();
+    invokeCallbackWithTimeout();
 
-        insertPauseBeforeTheGame();
-        processControlEvents();
-    });
+    processControlEvents();
+    menuFadeOut();
 
     SetExitMenuFlag();
 }
 
-static void insertPauseBeforeTheGame()
+static void invokeCallbackWithTimeout()
 {
-    auto diff = SDL_GetTicks() - m_loadingStartTick;
-    if (diff < kMinimumPreMatchScreenLength) {
-        auto pause = kMinimumPreMatchScreenLength - diff;
-        logInfo("Pausing at versus menu for %d milliseconds (max: %d)", pause, kMinimumPreMatchScreenLength);
-        SDL_Delay(pause);
-    }
+    constexpr int kDelayTicks = 300;
+
+    auto startTicks = SDL_GetTicks();
+
+    if (m_callback)
+        m_callback();
+
+    auto elapsed = SDL_GetTicks() - startTicks;
+    if (elapsed < kDelayTicks)
+        SDL_Delay(kDelayTicks - elapsed);
 }

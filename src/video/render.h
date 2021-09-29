@@ -10,12 +10,10 @@ void initRendering();
 void finishRendering();
 SDL_Renderer *getRenderer();
 SDL_Rect getViewport();
-void skipFrameUpdate();
 void updateScreen(bool delay = false);
 
-void fadeIn();
-void fadeOut();
-void fadeInAndOut(void (*callback)() = nullptr);
+void fadeIn(std::function<void()> render, double factor = 1.0);
+void fadeOut(std::function<void()> render, double factor = 1.0);
 
 void drawRectangle(int x, int y, int width, int height, const Color& color);
 

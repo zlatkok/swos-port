@@ -6,9 +6,10 @@
 
 Menu videoOptionsMenu
 {
-    kGamePlayOptionsStartY = kOptionsStartY - kOptionHeight
+    kGameplayOptionsStartY = kOptionsStartY - kOptionHeight
 
     onInit: videoOptionsMenuOnInit
+    onRestore: videoOptionsMenuOnInit
 
     initialEntry: flashCursor
 
@@ -31,16 +32,15 @@ Menu videoOptionsMenu
         color: kOptionsColumn1Color
     }
 
-    Entry linearFilteringLabel {
-        y: kGamePlayOptionsStartY
-        text: "LINEAR FILTERING"
+    Entry zoomLabel {
+        y: kGameplayOptionsStartY
+        text: "ZOOM FACTOR"
     }
-
+    Entry linearFilteringLabel { text: "LINEAR FILTERING" }
     Entry flashMenuCursorLabel { text: "FLASH MENU CURSOR" }
+    Entry showFpsLabel { text: "SHOW FPS INDICATOR" }
     Entry showTouchTrailsLabel { text: "SHOW TOUCH TRAILS" }
     Entry transparentVirtualJoypadButtonsLabel { text: "BLEND VIRTUAL JOYPAD" }
-
-    entryAlias firstLabel = linearFilteringLabel
 
     defaultX: kOptionsColumn2X
 
@@ -48,49 +48,103 @@ Menu videoOptionsMenu
         color: kOptionsColumn2Color
     }
 
+    Entry decreaseZoomButton {
+        y: kGameplayOptionsStartY
+        width: kChangerWidth
+
+        color: kChangerColor
+        text: "-"
+
+        rightEntry: zoom
+        downEntry: linearFiltering
+
+        onSelect: decreaseZoom
+    }
+
+    Entry zoom {
+        x: @prevEndX + 1
+        y: kGameplayOptionsStartY
+        width: kChangerOptionWidth
+
+        text: @kAlloc
+
+        leftEntry: decreaseZoomButton
+        rightEntry: increaseZoomButton
+        downEntry: linearFiltering
+
+        onSelect: enterZoom
+        beforeDraw: zoomBeforeDraw
+    }
+
+    Entry increaseZoomButton {
+        x: @prevEndX + 1
+        y: kGameplayOptionsStartY
+        width: kChangerWidth
+
+        color: kChangerColor
+        text: "+"
+
+        leftEntry: zoom
+        downEntry: linearFiltering
+
+        onSelect: increaseZoom
+    }
+
     Entry linearFiltering {
-        y: kGamePlayOptionsStartY
+        stringTable: [ ~m_useLinearFiltering, "OFF", "ON" ]
+
+        upEntry: zoom
         downEntry: >
 
-        stringTable: [ ~m_useLinearFiltering, "OFF", "ON" ]
         onSelect: switchLinearFiltering
     }
 
     Entry flashCursor {
+        stringTable: [ ~m_flashCursor, "OFF", "ON" ]
+
         upEntry: <
         downEntry: >
 
-        stringTable: [ ~m_flashCursor, "OFF", "ON" ]
         onSelect: changeFlashCursor
     }
 
-    Entry showTouchTrails {
+    Entry showFps {
+        stringTable: [ ~m_showFps, "OFF", "ON" ]
+
         upEntry: <
         downEntry: >
 
+        onSelect: changeShowFps
+    }
+
+    Entry showTouchTrails {
         stringTable: [ ~m_showTouchTrails, "OFF", "ON" ]
+
+        upEntry: <
+        downEntry: >
+
         onSelect: changeShowTouchTrails
     }
 
     Entry transparentVirtualJoypadButtons {
+        stringTable: [ ~m_transparentButtons, "OFF", "ON" ]
+
         upEntry: <
         downEntry: >
 
-        stringTable: [ ~m_transparentButtons, "OFF", "ON" ]
         onSelect: changeVirtualJoypadTransparentButtons
     }
-
-    entryAlias firstChangerItem = linearFiltering
 
     Entry showWindowMode {
         x: (@kScreenWidth - kOptionWidth) / 2 - kMenuOffset
         y: @prevEndY + 3 * kOptionsRowDistance
 
+        color: @kGreen
+        text: "WINDOW MODE"
+
         upEntry: <
         downEntry: >
 
-        color: @kGreen
-        text: "WINDOW MODE"
         onSelect: openWindowModeMenu
     }
 
@@ -105,6 +159,7 @@ Menu videoOptionsMenu
         text: swos.aExit
 
         upEntry: <
+
         onSelect: ~SetExitMenuFlag
     }
 }

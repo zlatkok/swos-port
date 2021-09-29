@@ -5,6 +5,9 @@
 #include "pitchConstants.h"
 #include "sfx.h"
 
+constexpr int kTimeX = 20 - 6;
+constexpr int kTimeY = 9;
+
 using LastPeriodMinuteHandler = void (*)();
 using TimeDigitSprites = std::array<int, 4>;
 
@@ -18,35 +21,37 @@ static int m_timeDelta;
 static int m_gameSeconds;
 static int m_secondsSwitchAccumulator;
 
+static bool m_showTime;
+
 static void initTimeDelta();
 static bool isGameAtMinute(dword minute);
 static bool prolongLastMinute();
-static void positionTimeSprite();
-static void drawGameTime(int x, int y, const GameTime& gameTime);
-static std::tuple<int, int, int> getTimeSpriteCoordinates();
+static void drawGameTime(const GameTime& gameTime);
 static TimeDigitSprites getGameTimeSprites(const GameTime& gameTime);
 static LastPeriodMinuteHandler getPeriodEndHandler();
 static bool isNextMinuteLastInPeriod();
 static void bumpGameTime();
 static void setupLastMinuteSwitchNextFrame();
-static void ensureTimeSpriteIsVisible();
 
-void resetTime()
+void resetGameTime()
 {
+    m_showTime = false;
+
     m_gameSeconds = 0;
     m_gameTime.fill(0);
     m_secondsSwitchAccumulator = 0;
 
-    positionTimeSprite();
-    swos.currentTimeSprite.visible = 0;
-    swos.currentTimeSprite.pictureIndex = kTimeSprite118Mins;
-
     initTimeDelta();
+}
+
+bool gameTimeShowing()
+{
+    return m_showTime;
 }
 
 void updateGameTime()
 {
-    ensureTimeSpriteIsVisible();
+    m_showTime = true;
 
     bool minuteSwitchAboutToHappen = m_gameSeconds < 0;
 
@@ -59,12 +64,8 @@ void updateGameTime()
                 playEndGameWhistleSample();
                 periodEndHandler();
             }
-            positionTimeSprite();
-        } else {
-            if (prolongLastMinute()) {
-                setupLastMinuteSwitchNextFrame();
-                positionTimeSprite();
-            }
+        } else if (prolongLastMinute()) {
+            setupLastMinuteSwitchNextFrame();
         }
     } else if (swos.gameStatePl == GameState::kInProgress && !swos.playingPenalties) {
         m_secondsSwitchAccumulator -= m_timeDelta;
@@ -79,39 +80,23 @@ void updateGameTime()
                 if (isGameAtMinute(1) || isGameAtMinute(46))
                     BumpAllPlayersLastPlayedHalfAtGameStart();
 
-                if (isNextMinuteLastInPeriod()) {
+                if (isNextMinuteLastInPeriod())
                     setupLastMinuteSwitchNextFrame();
-                    positionTimeSprite();
-                } else {
-                    positionTimeSprite();
-                }
             }
         }
     }
-
-    positionTimeSprite();
 }
 
-void drawGameTime(const Sprite& sprite)
+void drawGameTime()
 {
-    assert(!sprite.x.fraction() && !sprite.y.fraction() && !sprite.z.fraction());
-
-    int x = sprite.x.whole();
-    int y = sprite.y.whole();
-    int z = sprite.z.whole();
-
-    drawGameTime(x, y - z, m_gameTime);
+    if (m_showTime)
+        drawGameTime(m_gameTime);
 }
 
 void drawGameTime(int digit1, int digit2, int digit3)
 {
     assert(digit1 >= 0 && digit2 >= 0 && digit3 >= 0 && digit1 <= 1 && digit2 <= 9 && digit3 <= 9);
-
-    int x, y, z;
-    std::tie(x, y, z) = getTimeSpriteCoordinates();
-
-    GameTime gameTime{ 0, digit1, digit2, digit3 };
-    drawGameTime(x, y - z, gameTime);
+    drawGameTime({ 0, digit1, digit2, digit3 });
 }
 
 dword gameTimeInMinutes()
@@ -261,32 +246,18 @@ static bool isNextMinuteLastInPeriod()
     return getPeriodEndHandler() != nullptr;
 }
 
-static void positionTimeSprite()
-{
-    std::tie(swos.currentTimeSprite.x, swos.currentTimeSprite.y, swos.currentTimeSprite.z) = getTimeSpriteCoordinates();
-}
-
-static void drawGameTime(int x, int y, const GameTime& gameTime)
+static void drawGameTime(const GameTime& gameTime)
 {
     auto kDigitWidth = getSprite(kBigTimeDigitSprite0 + 8).width;
     auto timeDigitSprites = getGameTimeSprites(gameTime);
 
     int xOffset = 0;
     for (size_t i = 0; i < timeDigitSprites.size() && timeDigitSprites[i] >= 0; i++) {
-        drawMenuSprite(timeDigitSprites[i], x + xOffset, y);
+        drawMenuSprite(timeDigitSprites[i], kTimeX + xOffset, kTimeY);
         xOffset += kDigitWidth;
     }
 
-    drawMenuSprite(kTimeSprite8Mins, x + xOffset, y);
-}
-
-static std::tuple<int, int, int> getTimeSpriteCoordinates()
-{
-    constexpr int kTimeXOffset = 20 - 6;
-    constexpr int kTimeYOffset = 9;
-    constexpr int kTimeZOffset = 10'000;
-
-    return { kTimeXOffset, kTimeYOffset + kTimeZOffset, kTimeZOffset };
+    drawMenuSprite(kTimeSprite8Mins, kTimeX + xOffset, kTimeY);
 }
 
 static void bumpGameTime()
@@ -305,12 +276,4 @@ static void setupLastMinuteSwitchNextFrame()
 {
     m_gameSeconds = -1;
     m_endGameCounter = 55;
-}
-
-static void ensureTimeSpriteIsVisible()
-{
-    if (!swos.currentTimeSprite.visible) {
-        swos.currentTimeSprite.visible = true;
-        initDisplaySprites();
-    }
 }

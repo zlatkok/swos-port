@@ -88,6 +88,21 @@ std::string formatNumberWithCommas(int64_t num)
     return result;
 }
 
+void formatDoubleNoTrailingZeros(double value, char *buf, int bufLen, int digits)
+{
+    int len = snprintf(buf, bufLen, "%.*f", digits, value);
+
+    auto p = buf + len - 1;
+
+    while (*p == '0')
+        *p-- = '\0';
+
+    if (*p == '.')
+        *p = '\0';
+
+    assert(p > buf);
+}
+
 int numDigits(int num)
 {
     assert(num >= 0);

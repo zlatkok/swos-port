@@ -138,7 +138,7 @@ red or or double yellow card).
 
 === Game's coordinate system
 
-X se povecava udesno, Y se povecava na dole, Z se povecava na gore (u visinu).
+x increases to the right, y increases downward, z increases upward (height).
 
  +--------> x
  |
@@ -148,7 +148,7 @@ X se povecava udesno, Y se povecava na dole, Z se povecava na gore (u visinu).
  y
 
 
-=== Animacija
+=== Animation
 
 Za animacije igraca koriste se specijalne tablice. Uvek pocinju sa wordom, to
 je broj frejmova koliko se ceka izmedju slicica (frame delay). Zatim ide lista

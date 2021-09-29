@@ -3,7 +3,7 @@
 #include "drawBench.h"
 #include "pitchConstants.h"
 
-constexpr int kBenchX = 27;
+constexpr float kBenchX = 27;
 
 constexpr int kTopBenchY = 389;
 constexpr int kBottomBenchY = 485;
@@ -92,7 +92,7 @@ void setBenchOff()
     m_benchOff = false;
 }
 
-int benchCameraX()
+float benchCameraX()
 {
     return kBenchX;
 }
@@ -155,7 +155,7 @@ static void checkForThrowInAndKeepersBall()
         player->state = PlayerState::kNormal;
         A0 = &swos.playerNormalStandingAnimTable;
         A1 = player;
-        SetAnimationTable();
+        SetPlayerAnimationTable();
     }
 
     checkIfGoalkeeperClaimedTheBall();

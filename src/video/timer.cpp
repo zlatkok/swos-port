@@ -1,8 +1,7 @@
 #include "timer.h"
 #include "game.h"
 
-constexpr double kTargetFps = 70;
-static constexpr int kMaxLastFrames = 64;
+static constexpr int kMaxLastFrames = 32;
 
 static Sint64 m_frequency;
 
@@ -10,7 +9,7 @@ static Uint64 m_lastFrameTicks;
 static double m_ticksPerFrame;
 
 static Uint64 m_frameStartTime;
-static Uint64 m_renderEndTime;
+static Uint64 m_overShoot;
 
 static std::deque<Uint64> m_lastFramesDelay;
 
@@ -34,11 +33,14 @@ void initFrameTicks()
 
 // Simulates SWOS procedure executed at each interrupt 8 tick.
 // This will have to change and be calculated dynamically based on time elapsed since the last call.
-void timerProc()
+void timerProc(int factor /* = 1 */)
 {
     auto now = SDL_GetPerformanceCounter();
     auto ticksElapsed = now - m_frameStartTime;
-    int framesElapsed = std::max(1l, std::lround(ticksElapsed / m_ticksPerFrame));
+
+    int framesElapsed = std::max(std::lround(ticksElapsed / m_ticksPerFrame), 1l);
+    framesElapsed *= factor;
+    framesElapsed = std::min(framesElapsed, 6);
 
     swos.currentTick += framesElapsed;
     swos.menuCycleTimer += framesElapsed;
@@ -50,11 +52,6 @@ void timerProc()
 void markFrameStartTime()
 {
     m_frameStartTime = SDL_GetPerformanceCounter();
-}
-
-void skipFrameUpdate()
-{
-    m_frameStartTime = m_renderEndTime = SDL_GetPerformanceCounter();
 }
 
 void frameDelay(double factor /* = 1.0 */)
@@ -78,6 +75,8 @@ void frameDelay(double factor /* = 1.0 */)
         do {
             startTicks = SDL_GetPerformanceCounter();
         } while (m_frameStartTime + desiredDelay > startTicks);
+
+        m_overShoot = startTicks - m_frameStartTime - desiredDelay;
     }
 
     timerProc();
@@ -90,9 +89,9 @@ void measureRendering(std::function<void()> render)
     auto time = SDL_GetPerformanceCounter() - start;
 
     m_renderTimes[m_renderTimesIndex] = time;
-    m_renderTimesIndex = (m_renderTimesIndex + 1) % (kMaxLastFrames - 1);
+    m_renderTimesIndex = (m_renderTimesIndex + 1) % kMaxLastFrames;
 
-    markFrameStartTime();
+    m_frameStartTime = time - m_overShoot;
 }
 
 static void sleep(Uint64 sleepTicks)

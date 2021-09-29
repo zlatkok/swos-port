@@ -7,6 +7,7 @@
 #include "controls.h"
 #include "windowManager.h"
 #include "game.h"
+#include "replayExitMenu.h"
 
 constexpr int kScrollRateMs = 100;
 
@@ -17,6 +18,10 @@ static int m_x;     // current mouse coordinates
 static int m_y;
 static int m_clickX;
 static int m_clickY;
+
+static bool m_mouseInitialBlock;
+static int m_initialX;
+static int m_initialY;
 
 #ifdef  __ANDROID__
 constexpr auto kInvalidFinger = std::numeric_limits<SDL_FingerID>::max();
@@ -235,8 +240,8 @@ static bool performMouseWheelAction(const MenuEntry& entry, int scrollValue)
 
 static bool isPointInsideEntry(int x, int y, const MenuEntry& entry, int slack = 0)
 {
-    return x + slack >= entry.x && x - slack < entry.x + entry.width &&
-        y + slack >= entry.y && y - slack < entry.y + entry.height;
+    return x + slack >= entry.x && x - slack <= entry.x + entry.width &&
+        y + slack >= entry.y && y - slack <= entry.y + entry.height;
 }
 
 static bool isPointerInsideEntry(const MenuEntry& entry, int slack = 0)
@@ -268,7 +273,7 @@ static MenuEntry *findPointedMenuEntry()
 // Allow certain area around the mouse pointer to trigger entries when mouse wheel scrolling
 static void checkForExpandedWheelScrolling(int scrollAmount)
 {
-    constexpr int kMouseScrollSlack = 2;
+    constexpr int kMouseScrollSlack = 3;
     findPointedMenuEntry([scrollAmount](const auto& entry) { return performMouseWheelAction(entry, scrollAmount); }, kMouseScrollSlack);
 }
 
@@ -309,7 +314,7 @@ static void checkForEntryClicksAndMouseWheelMovement(bool leftButtonTriggered)
             currentMenu->selectedEntry = entry;
 
         if (leftButtonTriggered) {
-            if (isPointInsideEntry(m_clickX, m_clickY,  *entry)) {
+            if (isPointInsideEntry(m_clickX, m_clickY, *entry)) {
                 currentMenu->selectedEntry = entry;
                 triggerMenuFire();
             }
@@ -382,6 +387,12 @@ static void checkForMouseDragging(bool leftButtonJustPressed)
     }
 }
 
+void initMenuMouse()
+{
+    SDL_GetMouseState(&m_initialX, &m_initialY);
+    m_mouseInitialBlock = true;
+}
+
 void resetMenuMouseData()
 {
     determineReachableEntries();
@@ -427,12 +438,27 @@ void setGlobalWheelEntries(int upEntry /* = -1 */, int downEntry /* = -1 */)
     wheelData.entries.clear();
 }
 
+static bool mouseMovedFromStartingPosition()
+{
+    if (m_mouseInitialBlock) {
+        if (m_x == m_initialX && m_y == m_initialY)
+            return false;
+        m_mouseInitialBlock = false;
+    }
+    return true;
+}
+
+static bool shouldMouseReact()
+{
+    return hasMouseFocus() && mouseMovedFromStartingPosition() && (!isMatchRunning() || replayExitMenuShown());
+}
+
 static bool clickValid(int x, int y)
 {
 #ifdef __ANDROID__
-    return hasMouseFocus() && !isMatchRunning() && m_x >= 0 && m_x < kVgaWidth && m_y >= 0 && m_y < kVgaHeight;
+    return shouldMouseReact() && m_x >= 0 && m_x < kVgaWidth && m_y >= 0 && m_y < kVgaHeight;
 #else
-    return hasMouseFocus() && !isMatchRunning() && mapCoordinatesToGameArea(m_x, m_y);
+    return shouldMouseReact() && mapCoordinatesToGameArea(m_x, m_y);
 #endif
 }
 

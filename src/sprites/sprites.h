@@ -9,7 +9,6 @@ void initSprites();
 void initMatchSprites(const TeamGame *topTeam, const TeamGame *bottomTeam);
 void initMenuSprites();
 const PackedSprite& getSprite(int index);
-void setSprite(int index, const PackedSprite& sprite);
 SDL_Texture *getTexture(const PackedSprite& sprite);
 void setMenuSpritesColor(const Color& color);
 void fillPlayerSprites(SDL_Texture **topTeamTextures, SDL_Texture **bottomTeamTextures, int numTextures,

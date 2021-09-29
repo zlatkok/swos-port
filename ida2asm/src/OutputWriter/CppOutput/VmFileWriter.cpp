@@ -571,7 +571,7 @@ void VmFileWriter::outputMemoryAccessFunctions()
 {
     const char kMemFunctions[] = "\n"
         "constexpr dword kExternalPointerMask = 1 << 31;\n"
-        "constexpr size_t kMaxPointers = kPointerPoolSize / sizeof(void *);\n"
+        "SDL_UNUSED constexpr size_t kMaxPointers = kPointerPoolSize / sizeof(void *);\n"
         "const auto kPointerPool = reinterpret_cast<char **>(kPointerPoolStart);\n"
         "\n"
         "static size_t m_numPointers;\n"

@@ -1,6 +1,6 @@
 #include "menuItemRenderer.h"
-#include "menus.h"
 #include "windowManager.h"
+#include "menus.h"
 #include "color.h"
 
 constexpr int kMaxTextureWidth = 2048;
@@ -271,6 +271,7 @@ static void ensureCacheValidity()
         logInfo("Screen dimensions changed, cached: %d, %d -> actual: %d, %d", m_cacheScreenDimensions.first,
             m_cacheScreenDimensions.second, screenDimensions.first, screenDimensions.second);
         clearCache();
+        m_cacheScreenDimensions = screenDimensions;
     }
 }
 

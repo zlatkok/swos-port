@@ -26,8 +26,11 @@ constexpr int kFormationEntryHeight = 9;
 
 constexpr int kFormationIndex = -1;
 
-static FixedPoint m_cameraX;
-static FixedPoint m_cameraY;
+static float m_cameraX;
+static float m_cameraY;
+
+static float m_xOffset;
+static float m_yOffset;
 
 enum MenuType
 {
@@ -74,10 +77,13 @@ void initBenchMenusBeforeMatch()
     determineMenuTeamColors();
 }
 
-void drawBench()
+void drawBench(float xOffset, float yOffset)
 {
     if (!isBenchVisible())
         return;
+
+    m_xOffset = xOffset;
+    m_yOffset = yOffset;
 
     updateCameraCoordinates();
 
@@ -571,7 +577,7 @@ static const Color& getSelectedPlayerHighlightColor(int pos)
 
 static void drawBenchSprite(int spriteIndex, int x, int y)
 {
-    drawSprite(spriteIndex, x - m_cameraX, y - m_cameraY);
+    drawSprite(spriteIndex, x - m_cameraX, y - m_cameraY, true, m_xOffset, m_yOffset);
 }
 
 static void drawRectWithShadow(int x, int y, int width, int height, const Color& baseColor)

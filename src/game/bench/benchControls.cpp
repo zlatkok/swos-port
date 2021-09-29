@@ -4,6 +4,7 @@
 #include "gameControlEvents.h"
 #include "gameControls.h"
 #include "gameSprites.h"
+#include "referee.h"
 #include "comments.h"
 #include "util.h"
 
@@ -597,13 +598,13 @@ static bool benchBlocked()
         swos.g_cameraLeavingSubsTimer--;
         return true;
     } else {
-        return swos.g_substituteInProgress || swos.refVar || swos.statsTimer;
+        return swos.g_substituteInProgress || refereeActive() || swos.statsTimer;
     }
 }
 
 static bool benchUnavailable()
 {
-    if (swos.gameStatePl == GameState::kInProgress || swos.whichCard || swos.playingPenalties ||
+    if (swos.gameStatePl == GameState::kInProgress || cardHandingInProgress() || swos.playingPenalties ||
         swos.gameState >= GameState::kStartingGame && swos.gameState <= GameState::kGameEnded) {
         m_pl1TapState.reset();
         m_pl2TapState.reset();

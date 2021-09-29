@@ -11,6 +11,9 @@ struct FixedPoint {
         float whole, fraction = std::modf(value, &whole);
         return FixedPoint(static_cast<int>(whole), static_cast<int>(fraction * 0xffff));
     }
+    float asFloat() const {
+        return *this;
+    }
     FixedPoint& operator=(const FixedPoint& other) {
         m_value = other.m_value;
         return *this;
@@ -63,6 +66,9 @@ struct FixedPoint {
     }
     bool operator>(int value) const {
         return whole() > value || whole() == value && fraction();
+    }
+    bool operator>(int16_t value) const {
+        return operator>(static_cast<int>(value));
     }
     bool operator>=(int value) const {
         return whole() >= value;

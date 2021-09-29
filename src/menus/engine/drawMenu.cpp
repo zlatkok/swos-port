@@ -9,10 +9,13 @@
 #include "timer.h"
 
 constexpr int kTooSmallHeightForFrame = 8;
+constexpr double kMenuDelayFactor = 2.0;
 
 static bool m_fadeIn;
 
 struct LocalSprite {
+    LocalSprite(int width, int height, SDL_Texture *texture, bool cleanUp) :
+        width(width), height(height), texture(texture), cleanUp(cleanUp) {}
     int width;
     int height;
     SDL_Texture *texture;
@@ -65,12 +68,6 @@ void SWOS::DrawMenuItem()
     drawMenuItem(A5.asMenuEntry());
 }
 
-void SWOS::FadeIn()
-{
-    drawMenu(false);
-    fadeIn();
-}
-
 void drawMenuItem(MenuEntry *entry)
 {
     assert(entry);
@@ -95,14 +92,24 @@ void drawMenuItem(MenuEntry *entry)
 
 void flipInMenu()
 {
-    frameDelay(2);
+    frameDelay(kMenuDelayFactor);
 
     if (m_fadeIn) {
-        fadeIn();
+        menuFadeIn();
         m_fadeIn = 0;
+    } else {
+        updateScreen();
     }
+}
 
-    updateScreen();
+void menuFadeIn()
+{
+    fadeIn([]() { drawMenu(false); }, kMenuDelayFactor);
+}
+
+void menuFadeOut()
+{
+    fadeOut([]() { drawMenu(false); }, kMenuDelayFactor);
 }
 
 void enqueueMenuFadeIn()
@@ -110,12 +117,23 @@ void enqueueMenuFadeIn()
     m_fadeIn = true;
 }
 
+void registerMenuLocalSprite(int width, int height, SDL_Texture *texture, bool cleanUp /* = true */)
+{
+    m_menuLocalSprites.emplace_back(width, height, texture, cleanUp);
+}
+
+void clearMenuLocalSprites()
+{
+    for (const auto& sprite : m_menuLocalSprites)
+        if (sprite.cleanUp)
+            SDL_DestroyTexture(sprite.texture);
+
+    m_menuLocalSprites.clear();
+}
+
 static void clearAllItemsDrawnFlag()
 {
-    auto entry = getCurrentMenu()->entries();
-    auto sentinelEntry = entry + getCurrentMenu()->numEntries;
-
-    for (; entry < sentinelEntry; entry++)
+    for (auto entry = getCurrentMenu()->entries(); entry < getCurrentMenu()->sentinelEntry(); entry++)
         entry->drawn = 0;
 }
 
@@ -133,10 +151,7 @@ static bool shouldBlink()
 
 static void drawMenuItems()
 {
-    auto entry = getCurrentMenu()->entries();
-    auto sentinelEntry = entry + getCurrentMenu()->numEntries;
-
-    for (; entry < sentinelEntry; entry++) {
+    for (auto entry = getCurrentMenu()->entries(); entry < getCurrentMenu()->sentinelEntry(); entry++) {
         bool textBlinking = entry->type != kEntryNoForeground && entry->stringFlags & kBlinkText;
         bool skipText = textBlinking && shouldBlink();
 
@@ -363,12 +378,15 @@ static void drawMenuLocalSprite(MenuEntry *entry, int spriteIndex)
 
     const auto& sprite = m_menuLocalSprites[spriteIndex];
 
-    int x = entry->x + entry->width / 2 - sprite.width / 2;
-    int y = entry->y + entry->height / 2 - sprite.height / 2;
+    auto scale = getScale();
+    auto widthF = static_cast<float>(sprite.width);
+    auto heightF = static_cast<float>(sprite.height);
 
-    SDL_Rect dst{ x, y, sprite.width, sprite.height };
+    auto x = getScreenXOffset() + (entry->x + static_cast<float>(entry->width) / 2) * scale - widthF / 2;
+    auto y = getScreenYOffset() + (entry->y + static_cast<float>(entry->height) / 2) * scale - heightF / 2;
 
-    SDL_RenderCopy(getRenderer(), sprite.texture, nullptr, &dst);
+    SDL_FRect dst{ x, y, widthF, heightF };
+    SDL_RenderCopyF(getRenderer(), sprite.texture, nullptr, &dst);
 }
 
 static void executeEntryContentFunction(MenuEntry *entry)

@@ -47,8 +47,8 @@ int LegacyReplayConverter::processLegacyFrame(const ReplayDataStorage::DataStore
 
     ReplayDataStorage::FrameData frameData;
 
-    frameData.cameraX = legacyData[current] & 0xffff;
-    frameData.cameraY = (legacyData[current] >> 16) & 0x7fff;
+    frameData.cameraX = static_cast<float>(legacyData[current] & 0xffff);
+    frameData.cameraY = static_cast<float>((legacyData[current] >> 16) & 0x7fff);
     wrappedIncrement(current, sceneStart, sceneEnd);
 
     frameData.team1Goals = legacyData[current] & 0xffff;
@@ -70,7 +70,7 @@ int LegacyReplayConverter::processLegacySprite(const ReplayDataStorage::DataStor
     int spriteIndex = packedSprite >> 20;
     int x = signExtend<10>((packedSprite >> 10) & 0x3ff);
     int y = signExtend<10>(packedSprite & 0x3ff);
-    m_storage.recordSprite(spriteIndex, x, y);
+    m_storage.recordSprite(spriteIndex, static_cast<float>(x), static_cast<float>(y));
 
     wrappedIncrement(current, sceneStart, sceneEnd);
 

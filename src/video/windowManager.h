@@ -32,7 +32,6 @@ int getWindowDisplayIndex();
 bool setFullScreenResolution(int width, int height);
 bool isInFullScreenMode();
 std::pair<int, int> getFullScreenDimensions();
-std::pair<int, int> getVisibleFieldSize();
 
 void switchToWindow();
 void switchToBorderlessMaximized();
@@ -44,8 +43,9 @@ void centerWindow();
 
 bool hasMouseFocus();
 bool mapCoordinatesToGameArea(int& x, int& y);
-float getXScale();
-float getYScale();
+float getScale();
+float getScreenXOffset();
+float getScreenYOffset();
 SDL_FRect mapRect(int x, int y, int width, int height);
 
 #ifdef VIRTUAL_JOYPAD
@@ -56,6 +56,8 @@ void setTransparentVirtualJoypadButtons(bool transparentButtons);
 #endif
 bool cursorFlashingEnabled();
 void setFlashMenuCursor(bool flashMenuCursor);
+bool getShowFps();
+void setShowFps(bool showFps);
 
 void loadVideoOptions(const CSimpleIni& ini);
 void saveVideoOptions(CSimpleIni& ini);

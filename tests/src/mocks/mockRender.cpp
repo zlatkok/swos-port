@@ -22,11 +22,9 @@ void setPalette(const char *, int) {}
 void getPalette(char *) {}
 void skipFrameUpdate() {}
 void frameDelay(double) {}
-void timerProc() {}
 void fadeIfNeeded() {}
-void fadeIn() {}
-void fadeOut() {}
-void fadeInAndOut(void (*)()) {}
+void fadeIn(std::function<void()>, double) {}
+void fadeOut(std::function<void()>, double) {}
 void makeScreenshot() {}
 void drawRectangle(int x, int y, int width, int height, const Color& color) {}
 bool getLinearFiltering() { return false; }

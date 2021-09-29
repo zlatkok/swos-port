@@ -2,6 +2,7 @@
 #include "audio.h"
 #include "chants.h"
 #include "file.h"
+#include "replays.h"
 
 SfxSamplesArray m_sfxSamples;
 static int m_crowdLoopChannel = -1;
@@ -51,12 +52,15 @@ static bool isCrowdSample(SfxSampleIndex index)
         index == kChant10l || index == kChant8l;
 }
 
-static int playSfx(SfxSampleIndex index, int volume = MIX_MAX_VOLUME, int loopCount = 0)
+static int playSfx(SfxSampleIndex index, int volume = MIX_MAX_VOLUME, int loopCount = 0, bool saveForHighlights = true)
 {
     if (!soundEnabled() || swos.g_trainingGame && isCrowdSample(index))
         return -1;
 
     assert(index >= 0 && index < kNumSoundEffects);
+
+    if (saveForHighlights)
+        saveSfxForHighlights(index, volume);
 
     auto chunk = m_sfxSamples[index].chunk();
     if (chunk) {
@@ -86,6 +90,14 @@ void stopBackgroudCrowdNoise()
 void playEndGameWhistleSample()
 {
     playSfx(kEndGameWhistle, 42);
+}
+
+void playSfx(int sample, int volume)
+{
+    if (static_cast<size_t>(sample) < kNumSoundEffects)
+        playSfx(static_cast<SfxSampleIndex>(sample), volume, 0, false);
+    else
+        logWarn("Got invalid SFX sample %d", sample);
 }
 
 void SWOS::PlayMissGoalSample()

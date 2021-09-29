@@ -331,7 +331,7 @@ offset  length  description
                 a word
   22        2   index of currently shown picture
   24        2   ??? write first word from sprite tables
-                could be number of pictures, or highest index
+                could be number of pictures, or the highest index
   26        2   cyclic timer for images, ticks whenever the sprite is visible
                 once it goes down to zero, next frame is drawn
   28        2   unlimited image timer, with delay

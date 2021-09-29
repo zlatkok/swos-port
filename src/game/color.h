@@ -31,3 +31,12 @@ enum GamePalette
     kGameColorGreen = 14,
     kGameColorYellow = 15,
 };
+
+using ColorPerFace = std::array<Color, kNumFaces>;
+
+static constexpr ColorPerFace kSkinColor = {{
+    { 252, 108, 0 }, { 252, 108, 0 }, { 54, 18, 0 },
+}};
+static constexpr ColorPerFace kHairColor = {{
+    { 60, 60, 60 }, { 180, 72, 0 }, { 60, 60, 60 },
+}};

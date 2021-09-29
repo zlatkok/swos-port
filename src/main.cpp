@@ -2,6 +2,7 @@
 #include "init.h"
 #include "options.h"
 #include "render.h"
+#include "pitch.h"
 #include "audio.h"
 #include "file.h"
 #include "crash.h"
@@ -51,6 +52,9 @@ int main(int argc, char **argv)
     initRendering();
     normalizeOptions();
     initJoypads();
+
+    // set zoom again since the window wasn't created at the time the options were loaded
+    setZoomFactor(getZoomFactor());
 
     atexit(finishRendering);
     atexit(saveOptions);        // must be set after finishRendering
