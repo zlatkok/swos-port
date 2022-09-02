@@ -5,7 +5,6 @@
 #include "joypads.h"
 #include "mouse.h"
 #include "menuMouse.h"
-#include "options.h"
 #include "game.h"
 #include "util.h"
 #include "VirtualJoypad.h"
@@ -192,13 +191,14 @@ static void processEvent(const SDL_Event& event)
     case SDL_KEYUP:
         {
             auto key = event.key.keysym.scancode;
+            auto sym = event.key.keysym.sym;    // needed for Unicode chars
             bool pressed = event.type == SDL_KEYDOWN;
 
             if (m_shortcutsEnabled)
                 checkGlobalKeyboardShortcuts(key, pressed);
 
             if (pressed)
-                registerKey(key);
+                registerKey(key, sym);
         }
         break;
 

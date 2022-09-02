@@ -2889,7 +2889,7 @@ earlier:
 - optimized optimizer a bit ;) it now deletes a bit more instructions
 - trying to compile SDL2 for Android, this will be death on the dance floor
 03.09.2020.
-- managed to compile SDL2 for ARM with Visual Studio, but not it's Java wrapper project
+- managed to compile SDL2 for ARM with Visual Studio, but not its Java wrapper project
 - had an idea today, to actually kick out lot of x86 registers from the code and leave 68k (since it was what
   the conversion was from), but it could get complicated, might leave for later, will see
 04.09.2020.
@@ -4160,8 +4160,8 @@ earlier:
 - camera implementation in C++ on the way
 08.06.2021.
 - MoveCamera() conversion finally complete! and amazingly, with just a bit of debugging it works too;
-  wobbling is solved completely, and my subjective feel is that movement is quite smooth (not sure of any way
-  to reliably compare with the original)
+  wobbling is solved completely, and my subjective feel is that movement is quite smooth (not sure of any
+  way to reliably compare with the original)
 - had to return topTeamSaved and bottomTeamSaved buffers since they overlap DIY competition buffer (and a
   crash was happening without them)
 - added the code to decrement showFansCounter, this should fix camera sometimes being locked to goal and
@@ -4173,8 +4173,8 @@ earlier:
 - used newly renovated fractional camera coordinates to improve precision of pitch rendering, but gave up on
   floating point SDL calls: when using them visible stitches where patterns connect would occasionally show
   up, so I went with integer call and did the rounding myself, will have to test how it looks like with
-  random window sizes -- sprites are using floating point calls, and therefore a different rounding algorithm
-  (than pitches), gotta bring them to integer coordinates as well
+  random window sizes -- sprites are using floating point calls, and therefore a different rounding
+  algorithm (than pitches), gotta bring them to integer coordinates as well
 10.06.2021.
 - changed precalculated float fields in sprites database from float to fixed point
 - fixed wiggling corner post (it's still a bit weird, but it might be from the pixel conversion); width and
@@ -4830,4 +4830,421 @@ earlier:
 - fixed not detecting already assigned key when adding new key control
 - fixed controls quick config menu
 - fixed second team result digits swapped when scoring 10+ goals
+- published a new version and pushed to Github
+16.10.2021.
+- fixed a crash when some of the comments couldn't be played back
+- fixed a crash caused by colorized sprites cache not being properly cleared when the resolution changes
+  outside of the game
+- fixed invalid menu background texture packing when a new texture is needed
+- fixed passing a null texture for menu local sprites when a team doesn't have at least one player of each
+  hair/skin variant
+- fixed a crash when exiting with alt-F1 and the game is in borderless window mode (renderer gets destroyed
+  first, but the window has event handler installed which receives size changed message and then queries the
+  renderer in order to update the logical size... oops!)
+- fixed a caching error, whereas game thinks it has all the player sprites ready but it doesn't (e.g. loading a
+  team with no blacks first, and then a team that has)
+17.10.2021.
+- added boolOption entry type to replace all those ON/OFF string tables with additional functions all over
+  the place (updated mnu2h to parse and generate them + support C++ code)
+18.10.2021.
+- added string description (more like an option name) to boolOption, to go in the log when the option
+  changes
+19.10.2021.
+- re-hauling options, trying to centralize them a bit more in options.cpp, and to offload window manager
+- removed chairman scenes option
+20.10.2021.
+- finished options refactoring, it wasn't possible to do it exactly as I planned, but I think it's still a bit
+  better than it was before
+- discovered that creation and caching of fancy backgrounds still takes place, even if they're not displayed;
+  disabled that and the menus FLY again ;) excellent debug option, and might be useful for low-end machines as well
+- enabled entering audio volume directly by keyboard
+- fixed comment with control event values in ini file
+21.10.2021.
+/
+22.10.2021.
+/
+23.10.2021.
+/
+24.10.2021.
+/
+25.10.2021.
+/
+26.10.2021.
+/
+27.10.2021.
+/
+28.10.2021.
+/
+29.10.2021.
+/
+30.10.2021.
+/
+31.10.2021.
+/
+01.11.2021.
+- created a script for merging separate sprite layer images into a single multi-layered TIFF (to ease the
+  artist's job)
+02.11.2021.
+/
+03.11.2021.
+/
+04.11.2021.
+/
+05.11.2021.
+/
+06.11.2021.
+/
+07.11.2021.
+/
+08.11.2021.
+/
+09.11.2021.
+/
+10.11.2021.
+/
+11.11.2021.
+/
+12.11.2021.
+/
+13.11.2021.
+/
+14.11.2021.
+/
+15.11.2021.
+/
+...
+01.01.2022.
+- installed Photoshop to VM and realized it can't handle multi-layered TIFFs...
+02.01.2022.
+/
+03.01.2022.
+- managed to create proper PSD files with correct layers that are opening nicely in Photoshop
+04.01.2022.
+- integrated PSD creation into script and generated PSD's for all the layered sprites
+05.01.2022.
+- worked on image asset creation manual; to do: go over bench sprites, include pitch image examples, and an
+  image of pattern separation grid, go over sprite descriptions, remove/add necessary
+06.01.2022.
+- added pitch bitmaps to asset spec archive
+- added bench sprites to sprite layer generation script
+07.01.2022.
+- now copying missing *.txt files too (sprite center coordinates)
+- optimized script to issue commands in parallel (much faster now)
+- updated backup script to pick up doc file from assets dir
+- added original scrolling board sprites
+08.01.2022.
+- finished asset manual, sent to Playa for review
+09.01.2022.
+/
+10.01.2022.
+/
+11.01.2022.
+/
+12.01.2022.
+/
+13.01.2022.
+- extending SWOS++ with game data recorder... going pretty slow so far, by now I've pretty much remembered
+  why developing SWOS++ was so annoying and limited
+14.01.2022.
+- finished prototype version on SWOS++ side, all the data is properly saved to files; still need to test out
+  the details, potentially add more data and handle pointers, but file checker on port side should reveal
+  that -- on to fixing the tests
+15.01.2022.
+- working on getting the tests back up, the radical change of rendering method has brought a completely new
+  set of challenges
+16.01.2022.
+/
+17.01.2022.
+- working on fixing commentary tests
+18.01.2022.
+- trying hard to finish commentary tests, almost there, but couldn't quite; need to fix up end game chant
+  and comment
+19.01.2022.
+- commentary tests fixed!
+20.01.2022.
+- trying to fix select files tests
+21.01.2022.
+/
+22.01.2022.
+- select files tests fixed!
+- added keypad enter as a key to end text input
+- all tests are passing!
+- was solving the newly manifested problem of creating test snapshots; seems SDL doesn't want to render
+  while the main windows is hidden/minimized, will try to see if I can covertly do it via WinAPI; the system
+  is still buggy and doesn't render correctly, but it's showing promise
+23.01.2022.
+- moved test window to the back, since there's no chance to render anything while it's hidden/minimized
+- new challenge: tests are ran in background thread in order to be able to stop them if they run for too
+  long, but now we need to access UI and SDL APIs which are not thread safe, what to do, what to do...
+24.01.2022.
+/
+25.01.2022.
+/
+26.01.2022.
+/
+27.01.2022.
+- posted ad for artist to convert graphics on Upwork, let's see how that goes
+28.01.2022.
+- got two offers already
+- redid multi-threading setup of tests, now tests run in main thread so UI APIs can work properly, and the
+  timeout check is in a thread of its own
+- all the tests are passing!
+29.01.2022.
+/
+30.01.2022.
+- now deleting all the surfaces from snapshot thread properly
+- fixed some snapshots not appearing (target rendering texture wasn't updated when window size changed)
+31.01.2022.
+/
+01.02.2022.
+- fixed invalid size of some snapshots
+- fixed invalid yellow please wait message on snapshot when enumerating display modes goes too long, it's
+  actually a real bug, if it shows up once, and then the window gets moved to another monitor, the string
+  will point to garbage data
+- with this, I proclaim the tests fixed!
+02.02.2022.
+/
+03.02.2022.
+- made a skeleton of the recorded data test
+04.02.2022.
+- moved a bit with recorded data, loading it and starting the game (whatever that does); now in the phase of
+  disabling the SDL rendering calls
+05.02.2022.
+/
+06.02.2022.
+/
+07.02.2022.
+- fixed recorded data test, but it still needs more work, on both sides (currently need to save input near
+  the start of the frame, not at the end; but everything else needs to come from when the frame is about to
+  be shown)
+08.02.2022.
+/
+09.02.2022.
+/
+10.02.2022.
+/
+11.02.2022.
+/
+12.02.2022.
+/
+13.02.2022.
+/
+14.02.2022.
+/
+15.02.2022.
+/
+16.02.2022.
+/
+17.02.2022.
+/
+18.02.2022.
+/
+19.02.2022.
+/
+20.02.2022.
+/
+21.02.2022.
+/
+22.02.2022.
+/
+23.02.2022.
+/
+24.02.2022.
+/
+25.02.2022.
+/
+26.02.2022.
+/
+27.02.2022.
+/
+28.02.2022.
+/
+01.03.2022.
+/
+02.03.2022.
+/
+03.03.2022.
+/
+04.03.2022.
+/
+05.03.2022.
+/
+06.03.2022.
+/
+07.03.2022.
+/
+08.03.2022.
+/
+09.03.2022.
+/
+10.03.2022.
+/
+11.03.2022.
+- updated data format on the SWOS++ side, there was other data that had to be gathered, switching to parsing
+  the data, will see if it's the final version
+12.03.2022.
+- fixed sprite storing and a couple more smaller issues with recording, finally ready to move to the
+  verification
+13.03.2022.
+/
+14.03.2022.
+- realized I didn't store random generator state, which is a must; also reading tick variables from
+  interrupt handlers might be problematic; and another problem is divergence of code between the two
+  versions, just one missed Rand call can spell doom
+- got some differences in TeamGame, might be explained by this, but needs further research
+15.03.2022.-21.05.2022.
+/
+22.05.2022.
+- implemented fixed random value on SWOS++ end
+23.05.2022.
+/
+24.05.2022.-08.08.2022.
+/
+09.08.2022.
+- began writing script to unpack sprites from artist-convenient form to game-ready form
+10.08.2022.
+- script finally finished! had to fix some invalid sprite dimensions, and there are still some wrong stuff:
+  - all pitches are messed up except one :(
+  - something in the bench sprites
+  - something wrong in the stadium sprites (height one pixel too much)
+  - couple of sprites missing
+  it's hardly impressive looking but it's a bit better than before, especially compared to blocky sprites
+- fixed some mistakes in documentation
+11.08.2022.
+- tried manually fixing just one pitch, but failed and wasted a lot of time... really need some kind of a
+  tool for this; the problem with pitches is that he removed crowd and corner flags, but didn't update
+  indices, and everything is out of place
+12.08.2022.
+/
+13.08.2022.
+/
+14.08.2022.
+/
+15.08.2022.
+- had an idea to convert pitch PNGs to 8-bit BMPs and use SWPE to edit the pitch (and later just convert SWOS
+  binary DAT file index to new style text file index); no command line tool was able to apply fixed palette to
+  bitmaps... sigh, had to resort to writing a script with Python+PIL, but it did the job beautifully; next step was
+  to improve SWPE so it can scan the game directory and insert all present consecutive pitch patterns; but in the
+  end realized this action only made things worse... instead of messing with ~200 pattern images and index file,
+  now I have around 42x55 tiles to fix... ARGH! there's gotta be a
+  decent way to do this...
+16.08.2022.
+- if I improve SWPE a bit more, maybe it would be possible to edit the pitches in a realistic amount of time; that
+  experience could also translate nicely when a real pitch editor will be created
+- added mouse selection of patterns in pitch edit mode, along with custom cursor
+- right click & drag copies clicked pattern to all the dragged spots; when holding shift only straight lines are
+  drawn
+- mouse wheel scrolls pitch
+- left click drag pans the pitch
+- patterns can be deleted from pitch view too
+- fixed window positioning and screen edge snapping
+- small fixes (e.g. window centering and moving fixed, custom cursor behaves properly now)
+- got more ideas but these have already turned it into a nice little editor :)
+- even with these nice improvements it's still taking forever to edit the pitch...
+17.08.2022.
+- added control+s command to save pitch changes
+- added control+r command to discard changes and revert to last saved pitch
+- fixed a bug with pattern insertion when searching for wrong filename
+- changed pattern mode to be consistent with pitch mode: up increases pattern number, down decreases
+- improved pitch 2 (the one I'm converting) a bit, but it's still a long way to go
+18.08.2022.
+- added ability to enter pattern number directly in edit mode (to pattern under the cursor), press g to activate,
+  or double-click the pattern
+- holding middle mouse button shows pattern number in edit mode even if show pattern numbers is off
+- in addition to right-click drag pattern copying, now the master pattern can be selected by control-left clicking
+  as well (allows to draw with non-adjacent patterns)
+- added red rectangle to mark the pattern that's being copied (for right-click "drawing")
+- when pattern is unused it's displayed in pattern mode info (though needs to be updated when changing stuff)
+- fixed a case when inputting a pattern number, cursor moves and wrong pattern ends up changed
+- moved pattern number by a pixel right & down on the pitch, so it's easier to read now
+- finally finished pitch, it's not that bad, if I may say so :) all these changes to the editor helped a lot,
+  pinpointing unused patterns was especially useful for final touches; planning to add optimize feature, to remove
+  unused patterns and nicely sort used ones (by the on-pitch position) + generating txt index file for swos-port
+  and we're good to go ;)
+19.08.2022.
+- pattern usage count updated when editing
+- fixed crash when inserting pitch while drawing with right button
+20.08.2022.
+- implemented undo when modifying/deleting patterns on the pitch
+21.08.2022.
+- added pitch optimization (control+o): unused patterns are removed, and the existing ones are re-indexed so that
+  their order corresponds to order of appearance on the pitch (e.g. first unique pattern on the pitch from top-left
+  gets index 0, second 1 and so on) -- very useful when editing and going through the patterns
+- added text displaying what's going on when undoing/redoing
+- added undocumented command control+t to save pitch index file to text format that port can directly use to
+  compile resources
+22.08.2022.
+/
+23.08.2022.
+- fixed shift-insert in pattern mode (insert all patterns in directory) in case there are more files than patterns
+  already in the pitch
+- app doesn't ask to save changes when everything has been undone
+- quit prompt can be dismissed by pressing escape again
+- patterns can be highlighted now (very useful to find where in the pitch a particular pattern is placed); it can be
+  done by ctrl-shift clicking the pattern, or pressing h while it's displayed in pattern mode
+- middle click in pitch mode shows pattern number outside edit mode as well
+- fixed index file saving to skip invisible rows
+- added ctrl+insert command to pattern mode which adds new empty pattern to the end
+- first attempt of pitch transfer failed, but there will be more :)
+24.08.2022.
+- it turned out that compile assets script already understands swpe index file and skips invisible rows, oops :) so
+  removed that code
+- pitch2 works great! I copied the wrong files initially :)
+- made all new "ctrl+" shortcuts available out of edit mode too
+- finished pitch1 in swpe + port conversion, mostly OK, there are just a few mistakes
+- removed first and last two rows from pitch optimizations, they aren't visible and only mess up tile numbering
+  (they are all set to 0 tile in the output and the top-left tile gets assigned number 0)
+- argh... I haven't included other two types of shirts in the archive for the artist, so there's only one shirt type
+  converted; messed with sprite resizer software a bit more to see if I can convert them and got better results
+  than the first time, this looks even better than the converted sprites :P I'll play with this some more, might
+  reconvert all the sprites
+25.08.2022.
+- pitch1 mistakes fixed, officially done
+- added "change all instances of tile to" command, on C, useful when some tiles are shifted and can be quickly
+  changed to proper number; edit -- it's not useful, it's super useful! :)
+- finished pitch3 in swpe
+- finished pitch4 (swpe) too, it's going a bit faster now
+26.08.2022.
+- alt-click on tile in pitch mode switches to tile mode and displays the clicked tile
+- added ctrl-shift-s that forces save even if nothing changed
+- when switching to pitch edit mode cursor is now aligned with mouse pointer, instead of always starting top-left
+  (unless pitch didn't move -- in that case no change, assumption is that keyboard editing is in progress)
+- also pitch x and y are not rounded to tile grid anymore, it was an annoying abrupt jump
+- current tile number under the cursor can be shown while holding tab key regardless if the number display is on
+- tiles can be copied via keyboard too: hold shift and press arrow (selected tile will overwrite neighbor tile in
+  the arrow direction)
+- finished pitch5 & 6 (swpe)
+27.08.2022.
+- fixed excessive CPU usage in pitch mode
+- bulk change pattern operation (change all pattern instances to...) now undoes and redoes in a single step (what's
+  the use of undo/redo if you have to step by step manually undo/redo say 700+ steps)
+- included pitch optimization into undo/redo operations
+- included insert new pattern into undo/redo chain + allowed ctrl+z/y on pattern screen (had to, it's modifying the
+  same data as pitch)
+- fixed asking to save after undoing all operations
+- pitches 3, 4, 5 & 6 converted, that's all!
+28.08.2022.
+- patterns can be changed by holding ctrl and mouse wheel scrolling (current pattern changes +/-1)
+- brush pattern can be set via keyboard too, ctrl+enter
+- when using keyboard tile painting (shift+arrows), first the brush pattern will be used, if defined, and only if
+  not adjacent tile will be used for copying
+29.08.2022.
+- messed a bit with pixel-art scaling algorithms, did some testing, picked a few variants that work best for SWOS
+30.08.2022.
+- applied pixel-art scalers to game sprites (and some menu sprites too), in the end went with EPX3+XBR 4x combo;
+  while far from perfect it looks way better than what any ordinary scaling algorithm can achieve -- even though it
+  sometimes end up looking weird, I appreciate abstract art :) number sprites turned out a bit crappy so touched
+  them up a little by hand; tried a few other algo combinations for numbers-only, but eventually went with the
+  original one; this game really has a potential to look beautiful :)
+- deleted blocky assets (finally!) :)
+- fixed half-time and full-time sprites position
+31.08.2022.
+- implemented new char sprites into fonts (!,@,#,$,%,^,&,[,], YU letters, German letters...)
+- fixed text elision showing up in edit box when it shouldn't (input was allowing one character too many)
+- added message display when screenshot is made
+- fixed screenshot not working after 1st one was made (spam prevention working too well)
+- fixed some slight sprite errors
+01.09.2022.
+- added curly braces
+- added YU and German chars to allowed char list when entering names and filenames
 - published a new version and pushed to Github

@@ -21,7 +21,8 @@ kDefaultPropertyAliases = {
 kMenuProperties = kMenuFunctions + (kInitialEntry, 'x', 'y')
 
 kNextEntryProperties = ('leftEntry', 'rightEntry', 'upEntry', 'downEntry', 'skipLeft', 'skipRight', 'skipUp', 'skipDown')
-kEntryTypeProperties = ('text', 'stringTable', 'multilineText', 'number', 'sprite', 'menuSpecificSprite', 'customDrawForeground')
+kEntryTypeProperties = ('text', 'stringTable', 'multilineText', 'boolOption', 'number',
+    'sprite', 'menuSpecificSprite', 'customDrawForeground')
 kEntryFunctions = ('onSelect', 'beforeDraw', 'onReturn', 'customDrawBackground', 'customDrawForeground')
 kImmutableEntryProperties = ('name', 'ordinal')
 kPreviousEntryFields = ('ordinal', 'x', 'y', 'width', 'height', 'color', 'textFlags')

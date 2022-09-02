@@ -252,6 +252,14 @@ void updateCornerFlags()
     }
 }
 
+#ifdef SWOS_TEST
+Sprite *indexToSprite(unsigned index)
+{
+    assert(index < 33);
+    return kAllSprites[index < 32 ? index : std::size(kAllSprites) - 1];
+}
+#endif
+
 static void sortDisplaySprites()
 {
     std::sort(m_sortedSprites.begin(), m_sortedSprites.begin() + m_numSpritesToRender, [](const auto& spr1, const auto& spr2) {

@@ -5,8 +5,6 @@
 #include "JoypadConfig.h"
 #include "JoypadElementValue.h"
 
-class VirtualJoypad;
-
 void initJoypads();
 
 GameControlEvents pl1JoypadEvents();
@@ -22,7 +20,13 @@ int getJoypadIndex(PlayerNumber player);
 bool setJoypad(PlayerNumber player, int joypadNo);
 
 #ifdef VIRTUAL_JOYPAD
+class VirtualJoypad;
+
 VirtualJoypad& getVirtualJoypad();
+bool getTransparentVirtualJoypadButtons();
+void setTransparentVirtualJoypadButtons(bool transparentButtons);
+bool getShowTouchTrails();
+void setShowTouchTrails(bool showTouchTrails);
 
 class VirtualJoypadEnabler
 {

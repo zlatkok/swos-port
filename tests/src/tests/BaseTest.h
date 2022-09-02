@@ -1,5 +1,7 @@
 #pragma once
 
+#include <future>
+
 class BaseTest
 {
 public:
@@ -65,6 +67,7 @@ private:
 
     static TestResults runTestsWithTimeoutCheck(const TestOptions& options, const TestNamesSet& testList);
     static TestResults doRunTests(const TestOptions& options, const TestNamesSet& testList);
+    static void timeoutCheck(int timeout);
     static TestNamesSet validateTestNames(const TestNamesList& testNames);
     static TestNamesSet includeAllTests();
     static void includeTest(BaseTest *test, TestNamesSet& includedTests);
@@ -75,14 +78,19 @@ private:
     template <typename Time>
     static void showReport(int numTestsRan, const FailureList& failures, Time startTime);
     static void outputStats(std::chrono::time_point<std::chrono::steady_clock> startTime, int numTestsRan);
-    static void takeSnapshot(const char *snapshotDir, const char *caseId, int caseInstanceIndex);
+    static void initMenuBackgroundDrawHook();
+    static int hookRenderCopyF(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *srcRect, const SDL_FRect *dstRect);
+    static std::future<SDL_Surface *> takeSnapshot(const char *snapshotDir, const char *caseId, int caseInstanceIndex);
 
-    static std::tuple<size_t, size_t, size_t> unpackCurrentTest();
+    static uint32_t getCurrentTicks();
+    static std::tuple<uint32_t, size_t, size_t, size_t> unpackCurrentTest();
     static void packCurrentTest(size_t testIndex, size_t testCaseIndex, size_t dataIndex);
 
     static std::vector<BaseTest *> m_tests;
     static std::condition_variable m_condition;
     static std::mutex m_mutex;
-    static std::atomic<int32_t> m_currentTestPacked;
+    static std::atomic<int64_t> m_currentTestPacked;
     static bool m_testsDone;
+
+    static std::vector<std::future<SDL_Surface *>> m_snapshotFutures;
 };

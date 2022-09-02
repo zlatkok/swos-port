@@ -6,8 +6,6 @@
 # define sizeofarray(a) (sizeof(a)/sizeof((a)[0]))
 #endif
 
-constexpr int kMaxPath = 256;
-
 void sdlErrorExit(const char *format, ...);
 void errorExit(const char *format, ...);
 

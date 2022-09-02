@@ -396,6 +396,10 @@ class CodeGenerator:
                 name = CodeGenerator.getStringTableVariableName(menuName, entry)
                 result[-1] += f'&{name} }};'
 
+        if entry.boolOption:
+            getBoolFunction, setBoolFunction, description = entry.boolOption
+            result.append(f'EntryBoolOption ebo{ord}{{ {getBoolFunction}, {setBoolFunction}, {description} }};')
+
         if entry.multilineText is not None:
             if entry.multilineText:
                 var = CodeGenerator.getMultilineTextVariableName(menuName, entry)
@@ -449,6 +453,7 @@ class CodeGenerator:
         if entry.controlMask:
             native = 'Native' if 'onSelect' in entry.native else ''
             result.append(f'EntryOnSelectFunctionWithMask{native} eosfm{ord}{{ {entry.onSelect}, {entry.controlMask} }};')
+
         elif entry.onSelect:
             native = 'Native' if 'onSelect' in entry.native else ''
             result.append(f'EntryOnSelectFunction{native} eosf{ord}{{ {entry.onSelect} }};')

@@ -125,7 +125,8 @@ void MenuEntry::copyString(const char *str)
 
 bool MenuEntry::bigFont() const
 {
-    assert(type == kEntryString || type == kEntryStringTable || type == kEntryMultilineText || type == kEntryNumber);
+    assert(type == kEntryString || type == kEntryStringTable || type == kEntryMultilineText ||
+        type == kEntryNumber || type == kEntryBoolOption);
     return ((stringFlags >> 4) & 1) != 0;
 }
 
@@ -165,7 +166,8 @@ word MenuEntry::innerFrameColor() const
 
 int MenuEntry::solidTextColor() const
 {
-    assert(type == kEntryString || type == kEntryStringTable || type == kEntryMultilineText || type == kEntryNumber);
+    assert(type == kEntryString || type == kEntryStringTable || type == kEntryMultilineText ||
+        type == kEntryNumber || type == kEntryBoolOption);
     int color = stringFlags & 0xf;
     return color ? color : kWhiteText2;
 }

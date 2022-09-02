@@ -12,8 +12,8 @@ pointers get incremented by the address of corresponding pitch.blk file's
 contents.
 
 For pitchx.blk file SWOS sets aside 75776 bytes, which is enough for 296 unique
-patterns. All above that will cause overwrite of the patterns near the end by
-saved sprites, which will make a big mess on the field.
+patterns. Anything above that will cause overwrite of the patterns near the end
+by saved sprites, which will make a big mess on the field.
 
 At the start of the pitchx.dat file there are 2 x 21 pointers. Those are
 pointers to patterns that need to be converted - ie. colored to colors of teams

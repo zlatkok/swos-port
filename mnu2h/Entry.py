@@ -26,6 +26,7 @@ class Entry:
         self.sprite = None
         self.stringTable = None
         self.multilineText = None
+        self.boolOption = None
         self.customDrawBackground = None
         self.customDrawForeground = None
         self.menuSpecificSprite = None

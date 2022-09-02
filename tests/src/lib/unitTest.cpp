@@ -32,8 +32,8 @@ void SWOS_UnitTest::setMenuCallback(MenuCallback callback /* = nullptr */)
 bool SWOS_UnitTest::exitMenuProc()
 {
     if (m_menuCallback) {
-        static bool result;
-        auto invokeCallback = []() { result = m_menuCallback(); };
+        bool result = false;
+        auto invokeCallback = [&result]() { result = m_menuCallback(); };
         invokeWithSaved68kRegisters(invokeCallback);
         return result;
     }

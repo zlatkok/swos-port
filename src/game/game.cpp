@@ -239,7 +239,7 @@ void checkGlobalKeyboardShortcuts(SDL_Scancode scancode, bool pressed)
         break;
     }
 
-    lastScancode = scancode;
+    lastScancode = pressed ? scancode : SDL_SCANCODE_UNKNOWN;
 }
 
 bool checkGameKeys()
@@ -297,7 +297,7 @@ bool checkGameKeys()
             toggleMuteCommentary();
             break;
         case SDL_SCANCODE_F9:
-            toggleSpinningLogo();
+            enableSpinningLogo(!spinningLogoEnabled());
             break;
         case SDL_SCANCODE_F10:
             {

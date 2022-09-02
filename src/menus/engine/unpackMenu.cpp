@@ -1,27 +1,36 @@
 #include "menuAlloc.h"
 #include "menus.h"
+#include "unpackMenu.h"
 #include "menuCodes.h"
 #include "menuMouse.h"
 #include "drawMenu.h"
 #include "menuItemRenderer.h"
 #include "menuControls.h"
 
+// SWOS introduced limit
+constexpr int kMaxMenuEntries = 115;
+
 // last menu sent here for unpacking
 static const void *m_currentMenu;
 
 static void (*m_onDestroy)();
 
+struct MenuEntryExtension {
+    MenuEntryExtension() {};
+    union {
+        SwosMenu::EntryBoolOption opt;
+    };
+};
+
+static std::array<MenuEntryExtension, kMaxMenuEntries> m_entryExtensions;
+
 static void initMenuEntry(MenuEntry& entry);
 static void finalizeMenu(Menu *dstMenu, char *menuEnd, int numEntries);
 static void handleSkip(MenuEntry *dstEntry, size_t index, const int16_t *& data);
+static void switchBoolOption();
 static dword fetchAndTranslateProc(const int16_t *& data);
 static dword translateStringTable(const SwosMenu::StringTableNative& strTable);
 static dword translateMultilineTable(const MultilineText *text);
-
-const void *getCurrentPackedMenu()
-{
-    return m_currentMenu;
-}
 
 // Unpacks static menu in src to screen menu at dst.
 // Doesn't execute any of the menu functions, only does the conversion.
@@ -49,6 +58,8 @@ void unpackMenu(const void *src, char *dst /* = swos.g_currentMenu */)
         m_onDestroy();
 
     clearMenuLocalSprites();
+
+    memset(m_entryExtensions.data(), -1, sizeof(m_entryExtensions));
 
     if (headerMark == kMenuHeaderV2Mark) {
         auto header = reinterpret_cast<const MenuHeaderV2 *>(src);
@@ -206,7 +217,7 @@ void unpackMenu(const void *src, char *dst /* = swos.g_currentMenu */)
                 break;
 
             case kOnSelect:
-                dstEntry->controlMask = 0x20;   // fire
+                dstEntry->controlMask = kShortFireMask;
                 dstEntry->onSelect.loadFrom(data);
                 data += 2;
                 break;
@@ -300,7 +311,7 @@ void unpackMenu(const void *src, char *dst /* = swos.g_currentMenu */)
                 break;
 
             case kOnSelectNative:
-                dstEntry->controlMask = 0x20;
+                dstEntry->controlMask = kShortFireMask;
                 dstEntry->onSelect = fetchAndTranslateProc(data);
                 break;
 
@@ -321,6 +332,24 @@ void unpackMenu(const void *src, char *dst /* = swos.g_currentMenu */)
                 dstEntry->type = kEntryMenuSpecificSprite;
                 dstEntry->stringFlags = 0;
                 dstEntry->fg.spriteIndex = 0;
+                break;
+
+            case kBoolOption:
+                {
+                    dstEntry->type = kEntryBoolOption;
+                    dstEntry->controlMask = kShortFireMask;
+                    dstEntry->onSelect = SwosVM::registerProc(switchBoolOption);
+
+                    auto& opt = m_entryExtensions[numEntries].opt;
+                    opt.get = fetch<EntryBoolOption::GetFn>(data);
+                    data += sizeof(EntryBoolOption::GetFn) / 2;
+                    opt.set = fetch<EntryBoolOption::SetFn>(data);
+                    data += sizeof(EntryBoolOption::SetFn) / 2;
+                    opt.description = fetch<const char *>(data);
+                    data += sizeof(char *) / 2;
+
+                    assert(opt.get && opt.set && opt.description);
+                }
                 break;
 
             default:
@@ -401,6 +430,17 @@ void activateMenu(const void *menu)
     resetMenuMouseData();
 }
 
+const void *getCurrentPackedMenu()
+{
+    return m_currentMenu;
+}
+
+std::pair<SwosMenu::EntryBoolOption::GetFn, SwosMenu::EntryBoolOption::SetFn> getBoolOptionAccessors(const MenuEntry& entry)
+{
+    assert(entry.ordinal < kMaxMenuEntries);
+    return { m_entryExtensions[entry.ordinal].opt.get, m_entryExtensions[entry.ordinal].opt.set };
+}
+
 static void initMenuEntry(MenuEntry& entry)
 {
     memset(&entry, 0, sizeof(entry));
@@ -444,6 +484,19 @@ static void handleSkip(MenuEntry *dstEntry, size_t index, const int16_t *& data)
     byte direction = *data++ >> 8;
     (&dstEntry->leftEntryDis)[index] = skip;
     (&dstEntry->leftDirection)[index] = direction;
+}
+
+static void switchBoolOption()
+{
+    auto entry = A5.asMenuEntry();
+    const auto& opt = m_entryExtensions[entry->ordinal].opt;
+
+    assert(opt.get && opt.set && opt.description);
+
+    auto oldValue = opt.get();
+    logInfo("Setting %s to %s...", opt.description, oldValue ? "OFF" : "ON");
+    opt.set(!oldValue);
+    logInfo("    %s!", opt.get() != oldValue ? "Success" : "Failed");
 }
 
 static dword fetchAndTranslateProc(const int16_t *& data)

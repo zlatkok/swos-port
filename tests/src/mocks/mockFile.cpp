@@ -1,6 +1,13 @@
 #include "mockFile.h"
 #include "file.h"
-#include "dirent.h"
+
+#define opendir opendir_REAL
+#define readdir readdir_REAL
+#define closedir closedir_REAL
+#include <dirent.h>
+#undef opendir
+#undef readdir
+#undef closedir
 
 static bool m_enableMocking;
 
@@ -104,12 +111,28 @@ void resetFakeFiles()
     m_nodes[0].children.clear();
 }
 
-static const char *ignoreVolume(const char *path)
+static bool isAbsolutePath(const char *path)
 {
-    if (path && isalpha(*path) && path[1] == ':')
-        path += 3;
+    assert(path);
+    return isalpha(*path) && path[1] == ':' && path[2] == getDirSeparator();
+}
+
+static std::string ignoreVolume(std::string& path)
+{
+    if (isAbsolutePath(path.c_str()))
+        path.erase(0, 3);
 
     return path;
+}
+
+static std::string normalizePath(const char *path)
+{
+    std::string normalPath(path);
+
+    if (!isAbsolutePath(path))
+        normalPath = joinPaths(rootDir().c_str(), path);
+
+    return ignoreVolume(normalPath);
 }
 
 static void addNode(const char *path, NodeType nodeType, const char *data = nullptr, size_t size = 0)
@@ -117,11 +140,10 @@ static void addNode(const char *path, NodeType nodeType, const char *data = null
     assert(nodeType == kFile || nodeType == kDirectory);
     assert(!m_nodes.empty() && m_nodes[0].isDirectory());
 
-    path = ignoreVolume(path);
-
     size_t currentDirIndex = 0;
+    const auto& normalPath = normalizePath(path);
 
-    visitEachPathComponent(path, [&](const char *component, size_t len, bool isLastComponent) {
+    visitEachPathComponent(normalPath.c_str(), [&](const char *component, size_t len, bool isLastComponent) {
         assert(currentDirIndex < m_nodes.size() && m_nodes[currentDirIndex].isDirectory());
 
         auto subnodeIndex = getSubnodeIndex(m_nodes[currentDirIndex], component, len);
@@ -214,16 +236,19 @@ static std::tuple<int, int, int> findNodeAndParent(const char *path)
 
 static int findNode(const char *path)
 {
-    path = ignoreVolume(path);
-    auto result = findNodeAndParent(path);
+    const auto& normalPath = normalizePath(path);
+    auto result = findNodeAndParent(normalPath.c_str());
     return std::get<0>(result);
 }
 
 bool deleteFakeFile(const char *path)
 {
     auto [nodeIndex, parentIndex, childIndex] = findNodeAndParent(path);
-    if (nodeIndex < 0)
+
+    if (nodeIndex < 0) {
+        assert(false);
         return false;
+    }
 
     auto& parent = m_nodes[parentIndex];
     parent.children.erase(parent.children.begin() + childIndex);
@@ -295,6 +320,9 @@ size_t getFakeFileSize(const char *path)
 
 DIR *opendir(const char *dirName)
 {
+    if (!m_enableMocking)
+        return opendir_REAL(dirName);
+
     auto nodeIndex = findNode(dirName);
     if (nodeIndex < 0)
         return nullptr;
@@ -319,14 +347,17 @@ int closedir(DIR *dirp)
 
 dirent *readdir(DIR *dirp)
 {
+    if (!m_enableMocking)
+        return readdir_REAL(dirp);
+
     size_t parentNodeIndex = dirp->ent.d_ino;
     if (parentNodeIndex >= m_nodes.size())
         return nullptr;
 
     const auto& parentNode = m_nodes[parentNodeIndex];
-    auto& childIndex = dirp->currentNodeIndex;
+    auto& childIndex = dirp->ent.d_ino;
 
-    if (dirp->currentNodeIndex < parentNode.children.size()) {
+    if (dirp->ent.d_ino < parentNode.children.size()) {
         auto nodeIndex = parentNode.children[childIndex++];
         auto& node = m_nodes[nodeIndex];
         node.ent.d_ino = nodeIndex;
@@ -348,8 +379,6 @@ namespace SWOS {
 
 #define createDir createDir_REAL
 #define dirExists dirExists_REAL
-std::string pathInRootDir_REAL(const char *filename);
-#define pathInRootDir pathInRootDir_REAL
 int loadFile_REAL(const char *path, void *buffer, int maxSize = -1, size_t skipBytes = 0, bool required = true);
 #define loadFile loadFile_REAL
 SDL_RWops *openFile_REAL(const char *path, const char *mode = "rb");
@@ -360,16 +389,14 @@ SDL_RWops *openFile_REAL(const char *path, const char *mode = "rb");
 #undef dirExists
 #undef loadFile
 #undef openFile
-#undef pathInRootDir
 #undef WriteFile
 #undef LoadFile
 
 bool createDir(const char *path)
 {
     if (m_enableMocking) {
-        if (findNode(path))
-            return false;
-        addFakeDirectory(path);
+        if (!dirExists(path))
+            addFakeDirectory(path);
         return true;
     } else {
         return createDir_REAL(path);
@@ -386,15 +413,13 @@ bool dirExists(const char *path)
     }
 }
 
-SDL_RWops *openFile(const char *, const char *)
+SDL_RWops *openFile(const char *path, const char *mode /* = "rb" */)
 {
-    assert(false);
-    return nullptr;
-}
+    if (!m_enableMocking)
+        return openFile_REAL(path, mode);
 
-std::string pathInRootDir(const char *filename)
-{
-    return filename;
+    int node = findNode(path);
+    return node >= 0 ? reinterpret_cast<SDL_RWops *>(node) : nullptr;
 }
 
 int loadFile(const char *path, void *buffer, int bufferSize /* = -1 */, size_t skipBytes /* = 0 */, bool required /* = true */)

@@ -111,6 +111,8 @@ class EntryParser:
             setattr(self.entry, property, result)
             if property == 'color':
                 self.updateForceColor(result, isTemplate)
+            elif property == 'onSelect' and self.entry.boolOption:
+                Util.error('onSelect is reserved in boolOption entries', propertyToken)
 
             if property in Constants.kNextEntryProperties:
                 setattr(self.entry, property + 'Token', propertyToken)
@@ -173,6 +175,8 @@ class EntryParser:
         elif property == 'multilineText':
             result = self.parseMultilineText()
             self.checkForWhitespaceInStrings(property, result, valueToken)
+        elif property == 'boolOption':
+            result = self.parseBoolOptionEntry()
         else:
             result = self.expressionParser.parse(self.menu)
             self.checkForWhitespaceInStrings(property, result, valueToken)
@@ -271,6 +275,20 @@ class EntryParser:
         values = self.getStringList(token, True)
         values = list(map(Util.unquotedString, values))
         return values
+
+    # parseBoolOptionEntry
+    #
+    # Parses bool option block and returns a list containing get/set functions and description.
+    #
+    def parseBoolOptionEntry(self):
+        getFunction = self.tokenizer.getNextToken()
+        comma = self.tokenizer.expectIdentifier(getFunction, expectedNext='comma', fetchNextToken=True)
+        setFunction = self.tokenizer.expect(',', comma, fetchNextToken=True)
+        comma = self.tokenizer.expectIdentifier(setFunction, expectedNext='comma', fetchNextToken=True)
+        description = self.tokenizer.expect(',', comma, fetchNextToken=True)
+        if not Util.isString(description.string):
+            Util.error('expected string description', description)
+        return (getFunction.string, setFunction.string, description.string)
 
     # parseStringTable
     #

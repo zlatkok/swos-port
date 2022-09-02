@@ -27,6 +27,11 @@ static constexpr char kEnableMenuControllers[] = "enableGameControllersInMenu";
 static constexpr char kJoypad1Key[] = "player1Controller";
 static constexpr char kJoypad2Key[] = "player2Controller";
 
+#ifdef VIRTUAL_JOYPAD
+static const char kTransparentButtonsKey[] = "virtualJoypadTransparentButtons";
+static const char kShowTouchTrailsKey[] = "showTouchTrails";
+#endif
+
 static std::string m_joy1GuidStr;
 static std::string m_joy2GuidStr;
 
@@ -288,9 +293,6 @@ void initJoypads()
 #ifdef VIRTUAL_JOYPAD
     auto config = m_joypadConfig.config(VirtualJoypad::kGuid);
     m_virtualJoypad.setConfig(config);
-
-    m_virtualJoypad.enableTouchTrails(getShowTouchTrails());
-    m_virtualJoypad.enableTransparentButtons(getTransparentVirtualJoypadButtons());
 #endif
 
     if (getPl1Controls() != kJoypad && getPl2Controls() != kJoypad)
@@ -433,6 +435,24 @@ bool setJoypad(PlayerNumber player, int joypadIndex)
 VirtualJoypad& getVirtualJoypad()
 {
     return m_virtualJoypad;
+}
+
+bool getTransparentVirtualJoypadButtons()
+{
+    return m_virtualJoypad.transparentButtonsEnabled();
+}
+void setTransparentVirtualJoypadButtons(bool transparentButtons)
+{
+    m_virtualJoypad.enableTransparentButtons(transparentButtons);
+}
+
+bool getShowTouchTrails()
+{
+    return m_virtualJoypad.touchTrailsEnabled();
+}
+void setShowTouchTrails(bool showTouchTrails)
+{
+    m_virtualJoypad.enableTouchTrails(showTouchTrails);
 }
 
 VirtualJoypadEnabler::VirtualJoypadEnabler(int index)
@@ -822,6 +842,13 @@ void loadJoypadOptions(const char *controlsSection, const CSimpleIni& ini)
 
     m_autoConnectJoypads = ini.GetBoolValue(controlsSection, kAutoConnectJoypadsKey, true);
     m_enableMenuControllers = ini.GetBoolValue(controlsSection, kEnableMenuControllers, true);
+
+#ifdef VIRTUAL_JOYPAD
+    bool touchTrails = ini.GetBoolValue(controlsSection, kShowTouchTrailsKey);
+    m_virtualJoypad.enableTouchTrails(touchTrails);
+    bool transparentButtons = ini.GetBoolValue(controlsSection, kTransparentButtonsKey, true);
+    m_virtualJoypad.enableTransparentButtons(transparentButtons);
+#endif
 }
 
 void saveJoypadOptions(const char *controlsSection, CSimpleIni& ini)
@@ -851,6 +878,13 @@ void saveJoypadOptions(const char *controlsSection, CSimpleIni& ini)
 
     ini.SetBoolValue(controlsSection, kAutoConnectJoypadsKey, m_autoConnectJoypads);
     ini.SetBoolValue(controlsSection, kEnableMenuControllers, m_enableMenuControllers);
+
+#ifdef VIRTUAL_JOYPAD
+    bool touchTrails = m_virtualJoypad.touchTrailsEnabled();
+    ini.SetBoolValue(controlsSection, kShowTouchTrailsKey, touchTrails);
+    bool transparentButtons = m_virtualJoypad.transparentButtonsEnabled();
+    ini.SetBoolValue(controlsSection, kTransparentButtonsKey, transparentButtons);
+#endif
 
     m_joypadConfig.saveConfig(ini);
 }

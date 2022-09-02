@@ -11,10 +11,54 @@
 static GameControlEvents m_clearEvents;
 static bool m_fire;
 
-static GameControlEvents getEventsFromAllControllers()
+static void handleFireReset();
+static void updateLongFireTimer();
+static void handleControlDelay();
+static GameControlEvents filterResetEvents(GameControlEvents events);
+static GameControlEvents getEventsFromAllControllers();
+
+// MenuCheckControls
+//
+// Handles controls in the menus. Highest level proc.
+// Combines (ORs) the controls from all controllers into controls used in the menus.
+//
+void menuCheckControls()
 {
-    auto events = eventsFromAllKeysets();
-    return events | eventsFromAllJoypads();
+    processControlEvents();
+
+    auto events = getEventsFromAllControllers();
+    if (events & kGameEventZoomIn)
+        events |= kGameEventUp;
+    if (events & kGameEventZoomOut)
+        events |= kGameEventDown;
+
+    events = filterResetEvents(events);
+    auto shortFire = getShortFireAndBumpFireCounter((events & kGameEventNonMovementMask) != 0) || m_fire;
+    m_fire = false;
+
+    if (swos.fireCounter > 0)   // used in EditTactics menu in two functions
+        swos.fireCounter = 0;
+
+    flushKeyBuffer();
+
+    swos.shortFire = shortFire;
+    swos.fire = (events & kGameEventNonMovementMask) != 0;
+    swos.left = (events & kGameEventLeft) != 0;
+    swos.right = (events & kGameEventRight) != 0;
+    swos.up = (events & (kGameEventUp | kGameEventZoomIn)) != 0;
+    swos.down = (events & (kGameEventDown | kGameEventZoomOut)) != 0;
+
+    auto direction = eventsToDirection(events);
+    swos.menuControlsDirection = swos.menuControlsDirection2 = direction;
+
+    handleFireReset();
+    updateLongFireTimer();
+    handleControlDelay();
+}
+
+void SWOS::MenuCheckControls()
+{
+    menuCheckControls();
 }
 
 void resetControls()
@@ -100,41 +144,8 @@ static GameControlEvents filterResetEvents(GameControlEvents events)
     return events;
 }
 
-// MenuCheckControls
-//
-// Handles controls in the menus. Highest level proc.
-// Combines (ORs) the controls from all controllers into controls used in the menus.
-//
-void SWOS::MenuCheckControls()
+static GameControlEvents getEventsFromAllControllers()
 {
-    processControlEvents();
-
-    auto events = getEventsFromAllControllers();
-    if (events & kGameEventZoomIn)
-        events |= kGameEventUp;
-    if (events & kGameEventZoomOut)
-        events |= kGameEventDown;
-
-    events = filterResetEvents(events);
-    auto shortFire = getShortFireAndBumpFireCounter((events & kGameEventNonMovementMask) != 0) || m_fire;
-    m_fire = false;
-
-    if (swos.fireCounter > 0)   // used in EditTactics menu in two functions
-        swos.fireCounter = 0;
-
-    flushKeyBuffer();
-
-    swos.shortFire = shortFire;
-    swos.fire = (events & kGameEventNonMovementMask) != 0;
-    swos.left = (events & kGameEventLeft) != 0;
-    swos.right = (events & kGameEventRight) != 0;
-    swos.up = (events & (kGameEventUp | kGameEventZoomIn)) != 0;
-    swos.down = (events & (kGameEventDown | kGameEventZoomOut)) != 0;
-
-    auto direction = eventsToDirection(events);
-    swos.menuControlsDirection = swos.menuControlsDirection2 = direction;
-
-    handleFireReset();
-    updateLongFireTimer();
-    handleControlDelay();
+    auto events = eventsFromAllKeysets();
+    return events | eventsFromAllJoypads();
 }

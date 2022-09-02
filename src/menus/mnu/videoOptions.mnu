@@ -32,15 +32,13 @@ Menu videoOptionsMenu
         color: kOptionsColumn1Color
     }
 
-    Entry zoomLabel {
-        y: kGameplayOptionsStartY
-        text: "ZOOM FACTOR"
-    }
-    Entry linearFilteringLabel { text: "LINEAR FILTERING" }
-    Entry flashMenuCursorLabel { text: "FLASH MENU CURSOR" }
-    Entry showFpsLabel { text: "SHOW FPS INDICATOR" }
-    Entry clearScreenLabel { text: "CLEAR SCREEN" }
-    Entry showTouchTrailsLabel { text: "SHOW TOUCH TRAILS" }
+    Entry zoomLabel { y: kGameplayOptionsStartY  text: "ZOOM FACTOR" }
+    Entry linearFilteringLabel                 { text: "LINEAR FILTERING" }
+    Entry flashMenuCursorLabel                 { text: "FLASH MENU CURSOR" }
+    Entry fancyItemBackgroundLabel             { text: "MENU GRADIENT BACKGROUND" }
+    Entry showFpsLabel                         { text: "SHOW FPS INDICATOR" }
+    Entry clearScreenLabel                     { text: "CLEAR SCREEN" }
+    Entry showTouchTrailsLabel                 { text: "SHOW TOUCH TRAILS" }
     Entry transparentVirtualJoypadButtonsLabel { text: "BLEND VIRTUAL JOYPAD" }
 
     defaultX: kOptionsColumn2X
@@ -92,56 +90,57 @@ Menu videoOptionsMenu
     }
 
     Entry linearFiltering {
-        stringTable: [ ~m_useLinearFiltering, "OFF", "ON" ]
+        boolOption: getLinearFiltering, setLinearFiltering, "linear filtering"
 
         upEntry: zoom
         downEntry: >
-
-        onSelect: switchLinearFiltering
     }
 
     Entry flashCursor {
-        stringTable: [ ~m_flashCursor, "OFF", "ON" ]
+        boolOption: cursorFlashingEnabled, setFlashMenuCursor, "cursor flashing"
 
         upEntry: <
         downEntry: >
+    }
 
-        onSelect: changeFlashCursor
+    Entry fancyItemBackground {
+        boolOption: menuGradientFillEnabled, enableMenuGradientFill, "menu background gradient"
+
+        upEntry: <
+        downEntry: >
     }
 
     Entry showFps {
-        stringTable: [ ~m_showFps, "OFF", "ON" ]
+        boolOption: getShowFps, setShowFps, "FPS indicator"
 
         upEntry: <
         downEntry: >
-
-        onSelect: changeShowFps
     }
 
     Entry clearScreen {
-        stringTable: [ ~m_clearScreen, "OFF", "ON" ]
+        boolOption: getClearScreen, setClearScreen, "clear screen"
 
         upEntry: <
         downEntry: >
-
-        onSelect: toggleClearScreen
     }
 
     Entry showTouchTrails {
-        stringTable: [ ~m_showTouchTrails, "OFF", "ON" ]
+        text: @kAlloc
 
         upEntry: <
         downEntry: >
 
+        beforeDraw: setTouchTrailsEntryText
         onSelect: changeShowTouchTrails
     }
 
     Entry transparentVirtualJoypadButtons {
-        stringTable: [ ~m_transparentButtons, "OFF", "ON" ]
+        text: @kAlloc
 
         upEntry: <
         downEntry: >
 
+        beforeDraw: setTransparentButtonsEntryText
         onSelect: changeVirtualJoypadTransparentButtons
     }
 

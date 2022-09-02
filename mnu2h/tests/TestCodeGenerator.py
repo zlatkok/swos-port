@@ -156,6 +156,9 @@ kTestData = (
             Entry {
                 multilineText: @kNull
             }
+            Entry {
+                boolOption: getSpeed, setSpeed, "I said speed, speed Give me what I need"
+            }
         }
         Menu Delta {}
         Menu mali {}
@@ -245,7 +248,8 @@ kTestData = (
                 {'id': 'menuEnd', 'type': 'MenuEnd',    'params': []},
             ],
             'Tango': [
-                {'id': 'header',  'type': 'MenuHeaderV2', 'params': ['kMenuHeaderV2Mark', 'specialForces', '0', '0', '0', '0', 'true', 'false', 'false', 'false']},
+                {'id': 'header',  'type': 'MenuHeaderV2', 'params': ['kMenuHeaderV2Mark', 'specialForces',
+                    '0', '0', '0', '0', 'true', 'false', 'false', 'false']},
                 {'id': 'menuXY00', 'type': 'MenuXY',    'params': ['123', '55'],},
 
                 {'id': 'te00',    'type': 'TemplateEntry', 'params': []},
@@ -261,7 +265,8 @@ kTestData = (
                 {'id': 'ee00',    'type': 'EntryEnd',   'params': []},
 
                 {'id': 'eb01',    'type': 'Entry',      'params': ['0', '0', '0', '0']},
-                {'id': 'emt01',   'type': 'EntryMultilineTextNative', 'params': ['0', 'reinterpret_cast<MultilineText *>(&Tango_Durmitor_multilineText)']},
+                {'id': 'emt01',   'type': 'EntryMultilineTextNative', 'params':
+                    ['0', 'reinterpret_cast<MultilineText *>(&Tango_Durmitor_multilineText)']},
                 {'id': 'ec01',    'type': 'EntryColor', 'params': ['10']},
                 {'id': 'ee01',    'type': 'EntryEnd',   'params': []},
 
@@ -295,6 +300,11 @@ kTestData = (
                 {'id': 'eb07',    'type': 'Entry',      'params': ['0', '0', '0', '0']},
                 {'id': 'emt07',   'type': 'EntryMultilineText', 'params': ['0', 'nullptr']},
                 {'id': 'ee07',    'type': 'EntryEnd',   'params': []},
+
+                {'id': 'eb08',    'type': 'Entry',      'params': ['0', '0', '0', '0']},
+                {'id': 'ebo08',   'type': 'EntryBoolOption', 'params':
+                    ['getSpeed', 'setSpeed', '"I said speed, speed Give me what I need"']},
+                {'id': 'ee08',    'type': 'EntryEnd',   'params': []},
 
                 {'id': 'menuEnd', 'type': 'MenuEnd',    'params': []},
             ],
@@ -621,7 +631,9 @@ class TestCodeGenerator(unittest.TestCase):
                 element['params'] = []
 
                 if match['params']:
-                    paramList = match['params'].replace('{', '').split(',')
+                    paramList = match['params'].replace('{', '')
+                    # comma separated list, but not if comma is within quotes (' or ") (doesn't handle escaped quotes)
+                    paramList = re.findall(r'((?:"[^"]+")|(?:\'[^\']+\')|(?:[^,]+))(?:\s*,\s*)?', paramList)
                     paramList = map(str.strip, paramList)
                     paramList = filter(None, paramList)
 

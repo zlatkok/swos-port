@@ -4,6 +4,7 @@
 
 #include "game.h"
 #include "drawMenu.h"
+#include "unpackMenu.h"
 #include "render.h"
 #include "replays.h"
 #include "replayExit.mnu.h"

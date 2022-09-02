@@ -7,6 +7,8 @@
 #include "renderSprites.h"
 #include "text.h"
 #include "render.h"
+#include "gameFieldMapping.h"
+#include "drawPrimitives.h"
 #include "color.h"
 
 constexpr int kBenchNotVisibleCameraX = 35;
@@ -119,7 +121,7 @@ static void drawBenchPlayerArrow()
 
 static void drawOpponentsBench()
 {
-    auto team = getBenchTeam()->opponentsTeam;
+    auto team = getBenchTeam()->opponentTeam;
     auto teamData = getBenchTeamData() == &swos.topTeamIngame ? &swos.bottomTeamIngame : &swos.topTeamIngame;
     int y = getOpponentBenchY();
 
@@ -304,7 +306,7 @@ static void drawCards(int y, int playerIndex, const Sprite *playerSprite)
     constexpr int kCardX = kMenuX + kShadowOffset + 9;
 
     if (playerIndex < 11 && playerSprite->cards) {
-        int cardSprite = playerSprite->cards < 0 ? kRedCardSprite : kYellowCardSprite;
+        int cardSprite = playerSprite->cards < 0 ? kBenchRedCardSprite : kBenchYellowCardSprite;
         drawMenuSprite(cardSprite, kCardX, y);
     }
 }

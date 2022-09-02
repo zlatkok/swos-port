@@ -6,7 +6,6 @@
 #include "loadTexture.h"
 #include "darkRectangle.h"
 #include "camera.h"
-#include "gameTime.h"
 #include "replays.h"
 #include "game.h"
 #include "text.h"
@@ -33,9 +32,9 @@ void initSprites()
     initSpriteColorizer(m_res);
 }
 
-static void initMatchSprites(bool invalidateTextures)
+static void initMatchSprites()
 {
-    colorizeGameSprites(m_res, m_topTeam, m_bottomTeam, invalidateTextures);
+    colorizeGameSprites(m_res, m_topTeam, m_bottomTeam);
     //CopyAdvertisementsData
     initGameSprites(m_topTeam, m_bottomTeam);
     updateLegacySprites();
@@ -46,7 +45,7 @@ void initMatchSprites(const TeamGame *topTeam, const TeamGame *bottomTeam)
     m_topTeam = topTeam;
     m_bottomTeam = bottomTeam;
 
-    initMatchSprites(false);
+    initMatchSprites();
 }
 
 static void traverseMenuTextures(std::function<void(int, int)> f)
@@ -71,9 +70,7 @@ void initMenuSprites()
 const PackedSprite& getSprite(int index)
 {
     assert(static_cast<size_t>(index) < m_packedSprites[m_res].size());
-//fixme
-    assert(index==225||
-        m_packedSprites[m_res][index].widthF && m_packedSprites[m_res][index].heightF);
+    assert(index == 225 || m_packedSprites[m_res][index].widthF && m_packedSprites[m_res][index].heightF);
 
     return m_packedSprites[m_res][index];
 }
@@ -83,10 +80,14 @@ SDL_Texture *getTexture(const PackedSprite& sprite)
     assert(static_cast<size_t>(sprite.texture) < m_textures[m_res].size());
 
     auto& texture = m_textures[m_res][sprite.texture];
-    if (!texture)
+    if (!texture && sprite.texture < static_cast<int>(kTextureToFile[m_res].size()))
         loadTextureFile(sprite.texture, kTextureToFile[m_res][sprite.texture]);
-    if (!texture)
-        errorExit("Can't access sprite from unloaded texture %s", kTextureFilenames[kTextureToFile[m_res][sprite.texture]]);
+    if (!texture) {
+        if (sprite.texture < static_cast<int>(kTextureToFile[m_res].size()))
+            errorExit("Can't access sprite from unloaded texture %s", kTextureFilenames[kTextureToFile[m_res][sprite.texture]]);
+        else
+            errorExit("Can't access sprite from unloaded texture %d", sprite.texture);
+    }
 
     return texture;
 }
@@ -192,7 +193,8 @@ static void loadSprites(AssetResolution oldResolution, AssetResolution newResolu
 
     if (newResolution != AssetResolution::kInvalid) {
         initMenuSprites();
+        clearMatchSpriteCache();
         if (isMatchRunning())
-            initMatchSprites(true);
+            initMatchSprites();
     }
 }

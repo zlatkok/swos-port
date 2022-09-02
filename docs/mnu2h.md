@@ -4,7 +4,8 @@
 header files which compile directly into SWOS binary menu format. The language is not Turing-complete.
 
 The prerequisite to understanding menu description files is good understanding of SWOS menu system. It is
-described within a file located in the SWOS documentation directory.
+described within a file located in the SWOS documentation directory (`docs/SWOS/menus.txt`).
+Examples of complete scripts can be found in `src/menus/mnu` directory.
 
 Minimum required Python version is 3.6.
 
@@ -242,7 +243,7 @@ stringListElement ::= <string>|<id>
 ```
 
 If a variable is supplied, it will be used as an already constructed string table, and no additional code will
-be emitted. It has to be prefixed with "~" or "swos.". "~" will identify the variable as available elsewhere
+be emitted. It has to be prefixed with "`~`" or "`swos.`". "`~`" will identify the variable as available elsewhere
 in C++ code, and "swos." prefix means the table comes from SWOS.
 
 If the string table body is supplied, it comes within the square brackets. First the index variable is
@@ -264,6 +265,10 @@ stringTable: [
 ]
 stringTable: swos.pitchTypeStrTable
 ```
+
+##### `multilineText` property
+
+##### `boolOption` property
 
 #### Entry references
 
@@ -496,15 +501,15 @@ Operator precedence table (from highest to lowest):
 |`~ ! + - ++ -- int str`|bitwise/logical NOT, unary plus/minus, pre-increment and pre-decrement, type conversions|
 |`* / %`|multiplicative operators|
 |`+ -`|binary plus and minus|
-|`<< >> <<| |>>`|shift and rotate left and right|
+|`<< >> <<`| |`>>`|shift and rotate left and right|
 |`< > <= >=` |relational operators|
 |`== !=`|equality operators|
 |`&`|bitwise AND|
-|`|`|bitwise OR|
+|`\|`|bitwise OR|
 |`&&`|logical AND|
-|`||`|logical OR|
+|`\|\|`|logical OR|
 |`?:`|ternary operator|
-|`+= -= *= \/= %= <<= <<=| >>= |>>= &= ^= |= =`|assignment operators|
+|`+= -= *= \/= %= <<= <<=\| >>= \|>>= &= ^= \|= =`|assignment operators|
 |`,`|comma operator|
 
 Note that all the operators are left-to-right associative, except for unary operators (excluding postfix

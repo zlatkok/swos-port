@@ -119,12 +119,16 @@ static void setupPlayerSprites()
     int currentSpriteIndex = 0;
 
     for (size_t i = 0; i < m_team1PlayerTextures.size(); i++) {
-        registerMenuLocalSprite(width, height, m_team1PlayerTextures[i]);
-        team1SpriteIndices[i] = currentSpriteIndex++;
+        if (m_team1PlayerTextures[i]) {
+            registerMenuLocalSprite(width, height, m_team1PlayerTextures[i]);
+            team1SpriteIndices[i] = currentSpriteIndex++;
+        }
     }
     for (size_t i = 0; i < m_team2PlayerTextures.size(); i++) {
-        registerMenuLocalSprite(width, height, m_team2PlayerTextures[i]);
-        team2SpriteIndices[i] = currentSpriteIndex++;
+        if (m_team2PlayerTextures[i]) {
+            registerMenuLocalSprite(width, height, m_team2PlayerTextures[i]);
+            team2SpriteIndices[i] = currentSpriteIndex++;
+        }
     }
     registerMenuLocalSprite(width, height, m_goalkeeper1Texture);
     registerMenuLocalSprite(width, height, m_goalkeeper2Texture);

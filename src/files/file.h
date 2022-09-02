@@ -1,6 +1,7 @@
 #pragma once
 
-constexpr int kMaxFilenameLength = 260;
+constexpr int kMaxFilenameLength = 256;
+constexpr int kMaxPath = 260;
 
 SDL_RWops *openFile(const char *path, const char *mode = "rb");
 int loadFile(const char *path, void *buffer, int maxSize = -1, size_t skipBytes = 0, bool required = true);
@@ -18,7 +19,7 @@ std::string pathInRootDir(const char *filename);
 # define DIR_SEPARATOR "/"
 #endif
 
-inline char getDirSeparator()
+inline constexpr char getDirSeparator()
 {
 #ifdef _WIN32
     return '\\';

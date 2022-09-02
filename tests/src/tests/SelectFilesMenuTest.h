@@ -30,9 +30,4 @@ private:
 
     void testArrowBackground(const MenuEntry *arrowEntry);
     void checkArrowsOverlap();
-
-    static constexpr int kArrowWidth = 6;
-    static constexpr int kArrowHeight = 12;
-    char upArrowBuffer[kArrowWidth * kArrowHeight];
-    char downArrowBuffer[kArrowWidth * kArrowHeight];
 };

@@ -674,7 +674,7 @@ static void updateBenchControls()
 {
     assert(inBench() && m_team);
 
-    auto team = m_teamsSwapped ? m_team->opponentsTeam.asPtr() : m_team;
+    auto team = m_teamsSwapped ? m_team->opponentTeam.asPtr() : m_team;
     m_controls = team->playerNumber == 1 ? getPlayerEvents(kPlayer1) : getPlayerEvents(kPlayer2);
 }
 
@@ -884,6 +884,6 @@ static void trainingSwapBenchTeams()
     m_teamsSwapped = !m_teamsSwapped;
     m_trainingTopTeam = !m_trainingTopTeam;
     swapBenchWithOpponent();
-    m_team = m_team->opponentsTeam;
+    m_team = m_team->opponentTeam;
     m_teamData = m_team->teamNumber == 2 ? swos.bottomTeamPtr : swos.topTeamPtr;
 }

@@ -10,7 +10,7 @@ public:
     KeyConfig(const DefaultKeySet& scancodes);
     GameControlEvents events() const;
     bool conflicts(const KeyConfig& other) const;
-    bool has(SDL_Scancode scanCode) const;
+    bool has(SDL_Scancode scancode) const;
     bool hasMinimumEvents() const;
     void setFromKeySet(const DefaultKeySet& scancodes);
     void load(const CSimpleIni& ini, const char *section, const DefaultKeySet& defaultKeys);

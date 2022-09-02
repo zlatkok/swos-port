@@ -507,13 +507,13 @@ python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Exte
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
@@ -530,13 +530,13 @@ python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Exte
     </CustomBuild>
     <CustomBuild Include="..\..\..\src\menus\mnu\configureAxis.mnu">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>
@@ -557,13 +557,13 @@ python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Exte
     </CustomBuild>
     <CustomBuild Include="..\..\..\src\menus\mnu\configureTrackball.mnu">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python $(SolutionDir)..\..\mnu2h\mnu2h.py %(FullPath) $(IntDir)%(Filename)%(Extension).h</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compiling %(Filename) menu...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compiling %(Filename) menu...</Message>

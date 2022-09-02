@@ -1,11 +1,11 @@
 #include "comments.h"
-#include "util.h"
-#include "file.h"
 #include "audio.h"
 #include "chants.h"
 #include "comments.h"
+#include "file.h"
+#include "util.h"
+#include "SampleTable.h"
 #include "SoundSample.h"
-#include <dirent.h>
 
 constexpr int kEnqueuedSampleDelay = 70;
 constexpr int kEnqueuedCardSampleDelay = 100;
@@ -42,37 +42,6 @@ static void playItsBeenACompleteRoutComment();
 //
 // sample loading
 //
-
-struct SampleTable {
-    const char *dir;
-    std::vector<SoundSample> samples;
-    int lastPlayedIndex = -1;
-    int totalSampleChance = 0;
-
-    SampleTable(const char *dir) : dir(dir) {}
-
-    void reset() {
-        samples.clear();
-        lastPlayedIndex = -1;
-        totalSampleChance = 0;
-    }
-
-    unsigned getRandomSampleIndex() const {
-        assert(totalSampleChance > 0 && totalSampleChance >= static_cast<int>(samples.size()));
-
-        int randomSampleChance = getRandomInRange(0, std::max(0, totalSampleChance - 1));
-
-        unsigned index = 0;
-        for (; index < samples.size(); index++) {
-            randomSampleChance -= samples[index].chanceModifier();
-            if (randomSampleChance < 0)
-                break;
-        }
-
-        assert(index < samples.size());
-        return index;
-    }
-};
 
 // these must match exactly with directories in the sample tables below
 enum CommentarySampleTableIndex {
@@ -126,16 +95,20 @@ void loadCommentary()
     m_muteCommentary = !commentaryEnabled();
 }
 
-void loadAndPlayEndGameComment()
+void playEndGameCrowdSampleAndComment()
 {
     if (!soundEnabled() || !commentaryEnabled())
         return;
 
+    auto team2Losing = [] {
+        return swos.team2GoalsDigit1 < swos.team1GoalsDigit1 ||
+            swos.team2GoalsDigit1 == swos.team1GoalsDigit1 && swos.team2GoalsDigit2 < swos.team1GoalsDigit2;
+    };
+
     int index;
-    // weird way of comparing, might it be like this because of team positions?
-    if (swos.team1GoalsDigit2 == swos.team2GoalsDigit2)
+    if (swos.team1GoalsDigit1 == swos.team2GoalsDigit1 && swos.team1GoalsDigit2 == swos.team2GoalsDigit2)
         index = 2;
-    else if (swos.team2GoalsDigit2 < swos.team1GoalsDigit2)
+    else if (team2Losing())
         index = 0;
     else
         index = 1;
@@ -236,93 +209,33 @@ void toggleMuteCommentary()
     m_muteCommentary = !m_muteCommentary;
 }
 
-static int parseSampleChanceMultiplier(const char *str, size_t len)
+#ifdef SWOS_TEST
+void setEnqueueTimers(const std::vector<int>& values)
 {
-    assert(str);
-    assert(len == strlen(str));
+    assert(values.size() >= 7);
 
-    int frequency = 1;
-
-    if (len >= 4) {
-        auto end = str + len - 1;
-
-        for (auto p = end; p >= str; p--) {
-            if (*p == '.') {
-                end = p - 1;
-                break;
-            }
-        }
-
-        if (end - str >= 4 && isdigit(*end)) {
-            int value = 0;
-            int power = 1;
-            auto digit = end;
-
-            while (digit >= str && isdigit(*digit)) {
-                value += power * (*digit - '0');
-                power *= 10;
-                digit--;
-            }
-
-            if (digit >= str + 2 && *digit == 'x' && (digit[-1] == '_' || digit[-1] == '-'))
-                frequency = value;
-        }
-    }
-
-    return frequency;
+    m_playingYellowCardTimer = values[0];
+    m_playingRedCardTimer = values[1];
+    swos.playingGoodPassTimer = values[2];
+    swos.playingThrowInSample = values[3];
+    swos.playingCornerSample = values[4];
+    m_substituteSampleTimer = values[5];
+    m_tacticsChangedSampleTimer = values[6];
 }
+#endif
 
 static void loadCustomCommentary()
 {
     assert(m_sampleTables.size() == kNumSampleTables);
-    assert(!strcmp(m_sampleTables[kEndGameSoClose].dir, "end_game_so_close"));
-    assert(!strcmp(m_sampleTables[kYellowCard].dir, "yellow_card"));
+    assert(!strcmp(m_sampleTables[kEndGameSoClose].dir(), "end_game_so_close"));
+    assert(!strcmp(m_sampleTables[kYellowCard].dir(), "yellow_card"));
 
-    const std::string audioPath = joinPaths("audio", "commentary") + getDirSeparator();
+    const std::string audioPath = joinPaths("audio", "commentary");
 
     for (int i = 0; i < kNumSampleTables; i++) {
         auto& table = m_sampleTables[i];
-        table.lastPlayedIndex = -1;
-
-        if (!table.samples.empty())
-            continue;
-
-        const auto& dirPath = audioPath + table.dir + getDirSeparator();
-        const auto& dirFullPath = pathInRootDir((audioPath + table.dir).c_str());
-        auto dir = opendir(dirFullPath.c_str());
-
-        if (dir) {
-            for (dirent *entry; entry = readdir(dir); ) {
-#ifdef _WIN32
-                auto len = entry->d_namlen;
-#else
-                auto len = strlen(entry->d_name);
-#endif
-
-                if (len < 4)
-                    continue;
-
-                auto samplePath = dirPath + entry->d_name;
-                int chance = parseSampleChanceMultiplier(entry->d_name, len);
-                SoundSample sample(samplePath.c_str(), chance);
-
-                if (sample.hasData()) {
-                    if (std::find(table.samples.begin(), table.samples.end(), sample) == table.samples.end()) {
-                        table.samples.push_back(std::move(sample));
-                        table.totalSampleChance += chance;
-#ifndef DEBUG
-                        logInfo("`%s' loaded OK, chance: %d", samplePath.c_str(), chance);
-#endif
-                    } else {
-                        logInfo("Duplicate detected, rejecting: `%s'", samplePath.c_str());
-                    }
-                } else {
-                    logWarn("Failed to load sample `%s'", samplePath.c_str());
-                }
-            }
-
-            closedir(dir);
-        }
+        if (table.empty())
+            table.loadSamples(audioPath);
     }
 }
 
@@ -352,66 +265,17 @@ static void playComment(Mix_Chunk *chunk, bool interrupt = true)
     m_lastPlayedCommentHash = hash(chunk->abuf, chunk->alen);
 }
 
-static bool isLastPlayedComment(SoundSample& sample)
-{
-    assert(sample.isChunkLoaded());
-
-    if (m_lastPlayedComment) {
-        auto chunk = sample.chunk();
-        return sample.hash() == m_lastPlayedCommentHash && chunk->alen == m_lastPlayedComment->alen &&
-            !memcmp(chunk->abuf, m_lastPlayedComment->abuf, chunk->alen);
-    }
-
-    return false;
-}
-
-static bool fixIndexToSkipLastPlayedComment(unsigned& sampleIndex, unsigned lastPlayedIndex, std::vector<SoundSample>& samples)
-{
-     if (samples.size() > 1 && (lastPlayedIndex == sampleIndex || isLastPlayedComment(samples[sampleIndex]))) {
-         sampleIndex = (sampleIndex + 1) % samples.size();
-         return true;
-     }
-
-     // theoretically, chosen comment might have been just played in a different category, and then we might bump into the one that
-     // was last played from this category (it wouldn't be that bad since at least one comment was in between but let's be safe...)
-     if (samples.size() > 2 && lastPlayedIndex == sampleIndex) {
-         sampleIndex = (sampleIndex + 1) % samples.size();
-         return true;
-     }
-
-     return false;
-}
-
 static void playComment(CommentarySampleTableIndex tableIndex, bool interrupt = true)
 {
     if (!soundEnabled() || !commentaryEnabled() || m_muteCommentary || swos.g_trainingGame)
         return;
 
     auto& table = m_sampleTables[tableIndex];
-    auto& samples = table.samples;
 
-    if (!samples.empty()) {
-        auto sampleIndex = table.getRandomSampleIndex();
-
-        while (!samples.empty()) {
-            auto chunk = samples[sampleIndex].chunk();
-
-            if (!chunk) {
-                logWarn("Failed to load comment %d from category %d", sampleIndex, tableIndex);
-                samples.erase(samples.begin() + sampleIndex);
-                table.lastPlayedIndex -= table.lastPlayedIndex >= static_cast<int>(sampleIndex);
-                sampleIndex -= sampleIndex == samples.size();
-                continue;
-            }
-
-            if (fixIndexToSkipLastPlayedComment(sampleIndex, table.lastPlayedIndex, samples))
-                continue;
-
-            logDebug("Playing comment %d from category %d", sampleIndex, tableIndex);
+    if (!table.empty()) {
+        if (auto chunk = table.getRandomSample(m_lastPlayedComment, m_lastPlayedCommentHash)) {
             playComment(chunk, interrupt);
-            table.lastPlayedIndex = sampleIndex;
             m_lastPlayedCategory = tableIndex;
-            break;
         }
     } else {
         logWarn("Comment table %d empty", tableIndex);

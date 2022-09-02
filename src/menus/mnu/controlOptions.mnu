@@ -236,9 +236,7 @@ Menu controlOptionsMenu
         height: kOptionHeight
         color: kOptionsColumn2Color
 
-        stringTable: [ ~m_autoConnectJoypads, "OFF", "ON" ]
-
-        onSelect: toggleAutoConnectJoypads
+        boolOption: getAutoConnectJoypads, setAutoConnectJoypads, "auto connect joypads"
 
         upEntry: pl2RedefineControls
         downEntry: >
@@ -250,9 +248,7 @@ Menu controlOptionsMenu
         height: kOptionHeight
         color: kOptionsColumn2Color
 
-        stringTable: [ ~m_enableMenuControllers, "OFF", "ON" ]
-
-        onSelect: toggleMenuControllers
+        boolOption: getEnableMenuControllers, setEnableMenuControllers, "menu controllers"
 
         upEntry: <
         downEntry: >
@@ -264,9 +260,7 @@ Menu controlOptionsMenu
         height: kOptionHeight
         color: kOptionsColumn2Color
 
-        stringTable: [ ~m_showSelectMatchControlsMenu, "OFF", "ON" ]
-
-        onSelect: toggleShowMatchControlsMenu
+        boolOption: getShowSelectMatchControlsMenu, setShowSelectMatchControlsMenu, "select match controls menu"
 
         upEntry: <
         downEntry: exit

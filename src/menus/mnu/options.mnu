@@ -13,6 +13,7 @@ Menu optionsMenu
     defaultWidth: kBigButtonWidth
     defaultHeight: kBigButtonHeight
     defaultColor: @kGreen
+
     initialEntry: controls
 
     Entry header {
@@ -107,12 +108,11 @@ Menu gameplayOptionsMenu
 
     defaultY: @prevEndY + kOptionsRowDistance
 
-    Entry { text: swos.aFixPitchType }
-    Entry { text: swos.aAutoReplays }
-    Entry { text: swos.aAllPlayerTeams }
-    Entry { text: swos.aAutoSaveHighli }
+    Entry { text: "FIX PITCH TYPE" }
+    Entry { text: "AUTO REPLAYS" }
+    Entry { text: "ALL PLAYER TEAMS EQUAL" }
+    Entry { text: "AUTO SAVE HIGHLIGHTS" }
     Entry { text: "AUTO SAVE REPLAYS" }
-    Entry { text: swos.aChairmanScenes }
     Entry { text: "SHOW PRE-MATCH MENUS" }
     Entry { text: "GAME STYLE" }
 
@@ -172,22 +172,14 @@ Menu gameplayOptionsMenu
     }
 
     Entry {
-        stringTable: [ swos.g_chairmanScenes, "OFF", "ON" ]
-        onSelect: swos.ChangeChairmanScenes
-        upEntry: <
-        downEntry: >
-    }
-
-    Entry {
-        stringTable: [ ~m_showPreMatchMenus, "OFF", "ON" ]
-        onSelect: toggleShowPreMatchMenus
+        boolOption: showPreMatchMenus, setPreMatchMenus, "pre-match menus"
         upEntry: <
         downEntry: >
     }
 
     Entry gameStyle {
         stringTable: [ ~m_gameStyle, "PC", "AMIGA" ]
-        onSelect: changeGameStyle
+        onSelect: toggleGameStyle
         upEntry: <
         downEntry: >
     }

@@ -41,7 +41,7 @@ kAssert: Final = 'static_assert(static_cast<int>(AssetResolution::kNumResolution
 
 kHeader: Final = kWarning + '''\n
 #include "PackedSprite.h"
-#include "windowManager.h"
+#include "assetManager.h"
 ''' + '\n' + kAssert
 
 def mkdir(path):
@@ -124,7 +124,8 @@ def getDirAtlasSprites(atlasData, metadata, res, atlasNamePrefixes, textureIndex
                     value = sprite['spriteSourceSize'][prop]
                     spriteData.append(value / kResMultipliers[res] if floatValue else value)
             for dim in ('w', 'h'):
-                assert sprite['sourceSize'][dim] % kResMultipliers[res] == 0
+                if sprite['sourceSize'][dim] % kResMultipliers[res] != 0:
+                    print(f"{filename}: invalid sprite dimension {sprite['sourceSize'][dim]} for resolution {res}")
                 spriteData.append(sprite['sourceSize'][dim] // kResMultipliers[res])
             for dim in ('w', 'h'):
                 spriteData.append(sprite['frame'][dim] / kResMultipliers[res])
@@ -411,7 +412,7 @@ def generatePitchDatabase(atlasData, pitches, trainingPitch):
     with (open(os.path.join(kOutDir, 'pitchDatabase.h'), 'w')) as f:
         out = getOutputFunc(f)
 
-        out(kWarning, '#include "windowManager.h"', kAssert, sep='\n\n', end='\n\n')
+        out(kWarning, '#include "assetManager.h"', kAssert, sep='\n\n', end='\n\n')
         out(f'static constexpr int kNumPitches = {len(pitches)};')
         out(f'static constexpr int kPitchPatternWidth = {kPitchWidth};')
         out(f'static constexpr int kPitchPatternHeight = {kPitchHeight};\n')
@@ -467,7 +468,7 @@ enum StadiumSprites {
     kGoalkeeperBackground = 8,
 };\n''')
 
-        out(f'static const std::array<byte, {len(kResMultipliers)}> kResMultipliers = {{\n   ')
+        out(f'static const std::array<byte, {len(kResMultipliers)}> kResMultipliers = {{\n   ', end='')
         for multiplier in kResMultipliers:
             out(f' {multiplier},', end='')
         out('\n};\n')
@@ -662,7 +663,18 @@ def parseCommandLine(options):
         if arg.lower().replace('-', '') == 'blocky':
             if not blocky:
                 for option in options:
-                    option['input'] = os.path.join('blocky', option['input'])
+                    if isinstance(option['input'], str):
+                        option['input'] = (option['input'],)
+                    result = []
+                    for path in option['input']:
+                        path = os.path.normpath(path)
+                        if path.startswith('sprites/game'):
+                            path = path.replace('sprites/game', 'sprites/game/blocky')
+                        result.append(path)
+                    if len(result) == 1:
+                        option['input'] = result[0]
+                    else:
+                        option['input'] = result
                 blocky = True
         elif match := re.match(kTrainingPitchRegex, arg):
             try:

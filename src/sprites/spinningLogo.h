@@ -2,4 +2,5 @@
 
 void updateSpinningLogo();
 void drawSpinningLogo();
-void toggleSpinningLogo();
+bool spinningLogoEnabled();
+void enableSpinningLogo(bool enabled);

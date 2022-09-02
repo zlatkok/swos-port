@@ -1,10 +1,12 @@
 #include "pitch.h"
 #include "pitchDatabase.h"
+#include "windowManager.h"
 #include "loadTexture.h"
 #include "camera.h"
 #include "game.h"
 #include "replays.h"
 #include "render.h"
+#include "gameFieldMapping.h"
 #include "file.h"
 #include "util.h"
 #include "random.h"
@@ -163,12 +165,16 @@ float getZoomFactor()
     return m_zoom;
 }
 
+void initZoomFactor(float zoom)
+{
+    m_zoom = zoom;
+}
+
 bool setZoomFactor(float zoom, float step /* = 0 */)
 {
     auto initialZoom = m_zoom;
 
-    auto scale = getGameScale();
-    if (scale) {
+    if (auto scale = getGameScale()) {
         if (!zoom) {
             m_zoom = getDefaultZoom(scale);
         } else {
@@ -181,7 +187,7 @@ bool setZoomFactor(float zoom, float step /* = 0 */)
             m_zoom = std::max(minZoom, m_zoom);
         }
     } else {
-        m_zoom = zoom;
+        assert(false);
     }
 
     bool zoomChanged = initialZoom != m_zoom;

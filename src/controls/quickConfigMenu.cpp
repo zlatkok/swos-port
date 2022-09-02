@@ -2,6 +2,7 @@
 #include "menuBackground.h"
 #include "renderSprites.h"
 #include "text.h"
+#include "drawPrimitives.h"
 #include "controls.h"
 #include "scancodes.h"
 #include "keyBuffer.h"

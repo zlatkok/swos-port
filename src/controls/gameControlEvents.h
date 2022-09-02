@@ -25,7 +25,7 @@ constexpr auto kGameEventMovementMask = kGameEventUp | kGameEventDown | kGameEve
     kGameEventZoomIn | kGameEventZoomOut;
 constexpr auto kGameEventNonMovementMask = ~kGameEventMovementMask;
 constexpr auto kMinimumGameEventsMask = kGameEventUp | kGameEventDown | kGameEventLeft | kGameEventRight | kGameEventKick;
-constexpr auto kGameEventAll = static_cast<GameControlEvents>(2 * kMaxGameEvent - 1);
+constexpr auto kGameEventAll = static_cast<GameControlEvents>(2 * (kMaxGameEvent - 1) - 1);
 
 constexpr int kNumDefaultGameControlEvents = 6;
 using DefaultEventsPack = std::array<GameControlEvents, kNumDefaultGameControlEvents>;

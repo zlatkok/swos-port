@@ -205,7 +205,7 @@ Menu windowModeMenu
 
     Entry fullScreen {
         x: kColumn2X
-        width: kResolutionFieldWidth
+        width: kResolutionFieldWidth + 14   // needs a bit more room
 
         textFlags: @kGrayText
         text: @kAlloc

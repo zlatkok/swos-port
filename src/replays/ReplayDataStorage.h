@@ -90,6 +90,7 @@ private:
 struct RawInt32 {
     RawInt32() {}
     RawInt32(int data) : data(data) {}
+    RawInt32(int64_t data) : data(static_cast<int32_t>(data)) {}
     RawInt32(unsigned data) : data(data) {}
     RawInt32(float data) : dataF(data) {}
     operator int() const { return data; }

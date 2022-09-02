@@ -8,6 +8,8 @@ Menu audioOptionsMenu
 {
     defaultWidth: kOptionWidth
     defaultHeight: kOptionHeight
+    onInit: initAudioOptionsMenu
+    onRestore: initAudioOptionsMenu
     initialEntry: masterSound
 
     Entry header {
@@ -35,8 +37,8 @@ Menu audioOptionsMenu
 
     defaultY: @prevEndY + kOptionsRowDistance + 1
 
-    Entry { text: swos.aMenuMusic }
-    Entry { text: swos.aCommentary }
+    Entry { text: "MENU MUSIC" }
+    Entry { text: "COMMENTARY" }
     Entry { text: "CROWD CHANTS" }
     Entry { text: "MATCH VOLUME" }
     Entry { text: "MUSIC VOLUME" }
@@ -52,38 +54,30 @@ Menu audioOptionsMenu
     Entry masterSound {
         y: kOptionsStartY
 
-        stringTable: [ ~m_soundEnabled, "OFF", "ON" ]
-
-        onSelect: toggleMasterSound
+        boolOption: soundEnabled, setSoundEnabled, "master sound"
 
         downEntry: >
     }
 
     Entry menuMusic {
-        stringTable: [ ~m_musicEnabled, "OFF", "ON" ]
-
-        onSelect: toggleMenuMusic
+        boolOption: musicEnabled, setMusicEnabled, "music"
 
         upEntry: <
         downEntry: >
     }
 
     Entry commentary {
-        stringTable: [ ~m_commentaryEnabled, "OFF", "ON" ]
-
-        onSelect: toggleCommentary
+        boolOption: commentaryEnabled, setCommentaryEnabled, "commentary"
 
         upEntry: <
         downEntry: >
     }
 
     Entry crowdChants {
-        stringTable: [ m_crowdChantsEnabled, "OFF", "ON" ]
-
-        onSelect: toggleCrowdChants
+        boolOption: areCrowdChantsEnabled, setCrowdChantsEnabled, "crowd chants"
 
         upEntry: <
-        downEntry: >
+        downEntry: volume
     }
 
     Entry decreaseVolumeButton {
@@ -95,7 +89,7 @@ Menu audioOptionsMenu
         onSelect: decreaseVolume
 
         upEntry: <
-        rightEntry: increaseVolumeButton
+        rightEntry: volume
         downEntry: decreaseMusicVolumeButton
     }
 
@@ -106,7 +100,12 @@ Menu audioOptionsMenu
 
         number: 0
 
-        beforeDraw: volumeBeforeDraw
+        onSelect: enterMasterVolume
+
+        upEntry: crowdChants
+        downEntry: musicVolume
+        leftEntry: decreaseVolumeButton
+        rightEntry: increaseVolumeButton
     }
 
     Entry increaseVolumeButton {
@@ -121,7 +120,7 @@ Menu audioOptionsMenu
 
         upEntry: crowdChants
         downEntry: increaseMusicVolumeButton
-        leftEntry: decreaseVolumeButton
+        leftEntry: volume
     }
 
     Entry decreaseMusicVolumeButton {
@@ -133,7 +132,7 @@ Menu audioOptionsMenu
         onSelect: decreaseMusicVolume
 
         upEntry: decreaseVolumeButton
-        rightEntry: increaseMusicVolumeButton
+        rightEntry: musicVolume
         downEntry: exit
     }
 
@@ -144,7 +143,12 @@ Menu audioOptionsMenu
 
         number: 0
 
-        beforeDraw: musicVolumeBeforeDraw
+        onSelect: enterMusicVolume
+
+        upEntry: volume
+        downEntry: exit
+        leftEntry: decreaseMusicVolumeButton
+        rightEntry: increaseMusicVolumeButton
     }
 
     Entry increaseMusicVolumeButton {
@@ -159,7 +163,7 @@ Menu audioOptionsMenu
 
         upEntry: increaseVolumeButton
         downEntry: exit
-        leftEntry: decreaseMusicVolumeButton
+        leftEntry: musicVolume
     }
 
     Entry exit {

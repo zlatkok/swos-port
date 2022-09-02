@@ -18,7 +18,7 @@ static int16_t m_windowMaximized;
 
 using DisplayModeList = std::vector<std::pair<int, int>>;
 
-static const char *kPleaseWaitText;
+static const char *m_pleaseWaitText;
 static DisplayModeList m_resolutions;
 static int m_resListOffset;
 
@@ -44,6 +44,7 @@ void showWindowModeMenu()
 static void windowModeMenuOnInit()
 {
     setGlobalWheelEntries(scrollUpArrow, scrollDownArrow);
+    m_pleaseWaitText = nullptr;
 
 #ifdef __ANDROID__
     for (auto entry = &headerEntry + 1; entry < &fullScreenEntry; entry++)
@@ -158,9 +159,9 @@ static DisplayModeList getDisplayModes(int displayIndex)
             logInfo("  %2d %d x %d, format: %x, refresh rate: %d", i, mode.w, mode.h, mode.format, mode.refresh_rate);
 
             if (!shownWarning && SDL_GetTicks() > startTicks + kPleaseWaitLimitMs) {
-                if (!kPleaseWaitText)
-                    kPleaseWaitText = SwosVM::allocateString("PLEASE WAIT, ENUMERATING GRAPHICS MODES...");
-                drawText(55, 80, kPleaseWaitText, -1, kYellowText);
+                if (!m_pleaseWaitText)
+                    m_pleaseWaitText = SwosVM::allocateString("PLEASE WAIT, ENUMERATING GRAPHICS MODES...");
+                drawText(55, 80, m_pleaseWaitText, -1, kYellowText);
                 updateScreen();
                 shownWarning = true;
             }
@@ -326,7 +327,7 @@ static void inputWindowWidthOrHeight(Dimension dimension)
 {
     if (getWindowMode() == kModeWindow) {
         auto entry = A5.as<MenuEntry *>();
-        auto numberEntered = inputNumber(*entry, 5, 0, 9999);
+        auto numberEntered = inputNumber(*entry, 4, 0, 9999);
 
         if (numberEntered) {
             int widthOrHeight = entry->fg.number;

@@ -1,13 +1,14 @@
 #include "mainMenu.h"
+#include "unpackMenu.h"
 #include "drawMenu.h"
 #include "replaysMenu.h"
 #include "render.h"
 #include "timer.h"
 #include "music.h"
+#include "optionsMenu.h"
 #include "main.mnu.h"
 
 static void initMainMenu();
-static void initMainMenuGlobals();
 
 void showMainMenu()
 {
@@ -26,17 +27,6 @@ bool mainMenuActive()
 void activateExitGameButton()
 {
     showQuitMenu();
-}
-
-static void initMainMenu()
-{
-    initMusic();
-    initMainMenuGlobals();
-
-    // speed up starting up in debug mode
-#ifndef DEBUG
-    enqueueMenuFadeIn();
-#endif
 }
 
 void initMainMenuGlobals()
@@ -65,6 +55,17 @@ void initMainMenuGlobals()
     swos.importTacticsFilename[0] = 0;
     swos.chooseTacticsTeamPtr = nullptr;
     InitUserTactics();
+}
+
+static void initMainMenu()
+{
+    initMusic();
+    initMainMenuGlobals();
+
+    // speed up starting up in debug mode
+#ifndef DEBUG
+    enqueueMenuFadeIn();
+#endif
 }
 
 static void mainMenuOnInit()

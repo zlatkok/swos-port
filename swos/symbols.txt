@@ -8,7 +8,8 @@
 # procs
 __int_3 - SelectAndShowSquadToView
 cseg_1994F
-ExitOptions - SaveOptions
+# + commentary options handler
+ChangeCommentary - SaveOptions
 OptionsMenuBeforeDraw
 FindFiles
 InitMenuEntry - Int2Ascii
@@ -21,13 +22,13 @@ FadeAndPlayRelegatedAnimation - PlayNewSeasonAnimations
 ShowRestOfPics - StartingMatch
 ClearSaveFlagForGoalSprites - BookPlayer
 copySpriteAllowAND - stateGoal
-big_S_Sprite - advertIngameSprites
 
 # advertisements
 CopyAdvertisementsData - BumpAllPlayersLastPlayedHalfAtGameStart
+advertIndex - yellowCardTable
 
 # result + bunch of sprites
-refereeSprite - playerMarkSprite
+big_S_Sprite - playerMarkSprite
 isGoalAttempt - resultTimer
 team1NameLength - dseg_114C96
 
@@ -53,7 +54,6 @@ spriteFixupFlag - g_skipNonCompetitionFiles
 # do not touch these, they overlap with DIY competition buffer
 #topTeamSaved - numSpritesToRender
 playerCardChances3min - ballOutOfGameTimer
-unreferencedTeamDatTable - yellowCardTable
 team1MostFrequentFace - statsTimer
 #whiteGuyConvertTable - pitchNumberAndType #ref: FillSkinColorConversionTable
 ballSpeedBounceFactorTable - gravityConstant
@@ -106,6 +106,9 @@ replaySelected
 # select files menu
 dta - dseg_17FCB8
 
+# options
+OptionsMenuSelected
+
 # CD ROM routines
 # removes select files menu functions as well
 FindFirstFile - SelectFileToSaveDialog
@@ -123,7 +126,6 @@ g_joy1Fire2 - dosMemOfs60c00h
 
 # commentary & SFX
 PlayHitFrameComment
-ChangeCommentary
 SetVolumeOrStopChants - EnqueueCornerSample
 PlayFansChant4lSample
 PlayEndGameWhistleSample
@@ -167,6 +169,7 @@ dseg_16AECB
 dosVariablesStart - dseg_185BA8
 dseg_185BA8
 sfxLowerQualityTable - introTeamChantsTable
+startGameSamples - endGameCrowdSamples
 aSfxFx11Bgcrd3l - aSfxFxCombrown_
 
 # bench
@@ -395,13 +398,11 @@ ChangePitchType, function
 ChangeAutoReplays, function
 ChangeAllPlTeamsEqual, function
 ChangeAutoSaveHighlights, function
-ChangeChairmanScenes, function
 g_gameLength, int16_t
 g_autoReplays, int16_t
 g_autoSaveHighlights, int16_t
 g_allPlayerTeamsEqual, int16_t
 g_pitchType, int16_t
-g_chairmanScenes, int16_t
 
 # options menu
 aOptions, array const char
@@ -409,12 +410,6 @@ aExit, array const char
 aReplay, array const char
 controlMask, word
 aFriendlyDiyGam, array const char
-aFixPitchType, array const char
-aAutoReplays, array const char
-aAllPlayerTeams, array const char
-aAutoSaveHighli, array const char
-aMenuMusic, array const char
-aCommentary, array const char
 aPlus, array const char
 aMinus, array const char
 aCustom, array const char
@@ -556,6 +551,7 @@ stoppageEventTimer, word
 ballInGoalkeeperArea, word
 
 # game
+InitAndPlayGame, function
 UpdateCameraBreakMode, function
 UpdateControlledPlayer, function
 UpdatePlayerBeingPassedTo, function
@@ -746,6 +742,11 @@ goalTypeScored, word
 competitionFileBuffer, word
 g_selectedTeams, array char[68400]
 
+# needed for tests
+animTableStart, array char
+playerShotChanceTable, array int16_t[30]
+goalieSkill0Table, array int16_t[30]
+
 ### debug dump
 #AI_attackHalf, word
 
@@ -844,7 +845,6 @@ CloseSoccerBin
 SetCurrentPlayerName
 SwapPlayerNameData
 
-OptionsMenuSelected
 PlayMatchSelected
 
 # commentary/sfx

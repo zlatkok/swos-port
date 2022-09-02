@@ -38,6 +38,13 @@ namespace SWOS_UnitTest
             throw FailedEqualAssertException(mustBeEqual, t1, t2, t1Str, t2Str, file, line);
     }
 
+    template<typename T>
+    void assertMemEqualImp(const T *t1, const T *t2, const char *t1Str, const char *t2Str, const char *file, int line)
+    {
+        if (memcmp(t1, t2, sizeof(T)))
+            throw FailedEqualAssertException(true, t1, t2, t1Str, t2Str, file, line);
+    }
+
     void assertTrueImp(bool expression, const char *exprStr, const char *file, int line);
     void assertStringEqualImp(const char *s1, const char *s2, const char *s1Str, const char *s2Str, const char *file, int line);
     void assertNumItemsImp(int num, const char *numStr, const char *file, int line);
@@ -66,8 +73,10 @@ namespace SWOS_UnitTest
 
 #define assertTrue(e) SWOS_UnitTest::assertTrueImp(e, #e, __FILE__, __LINE__)
 #define assertFalse(e) SWOS_UnitTest::assertTrueImp(!(e), "!(" #e ")", __FILE__, __LINE__)
+#define assertMessage(e, m) { if (!(e)) throw SWOS_UnitTest::CustomException(__FILE__, __LINE__, m); }
 #define assertEqual(v1, v2) SWOS_UnitTest::assertEqualImp(true, v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertNotEqual(v1, v2) SWOS_UnitTest::assertEqualImp(false, v1, v2, #v1, #v2, __FILE__, __LINE__)
+#define assertMemEqual(v1, v2) SWOS_UnitTest::assertMemEqualImp(v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertStringEqualCaseInsensitive(s1, s2) SWOS_UnitTest::assertStringEqualImp(s1, s2, #s1, #s2, __FILE__, __LINE__)
 #define assertItemIsNumber(i, v) SWOS_UnitTest::assertItemIsNumberImp(i, #i, v, __FILE__, __LINE__)
 #define assertItemIsVisible(i) SWOS_UnitTest::assertItemIsVisibleImp(i, #i, true, __FILE__, __LINE__)

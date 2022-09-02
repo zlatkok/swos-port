@@ -1,5 +1,6 @@
 #include "renderSprites.h"
 #include "render.h"
+#include "gameFieldMapping.h"
 #include "sprites.h"
 #include "pitch.h"
 #include "color.h"
@@ -18,6 +19,11 @@ static void drawMenuSprite(int spriteIndex, int x, int y, bool resetColor, int a
 void drawMenuSprite(int spriteIndex, int x, int y)
 {
     drawMenuSprite(spriteIndex, x, y, true);
+}
+
+void drawGameSprite(int spriteIndex, int x, int y)
+{
+    drawSprite(spriteIndex, static_cast<float>(x), static_cast<float>(y), false, 0, 0);
 }
 
 void drawCharSprite(int spriteIndex, int x, int y, int alpha /* = 255 */)

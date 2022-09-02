@@ -19,11 +19,11 @@ static int charToSprite(unsigned char c, bool bigFont)
 {
     int spriteIndex = 0;
 
-    if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+    if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
         spriteIndex = ((c | 0x20) - 'a' + 18);
-    else if (c >= '0' && c <= '9')
+    } else if (c >= '0' && c <= '9') {
         spriteIndex = c - '0' + 8;
-    else switch (c) {
+    } else switch (c) {
     case '%': spriteIndex = 51; break;
     case '\'': spriteIndex = 1; break;
     case '(': spriteIndex = 2; break;
@@ -38,13 +38,40 @@ static int charToSprite(unsigned char c, bool bigFont)
     case ';': spriteIndex = 52; break;
     case '?': spriteIndex = 48; break;
     // SWOS specific extensions
-    case 128: spriteIndex = 47; break;  // em dash
-    case 142: spriteIndex = 53; break;  // A umlaut
-    case 153: spriteIndex = 55; break;  // O umlaut
-    case 154: spriteIndex = 54; break;  // U umlaut
-    case 156: spriteIndex = 46; break;  // pound sign
-    case 159: spriteIndex = 56; break;  // thick vertical bar
-    case 255: spriteIndex = 44; break;  // cursor block
+    case kEmDashChar: spriteIndex = 47; break;
+    case kAUmlautChar: spriteIndex = 53; break;
+    case kOUmlautChar: spriteIndex = 55; break;
+    case kUUmlautChar: spriteIndex = 54; break;
+    case kPoundChar: spriteIndex = 46; break;
+    case kThickVerticalBarChar: spriteIndex = 56; break;
+    case kCursorBlockChar: spriteIndex = 44; break;
+    // latest modern SWOS additions
+    case '~': return bigFont ? 1352 : 1335;
+    case '`': return bigFont ? 1380 : 1379;
+    case '$': return bigFont ? 1359 : 1370;
+    case '&': return bigFont ? 1358 : 1341;
+    case '!': return bigFont ? 1353 : 1336;
+    case '|': return bigFont ? 1354 : 1337;
+    case '@': return bigFont ? 1355 : 1338;
+    case '#': return bigFont ? 1356 : 1339;
+    case '^': return bigFont ? 1357 : 1340;
+    case '<': return bigFont ? 1361 : 1343;
+    case '>': return bigFont ? 1362 : 1344;
+    case '"': return bigFont ? 1363 : 1345;
+    case '_': return bigFont ? 1364 : 1346;
+    case '=': return bigFont ? 1374 : 1373;
+    case '[': return bigFont ? 1377 : 1375;
+    case ']': return bigFont ? 1378 : 1376;
+    case '{': return bigFont ? 1385 : 1383;
+    case '}': return bigFont ? 1386 : 1384;
+    case '\\': return bigFont ? 1382 : 1381;
+    case kEuroChar: return bigFont ? 1360 : 1342;
+    case kSCaronChar: return bigFont ? 1365 : 1347;
+    case kDCrossedChar: return bigFont ? 1366 : 1348;
+    case kCCaronChar: return bigFont ? 1367 : 1349;
+    case kCAcuteAccentChar: return bigFont ? 1368 : 1350;
+    case kZCaronChar: return bigFont ? 1369 : 1351;
+    case kEszettChar: return bigFont ? 1372 : 1371;
     }
 
     if (spriteIndex && bigFont)
@@ -55,7 +82,7 @@ static int charToSprite(unsigned char c, bool bigFont)
 
 static bool isBlank(char c)
 {
-    return c == ' ' || c == '_';
+    return c == ' ';
 }
 
 static int charSpriteWidth(char c, bool bigFont)
@@ -133,6 +160,8 @@ static void drawText(int x, int y, const char *str, const char *limit, int color
 {
     setTextColor(color);
 
+    int fontHeight = bigFont ? kBigFontHeight : kSmallFontHeight;
+
     while (str < limit) {
         auto c = *str++;
         if (isBlank(c)) {
@@ -140,8 +169,11 @@ static void drawText(int x, int y, const char *str, const char *limit, int color
         } else if (c == '\t') {
             x += kTabSpace;
         } else if (int spriteIndex = charToSprite(c, bigFont)) {
-            drawCharSprite(spriteIndex, x, y, alpha);
-            x += getSprite(spriteIndex).width;
+            const auto& sprite = getSprite(spriteIndex);
+            // account for characters with diacritics, they will have 1 extra pixel at the top
+            int cy = sprite.height - fontHeight;
+            drawCharSprite(spriteIndex, x, y - cy, alpha);
+            x += sprite.width;
         }
     }
 

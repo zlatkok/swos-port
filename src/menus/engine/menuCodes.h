@@ -8,6 +8,7 @@ enum EntryElementCode : int16_t
     kMenuXY = -998,
     kFillTemplate = -997,
     kResetTemplate = -996,
+    kNotSet = -1,
     kEndOfEntry = 0,
     kInvisibilityCloak,
     kPositions,
@@ -40,6 +41,7 @@ enum EntryElementCode : int16_t
     kBeforeDrawNative,
     kAfterDrawNative,
     kMenuSpecificSprite,
+    kBoolOption,
 };
 
 static_assert(kColorConvertedSprite == 21, "Element code enum is broken");
@@ -126,8 +128,18 @@ struct EntryInvisible : EntryElement {
     constexpr EntryInvisible() : EntryElement(kInvisibilityCloak) {}
 };
 
-struct EntryMenuSpecificSprite : EntryElement {
-    constexpr EntryMenuSpecificSprite() : EntryElement(kMenuSpecificSprite) {}
+struct EntryMenuSpecificSprite : EntryElementNative {
+    constexpr EntryMenuSpecificSprite() : EntryElementNative(kMenuSpecificSprite) {}
+};
+
+struct EntryBoolOption : EntryElementNative {
+    using GetFn = bool (*)();
+    using SetFn = void (*)(bool);
+    constexpr EntryBoolOption(GetFn get, SetFn set, const char *description)
+        : EntryElementNative(kBoolOption), get(get), set(set), description(description) {}
+    bool (*get)();
+    void (*set)(bool);
+    const char *description;
 };
 
 class EntryNextPositions : EntryElement {
@@ -157,7 +169,7 @@ class EntryCustomBackgroundFunction : EntryFunctionSwos {
 };
 class EntryCustomBackgroundFunctionNative : EntryFunctionNative {
     constexpr EntryCustomBackgroundFunctionNative(Func func)
-        : EntryFunction<EntryElementNative>(func, kCustomBackgroundFunc) {}
+        : EntryFunctionNative(func, kCustomBackgroundFunc) {}
 };
 
 class EntryColor : EntryElement {

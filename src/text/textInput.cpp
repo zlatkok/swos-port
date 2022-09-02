@@ -1,4 +1,5 @@
 #include "textInput.h"
+#include "text.h"
 #include "controls.h"
 #include "keyBuffer.h"
 #include "MenuEntry.h"
@@ -6,8 +7,33 @@
 #include "menuAlloc.h"
 #include "util.h"
 
-static char keyToChar(SDL_Scancode key, bool allowShift)
+enum ExtendedCodes {
+    kAUmlautCode = 228,
+    kOUmlautCode = 246,
+    kUUmlautCode = 252,
+    kEszettCode = 223,
+    kSCaronCode = 353,
+    kDCrossedCode = 273,
+    kCCaronCode = 269,
+    kCAcuteAccentCode = 263,
+    kZCaronCode = 382,
+};
+
+// Converts pressed key to our internal character representation that can be rendered on screen.
+static char keyToChar(SDL_Scancode key, SDL_Keycode extendedCode, bool allowShift)
 {
+    switch (extendedCode) {
+    case kAUmlautCode: return kAUmlautChar;
+    case kOUmlautCode: return kOUmlautChar;
+    case kUUmlautCode: return kUUmlautChar;
+    case kEszettCode: return kEszettChar;
+    case kSCaronCode: return kSCaronChar;
+    case kDCrossedCode: return kDCrossedChar;
+    case kCCaronCode: return kCCaronChar;
+    case kCAcuteAccentCode: return kCAcuteAccentChar;
+    case kZCaronCode: return kZCaronChar;
+    }
+
     bool shiftDown = false;
     if (allowShift)
         shiftDown = (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT)) != 0;
@@ -18,6 +44,8 @@ static char keyToChar(SDL_Scancode key, bool allowShift)
         return key - SDL_SCANCODE_KP_A + (shiftDown ? 'A' : 'a');
 
     switch (key) {
+    case SDL_SCANCODE_GRAVE:
+        return shiftDown ? '~' : '`';
     case SDL_SCANCODE_0:
     case SDL_SCANCODE_KP_0:
         return shiftDown ? ')' : '0';
@@ -26,44 +54,58 @@ static char keyToChar(SDL_Scancode key, bool allowShift)
         return shiftDown ? '!' : '1';
     case SDL_SCANCODE_2:
     case SDL_SCANCODE_KP_2:
-        return '2';
+        return shiftDown ? '@' : '2';
     case SDL_SCANCODE_3:
     case SDL_SCANCODE_KP_3:
-        return '3';
+        return shiftDown ? '#' : '3';
     case SDL_SCANCODE_4:
     case SDL_SCANCODE_KP_4:
-        return '4';
+        return shiftDown ? '$' : '4';
     case SDL_SCANCODE_5:
     case SDL_SCANCODE_KP_5:
-        return '5';
+        return shiftDown ? '%' : '5';
     case SDL_SCANCODE_6:
     case SDL_SCANCODE_KP_6:
-        return shiftDown ? '%' : '6';
+        return shiftDown ? '^' : '6';
     case SDL_SCANCODE_7:
     case SDL_SCANCODE_KP_7:
-        return '7';
+        return shiftDown ? '&' : '7';
     case SDL_SCANCODE_8:
     case SDL_SCANCODE_KP_8:
         return shiftDown ? '*' : '8';
     case SDL_SCANCODE_9:
     case SDL_SCANCODE_KP_9:
         return shiftDown ? '(' : '9';
+    case SDL_SCANCODE_KP_VERTICALBAR:
+        return '|';
+    case SDL_SCANCODE_LEFTBRACKET:
+        return shiftDown ? '{' : '[';
+    case SDL_SCANCODE_RIGHTBRACKET:
+        return shiftDown ? '}' : ']';
+    case SDL_SCANCODE_KP_LEFTBRACE:
+        return '{';
+    case SDL_SCANCODE_KP_RIGHTBRACE:
+        return '}';
+    case SDL_SCANCODE_BACKSLASH:
+        return shiftDown ? '|' : '\\';
     case SDL_SCANCODE_KP_EXCLAM:
         return '!';
     case SDL_SCANCODE_APOSTROPHE:
-        return '\'';
+        return shiftDown ? '"' : '\'';
     case SDL_SCANCODE_COMMA:
     case SDL_SCANCODE_KP_COMMA:
-        return ',';
+        return shiftDown ? '<' : ',';
     case SDL_SCANCODE_MINUS:
+        return shiftDown ? '_' : '-';
     case SDL_SCANCODE_KP_MINUS:
         return '-';
     case SDL_SCANCODE_EQUALS:
+        return shiftDown ? '+' : '=';
     case SDL_SCANCODE_KP_PLUS:
         return '+';
     case SDL_SCANCODE_PERIOD:
     case SDL_SCANCODE_KP_PERIOD:
-        return '.';
+        return shiftDown ? '>' : '.';
     case SDL_SCANCODE_SLASH:
     case SDL_SCANCODE_KP_DIVIDE:
         return shiftDown ? '?' : '/';
@@ -83,7 +125,7 @@ static char keyToChar(SDL_Scancode key, bool allowShift)
     }
 }
 
-static bool inputText(MenuEntry& entry, size_t maxLength, bool allowShift, std::function<bool(SDL_Scancode, char *, size_t, char *)> processKey)
+static bool inputText(MenuEntry& entry, size_t maxLength, bool allowShift, std::function<bool(SDL_Scancode, SDL_Keycode, char *, size_t, char *)> processKey)
 {
     assert(entry.isString());
     assert(maxLength <= kStdMenuTextSize);
@@ -112,17 +154,18 @@ static bool inputText(MenuEntry& entry, size_t maxLength, bool allowShift, std::
         drawMenu();
         SWOS::WaitRetrace();
 
-        auto key = getKey();
+        auto key = getExtendedKey();
 
         while (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON_RMASK) {
-            key = SDL_SCANCODE_ESCAPE;
+            key = { SDL_SCANCODE_ESCAPE, SDLK_UNKNOWN };
             processControlEvents();
             SDL_Delay(25);
         }
 
-        switch (key) {
+        switch (key.first) {
         case SDL_SCANCODE_RETURN:
         case SDL_SCANCODE_RETURN2:
+        case SDL_SCANCODE_KP_ENTER:
             memmove(cursorPtr, cursorPtr + 1, end - cursorPtr);
             entry.setString(originalString);
             strcpy(entry.string(), buf);
@@ -182,8 +225,8 @@ static bool inputText(MenuEntry& entry, size_t maxLength, bool allowShift, std::
             break;
 
         default:
-            if (end + 1 < sentinel && processKey(key, buf, end - buf, cursorPtr)) {
-                if (auto c = keyToChar(key, allowShift)) {
+            if (end + 1 < sentinel - 1 && processKey(key.first, key.second, buf, end - buf - 1, cursorPtr)) {
+                if (auto c = keyToChar(key.first, key.second, allowShift)) {
                     *cursorPtr++ = c;
                     memmove(cursorPtr + 1, cursorPtr, end++ - cursorPtr + 1);
                     *cursorPtr = kCursorChar;
@@ -200,11 +243,24 @@ bool inputText(MenuEntry& entry, size_t maxLength, InputTextAllowedChars allowEx
 
     maxLength = std::min<size_t>(maxLength, kStdMenuTextSize);
 
-    return inputText(entry, maxLength, allowExtraChars == kFullCharset, [allowExtraChars](auto key, auto, auto, auto) {
+    return inputText(entry, maxLength, allowExtraChars == kFullCharset, [allowExtraChars](auto key, auto keycode, auto, auto, auto) {
         static_assert(SDL_SCANCODE_Z + 1 == SDL_SCANCODE_1, "Cock-a-doodle-doo!");
 
         if (key >= SDL_SCANCODE_A && key <= SDL_SCANCODE_0)
             return true;
+
+        switch (keycode) {
+        case kAUmlautCode:
+        case kOUmlautCode:
+        case kUUmlautCode:
+        case kSCaronCode:
+        case kDCrossedCode:
+        case kCCaronCode:
+        case kCAcuteAccentCode:
+        case kZCaronCode:
+        case kEszettCode:
+            return true;
+        }
 
         if (allowExtraChars > kLimitedCharset && key == '.')
             return true;
@@ -242,7 +298,7 @@ bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum, bool a
     entry.type = kEntryString;
     entry.setString(buf);
 
-    auto result = inputText(entry, sizeof(buf), false, [&](auto key, auto start, auto size, auto cursorPtr) {
+    auto result = inputText(entry, sizeof(buf), false, [&](auto key, auto, auto start, auto size, auto cursorPtr) {
         switch (key) {
         case SDL_SCANCODE_MINUS:
         case SDL_SCANCODE_KP_MINUS:

@@ -71,8 +71,3 @@ void selectEntry(int ordinal);
 
 void showMenu(const BaseMenu& menu);
 void saveCurrentMenuAndStartGameLoop();
-
-void unpackMenu(const void *src, char *dst = swos.g_currentMenu);
-void restoreMenu(const void *menu, int selectedEntry);
-void activateMenu(const void *menu);
-const void *getCurrentPackedMenu();

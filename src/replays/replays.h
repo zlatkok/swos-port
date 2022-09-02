@@ -34,3 +34,8 @@ FileStatus loadHighlightsFile(const char *path);
 FileStatus loadReplayFile(const char *path);
 bool saveHighlightsFile(const char *path, bool overwrite = true);
 bool saveReplayFile(const char *path, bool overwrite = true);
+
+bool getAutoSaveReplays();
+void setAutoSaveReplays(bool autoSave);
+bool getShowReplayPercentage();
+void setShowReplayPercentage(bool showPercentage);

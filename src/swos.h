@@ -440,7 +440,7 @@ enum TeamControls : byte
 
 constexpr int kNumPlayersInTeam = 16;
 
-struct TeamFile
+struct TeamFileHeader
 {
     byte teamFileNo;
     byte teamOrdinal;
@@ -466,7 +466,7 @@ struct TeamFile
     byte playerNumbers[kNumPlayersInTeam];
 };
 
-static_assert(sizeof(TeamFile) == 76, "TeamFile is invalid");
+static_assert(sizeof(TeamFileHeader) == 76, "TeamFile header is invalid");
 
 struct PlayerFile
 {
@@ -490,10 +490,17 @@ struct PlayerFile
 
 static_assert(sizeof(PlayerFile) == 38, "PlayerFile is invalid");
 
-struct PlayerFileHeader : private TeamFile, public PlayerFile {
+struct TeamFile : public TeamFileHeader
+{
+    PlayerFile players[16];
 };
 
-static_assert(sizeof(PlayerFileHeader) == sizeof(TeamFile) + sizeof(PlayerFile), "PlayerFileHeader invalid");
+static_assert(sizeof(TeamFile) == 684, "TeamFile is invalid");
+
+struct PlayerFileHeader : private TeamFileHeader, public PlayerFile {
+};
+
+static_assert(sizeof(PlayerFileHeader) == sizeof(TeamFileHeader) + sizeof(PlayerFile), "PlayerFileHeader invalid");
 
 struct TeamGame
 {
@@ -523,7 +530,7 @@ static_assert(sizeof(PlayerGameHeader) == sizeof(TeamGame) + sizeof(PlayerGame),
 
 struct TeamGeneralInfo
 {
-    SwosDataPointer<TeamGeneralInfo> opponentsTeam;
+    SwosDataPointer<TeamGeneralInfo> opponentTeam;
     word playerNumber;
     word plCoachNum;
     word isPlCoach;
@@ -531,7 +538,7 @@ struct TeamGeneralInfo
     SwosDataPointer<TeamStatsData> teamStatsPtr;
     word teamNumber;
     SwosDataPointer<SwosDataPointer<Sprite>> players;   // 11
-    SwosDataPointer<void> someTablePtr;
+    SwosDataPointer<void> shotChanceTable;
     word tactics;
     word tensTimer;
     SwosDataPointer<Sprite> controlledPlayerSprite;
@@ -645,8 +652,8 @@ enum SpriteIndices
     kDownArrowSprite = 184,
     kMaxMenuSprite = 226,
     kSquareGridForResultSprite = 252,
-    kRedCardSprite = 253,
-    kYellowCardSprite = 254,
+    kBenchRedCardSprite = 253,
+    kBenchYellowCardSprite = 254,
     kTeam1PlayerNamesStartSprite = 255,
     kTeam1PlayerNamesEndSprite = 270,
     kTeam2PlayerNamesStartSprite = 271,
@@ -703,6 +710,8 @@ enum SpriteIndices
     kSubstitutesLegendSprite = 1288,
     kTacticsLegendSprite = 1289,
     kRedCrossInjurySprite = 1290,
+    kRedCardSprite = 1291,
+    kYellowCardSprite = 1292,
     kWhiteFaceSprite = 1293,
     kGingerFaceSprite = 1294,
     kBlackFaceSprite = 1295,

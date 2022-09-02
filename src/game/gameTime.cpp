@@ -257,6 +257,7 @@ static void drawGameTime(const GameTime& gameTime)
         xOffset += kDigitWidth;
     }
 
+    assert(getSprite(kTimeSprite8Mins).width <= 25);
     drawMenuSprite(kTimeSprite8Mins, kTimeX + xOffset, kTimeY);
 }
 

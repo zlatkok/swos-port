@@ -1,7 +1,7 @@
 #include "spinningLogo.h"
 #include "render.h"
 #include "renderSprites.h"
-#include "windowManager.h"
+#include "gameFieldMapping.h"
 #include "bench.h"
 #include "stats.h"
 
@@ -30,7 +30,12 @@ void drawSpinningLogo()
         drawSprite(m_pictureIndex, kVgaWidth + getGameScreenOffsetX() - kLogoXEdgeDist, kLogoY, false, 0, 0);
 }
 
-void toggleSpinningLogo()
+bool spinningLogoEnabled()
 {
-    m_enabled = !m_enabled;
+    return m_enabled;
+}
+
+void enableSpinningLogo(bool enabled)
+{
+    m_enabled = enabled;
 }

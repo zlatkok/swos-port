@@ -12,5 +12,6 @@ bool zoomIn(float step = 0);
 bool zoomOut(float step = 0);
 bool resetZoom();
 float getZoomFactor();
+void initZoomFactor(float zoom);
 bool setZoomFactor(float zoom, float step = 0);
 Uint32 getLastZoomChangeTime();

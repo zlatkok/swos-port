@@ -15,10 +15,6 @@ void updateScreen(bool delay = false);
 void fadeIn(std::function<void()> render, double factor = 1.0);
 void fadeOut(std::function<void()> render, double factor = 1.0);
 
-void drawHorizontalLine(int x, int y, int width, const Color& color);
-void drawVerticalLine(int x, int y, int height, const Color& color);
-void drawRectangle(int x, int y, int width, int height, const Color& color);
-
 bool getLinearFiltering();
 void setLinearFiltering(bool useLinearFiltering);
 bool getClearScreen();

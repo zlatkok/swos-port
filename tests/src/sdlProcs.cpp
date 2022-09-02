@@ -14,12 +14,17 @@ static Uint32 m_mouseButtonFlags;
 
 static Uint8 m_scancodes[SDL_NUM_SCANCODES];
 
+static std::vector<std::tuple<int, int, int>> m_textureColorMods;
+static void *m_realHookSetTextureColorModIndex;
+
 static int m_getTicksDelta;
 static Uint32 m_lastGetTicks;
 static bool m_timeFrozen;
 
 static FakeJoypadList m_joypads;
 static int m_joypadId;
+
+static int hookSetTextureColorModIndex(SDL_Texture *, Uint8 r, Uint8 g, Uint8 b);
 
 static void SDL_Delay_NOP(Uint32) {}
 static int SDL_PeepEvents_NOP(SDL_Event *, int, SDL_eventaction, Uint32) { return 0; }
@@ -39,6 +44,7 @@ static EnvSetter e;
 static void mockFunctions()
 {
     setSdlProc(SDL_SetCursorIndex, dummyIntProc);
+    m_realHookSetTextureColorModIndex = setSdlProc(SDL_SetTextureColorModIndex, hookSetTextureColorModIndex);
 }
 
 bool initSdlApiTable()
@@ -287,6 +293,12 @@ void setSdlMouseState(int x, int y, bool leftClick /* = false */, bool rightClic
     m_mouseButtonFlags = mouseButtonFlags;
 }
 
+void bumpMouse()
+{
+    m_mouseX++;
+    m_mouseY++;
+}
+
 void resetSdlInput()
 {
     m_eventQueue.clear();
@@ -298,6 +310,20 @@ void resetSdlInput()
 void killSdlDelay()
 {
     m_table[SDL_DelayIndex] = SDL_Delay_NOP;
+}
+
+static void *m_savedRenderCopyF;
+static int dummyRenderCopyF(void *, void *, void *, void *) { return 0; }
+
+void disableRendering()
+{
+    m_savedRenderCopyF = setSdlProc(SDL_RenderCopyFIndex, dummyRenderCopyF);
+}
+
+void enableRendering()
+{
+    assert(m_savedRenderCopyF);
+    setSdlProc(SDL_RenderCopyFIndex, m_savedRenderCopyF);
 }
 
 static int fakeGetNumDisplayModes(int)
@@ -331,6 +357,17 @@ void restoreRealDisplayModes()
         m_table[SDL_GetNumDisplayModesIndex] = m_originalTable[SDL_GetNumDisplayModesIndex];
         m_table[SDL_GetDisplayModeIndex] = m_originalTable[SDL_GetDisplayModeIndex];
     }
+}
+
+void clearTextureColorMods()
+{
+    m_textureColorMods.clear();
+}
+
+bool hadTextureColorMod(int r, int g, int b)
+{
+    auto it = std::find(m_textureColorMods.begin(), m_textureColorMods.end(), std::make_tuple(r, g, b));
+    return it != m_textureColorMods.end();
 }
 
 static Uint32 getFakeTicks()
@@ -397,4 +434,14 @@ void disconnectJoypad(int index)
 {
     disconnectJoypad(m_joypads[index]);
     m_joypads.erase(m_joypads.begin() + index);
+}
+
+static int hookSetTextureColorModIndex(SDL_Texture *texture, Uint8 r, Uint8 g, Uint8 b)
+{
+    auto it = std::find(m_textureColorMods.begin(), m_textureColorMods.end(), std::make_tuple(r, g, b));
+    if (it == m_textureColorMods.end())
+        m_textureColorMods.emplace_back(r, g, b);
+
+    auto realProc = reinterpret_cast<int (*)(SDL_Texture *, Uint8, Uint8, Uint8)>(m_realHookSetTextureColorModIndex);
+    return realProc(texture, r, g, b);
 }

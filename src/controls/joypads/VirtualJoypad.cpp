@@ -2,6 +2,7 @@
 
 #include "VirtualJoypad.h"
 #include "JoypadConfig.h"
+#include "spinningLogo.h"
 #include "windowManager.h"
 #include "render.h"
 #include "options.h"
@@ -84,9 +85,19 @@ void VirtualJoypad::setPlayerNumber(int playerNumber)
     m_playerNumber = playerNumber;
 }
 
+bool VirtualJoypad::touchTrailsEnabled() const
+{
+    return m_showTouchTrails;
+}
+
 void VirtualJoypad::enableTouchTrails(bool enableTouchTrails)
 {
     m_showTouchTrails = enableTouchTrails;
+}
+
+bool VirtualJoypad::transparentButtonsEnabled() const
+{
+    return m_transparentButtons;
 }
 
 void VirtualJoypad::enableTransparentButtons(bool transparentButtons)
@@ -163,7 +174,7 @@ void VirtualJoypad::render(SDL_Renderer *renderer)
     if (m_showTouchTrails && !isMatchRunning())
         renderTouchPoints(renderer);
 
-    toggleSpinningS();
+    checkIfTogglingSpinningS();
 
     if (shouldRender())
         renderJoypadLayout(renderer);
@@ -415,7 +426,7 @@ void VirtualJoypad::renderTouchPoints(SDL_Renderer *renderer)
     }
 }
 
-void VirtualJoypad::toggleSpinningS()
+void VirtualJoypad::checkIfTogglingSpinningS()
 {
     constexpr int kSpriteX = 285;
     constexpr int kSpriteY = 14;
@@ -431,7 +442,7 @@ void VirtualJoypad::toggleSpinningS()
 
             if (x >= kSpriteX && x < kSpriteX + kSpriteWidth && y >= kSpriteY && y < kSpriteY + kSpriteHeight) {
                 if (!s_holding)
-                    toggleSpinningLetterS();
+                    enableSpinningLogo(!spinningLogoEnabled());
 
                 s_holding = true;
                 return;

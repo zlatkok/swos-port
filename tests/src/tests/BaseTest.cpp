@@ -1,30 +1,31 @@
 #include "BaseTest.h"
 #include "unitTest.h"
+#include "testEnvironment.h"
 #include "util.h"
 #include "render.h"
-#include "init.h"
 #include "menus.h"
-#include "bmpWriter.h"
+#include "sdlProcs.h"
+#include "mockRender.h"
+#include "mockLog.h"
 #include <iomanip>
-#include <future>
 
 std::vector<BaseTest *> BaseTest::m_tests;
 std::condition_variable BaseTest::m_condition;
 std::mutex BaseTest::m_mutex;
-std::atomic<int32_t> BaseTest::m_currentTestPacked;
+std::atomic<int64_t> BaseTest::m_currentTestPacked;
 bool BaseTest::m_testsDone;
+std::vector<std::future<SDL_Surface *>> BaseTest::m_snapshotFutures;
 
 BaseTest::BaseTest()
 {
+    assert(m_currentTestPacked.is_lock_free());
+
     m_tests.push_back(this);
 }
 
 int BaseTest::runTests(const TestOptions& options)
 {
     auto testsToRun = validateTestNames(options.testsToRun);
-
-    // initialize SWOS stuff first
-    startMainMenuLoop();
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -37,55 +38,17 @@ int BaseTest::runTests(const TestOptions& options)
 
 auto BaseTest::runTestsWithTimeoutCheck(const TestOptions& options, const TestNamesSet& testList) -> TestResults
 {
-    auto lastTest = m_currentTestPacked = 0;
-    m_testsDone = false;
+    std::thread timeoutCheckThread(timeoutCheck, options.timeout);
 
-    std::promise<TestResults> resultsPromise;
-    auto resultsFuture = resultsPromise.get_future();
+    auto result = doRunTests(options, testList);
 
-    auto runTestsWrapper = [](const TestOptions& options, const TestNamesSet& testList, std::promise<TestResults> promise) {
-        auto result = doRunTests(options, testList);
-        promise.set_value(result);
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
         m_testsDone = true;
-        m_condition.notify_one();
-    };
-
-    std::thread testerThread(runTestsWrapper, options, testList, std::move(resultsPromise));
-
-    auto lastCheckTime = std::chrono::high_resolution_clock::now();
-    auto checkInterval = std::chrono::milliseconds(std::min(options.timeout, 1000));
-
-    for (;;) {
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            if (m_condition.wait_for(lock, checkInterval, [] { return m_testsDone; }))
-                break;
-        }
-
-        auto currentTest = m_currentTestPacked.load();
-        auto now = std::chrono::high_resolution_clock::now();
-
-        if (!isDebuggerPresent() && currentTest == lastTest) {
-            auto msSinceLastTestChanged = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastCheckTime);
-            if (msSinceLastTestChanged.count() >= options.timeout) {
-                auto [testIndex, caseIndex, dataIndex] = unpackCurrentTest();
-                const auto test = m_tests[testIndex];
-                const auto testCase = test->getCases()[caseIndex];
-
-                std::cerr << "\nTimeout reached, terminating!\n";
-                std::cerr << "Offending test: " << test->name() << ", case: " << testCase.id <<
-                    ", data index: " << dataIndex << std::endl;
-
-                std::terminate();
-            }
-        } else {
-            lastCheckTime = now;
-            lastTest = currentTest;
-        }
     }
 
-    auto result = resultsFuture.get();
-    testerThread.join();
+    m_condition.notify_one();
+    timeoutCheckThread.join();
 
     return result;
 }
@@ -139,6 +102,37 @@ auto BaseTest::doRunTests(const TestOptions &options, const TestNamesSet& testLi
     }
 
     return { numTestsRan, failures };
+}
+
+void BaseTest::timeoutCheck(int timeout)
+{
+    constexpr int kTestTimeoutMs = 4'000;
+    constexpr int kCheckIntervalMs = 500;
+
+    auto checkInterval = std::chrono::milliseconds(std::min(timeout, kCheckIntervalMs));
+
+    for (;;) {
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            if (m_condition.wait_for(lock, checkInterval, [] { return m_testsDone; }))
+                break;
+        }
+        auto now = getCurrentTicks();
+
+        auto [testStartTime, testIndex, caseIndex, dataIndex] = unpackCurrentTest();
+        auto timeSinceLastTestChanged = now - testStartTime;
+
+        if (!isDebuggerPresent() && timeSinceLastTestChanged > kTestTimeoutMs) {
+            const auto test = m_tests[testIndex];
+            const auto testCase = test->getCases()[caseIndex];
+
+            std::cerr << "\nTimeout reached, terminating!\n";
+            std::cerr << "Offending test: " << test->displayName() << " (" << test->name() << "), case: " <<
+                testCase.name << " (" << testCase.id << "), data index: " << dataIndex << std::endl;
+
+            std::terminate();
+        }
+    }
 }
 
 auto BaseTest::validateTestNames(const TestNamesList& testNames) -> TestNamesSet
@@ -216,6 +210,8 @@ void BaseTest::runTestCase(BaseTest *test, const Case& testCase, size_t i, const
     try {
         auto mark = SwosVM::markAllMemory();
 
+        resetMenuDrawn();
+
         initTestCase(test, testCase);
         testCase.proc();
         if (testCase.finalize)
@@ -241,8 +237,20 @@ void BaseTest::runTestCase(BaseTest *test, const Case& testCase, size_t i, const
             throw;
     }
 
-    if (options.doSnapshots && testCase.allowScreenshots)
-        takeSnapshot(options.snapshotsDir, testCase.id, i);
+    if (options.doSnapshots && testCase.allowScreenshots && wasMenuDrawn()) {
+        auto future = takeSnapshot(options.snapshotsDir, testCase.id, i);
+        m_snapshotFutures.push_back(std::move(future));
+    }
+
+    std::erase_if(m_snapshotFutures, [](auto& future) {
+        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+            auto surface = future.get();
+            SDL_FreeSurface(surface);
+            return true;
+        } else {
+            return false;
+        }
+    });
 }
 
 template <typename Time>
@@ -289,40 +297,14 @@ void BaseTest::outputStats(std::chrono::time_point<std::chrono::steady_clock> st
         formatNumberWithCommas(timeElapsed) << "ms.\n";
 }
 
-static RgbQuad *getMenuPalette()
-{
-//    auto pal = swos.linAdr384k + 129'536;
-
-    static RgbQuad s_menuPalette[256];
-
-//    if (!s_menuPalette[0].red) {
-//        for (int i = 0; i < 256; i++) {
-//            s_menuPalette[i].red = pal[3 * i] * 4;
-//            s_menuPalette[i].green = pal[3 * i + 1] * 4;
-//            s_menuPalette[i].blue = pal[3 * i + 2] * 4;
-//        }
-//    }
-
-    return s_menuPalette;
-}
-
 static void sanitizePath(std::string& path)
 {
     for (auto c : "/:")
         std::replace(path.begin(), path.end(), c, '-');
 }
 
-void BaseTest::takeSnapshot(const char *snapshotDir, const char *caseId, int caseInstanceIndex)
+std::future<SDL_Surface *> BaseTest::takeSnapshot(const char *snapshotDir, const char *caseId, int caseInstanceIndex)
 {
-    static std::vector<std::future<void>> forgottenFutures; // it's not stupid if it works ;)
-
-    // skip tests that don't show menus, currently no better way to check since main menu always gets shown at start
-//    if (std::count(swos.linAdr384k.asCharPtr(), swos.linAdr384k + kVgaScreenSize, 0) == kVgaScreenSize)
-//        return;
-
-    auto screen = new char[kVgaScreenSize];
-//    memcpy(screen, swos.linAdr384k, kVgaScreenSize);
-
     char buf[16];
     snprintf(buf, sizeof(buf), "%03d", caseInstanceIndex);
 
@@ -333,26 +315,40 @@ void BaseTest::takeSnapshot(const char *snapshotDir, const char *caseId, int cas
 
     std::replace(filename->begin(), filename->end(), ' ', '-');
 
-    auto future = std::async(std::launch::async, [filename, screen]() {
-        if (!saveBmp8Bit(filename->c_str(), kVgaWidth, kVgaHeight, screen, kVgaWidth, getMenuPalette(), 256))
-            std::cerr << "Failed to save bitmap " << *filename  << '\n';
-        delete[] screen;
+    auto surface = getScreenSurface();
+
+    auto future = std::async(std::launch::async, [filename, surface]() {
+        SDL_LockSurface(surface);
+        if (surface && SDL_SaveBMP(surface, filename->c_str()))
+            std::cerr << "Failed to save bitmap " << *filename << '\n';
+        SDL_UnlockSurface(surface);
         delete filename;
+        return surface;
     });
 
-    forgottenFutures.push_back(std::move(future));
+    return future;
 }
 
-std::tuple<size_t, size_t, size_t> BaseTest::unpackCurrentTest()
+uint32_t BaseTest::getCurrentTicks()
 {
-    auto packedTest = m_currentTestPacked.load();
-    auto dataIndex = packedTest & 0xfff;
-    auto caseIndex = (packedTest >> 12) & 0x3ff;
-    auto testIndex = (packedTest >> 22) & 0x3ff;
-    return { testIndex, caseIndex, dataIndex };
+    auto time = std::chrono::system_clock::now().time_since_epoch();
+    auto timeMs = std::chrono::duration_cast<std::chrono::milliseconds>(time);
+    return timeMs.count() & 0xffffffff;
+}
+
+std::tuple<uint32_t, size_t, size_t, size_t> BaseTest::unpackCurrentTest()
+{
+    auto packedTest = m_currentTestPacked.load(std::memory_order_relaxed);
+    int dataIndex = packedTest & 0xfff;
+    int caseIndex = (packedTest >> 12) & 0x3ff;
+    int testIndex = (packedTest >> 22) & 0x3ff;
+    uint32_t startTime = (packedTest >> 32) & 0xffffffff;
+    return { startTime, testIndex, caseIndex, dataIndex };
 }
 
 void BaseTest::packCurrentTest(size_t testIndex, size_t testCaseIndex, size_t dataIndex)
 {
-    m_currentTestPacked = (dataIndex & 0xfff) | ((testCaseIndex & 0x3ff) << 12) | ((testIndex & 0x3ff) << 22);
+    auto currentTestPacked = static_cast<uint64_t>(getCurrentTicks()) << 32;
+    currentTestPacked |= (dataIndex & 0xfff) | ((testCaseIndex & 0x3ff) << 12) | ((testIndex & 0x3ff) << 22);
+    m_currentTestPacked.store(currentTestPacked);
 }

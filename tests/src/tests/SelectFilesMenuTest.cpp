@@ -2,10 +2,12 @@
 #include "selectFilesMenu.h"
 #include "unitTest.h"
 #include "mockFile.h"
-#include "init.h"
+#include "mockRenderSprites.h"
+#include "sprites.h"
 #include "file.h"
 #include "menus.h"
 #include "menuProc.h"
+#include "mainMenu.h"
 #include "text.h"
 #include "controls.h"
 #include "sdlProcs.h"
@@ -21,31 +23,8 @@ static SelectFilesMenuTest t;
 
 static std::string m_swosDir;
 
-static void drawSpriteToBuffer(int spriteIndex, char *buf)
-{
-//    auto savedScreenWidth = swos.screenWidth;
-
-    auto vmBuffer = reinterpret_cast<char *>(swos.g_currentMenu);
-    auto sprite = swos.spritesIndex[spriteIndex];
-
-//    swos.screenWidth = sprite->width;
-
-    D0 = spriteIndex;
-    D1 = D2 = 0;
-//    DrawSprite();
-
-    memcpy(buf, vmBuffer, sprite->width * sprite->height);
-
-//    swos.screenWidth = savedScreenWidth;
-}
-
 void SelectFilesMenuTest::init()
 {
-    assert(swos.spritesIndex[kUpArrowSprite]->width == kArrowWidth && swos.spritesIndex[kUpArrowSprite]->height == kArrowHeight);
-
-    drawSpriteToBuffer(kUpArrowSprite, upArrowBuffer);
-    drawSpriteToBuffer(kDownArrowSprite, downArrowBuffer);
-
     takeOverInput();
 }
 
@@ -468,24 +447,21 @@ void SelectFilesMenuTest::setupEntryTransitionsTest()
 // Makes sure arrow renders over background (and not any other menu item).
 void SelectFilesMenuTest::testArrowBackground(const MenuEntry *arrowEntry)
 {
-    assert(arrowEntry && arrowEntry->visible() && (arrowEntry->ordinal == arrowUp || arrowEntry->ordinal == arrowDown));
+    assert(arrowEntry && arrowEntry->visible() && arrowEntry->type == kEntrySprite2 &&
+        (arrowEntry->ordinal == arrowUp || arrowEntry->ordinal == arrowDown));
 
-    int x = arrowEntry->x + arrowEntry->width / 2 - kArrowWidth / 2;
-    int y = arrowEntry->y + arrowEntry->height / 2 - kArrowHeight / 2;
+    int spriteIndex = arrowEntry->fg.spriteIndex;
+    auto arrowSprite = findRenderedSprite(arrowEntry->fg.spriteIndex);
+    assert(arrowSprite);
 
-    auto pixels = arrowEntry->ordinal == arrowUp ? upArrowBuffer : downArrowBuffer;
-//    auto screenPtr = swos.linAdr384k + swos.screenWidth * y + x;
-//    auto backgroundPtr = screenPtr + 2 * kVirtualScreenSize;
-//
-//    for (int i = 0; i < kArrowHeight; i++) {
-//        for (int j = 0; j < kArrowWidth; j++) {
-//            if (!pixels[i * kArrowWidth + j]) {
-//                auto screenPixel = screenPtr[i * swos.screenWidth + j];
-//                auto backgroundPixel = backgroundPtr[i * swos.screenWidth + j];
-//                assertEqual(screenPixel, backgroundPixel);
-//            }
-//        }
-//    }
+    const auto& arrowSpriteData = getSprite(arrowEntry->fg.spriteIndex);
+    for (const auto& sprite : renderedSprites()) {
+        if (sprite.index != spriteIndex) {
+            const auto& spriteData = getSprite(sprite.index);
+            assert(sprite.x < arrowSprite->x || sprite.x + spriteData.width >= arrowSprite->x + arrowSpriteData.width);
+            assert(sprite.y < arrowSprite->y || sprite.y + spriteData.height >= arrowSprite->y + arrowSpriteData.height);
+        }
+    }
 }
 
 void SelectFilesMenuTest::checkArrowsOverlap()
@@ -671,6 +647,7 @@ static void scrollList(int direction, bool useWheel)
     if (useWheel) {
         queueSdlMouseWheelEvent(direction);
         processControlEvents();
+        bumpMouse();
         menuProc();
     } else {
         auto entryIndex = direction < 0 ? arrowDown : arrowUp;
@@ -875,7 +852,7 @@ void SelectFilesMenuTest::testSaveCompetition()
     MockFile canadaDiy(path.c_str(), kCanadaDiyData, kCanadaDiySize);
     addFakeFile(canadaDiy);
 
-    startMainMenuLoop();
+    showMainMenu();
     menuProc();
 
     SWOS_UnitTest::setMenuCallback([] {
@@ -935,7 +912,9 @@ void SelectFilesMenuTest::testSaveCompetitionByClick()
     MockFile filler(fillerPath.c_str());
     addFakeFile(filler);
 
-    startMainMenuLoop();
+    SWOS_UnitTest::setMenuCallback();
+
+    showMainMenu();
     menuProc();
 
     SWOS_UnitTest::setMenuCallback([] {

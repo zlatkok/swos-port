@@ -321,7 +321,7 @@ offset:  size:  desc.
   32       1    speed
   33       1    finishing
   34       1    0..7, related to goalkeeper, index into a table of pointers
-                which ends up written to ofs24
+                which ends up written to TeamGeneralInfo ofs24
   35       1    OR with PlayerFile ofs103 & 0xff1f, bits 7,6 and 5 mean
                 something - seems to be red cross blinking speed when a player
                 is injured; if this is zero player is not injured; if whole

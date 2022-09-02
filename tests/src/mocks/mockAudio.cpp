@@ -1,9 +1,7 @@
 #include "audio.h"
 
-int getMusicVolume()
-{
-    return 0;
-}
+static bool m_soundEnabled = true;
+static bool m_commentaryEnabled = true;
 
 void saveAudioOptions(CSimpleIni& ini) {}
 void loadAudioOptions(const CSimpleIniA& ini) {}
@@ -15,16 +13,36 @@ void initGameAudio() {}
 void resetGameAudio() {}
 void ensureMenuAudioFrequency() {}
 
-bool soundEnabled() { return true; }
-void setSoundEnabled(bool enabled) {}
-bool musicEnabled() { return true; }
-void setMusicEnabled(bool enabled) {}
-bool commentaryEnabled() { return true; }
-void setCommentaryEnabled(bool enabled) {}
-
-int playIntroSample(void *buffer, int size, int volume, int loopCount)
+bool soundEnabled()
 {
-    return 0;
+    return m_soundEnabled;
 }
 
-void showAudioOptionsMenu() {}
+void initSoundEnabled(bool enabled)
+{
+    m_soundEnabled = enabled;
+}
+
+void setSoundEnabled(bool enabled)
+{
+    m_soundEnabled = enabled;
+}
+
+bool musicEnabled() { return true; }
+void initMusicEnabled(bool) {}
+void setMusicEnabled(bool) {}
+
+bool commentaryEnabled()
+{
+    return m_commentaryEnabled;
+}
+
+void setCommentaryEnabled(bool enabled)
+{
+    m_commentaryEnabled = enabled;
+}
+
+int getMasterVolume() { return 0; }
+void setMasterVolume(int) {}
+int getMusicVolume() { return 0; }
+void setMusicVolume(int) {}

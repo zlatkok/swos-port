@@ -1,12 +1,16 @@
 #include "menuItemRenderer.h"
 #include "windowManager.h"
+#include "gameFieldMapping.h"
 #include "render.h"
+#include "drawPrimitives.h"
 #include "menus.h"
 #include "color.h"
 
 constexpr int kMaxTextureWidth = 2048;
 constexpr int kMaxTextureHeight = 2048;
 constexpr int kSafeBorder = 2;
+
+static bool m_useGradientFill;
 
 static const std::array<std::array<Color, 33>, 7> kGradients = {{
     {{
@@ -140,6 +144,9 @@ static void fillEntryBackground(SDL_Surface *surface, const EntryRenderInfo& sur
 
 void cacheMenuItemBackgrounds()
 {
+    if (!m_useGradientFill)
+        return;
+
     clearCache();
 
     auto menu = getCurrentMenu();
@@ -203,6 +210,12 @@ void drawMenuItemSolidBackground(const MenuEntry *entry)
 {
     assert(entry);
 
+    if (!m_useGradientFill) {
+        auto renderInfo = getEntryRenderInfo(*entry);
+        renderEntryBackgroundSingleColor(renderInfo);
+        return;
+    }
+
     ensureCacheValidity();
 
     auto it = m_cache.find(entry);
@@ -244,6 +257,22 @@ void drawMenuItemOuterFrame(MenuEntry *entry)
 
     const auto& color = kOuterFrameColors[kOuterFrameColorIndices[entry->backgroundColor()]];
     drawRectangle(entry->x, entry->y, entry->width, entry->height, color);
+}
+
+bool menuGradientFillEnabled()
+{
+    return m_useGradientFill;
+}
+
+void enableMenuGradientFill(bool enable)
+{
+    if (enable != m_useGradientFill) {
+        if (enable)
+            cacheMenuItemBackgrounds();
+        else
+            clearCache();
+        m_useGradientFill = enable;
+    }
 }
 
 static void clearCache()
@@ -333,6 +362,7 @@ static void enqueueEntryBackgroundForCaching(const MenuEntry& entry)
         createAndFillTextureAtlas();
         m_x = info.src.w + 2 * kSafeBorder;
         m_y = kSafeBorder;
+        m_maxX = m_x;
         m_maxY = info.src.h + kSafeBorder;
         info.src.x = kSafeBorder;
         info.src.y = kSafeBorder;
@@ -396,7 +426,6 @@ static void renderEntryBackgroundSingleColor(const EntryRenderInfo& surfaceEntry
 
     const auto& gradient = kGradients[kBackgroundToGradient[surfaceEntry.color]];
     SDL_SetRenderDrawColor(getRenderer(), gradient[16].r, gradient[16].g, gradient[16].b, 255);
-
     SDL_RenderFillRectF(getRenderer(), &surfaceEntry.dst);
 }
 

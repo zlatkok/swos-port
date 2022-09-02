@@ -14,352 +14,23 @@ using namespace SWOS;
 
 static CommentaryTest t;
 
-static void disablePenalties()
-{
-//    swos.performingPenalty = false;
-    swos.penaltiesState = 0;
-}
-
-static void setupKeeperClaimedComment()
-{
-//    swos.performingPenalty = false;
-    // make sure no comments are playing
-    Mix_HaltChannel(-1);
-}
-
-static void setupHeaderComment()
-{
-    static auto team = SwosVM::allocateMemory(sizeof(TeamGeneralInfo)).as<TeamGeneralInfo *>();
-    team->playerNumber = 1;
-    A6 = team;
-}
-
-struct SampleGroupTestData {
-    std::vector<const char *> filenames;
-    void (*playCommentFunc)();
-    void (*setup)();
-} static const kOriginalSamplesTestData[] = {
-    {
-        {
-            "m158_1_.raw",
-            "m158_2_.raw",
-            "m158_3_.raw",
-            "m158_2_.raw",
-            "m158_3_.raw",
-            "m158_4_.raw",
-            "m158_5_.raw",
-            "m158_7_.raw",
-        }, PlayGoalComment, disablePenalties
-    },
-    {
-        {
-            "m313_7_.raw",
-            "m313_a_.raw",
-            "m313_b_.raw",
-            "m196_w_.raw",
-            "m196_x_.raw",
-            "m196_z_.raw",
-            "m233_1_.raw",
-            "m313_7_.raw",
-            "m313_a_.raw",
-            "m313_7_.raw",
-            "m313_a_.raw",
-            "m313_b_.raw",
-            "m196_w_.raw",
-            "m196_x_.raw",
-            "m196_z_.raw",
-            "m233_1_.raw",
-        }, PlayGoalkeeperSavedComment, disablePenalties,
-    },
-    {
-        {
-            "m158_p_.raw",
-            "m158_q_.raw",
-            "m158_s_.raw",
-            "m158_t_.raw",
-            "m158_x_.raw",
-            "m158_t_.raw",
-            "m158_x_.raw",
-            "m158_y_.raw",
-        }, PlayOwnGoalComment,
-    },
-    {
-        {
-            "m10_j_.raw",
-            "m10_k_.raw",
-            "m10_d_.raw",
-            "m10_e_.raw",
-        }, PlayNearMissComment, disablePenalties
-    },
-    {
-        {
-            "m10_d_.raw",
-            "m10_e_.raw",
-            "m10_f_.raw",
-            "m10_g_.raw",
-            "m10_h_.raw",
-            "m10_r_.raw",
-            "m10_s_.raw",
-            "m10_t_.raw",
-        }, PlayPostHitComment,
-    },
-    {
-        {
-            "m10_i_.raw",
-            "m10_u_.raw",
-        }, PlayBarHitComment,
-    },
-    {
-        {
-            "m313_6_.raw",
-            "m313_8_.raw",
-            "m313_9_.raw",
-            "m313_c_.raw",
-            "m313_d_.raw",
-            "m313_g_.raw",
-            "m313_h_.raw",
-            nullptr,
-        }, PlayKeeperClaimedComment, setupKeeperClaimedComment
-    },
-    {
-        {
-            "m349_7_.raw",
-            "m349_8_.raw",
-            "m349_e_.raw",
-            "m365_1_.raw",
-        }, PlayGoodTackleComment,
-    },
-//    {
-//        {
-//            "m313_i_.raw",
-//            "m313_j_.raw",
-//            "m349_4_.raw",
-//            "m313_o_.raw",
-//        }, PlayGoodPassComment,
-//    },
-    {
-        {
-            "m158_z_.raw",
-            "m195.raw",
-            "m196_1_.raw",
-            "m196_2_.raw",
-            "m196_4_.raw",
-            "m196_6_.raw",
-            "m196_7_.raw",
-            "m158_z_.raw",
-            "m195.raw",
-            "m158_z_.raw",
-            "m195.raw",
-            "m196_1_.raw",
-            "m196_2_.raw",
-            "m196_4_.raw",
-            "m196_6_.raw",
-            "m196_7_.raw",
-        }, PlayFoulComment,
-    },
-    {
-        {
-            "m158_z_.raw",
-            "m195.raw",
-            "m196_1_.raw",
-            "m158_z_.raw",
-            "m195.raw",
-            "m158_z_.raw",
-            "m195.raw",
-            "m196_1_.raw",
-        }, PlayDangerousPlayComment,
-    },
-    {
-        {
-            "m196_k_.raw",
-            "m196_l_.raw",
-            "m196_m_.raw",
-            "m196_n_.raw",
-        }, PlayPenaltyComment,
-    },
-//    {
-//        {
-//            "m196_t_.raw",
-//            "m196_u_.raw",
-//            "m196_v_.raw",
-//            "m313_7_.raw",
-//            "m313_a_.raw",
-//            "m196_w_.raw",
-//            "m196_z_.raw",
-//            "m233_1_.raw",
-//        }, PlayPenaltySavedComment,
-//    },
-//    {
-//        {
-//            "m233_2_.raw",
-//            "m233_4_.raw",
-//            "m233_5_.raw",
-//            "m233_6_.raw",
-//        }, PlayPenaltyMissComment,
-//    },
-//    {
-//        {
-//            "m233_7_.raw",
-//            "m233_8_.raw",
-//            "m233_9_.raw",
-//            "m233_c_.raw",
-//        }, PlayPenaltyGoalComment,
-//    },
-    {
-        {
-            "m33_2_.raw",
-            "m33_3_.raw",
-            "m33_4_.raw",
-            "m33_5_.raw",
-            "m33_6_.raw",
-            "m33_8_.raw",
-            "m33_a_.raw",
-            "m33_b_.raw",
-        }, PlayHeaderComment, setupHeaderComment
-    },
-//    {
-//        {
-//            "m10_v_.raw",
-//            "m10_w_.raw",
-//            "m10_y_.raw",
-//            "m313_1_.raw",
-//            "m10_y_.raw",
-//            "m313_1_.raw",
-//            "m313_2_.raw",
-//            "m313_3_.raw",
-//        }, PlayCornerSample,
-//    },
-//    {
-//        {
-//            "m10_5_.raw",
-//            "m10_7_.raw",
-//            "m10_8_.raw",
-//            "m10_7_.raw",
-//            "m10_8_.raw",
-//            "m10_9_.raw",
-//            "m10_a_.raw",
-//            "m10_b_.raw",
-//        }, PlayTacticsChangeSample,
-//    },
-//    {
-//        {
-//            "m233_j_.raw",
-//            "m233_k_.raw",
-//            "m233_l_.raw",
-//            "m233_k_.raw",
-//            "m233_l_.raw",
-//            "m233_m_.raw",
-//            "m10_3_.raw",
-//            "m10_4_.raw",
-//        }, PlaySubstituteSample,
-//    },
-//    {
-//        {
-//            "m196_8_.raw",
-//            "m196_9_.raw",
-//            "m196_a_.raw",
-//            "m196_9_.raw",
-//            "m196_a_.raw",
-//            "m196_b_.raw",
-//            "m196_c_.raw",
-//            "m196_b_.raw",
-//            "m196_c_.raw",
-//            "m196_d_.raw",
-//            "m196_e_.raw",
-//            "m196_f_.raw",
-//            "m196_g_.raw",
-//            "m196_h_.raw",
-//            "m196_i_.raw",
-//            "m196_j_.raw",
-//        }, PlayRedCardSample,
-//    },
-//    {
-//        {
-//            "m443_7_.raw",
-//            "m443_8_.raw",
-//            "m443_9_.raw",
-//            "m443_8_.raw",
-//            "m443_9_.raw",
-//            "m443_a_.raw",
-//            "m443_b_.raw",
-//            "m443_c_.raw",
-//            "m443_d_.raw",
-//            "m443_e_.raw",
-//            "m443_f_.raw",
-//            "m443_g_.raw",
-//            "m443_h_.raw",
-//            "m443_i_.raw",
-//            "m443_j_.raw",
-//            "m443_7_.raw",
-//            "m443_8_.raw",
-//            "m443_7_.raw",
-//            "m443_8_.raw",
-//            "m443_9_.raw",
-//            "m443_a_.raw",
-//            "m443_9_.raw",
-//            "m443_a_.raw",
-//            "m443_b_.raw",
-//            "m443_c_.raw",
-//            "m443_d_.raw",
-//            "m443_e_.raw",
-//            "m443_f_.raw",
-//            "m443_g_.raw",
-//            "m443_h_.raw",
-//            "m443_i_.raw",
-//            "m443_j_.raw",
-//        }, PlayYellowCardSample,
-//    },
-//    {
-//        {
-//            "m406_3_.raw",
-//            "m406_8_.raw",
-//            "m406_7_.raw",
-//            "m406_9_.raw",
-//        }, PlayThrowInSample,
-//    },
-//    {
-//        {
-//            "m406_h_.raw",
-//        }, PlayItsBeenACompleteRoutComment,
-//    },
-//    {
-//        {
-//            "m406_i_.raw",
-//            "m406_j_.raw",
-//        }, PlaySensationalGameComment,
-//    },
-//    {
-//        {
-//            "m406_f_.raw",
-//            "m406_g_.raw",
-//        }, PlayDrawComment,
-//    },
-};
-
-const CommentaryTest::EnqueuedSamplesData CommentaryTest::kEnqueuedSamplesData = {
-//    { &swos.playingYellowCardTimer, PlayYellowCardSample, },
-//    { &swos.playingRedCardTimer, PlayRedCardSample, },
-//    { &swos.playingGoodPassTimer, PlayGoodPassComment, },
-//    { &swos.playingThrowInSample, PlayThrowInSample, },
-//    { &swos.playingCornerSample, PlayCornerSample, },
-//    { &swos.substituteSampleTimer, PlaySubstituteSample, },
-//    { &swos.tacticsChangedSampleTimer, PlayTacticsChangeSample, },
-};
-
-const std::array<const char *, 5> kEndGameComments = {
-    "hard\\M406_f_.RAW",
-    "hard\\M406_g_.RAW",
-    "hard\\M406_h_.RAW",
-    "hard\\M406_i_.RAW",
-    "hard\\M406_j_.RAW",
-};
+static void disablePenalties();
+static void enablePenalties();
+static void triggerCornerSample();
+static void triggerYellowCardSample();
+static void triggerRedCardSample();
+static void triggerSubstituteSample();
+static void triggerTacticsChangeSample();
+static void triggerThrowInSample();
+static void triggerGoodPassComment();
+static void triggerItsBeenACompleteRoutComment();
+static void triggerDrawComment();
+static void triggerSensationalGameComment();
+static void setupKeeperClaimedComment();
+static void setupHeaderComment();
 
 void CommentaryTest::init()
 {
-    setSoundEnabled(true);
-    setCommentaryEnabled(true);
-//    swos.g_muteCommentary = false;
-
     enableFileMocking(true);
 }
 
@@ -381,20 +52,22 @@ const char *CommentaryTest::displayName() const
 auto CommentaryTest::getCases() -> CaseList
 {
     return {
-        { "test original samples", "original-samples",
-            bind(&CommentaryTest::setupOriginalSamplesLoadingTest), bind(&CommentaryTest::testOriginalSamples) },
         { "test custom samples", "custom-samples",
             bind(&CommentaryTest::setupCustomSamplesLoadingTest), bind(&CommentaryTest::testCustomSamples) },
         { "test loading custom extensions", "custom-sample-extensions",
             bind(&CommentaryTest::setupLoadingCustomExtensionsTest), bind(&CommentaryTest::testLoadingCustomExtensions) },
-        { "test corrupted file", "bad-file",
+        { "test corrupted file", "bad-commentary-file",
             bind(&CommentaryTest::setupHandlingBadFileTest), bind(&CommentaryTest::testHandlingBadFile) },
         { "test comment interruption", "comment-interruption",
             bind(&CommentaryTest::setupCommentInterruptionTest), bind(&CommentaryTest::testCommentInterruption) },
         { "test muting comments", "comment-muting",
             bind(&CommentaryTest::setupMutingCommentsTest), bind(&CommentaryTest::testMutingComments) },
-        { "test that custom comments override original", "custom-samples-override-original",
-            bind(&CommentaryTest::setupAudioOverridingOriginalCommentsTest), bind(&CommentaryTest::testAudioOverridingOriginalComments) },
+        { "test enqueued comments", "enqueued-comments",
+            bind(&CommentaryTest::setupEnqueuedCommentsTest), bind(&CommentaryTest::testEnqueuedComments) },
+        { "test end game crowd samples", "end-game-crowd-samples",
+            bind(&CommentaryTest::setupEndGameCommentsTest), bind(&CommentaryTest::testEndGameComment) },
+        { "test end game comments", "end-game-comments",
+            bind(&CommentaryTest::setupEndGameCommentsTest), bind(&CommentaryTest::testEndGameChantsAndCrowdSamples) },
     };
 }
 
@@ -402,23 +75,6 @@ constexpr int kNumFileDataSlots = 152;
 constexpr int kFilenameAreaSize = 13;
 static char m_fileDataBuffer[kNumFileDataSlots][kFilenameAreaSize];
 static int m_currentFileSlot = 0;
-
-void CommentaryTest::setupOriginalSamplesLoadingTest()
-{
-    clearCommentsSampleCache();
-    loadCommentary();
-    loadIntroChant();
-    loadSoundEffects();
-}
-
-void CommentaryTest::testOriginalSamples()
-{
-    testIfOriginalSamplesLoaded();
-    testOriginalEnqueuedSamples();
-    testResultChants();
-    testEndGameComment();       // run it first so the last played comment for end game comments doesn't get cobbled
-    testEndGameCrowdSample();
-}
 
 static void addFakeCustomComments()
 {
@@ -463,6 +119,13 @@ static void addFakeCustomComments()
         { "audio\\commentary\\corner\\corner03.raw" },
         { "audio\\commentary\\corner\\corner04.ogg" },
         { "audio\\commentary\\corner\\corner05.flac" },
+        { "audio\\commentary\\good_tackle\\tackled.mp3" },
+        { "audio\\commentary\\end_game_so_close\\so_close1.mp3" },
+        { "audio\\commentary\\end_game_so_close\\so_close2.mp3" },
+        { "audio\\commentary\\end_game_rout\\rout1.mp3" },
+        { "audio\\commentary\\end_game_rout\\rout2.mp3" },
+        { "audio\\commentary\\end_game_sensational\\sensational1.mp3" },
+        { "audio\\commentary\\end_game_sensational\\sensational2.mp3" },
         // two identical comments in a category
         { "audio\\commentary\\penalty\\some_penalty_you_got_there1.mp3", "penalty", 8 },
         { "audio\\commentary\\penalty\\some_penalty_you_got_there2.mp3", "penalty", 8 },
@@ -511,8 +174,8 @@ static void loadFakeCustomSamples()
 
 void CommentaryTest::setupCustomSamplesLoadingTest()
 {
-    resetFakeFiles();
     loadFakeCustomSamples();
+    setCrowdChantsEnabled(false);
 }
 
 static Mix_Chunk *getAndCheckLastPlayedChunk()
@@ -527,16 +190,50 @@ static const char *chunkToStr(const Mix_Chunk *chunk)
     return reinterpret_cast<const char *>(chunk->abuf);
 }
 
+static std::pair<const char *, const char *> chunkInfo(const Mix_Chunk *chunk)
+{
+    assert(chunk && chunk->alen > 5);
+
+    auto name = chunkToStr(chunk);
+    auto ext = name + chunk->alen - 5;
+    assert(*ext == '.');
+
+    auto isRaw = tolower(ext[1]) == 'r' &&
+        tolower(ext[2]) == 'a' &&
+        tolower(ext[3]) == 'w';
+
+    if (isRaw)
+        assert(chunk->alen > kSizeofWaveHeader);
+
+    int offset = isRaw ? kSizeofWaveHeader : 0;
+    name += offset;
+
+    return { name, ext };
+}
+
+static void verifyBaseChunkNameEqual(const Mix_Chunk *chunk, const char *name)
+{
+    auto [chunkName, ext] = chunkInfo(chunk);
+
+    auto cmpLen = ext - chunkName;
+    assert(cmpLen > 1);
+
+    while (cmpLen--)
+        assertEqual(tolower(*name++), tolower(*chunkName++));
+}
+
 static void testCustomSfx()
 {
+    setCrowdChantsEnabled(true);
+
     struct {
         void (*playFunc)();
         const char *expectedString;
         int offset = 0;
     } static const kSfxTestData[] = {
-//        { PlayCrowdNoiseSample, "bgcrd3l.mp3" },
+        { playCrowdNoise, "bgcrd3l.mp3" },
         { PlayRefereeWhistleSample, "whistle.raw", kSizeofWaveHeader },
-//        { PlayEndGameWhistleSample, "endgamew.mp3" },
+        { playEndGameWhistleSample, "endgamew.mp3" },
         { PlayFoulWhistleSample, "foul.mp3" },
         { PlayKickSample, "kickx.mp3" },
         { PlayBallBounceSample, "bouncex.ogg" },
@@ -560,6 +257,8 @@ static void testCustomSfx()
     PlayAwayGoalSample();
 
     assertEqual(numTimesPlayChunkCalled(), 0);
+
+    setCrowdChantsEnabled(false);
 }
 
 static void testCustomIdenticalSamplesCategory(void (*playFunc)(), const char *expectedData, void (*setupFunc)() = nullptr)
@@ -593,7 +292,8 @@ static void testCustomCornerSamples()
 
         for (auto data : kCornerTestData) {
             resetMockSdlMixer();
-//            PlayCornerSample();
+
+            triggerCornerSample();
 
             auto chunk = getAndCheckLastPlayedChunk();
             assertStringEqualCaseInsensitive(chunkToStr(chunk) + data.offset, data.expectedData);
@@ -622,17 +322,22 @@ static void testCustomFreeKickSamples()
 
 static void testEmptyCategories()
 {
+    resetFakeFiles();
+    clearCommentsSampleCache();
+
+    addFakeFile({ "audio\\fx\\cheer.wav", "123", 4 });
+
     struct {
         const char *dir;
         void (*playFunc)();
         void (*setupFunc)() = nullptr;
     } static const kEmptyDirsData[] = {
         { "dirty_tackle", PlayDangerousPlayComment },
-//        { "end_game_rout", PlayItsBeenACompleteRoutComment },
-//        { "end_game_sensational", PlaySensationalGameComment },
-//        { "end_game_so_close", PlayDrawComment },
+        { "end_game_rout", triggerItsBeenACompleteRoutComment },
+        { "end_game_sensational", triggerSensationalGameComment },
+        { "end_game_so_close", triggerDrawComment },
         { "goal", PlayGoalComment, disablePenalties },
-//        { "good_play", PlayGoodPassComment },
+        { "good_play", triggerGoodPassComment },
         { "good_tackle", PlayGoodTackleComment },
         { "hit_bar", PlayBarHitComment },
         { "hit_post", PlayPostHitComment },
@@ -641,27 +346,33 @@ static void testEmptyCategories()
         { "keeper_saved", PlayGoalkeeperSavedComment, disablePenalties },
         { "near_miss", PlayNearMissComment, disablePenalties },
         { "own_goal", PlayOwnGoalComment },
-//        { "penalty_missed", PlayPenaltyMissComment },
-//        { "penalty_saved", PlayPenaltySavedComment },
-//        { "penalty_scored", PlayPenaltyGoalComment },
-//        { "red_card", PlayRedCardSample },
-//        { "substitution", PlaySubstituteSample },
-//        { "tactic_changed", PlayTacticsChangeSample },
-//        { "throw_in", PlayThrowInSample },
-//        { "yellow_card", PlayYellowCardSample },
+        { "penalty_missed", PlayNearMissComment, enablePenalties },
+        { "penalty_saved", PlayGoalkeeperSavedComment },
+        { "penalty_scored", PlayGoalComment },
+        { "red_card", triggerRedCardSample },
+        { "substitution", triggerSubstituteSample },
+        { "tactic_changed", triggerTacticsChangeSample },
+        { "throw_in", triggerThrowInSample },
+        { "yellow_card", triggerYellowCardSample },
     };
 
-    for (const auto data : kEmptyDirsData) {
-        LogSilencer logSilencer;
+    LogSilencer logSilencer;
+    const std::vector<int> timerValues(7);
 
+    for (const auto data : kEmptyDirsData) {
         if (data.setupFunc)
             data.setupFunc();
 
         resetMockSdlMixer();
         assert(data.playFunc);
         data.playFunc();
+        setEnqueueTimers(timerValues);
 
-        assertEqual(numTimesPlayChunkCalled(), 0);
+        int expectedPlayChunkTimes = 0;
+        if (!strncmp(data.dir, "end", 3))
+            expectedPlayChunkTimes = 1;
+
+        assertEqual(numTimesPlayChunkCalled(), expectedPlayChunkTimes);
     }
 }
 
@@ -690,21 +401,17 @@ struct {
 static_assert(offsetof(decltype(kRawFileContents), data) == kSizeofWaveHeader);
 
 static const MockFileList kFakeCustomFiles = {
-    { "sfx\\pierce\\m158_1_.mp3", "I AM MP3!", 10, },
-    { "sfx\\pierce\\m158_2_.wav", "I AM WAV!", 10, },
-    { "sfx\\pierce\\m158_3_.ogg", "I AM OGG!", 10, },
-    { "sfx\\pierce\\m158_4_.flac", "I AM FLAC!", 11, },
-    { "sfx\\pierce\\m158_5_.raw", reinterpret_cast<const char *>(&kRawFileContents), sizeof(kRawFileContents), },
-    { "sfx\\pierce\\m158_7_.mp3", "I AM MP3_2!", 12, },
+    { "audio\\commentary\\goals\\m158_1_.mp3", "I AM MP3!", 10, },
+    { "audio\\commentary\\goals\\m158_2_.wav", "I AM WAV!", 10, },
+    { "audio\\commentary\\goals\\m158_3_.ogg", "I AM OGG!", 10, },
+    { "audio\\commentary\\goals\\m158_4_.flac", "I AM FLAC!", 11, },
+    { "audio\\commentary\\goals\\m158_5_.raw", reinterpret_cast<const char *>(&kRawFileContents), sizeof(kRawFileContents), },
+    { "audio\\commentary\\goals\\m158_7_.mp3", "I AM MP3_2!", 12, },
 };
 
 void CommentaryTest::setupLoadingCustomExtensionsTest()
 {
-    deleteFakeFile("sfx\\pierce\\m158_1_.raw");
-    deleteFakeFile("sfx\\pierce\\m158_2_.raw");
-    deleteFakeFile("sfx\\pierce\\m158_3_.raw");
-    deleteFakeFile("sfx\\pierce\\m158_4_.raw");
-    deleteFakeFile("sfx\\pierce\\m158_7_.raw");
+    setupCustomSamplesLoadingTest();
 
     addFakeFiles(kFakeCustomFiles);
 
@@ -716,7 +423,7 @@ void CommentaryTest::testLoadingCustomExtensions()
 {
     auto getLastPlayedChunkBuffer = []() { return chunkToStr(getLastPlayedChunk()); };
 
-    for (const auto& i : { 0, 1, 2, 1, 2, 3, 4, 5 }) {
+    for (const auto& i : { 0, 1, 2, 3, 4, 5, 0, 1, }) {
         const auto& fakeFile = kFakeCustomFiles[i];
         resetMockSdlMixer();
         disablePenalties();
@@ -728,28 +435,18 @@ void CommentaryTest::testLoadingCustomExtensions()
     }
 }
 
-void CommentaryTest::setupAudioOverridingOriginalCommentsTest()
-{
-    loadFakeCustomSamples();
-}
-
-void CommentaryTest::testAudioOverridingOriginalComments()
-{
-    testCustomCommentary();
-}
-
 void CommentaryTest::setupHandlingBadFileTest()
 {
     MockFileList fakeFiles = {
-        { "audio\\commentary\\good_play\\extraordinary.mp3", "A", 2 },
-        { "audio\\commentary\\good_play\\exceptional.mp3", "B", 2 },
-        { "audio\\commentary\\good_play\\fantastic.mp3", "C", 2 },
-        { "audio\\commentary\\good_play\\disappointing_x4.mp3", "D", 2 },
+        { "audio\\commentary\\good_tackle\\extraordinary.mp3", "A", 2 },
+        { "audio\\commentary\\good_tackle\\exceptional.mp3", "B", 2 },
+        { "audio\\commentary\\good_tackle\\fantastic.mp3", "C", 2 },
+        { "audio\\commentary\\good_tackle\\disappointing_x4.mp3", "D", 2 },
     };
 
     resetFakeFiles();
     addFakeFiles(fakeFiles);
-    setFileAsCorrupted("audio\\commentary\\good_play\\disappointing_x4.mp3");
+    setFileAsCorrupted("audio\\commentary\\good_tackle\\disappointing_x4.mp3");
 
     SWOS_UnitTest::AssertSilencer assertSilencer;
     LogSilencer logSilencer;
@@ -765,7 +462,8 @@ void CommentaryTest::testHandlingBadFile()
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             resetMockSdlMixer();
-//            PlayGoodPassComment();
+
+            PlayGoodTackleComment();
 
             auto chunk = getAndCheckLastPlayedChunk();
             char expectedData[2] = { static_cast<char>('A' + j), '\0' };
@@ -776,7 +474,7 @@ void CommentaryTest::testHandlingBadFile()
 
 void CommentaryTest::setupCommentInterruptionTest()
 {
-    setupOriginalSamplesLoadingTest();
+    loadFakeCustomSamples();
 }
 
 void CommentaryTest::testCommentInterruption()
@@ -785,7 +483,7 @@ void CommentaryTest::testCommentInterruption()
     PlayFoulComment();
     auto chunk = getAndCheckLastPlayedChunk();
 
-//    PlayGoodPassComment();
+    PlayGoodTackleComment();
     auto chunk2 = getAndCheckLastPlayedChunk();
     assertEqual(chunk, chunk2);
 
@@ -799,6 +497,9 @@ void CommentaryTest::setupMutingCommentsTest()
     resetFakeFiles();
     clearCommentsSampleCache();
     addFakeFiles({{ "audio\\commentary\\own_goal\\oh_my.mp3", "!", 2 }});
+
+    setSoundEnabled(true);
+    setCommentaryEnabled(true);
     loadCommentary();
 }
 
@@ -808,57 +509,53 @@ void CommentaryTest::testMutingComments()
     PlayOwnGoalComment();
     assertEqual(numTimesPlayChunkCalled(), 1);
 
-    static const std::vector<std::pair<int16_t *, int>> kSoundControlVariables = {
-//        { &swos.g_soundOff, 1 },
-//        { &swos.g_commentary, 0 },
-//        { reinterpret_cast<int16_t *>(&swos.g_muteCommentary), 1 },
+    static const std::vector<void (*)()> kToggleSoundFunctions = {
+        [] { setSoundEnabled(!soundEnabled()); },
+        [] { setCommentaryEnabled(!commentaryEnabled()); },
+        toggleMuteCommentary,
     };
 
-    setSoundEnabled(true);
-    setCommentaryEnabled(true);
-//    swos.g_muteCommentary = 0;
-
-    for (const auto& var : kSoundControlVariables) {
-        for (int i = 0; i < 2; i++) {
+    for (const auto& toggleFunc : kToggleSoundFunctions) {
+        for (int i = 1; i >= 0; i--) {
             resetMockSdlMixer();
-            *var.first = i;
             PlayOwnGoalComment();
-            assertEqual(numTimesPlayChunkCalled(), i ^ var.second);
-        }
-        *var.first = !var.second;
-    }
-}
-
-void CommentaryTest::testIfOriginalSamplesLoaded()
-{
-    for (const auto& testData : kOriginalSamplesTestData) {
-        resetRandomInRange();
-        if (testData.setup)
-            testData.setup();
-
-        for (size_t i = 0; i < 2; i++) {
-            for (size_t j = 0; j < testData.filenames.size(); j++) {
-                resetMockSdlMixer();
-                assert(testData.playCommentFunc);
-                testData.playCommentFunc();
-
-                assertEqual(numTimesPlayChunkCalled(), 1);
-
-                const auto& chunks = getLastPlayedChunks();
-                assertEqual(chunks.size(), 1);
-                auto chunk = chunks.back();
-
-                if (chunk->alen == kSizeofWaveHeader)
-                    assertTrue(!testData.filenames[j] || !testData.filenames[j][0]);
-                else
-                    assertStringEqualCaseInsensitive(chunkToStr(chunk) + kSizeofWaveHeader, testData.filenames[j]);
-            }
+            assertEqual(numTimesPlayChunkCalled(), i);
+            toggleFunc();
         }
     }
 }
 
-void CommentaryTest::testOriginalEnqueuedSamples()
+void CommentaryTest::setupEnqueuedCommentsTest()
 {
+    resetFakeFiles();
+    clearCommentsSampleCache();
+    addFakeFiles({
+        { "audio\\commentary\\yellow_card\\pleahse.mp3", "\x0", 2 },
+        { "audio\\commentary\\red_card\\oh_noes.mp3", "\x1", 2 },
+        { "audio\\commentary\\good_play\\faster.mp3", "\x2", 2 },
+        { "audio\\commentary\\throw_in\\boring.mp3", "\x3", 2 },
+        { "audio\\commentary\\corner\\sleeping.mp3", "\x4", 2 },
+        { "audio\\commentary\\substitution\\come_on.mp3", "\x5", 2 },
+        { "audio\\commentary\\tactic_changed\\sheesh.mp3", "\x6", 2 },
+    });
+
+    loadCommentary();
+    setCrowdChantsEnabled(true);
+    loadIntroChant();
+}
+
+void CommentaryTest::testEnqueuedComments()
+{
+    const CommentaryTest::EnqueuedSamplesData kEnqueuedSamplesData = {
+        enqueueYellowCardSample,
+        enqueueRedCardSample,
+        [] { swos.playingGoodPassTimer = 1; },
+        [] { swos.playingThrowInSample = 1; },
+        [] { swos.playingCornerSample = 1; },
+        enqueueSubstituteSample,
+        enqueueTacticsChangedSample,
+    };
+
     // holds 0 or 1 for each enqueued sample timer value
     std::vector<int> values(kEnqueuedSamplesData.size() + 1, 0);
     applyEnqueuedSamplesData(kEnqueuedSamplesData, values);
@@ -869,14 +566,14 @@ void CommentaryTest::testOriginalEnqueuedSamples()
     assertEqual(numTimesPlayChunkCalled(), 1);
     auto lastChunk = getLastPlayedChunk();
     assert(lastChunk);
-    auto name = chunkToStr(lastChunk) + kSizeofWaveHeader;
+    auto name = chunkToStr(lastChunk);
     assert(strlen(name) > 5 && !_strnicmp(name, "chant", 5));
-
-    applyEnqueuedSamplesData(kEnqueuedSamplesData, values);
 
     while (createNextPermutation(values)) {
         resetMockSdlMixer();
         applyEnqueuedSamplesData(kEnqueuedSamplesData, values);
+
+        setEnqueueTimers(values);
         playEnqueuedSamples();
 
         assertEqual(numTimesPlayChunkCalled(), 1);
@@ -888,22 +585,75 @@ void CommentaryTest::testOriginalEnqueuedSamples()
 
         int index = it - values.begin();
 
-        auto expectedInvokedCommentFunc = kEnqueuedSamplesData[index].second;
-        auto actualInvokedCommentFunc = getPlaybackFunctionFromChunk(playedChunks.front());
-        assertEqual(expectedInvokedCommentFunc, actualInvokedCommentFunc);
+        assertEqual(chunkToStr(playedChunks.front())[0], index);
     }
+}
+
+void CommentaryTest::setupEndGameCommentsTest()
+{
+    loadFakeCustomSamples();
+    clearCommentsSampleCache();
+    loadCommentary();
+}
+
+void CommentaryTest::testEndGameComment()
+{
+    struct {
+        int team1Goals;
+        int team2Goals;
+        const char *name;
+        bool resetRandom = false;
+    } static const kTestEndGameCommentData[] = {
+        { 5, 0, "rout1", true },
+        { 15, 0, "rout2" },
+        { 0, 0, "so_close1", true },
+        { 3, 3, "so_close2" },
+        { 11, 11, "so_close1" },
+        { 10, 8, "sensational1", true },
+        { 12, 11, "sensational2" },
+        { 3, 1, "sensational1" },
+    };
+
+    for (const auto& testData : kTestEndGameCommentData) {
+        swos.statsTeam1Goals = testData.team1Goals;
+        swos.statsTeam2Goals = testData.team2Goals;
+
+        if (testData.resetRandom)
+            resetRandomInRange();
+
+        resetMockSdlMixer();
+        playEndGameCrowdSampleAndComment();
+
+        assertEqual(numTimesPlayChunkCalled(), 2);
+        const auto& playedChunks = getLastPlayedChunks();
+        assertEqual(playedChunks.size(), 2);
+
+        auto chunk = playedChunks.back();
+        verifyBaseChunkNameEqual(chunk, testData.name);
+    }
+}
+
+void CommentaryTest::testEndGameChantsAndCrowdSamples()
+{
+    testResultChants();
+    testEndGameCrowdSample();
 }
 
 void CommentaryTest::applyEnqueuedSamplesData(const EnqueuedSamplesData& data, const std::vector<int>& values)
 {
     assert(values.size() == data.size() + 1 && values.back() == 0);
-    for (size_t i = 0; i < data.size(); i++)
-        *data[i].first = values[i];
+
+    for (size_t i = 0; i < data.size(); i++) {
+        if (values[i]) {
+            assert(data[i]);
+            data[i]();
+        }
+    }
 }
 
 bool CommentaryTest::createNextPermutation(std::vector<int>& values)
 {
-    assert(values.back() == 0 && values.size() == kEnqueuedSamplesData.size() + 1);
+    assert(values.back() == 0);
 
     int i = 0;
     while (values[i] != 0)
@@ -919,18 +669,6 @@ bool CommentaryTest::createNextPermutation(std::vector<int>& values)
     }
 
     return false;
-}
-
-void *CommentaryTest::getPlaybackFunctionFromChunk(const Mix_Chunk *chunk)
-{
-    assert(chunk->alen > kSizeofWaveHeader);
-
-    for (const auto& testData : kOriginalSamplesTestData)
-        for (const auto filename : testData.filenames)
-            if (filename && _stricmp(filename, chunkToStr(chunk) + kSizeofWaveHeader) == 0)
-                return testData.playCommentFunc;
-
-    return nullptr;
 }
 
 void CommentaryTest::testResultChants()
@@ -966,12 +704,14 @@ void CommentaryTest::testResultChants()
         swos.statsTeam1Goals = sampleData.team1Goals;
         swos.statsTeam2Goals = sampleData.team2Goals;
 
+        resetRandomInRange();
+
         for (int index : sampleData.playedSampleIndices) {
             resetMockSdlMixer();
             loadCrowdChantSample();
 
             if (index >= 0) {
-//                assertEqual(playFansChant10lOffset, PlayResultSample);
+                assertEqual(getPlayChants10lFunction(), PlayResultSample);
                 PlayResultSample();
 
                 int numSampledPlayed = index >= 0;
@@ -983,11 +723,9 @@ void CommentaryTest::testResultChants()
                 auto expectedBasename = getBasename(expectedSamplePath);
 
                 auto chunk = playedChunks.front();
-                assert(chunk->alen > kSizeofWaveHeader);
-
-                assertStringEqualCaseInsensitive(expectedBasename, chunkToStr(chunk) + kSizeofWaveHeader);
+                verifyBaseChunkNameEqual(chunk, expectedBasename);
             } else {
-//                assertEqual(playFansChant10lOffset, PlayFansChant10lSample);
+                assertEqual(getPlayChants10lFunction(), PlayFansChant10lSample);
             }
         }
     }
@@ -1016,7 +754,7 @@ void CommentaryTest::testEndGameCrowdSample()
         swos.team2GoalsDigit2 = testData.team2Goals;
 
         resetMockSdlMixer();
-        loadAndPlayEndGameComment();
+        playEndGameCrowdSampleAndComment();
 
         assertEqual(numTimesPlayChunkCalled(), 2);
         const auto& playedChunks = getLastPlayedChunks();
@@ -1026,48 +764,91 @@ void CommentaryTest::testEndGameCrowdSample()
         auto expectedBasename = getBasename(expectedSamplePath);
 
         auto chunk = playedChunks.front();
-        assert(chunk->alen > kSizeofWaveHeader);
-
-        assertStringEqualCaseInsensitive(expectedBasename, chunkToStr(chunk) + kSizeofWaveHeader);
+        verifyBaseChunkNameEqual(chunk, expectedBasename);
     }
 }
 
-void CommentaryTest::testEndGameComment()
+static void disablePenalties()
 {
-    struct {
-        int team1Goals;
-        int team2Goals;
-        int indices[2];
-    } static const kTestEndGameCommentData[] = {
-        { 5, 0, { 2, 2, } },
-        { 15, 0, { 2, 2, } },
-        { 0, 0, { 0, 1, } },
-        { 3, 3, { 0, 1, } },
-        { 11, 11, { 0, 1, } },
-        { 10, 8, { 3, 4, } },
-        { 12, 11, { 3, 4, } },
-        { 3, 1, { 3, 4, } },
-    };
+    swos.penaltiesState = 0;
+}
 
-    for (const auto& testData : kTestEndGameCommentData) {
-        swos.statsTeam1Goals = testData.team1Goals;
-        swos.statsTeam2Goals = testData.team2Goals;
+static void enablePenalties()
+{
+    swos.penaltiesState = -1;
+}
 
-        for (auto index : testData.indices) {
-            resetMockSdlMixer();
-            loadAndPlayEndGameComment();
+static void triggerCornerSample()
+{
+    swos.playingCornerSample = 1;
+    playEnqueuedSamples();
+}
 
-            assertEqual(numTimesPlayChunkCalled(), 2);
-            const auto& playedChunks = getLastPlayedChunks();
-            assertEqual(playedChunks.size(), 2);
+static void triggerYellowCardSample()
+{
+    enqueueYellowCardSample();
+    playEnqueuedSamples();
+}
 
-            auto expectedSamplePath = kEndGameComments[index];
-            auto expectedBasename = getBasename(expectedSamplePath);
+static void triggerRedCardSample()
+{
+    enqueueRedCardSample();
+    playEnqueuedSamples();
+}
 
-            auto chunk = playedChunks.back();
-            assert(chunk->alen > kSizeofWaveHeader);
+static void triggerSubstituteSample()
+{
+    enqueueSubstituteSample();
+    playEnqueuedSamples();
+}
 
-            assertStringEqualCaseInsensitive(expectedBasename, chunkToStr(chunk) + kSizeofWaveHeader);
-        }
-    }
+static void triggerTacticsChangeSample()
+{
+    enqueueTacticsChangedSample();
+    playEnqueuedSamples();
+}
+
+static void triggerThrowInSample()
+{
+    swos.playingThrowInSample = 1;
+    playEnqueuedSamples();
+}
+
+static void triggerGoodPassComment()
+{
+    swos.playingGoodPassTimer = 1;
+    playEnqueuedSamples();
+}
+
+static void triggerItsBeenACompleteRoutComment()
+{
+    swos.statsTeam1Goals = 5;
+    swos.statsTeam2Goals = 1;
+    playEndGameCrowdSampleAndComment();
+}
+
+static void triggerDrawComment()
+{
+    swos.statsTeam1Goals = swos.statsTeam2Goals = 0;
+    playEndGameCrowdSampleAndComment();
+}
+
+static void triggerSensationalGameComment()
+{
+    swos.statsTeam1Goals = 4;
+    swos.statsTeam2Goals = 3;
+    playEndGameCrowdSampleAndComment();
+}
+
+static void setupKeeperClaimedComment()
+{
+    // make sure no comments are playing
+    Mix_HaltChannel(-1);
+}
+
+static void setupHeaderComment()
+{
+    static auto team = SwosVM::allocateMemory(sizeof(TeamGeneralInfo)).as<TeamGeneralInfo *>();
+    team->playerNumber = 1;
+    A6 = team;
 }

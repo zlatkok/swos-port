@@ -1,15 +1,18 @@
 #include "drawMenu.h"
 #include "menus.h"
+#include "unpackMenu.h"
 #include "menuBackground.h"
 #include "menuItemRenderer.h"
 #include "sprites.h"
 #include "renderSprites.h"
 #include "text.h"
-#include "windowManager.h"
+#include "gameFieldMapping.h"
 #include "timer.h"
 
 constexpr int kTooSmallHeightForFrame = 8;
 constexpr double kMenuDelayFactor = 2.0;
+
+static bool m_flashMenuCursor = true;
 
 static bool m_fadeIn;
 
@@ -35,6 +38,7 @@ static void drawMultilineTextMenuItem(MenuEntry *entry);
 static void drawNumberMenuItem(MenuEntry *entry);
 static void drawSpriteMenuItem(MenuEntry *entry, int spriteIndex);
 static void drawMenuLocalSprite(MenuEntry *entry, int spriteIndex);
+static void drawBoolOption(MenuEntry *entry);
 static void executeEntryContentFunction(MenuEntry *entry);
 static void getTextBox(int& x, int& y, int& width, const MenuEntry *entry, int charHeight);
 
@@ -128,16 +132,30 @@ void enqueueMenuFadeIn()
 
 void registerMenuLocalSprite(int width, int height, SDL_Texture *texture, bool cleanUp /* = true */)
 {
+    assert(texture);
     m_menuLocalSprites.emplace_back(width, height, texture, cleanUp);
 }
 
 void clearMenuLocalSprites()
 {
-    for (const auto& sprite : m_menuLocalSprites)
-        if (sprite.cleanUp)
+    for (const auto& sprite : m_menuLocalSprites) {
+        assert(sprite.texture);
+        if (sprite.cleanUp && sprite.texture)
             SDL_DestroyTexture(sprite.texture);
+    }
 
     m_menuLocalSprites.clear();
+}
+
+bool cursorFlashingEnabled()
+{
+    return m_flashMenuCursor;
+}
+
+void setFlashMenuCursor(bool flashMenuCursor)
+{
+    m_flashMenuCursor = flashMenuCursor;
+    swos.menuCursorFrame = 0;
 }
 
 static void clearAllItemsDrawnFlag()
@@ -275,6 +293,9 @@ static void drawMenuItemContent(MenuEntry *entry)
     case kEntryMenuSpecificSprite:
         drawMenuLocalSprite(entry, entry->fg.spriteIndex);
         break;
+    case kEntryBoolOption:
+        drawBoolOption(entry);
+        break;
     case kEntryNoForeground:
         break;
     default:
@@ -284,7 +305,8 @@ static void drawMenuItemContent(MenuEntry *entry)
 
 static void drawStringMenuItem(MenuEntry *entry, const char *string)
 {
-    assert(entry && (entry->type == kEntryString || entry->type == kEntryStringTable || entry->type == kEntryNumber));
+    assert(entry && (entry->type == kEntryString || entry->type == kEntryStringTable ||
+        entry->type == kEntryNumber || entry->type == kEntryBoolOption));
 
     if (string) {
         bool bigFont = entry->bigFont();
@@ -400,6 +422,13 @@ static void drawMenuLocalSprite(MenuEntry *entry, int spriteIndex)
     SDL_RenderCopyF(getRenderer(), sprite.texture, nullptr, &dst);
 }
 
+static void drawBoolOption(MenuEntry *entry)
+{
+    auto accessors = getBoolOptionAccessors(*entry);
+    auto text = accessors.first() ? "ON" : "OFF";
+    drawStringMenuItem(entry, text);
+}
+
 static void executeEntryContentFunction(MenuEntry *entry)
 {
     assert(entry);
@@ -412,7 +441,7 @@ static void executeEntryContentFunction(MenuEntry *entry)
 static void getTextBox(int& x, int& y, int& width, const MenuEntry *entry, int charHeight)
 {
     assert(entry && (entry->type == kEntryString || entry->type == kEntryStringTable ||
-        entry->type == kEntryNumber || entry->type == kEntryMultilineText));
+        entry->type == kEntryNumber || entry->type == kEntryMultilineText || entry->type == kEntryBoolOption));
 
     int height = entry->height;
 

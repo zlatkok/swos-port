@@ -25,6 +25,13 @@ namespace SWOS_UnitTest
         std::string m_error;
     };
 
+    struct CustomException : public BaseException
+    {
+        CustomException(const char *file, int line, const std::string& error) : BaseException(file, line) {
+            m_error = error;
+        }
+    };
+
     struct AssertionException : public BaseException
     {
         AssertionException(const char *assertExpStr, const char *file, int line) : BaseException(file, line) {
@@ -161,6 +168,8 @@ namespace SWOS_UnitTest
     template<typename T1, typename T2>
     struct FailedEqualAssertException : public BaseException
     {
+#pragma warning(push)
+#pragma warning(disable: 4180)
         FailedEqualAssertException(bool mustBeEqual, const T1& t1, const T2& t2, const char *t1Str,
             const char *t2Str, const char *file, int line)
             : BaseException(file, line) {
@@ -168,6 +177,7 @@ namespace SWOS_UnitTest
             auto equalityOperator = mustBeEqual ? " != " : " == ";
             m_error += std::string(t1Str) + equalityOperator + t2Str + " (" + stringify(t1) + " != " + stringify(t2) + ')';
         }
+#pragma warning(pop)
     };
 
 

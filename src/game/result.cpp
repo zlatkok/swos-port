@@ -1,6 +1,6 @@
 #include "result.h"
 #include "gameTime.h"
-#include "windowManager.h"
+#include "gameFieldMapping.h"
 #include "render.h"
 #include "text.h"
 #include "renderSprites.h"
@@ -325,9 +325,9 @@ static void drawScorerList(int scorerListOffsetY)
 static void drawHalfAndFullTimeSprites(int scorerListOffsetY)
 {
     if (swos.gameState == GameState::kResultOnHalftime)
-        drawMenuSprite(kHalftimeSprite, kResultX, kPeriodEndSpriteY + scorerListOffsetY);
+        drawGameSprite(kHalftimeSprite, kResultX, kPeriodEndSpriteY + scorerListOffsetY);
     else if (swos.gameState == GameState::kResultAfterTheGame)
-        drawMenuSprite(kFullTimeSprite, kResultX, kPeriodEndSpriteY + scorerListOffsetY);
+        drawGameSprite(kFullTimeSprite, kResultX, kPeriodEndSpriteY + scorerListOffsetY);
 }
 
 static int getScorerListOffsetY()

@@ -43,9 +43,6 @@
     <ClInclude Include="..\..\..\src\replays\ReplayDataStorage.h">
       <Filter>Source Files\replays</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\replays\replayOptions.h">
-      <Filter>Source Files\replays</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\replays\replays.h">
       <Filter>Source Files\replays</Filter>
     </ClInclude>
@@ -68,9 +65,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\crash.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\options.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\stdinc.h">
@@ -298,6 +292,33 @@
     <ClInclude Include="..\..\..\src\video\overlay.h">
       <Filter>Source Files\video</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\SampleTable.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\audio\audioOptionsMenu.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\options\options.h">
+      <Filter>Source Files\options</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\options\OptionAccessor.h">
+      <Filter>Source Files\options</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\options\optionsMenu.h">
+      <Filter>Source Files\options</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\options\OptionVariable.h">
+      <Filter>Source Files\options</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\video\assetManager.h">
+      <Filter>Source Files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\video\drawPrimitives.h">
+      <Filter>Source Files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\video\gameFieldMapping.h">
+      <Filter>Source Files\video</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
@@ -366,6 +387,9 @@
     <Filter Include="Source Files\game\pitch">
       <UniqueIdentifier>{c22f13eb-9965-441c-afe3-f154e4b00cda}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\options">
+      <UniqueIdentifier>{4d3fe30c-0e13-461f-9d04-bf4af366d93f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\audio\audio.cpp">
@@ -407,9 +431,6 @@
     <ClCompile Include="..\..\..\src\replays\ReplayDataStorage.cpp">
       <Filter>Source Files\replays</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\replays\replayOptions.cpp">
-      <Filter>Source Files\replays</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\replays\replays.cpp">
       <Filter>Source Files\replays</Filter>
     </ClCompile>
@@ -435,9 +456,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\options.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\text\text.cpp">
@@ -682,6 +700,27 @@
       <Filter>Source Files\game</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\video\overlay.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\SampleTable.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\audio\audioOptionsMenu.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\options\options.cpp">
+      <Filter>Source Files\options</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\options\optionsMenu.cpp">
+      <Filter>Source Files\options</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\video\assetManager.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\video\drawPrimitives.cpp">
+      <Filter>Source Files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\video\gameFieldMapping.cpp">
       <Filter>Source Files\video</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,10 +6,6 @@
 #include "setupKeyboardMenu.h"
 #include "joypadConfigMenu.h"
 
-static int16_t m_autoConnectJoypads;
-static int16_t m_enableMenuControllers;
-static int16_t m_showSelectMatchControlsMenu;
-
 #include "controlOptions.mnu.h"
 
 using namespace ControlOptionsMenu;
@@ -38,10 +34,6 @@ static void controlOptionsMenuInit()
     setupMouseWheelScrolling();
     scrollJoypadIntoView(kPlayer1);
     scrollJoypadIntoView(kPlayer2);
-
-    m_autoConnectJoypads = getAutoConnectJoypads();
-    m_enableMenuControllers = getEnableMenuControllers();
-    m_showSelectMatchControlsMenu = getShowSelectMatchControlsMenu();
 }
 
 static void setupMouseWheelScrolling()
@@ -292,27 +284,6 @@ static void pl1SelectControls()
 static void pl2SelectControls()
 {
     selectControls(kPlayer2);
-}
-
-static void toggleAutoConnectJoypads()
-{
-    m_autoConnectJoypads = !m_autoConnectJoypads;
-    setAutoConnectJoypads(m_autoConnectJoypads != 0);
-    logInfo("Auto-connect joypads is changed to %s", m_autoConnectJoypads ? "on" : "off");
-}
-
-static void toggleMenuControllers()
-{
-    m_enableMenuControllers = !m_enableMenuControllers;
-    setEnableMenuControllers(m_enableMenuControllers != 0);
-    logInfo("Game controllers in menus %s", m_enableMenuControllers ? "enabled" : "disabled");
-}
-
-static void toggleShowMatchControlsMenu()
-{
-    m_showSelectMatchControlsMenu = !m_showSelectMatchControlsMenu;
-    setShowSelectMatchControlsMenu(m_showSelectMatchControlsMenu != 0);
-    logInfo("Select match controls menu %s", m_showSelectMatchControlsMenu ? "enabled" : "disabled");
 }
 
 static void exitControlsMenu()

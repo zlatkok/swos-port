@@ -19,7 +19,9 @@ public:
     bool init();
     void setForceRender(bool force);
     void setPlayerNumber(int playerNumber);
+    bool touchTrailsEnabled() const;
     void enableTouchTrails(bool touchTrails);
+    bool transparentButtonsEnabled() const;
     void enableTransparentButtons(bool transparentButtons);
 
     const char *name() const;
@@ -66,7 +68,7 @@ private:
     SDL_Surface *allocateSurface();
     void renderJoypadLayout(SDL_Renderer *renderer);
     void renderTouchPoints(SDL_Renderer *renderer);
-    void toggleSpinningS();
+    void checkIfTogglingSpinningS();
 
     std::pair<int, int> transformCoordinates(float x, float y) const;
     JoypadAction coordinatesToAction(float xNorm, float yNorm) const;

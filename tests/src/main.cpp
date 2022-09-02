@@ -1,7 +1,7 @@
 #include "sdlProcs.h"
 #include "BaseTest.h"
+#include "testEnvironment.h"
 #include "file.h"
-#include "bmpWriter.h"
 #include <iostream>
 #undef pop
 #include <filesystem>
@@ -81,6 +81,8 @@ int main(int argc, char **argv)
 
     if (m_testOptions.doSnapshots)
         initializeSnapshots();
+
+    initializeTestEnvironment();
 
     return BaseTest::runTests(m_testOptions);
 }

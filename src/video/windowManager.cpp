@@ -1,8 +1,8 @@
 #include "windowManager.h"
+#include "assetManager.h"
+#include "gameFieldMapping.h"
 #include "render.h"
-#include "pitch.h"
 #include "util.h"
-#include "file.h"
 
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 800;
@@ -23,66 +23,30 @@ static auto m_windowMode =
 
 static bool m_maximized;
 
-static_assert(static_cast<int>(AssetResolution::kNumResolutions) == 3, "Update resolutions array");
-struct AssetResolutionInfo {
-    AssetResolution res;
-    int width;
-    int height;
-};
-static constexpr std::array<AssetResolutionInfo, 3> kAssetResolutionsInfo = {{
-    { AssetResolution::kLowRes, 960, 540 },
-    { AssetResolution::kHD, 1920, 1080 },
-    { AssetResolution::k4k, 3840, 2160 },
-}};
-
-static AssetResolution m_resolution = AssetResolution::kLowRes;
-static std::vector<AssetResolutionChangeHandler> m_resChangeHandlers;
-
 static int m_windowWidth;
 static int m_windowHeight;
 static int m_nonMaximizedWidth;
 static int m_nonMaximizedHeight;
 
 // full-screen dimensions
-static int m_displayWidth = kDefaultFullScreenWidth;
-static int m_displayHeight = kDefaultFullScreenHeight;
+static int m_displayWidth;
+static int m_displayHeight;
 static bool m_windowResizable = true;
 
-static float m_gameScale;
-static float m_gameOffsetX;
-static float m_gameOffsetY;
-
-static float m_fieldWidth;
-static float m_fieldHeight;
-
-static bool m_flashMenuCursor = true;
-static bool m_showFps;
-
-#ifdef VIRTUAL_JOYPAD
-static bool m_showTouchTrails = true;
-static bool m_transparentButtons = true;
+static const char kWindowSection[] = "window";
+#ifndef __ANDROID__
+static const char kWindowModeKey[] = "windowMode";
+static const char kWindowMaximizedKey[] = "windowMaximized";
+static const char kWindowResizableKey[] = "windowResizable";
 #endif
+static const char kWindowWidthKey[] = "windowWidth";
+static const char kWindowHeightKey[] = "windowHeight";
+static const char kFullScreenWidthKey[] = "fullScreenWidth";
+static const char kFullScreenHeightKey[] = "fullScreenHeight";
 
-// video options
-const char kVideoSection[] = "video";
-const char kWindowMode[] = "windowMode";
-const char kWindowMaximized[] = "windowMaximized";
-const char kWindowWidthKey[] = "windowWidth";
-const char kWindowHeightKey[] = "windowHeight";
-const char kWindowResizable[] = "windowResizable";
-const char kFullScreenWidth[] = "fullScreenWidth";
-const char kFullScreenHeight[] = "fullScreenHeight";
-const char kFlashMenuCursor[] = "flashMenuCursor";
-const char kShowFps[] = "showFps";
-const char kUseLinearFiltering[] = "useLinearFiltering";
-const char kClearScreen[] = "clearScreen";
-#ifdef VIRTUAL_JOYPAD
-const char kShowTouchTrails[] = "showTouchTrails";
-const char kTransparentButtons[] = "virtualJoypadTransparentButtons";
-#endif
-
-static void updateLogicalScreenSize();
+static int handleSizeChanged(void *, SDL_Event *event);
 static void updateWindowDimensions(int width, int height, bool init = false);
+static void normalizeWindowSize(int& width, int& height, int defaultWidth, int defaultHeight);
 static void setWindowMode(WindowMode newMode);
 
 SDL_Window *createWindow()
@@ -98,25 +62,6 @@ SDL_Window *createWindow()
 
     setWindowMode(m_windowMode);
 
-    auto handleSizeChanged = [](void *, SDL_Event *event) {
-        if (event->type == SDL_WINDOWEVENT) {
-            switch (event->window.event) {
-            case SDL_WINDOWEVENT_SIZE_CHANGED:
-                updateWindowDimensions(event->window.data1, event->window.data2);
-                break;
-            case SDL_WINDOWEVENT_MAXIMIZED:
-                m_maximized = true;
-                break;
-            case SDL_WINDOWEVENT_RESTORED:
-                m_maximized = false;
-                m_nonMaximizedWidth = m_windowWidth;
-                m_nonMaximizedHeight = m_windowHeight;
-                break;
-            }
-        }
-        return 0;
-    };
-
     SDL_AddEventWatch(handleSizeChanged, nullptr);
 
     return m_window;
@@ -124,8 +69,10 @@ SDL_Window *createWindow()
 
 void destroyWindow()
 {
-    if (m_window)
+    if (m_window) {
         SDL_DestroyWindow(m_window);
+        m_window = nullptr;
+    }
 }
 
 void initWindow()
@@ -136,115 +83,47 @@ void initWindow()
         updateLogicalScreenSize();
 }
 
+void deinitWindow()
+{
+    SDL_DelEventWatch(handleSizeChanged, nullptr);
+}
+
 SDL_Window *getWindow()
 {
     return m_window;
 }
 
-static void updateAssetResolution()
+static int handleSizeChanged(void *, SDL_Event *event)
 {
-    int minDiff = INT_MAX;
-    auto oldResolution = m_resolution;
-    m_resolution = AssetResolution::kLowRes;
-
-    for (const auto& info : kAssetResolutionsInfo) {
-        int diff = std::abs(info.width - m_windowWidth) + std::abs(info.height - m_windowHeight);
-        if (diff < minDiff) {
-            m_resolution = info.res;
-            minDiff = diff;
+    if (event->type == SDL_WINDOWEVENT) {
+        switch (event->window.event) {
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+            updateWindowDimensions(event->window.data1, event->window.data2);
+            break;
+        case SDL_WINDOWEVENT_MAXIMIZED:
+            m_maximized = true;
+            break;
+        case SDL_WINDOWEVENT_RESTORED:
+            m_maximized = false;
+            m_nonMaximizedWidth = m_windowWidth;
+            m_nonMaximizedHeight = m_windowHeight;
+            break;
         }
     }
 
-    if (m_resolution != oldResolution)
-        for (const auto& handler : m_resChangeHandlers)
-            handler(oldResolution, m_resolution);
-}
-
-static void updateGameScaleFactor()
-{
-    auto scaleX = static_cast<float>(m_windowWidth) / kVgaWidth;
-    auto scaleY = static_cast<float>(m_windowHeight) / kVgaHeight;
-    m_gameScale = std::min(scaleX, scaleY);
-}
-
-static void updateLogicalScreenSize()
-{
-    m_fieldWidth = m_windowWidth / m_gameScale;
-    m_fieldHeight = m_windowHeight / m_gameScale;
-
-    auto renderer = getRenderer();
-    if (m_fieldWidth > kPitchWidth || m_fieldHeight > kPitchHeight) {
-        m_fieldWidth = std::min(m_fieldWidth, static_cast<float>(kPitchWidth));
-        m_fieldHeight = std::min(m_fieldHeight, static_cast<float>(kPitchHeight));
-        SDL_RenderSetLogicalSize(renderer, std::lroundf(m_fieldWidth * m_gameScale), std::lroundf(m_fieldHeight * m_gameScale));
-    } else {
-        SDL_RenderSetLogicalSize(renderer, 0, 0);
-    }
-
-    m_gameOffsetX = (m_fieldWidth - kVgaWidth) / 2 * m_gameScale;
-    m_gameOffsetY = (m_fieldHeight - kVgaHeight) / 2 * m_gameScale;
-
-    assert(m_gameOffsetX >= -0.001 && m_gameOffsetY >= -0.001);
+    return 0;
 }
 
 static void updateWindowDimensions(int width, int height, bool init /* = false */)
 {
-    if (width != m_windowWidth || height != m_windowHeight) {
+    if (width != m_windowWidth || height != m_windowHeight || init) {
         m_windowWidth = width;
         m_windowHeight = height;
-        updateAssetResolution();
-        updateGameScaleFactor();
+        updateAssetResolution(width, height);
+        updateGameScaleFactor(width, height);
         if (!init)
             updateLogicalScreenSize();
     }
-}
-
-std::pair<int, int> getWindowSize()
-{
-    assert(m_window);
-
-    int width = -1, height = -1;
-
-    if (m_windowMode == kModeWindow || m_windowMode == kModeBorderlessMaximized) {
-        SDL_GetWindowSize(m_window, &width, &height);
-
-        if (width > 0 && height > 0) {
-            if (m_windowMode == kModeWindow)
-                updateWindowDimensions(width, height);
-
-            return { width, height };
-        }
-    }
-
-    return { m_windowWidth, m_windowHeight };
-}
-
-AssetResolution getAssetResolution()
-{
-    return m_resolution;
-}
-
-void registerAssetResolutionChangeHandler(AssetResolutionChangeHandler handler)
-{
-    m_resChangeHandlers.push_back(handler);
-}
-
-const char *getAssetDir()
-{
-    static_assert(static_cast<int>(AssetResolution::kNumResolutions) == 3, "Somewhere out there in the space");
-
-    switch (m_resolution) {
-    case AssetResolution::k4k: return "assets" DIR_SEPARATOR "4k";
-    case AssetResolution::kHD: return "assets" DIR_SEPARATOR "hd";
-    case AssetResolution::kLowRes: return "assets" DIR_SEPARATOR "low-res";
-    }
-
-    return nullptr;
-}
-
-std::string getPathInAssetDir(const char *path)
-{
-    return std::string(getAssetDir()) + getDirSeparator() + path;
 }
 
 static void clampWindowSize(int& width, int& height)
@@ -271,6 +150,45 @@ static void normalizeWindowSize(int& width, int& height, int defaultWidth, int d
     }
 }
 
+std::pair<int, int> getWindowSize()
+{
+    assert(m_window);
+
+    if (m_window && (m_windowMode == kModeWindow || m_windowMode == kModeBorderlessMaximized)) {
+        int width = -1, height = -1;
+        SDL_GetWindowSize(m_window, &width, &height);
+
+        if (width > 0 && height > 0) {
+            if (m_windowMode == kModeWindow)
+                updateWindowDimensions(width, height);
+
+            return { width, height };
+        }
+    }
+
+    return { m_windowWidth, m_windowHeight };
+}
+
+std::pair<int, int> getWindowRestoredSize()
+{
+    int width, height;
+
+    if (m_windowMode == kModeWindow && m_maximized) {
+        width = m_nonMaximizedWidth;
+        height = m_nonMaximizedHeight;
+    } else {
+        std::tie(width, height) = getWindowSize();
+    }
+
+    return { width, height };
+}
+
+void initWindowSize(int width, int height)
+{
+    m_windowWidth = width;
+    m_windowHeight = height;
+}
+
 void setWindowSize(int width, int height)
 {
     normalizeWindowSize(width, height, kWindowWidth, kWindowHeight);
@@ -287,16 +205,19 @@ void setWindowSize(int width, int height)
     updateWindowDimensions(width, height);
 }
 
+void initWindowResizable(bool resizable)
+{
+    m_windowResizable = resizable;
+}
+
 bool getWindowResizable()
 {
-    assert(m_window);
-    return (SDL_GetWindowFlags(m_window) & SDL_WINDOW_RESIZABLE) != 0;
+    return m_window ? (SDL_GetWindowFlags(m_window) & SDL_WINDOW_RESIZABLE) != 0 : m_windowResizable;
 }
 
 bool getWindowMaximized()
 {
-    assert(m_window);
-    return (SDL_GetWindowFlags(m_window) & SDL_WINDOW_MAXIMIZED) != 0;
+    return m_window ? (SDL_GetWindowFlags(m_window) & SDL_WINDOW_MAXIMIZED) != 0 : m_maximized;
 }
 
 WindowMode getWindowMode()
@@ -426,6 +347,12 @@ void setWindowResizable(bool resizable)
     m_windowResizable = resizable;
 }
 
+void initFullScreenResolution(int width, int height)
+{
+    m_displayWidth = width;
+    m_displayHeight = height;
+}
+
 bool setFullScreenResolution(int width, int height)
 {
     bool result = setDisplayMode(width, height);
@@ -496,115 +423,22 @@ bool hasMouseFocus()
     return SDL_GetMouseFocus() == m_window;
 }
 
-bool mapCoordinatesToGameArea(int &x, int &y)
-{
-    int windowWidth, windowHeight;
-
-    if (isInFullScreenMode()) {
-        std::tie(windowWidth, windowHeight) = getFullScreenDimensions();
-    } else {
-        auto viewPort = getViewport();
-        x -= viewPort.x;
-        y -= viewPort.y;
-    }
-
-    auto scale = getGameScale();
-    auto xOffset = getGameScreenOffsetX();
-    auto yOffset = getGameScreenOffsetY();
-
-    if (x < xOffset || y < yOffset)
-        return false;
-
-    x = static_cast<int>(std::round((x - xOffset) / scale));
-    y = static_cast<int>(std::round((y - yOffset) / scale));
-
-    return true;
-}
-
-float getGameScale()
-{
-    return m_gameScale;
-}
-
-float getGameScreenOffsetX()
-{
-    return m_gameOffsetX;
-}
-
-float getGameScreenOffsetY()
-{
-    return m_gameOffsetY;
-}
-
-float getFieldWidth()
-{
-    return m_fieldWidth;
-}
-
-float getFieldHeight()
-{
-    return m_fieldHeight;
-}
-
-SDL_FRect mapRect(int x, int y, int width, int height)
-{
-    return { m_gameOffsetX + x * m_gameScale, m_gameOffsetY + y * m_gameScale, width * m_gameScale, height * m_gameScale };
-}
-
-#ifdef VIRTUAL_JOYPAD
-bool getShowTouchTrails()
-{
-    return m_showTouchTrails;
-}
-void setShowTouchTrails(bool showTouchTrails)
-{
-    m_showTouchTrails = showTouchTrails;
-}
-bool getTransparentVirtualJoypadButtons()
-{
-    return m_transparentButtons;
-}
-void setTransparentVirtualJoypadButtons(bool transparentButtons)
-{
-    m_transparentButtons = transparentButtons;
-}
-#endif
-
-bool cursorFlashingEnabled()
-{
-    return m_flashMenuCursor;
-}
-
-void setFlashMenuCursor(bool flashMenuCursor)
-{
-    m_flashMenuCursor = flashMenuCursor;
-}
-
-bool getShowFps()
-{
-    return m_showFps;
-}
-
-void setShowFps(bool showFps)
-{
-    m_showFps = showFps;
-}
-
-void loadVideoOptions(const CSimpleIniA& ini)
+void loadWindowOptions(const CSimpleIni& ini)
 {
 #ifdef __ANDROID__
     m_windowMode = kModeFullScreen;
 #else
-    m_windowMode = static_cast<WindowMode>(ini.GetLongValue(kVideoSection, kWindowMode, kModeWindow));
+    m_windowMode = static_cast<WindowMode>(ini.GetLongValue(kWindowSection, kWindowModeKey, kModeWindow));
 
     if (m_windowMode >= kNumWindowModes)
         m_windowMode = kModeWindow;
 
-    m_maximized = ini.GetBoolValue(kVideoSection, kWindowMaximized);
+    m_maximized = ini.GetBoolValue(kWindowSection, kWindowMaximizedKey);
+    m_windowResizable = ini.GetBoolValue(kWindowSection, kWindowResizableKey, true);
 #endif
 
-    int width = ini.GetLongValue(kVideoSection, kWindowWidthKey, kWindowWidth);
-    int height = ini.GetLongValue(kVideoSection, kWindowHeightKey, kWindowHeight);
+    int width = ini.GetLongValue(kWindowSection, kWindowWidthKey, kWindowWidth);
+    int height = ini.GetLongValue(kWindowSection, kWindowHeightKey, kWindowHeight);
 
     normalizeWindowSize(width, height, kWindowWidth, kWindowHeight);
     updateWindowDimensions(width, height, true);
@@ -612,27 +446,19 @@ void loadVideoOptions(const CSimpleIniA& ini)
     m_nonMaximizedWidth = m_windowWidth;
     m_nonMaximizedHeight = m_windowHeight;
 
-    m_displayWidth = ini.GetLongValue(kVideoSection, kFullScreenWidth);
-    m_displayHeight = ini.GetLongValue(kVideoSection, kFullScreenHeight);
+    m_displayWidth = ini.GetLongValue(kWindowSection, kFullScreenWidthKey);
+    m_displayHeight = ini.GetLongValue(kWindowSection, kFullScreenHeightKey);
 
     normalizeWindowSize(m_displayWidth, m_displayHeight, kDefaultFullScreenWidth, kDefaultFullScreenHeight);
-
-    m_windowResizable = ini.GetLongValue(kVideoSection, kWindowResizable, 1) != 0;
-    m_flashMenuCursor = ini.GetBoolValue(kVideoSection, kFlashMenuCursor, true);
-    m_showFps = ini.GetBoolValue(kVideoSection, kShowFps, false);
-    setLinearFiltering(ini.GetBoolValue(kVideoSection, kUseLinearFiltering, false));
-    setClearScreen(ini.GetBoolValue(kVideoSection, kClearScreen, true));
-
-#ifdef VIRTUAL_JOYPAD
-    m_showTouchTrails = ini.GetBoolValue(kVideoSection, kShowTouchTrails, true);
-    m_transparentButtons = ini.GetBoolValue(kVideoSection, kTransparentButtons, true);
-#endif
 }
 
-void saveVideoOptions(CSimpleIniA& ini)
+void saveWindowOptions(CSimpleIni& ini)
 {
-    ini.SetLongValue(kVideoSection, kWindowMode, static_cast<long>(m_windowMode));
-    ini.SetBoolValue(kVideoSection, kWindowMaximized, m_maximized);
+#ifndef __ANDROID__
+    ini.SetLongValue(kWindowSection, kWindowModeKey, static_cast<long>(m_windowMode));
+    ini.SetBoolValue(kWindowSection, kWindowMaximizedKey, m_maximized);
+    ini.SetLongValue(kWindowSection, kWindowResizableKey, m_windowResizable);
+#endif
 
     int windowWidth, windowHeight;
 
@@ -643,21 +469,9 @@ void saveVideoOptions(CSimpleIniA& ini)
         std::tie(windowWidth, windowHeight) = getWindowSize();
     }
 
-    ini.SetLongValue(kVideoSection, kWindowWidthKey, windowWidth);
-    ini.SetLongValue(kVideoSection, kWindowHeightKey, windowHeight);
+    ini.SetLongValue(kWindowSection, kWindowWidthKey, windowWidth);
+    ini.SetLongValue(kWindowSection, kWindowHeightKey, windowHeight);
 
-    ini.SetLongValue(kVideoSection, kFullScreenWidth, m_displayWidth);
-    ini.SetLongValue(kVideoSection, kFullScreenHeight, m_displayHeight);
-
-    ini.SetLongValue(kVideoSection, kWindowResizable, m_windowResizable);
-
-    ini.SetBoolValue(kVideoSection, kFlashMenuCursor, m_flashMenuCursor);
-    ini.SetBoolValue(kVideoSection, kShowFps, m_showFps);
-    ini.SetBoolValue(kVideoSection, kUseLinearFiltering, getLinearFiltering());
-    ini.SetBoolValue(kVideoSection, kClearScreen, getClearScreen());
-
-#ifdef VIRTUAL_JOYPAD
-    ini.SetBoolValue(kVideoSection, kShowTouchTrails, m_showTouchTrails);
-    ini.SetBoolValue(kVideoSection, kTransparentButtons, m_transparentButtons);
-#endif
+    ini.SetLongValue(kWindowSection, kFullScreenWidthKey, m_displayWidth);
+    ini.SetLongValue(kWindowSection, kFullScreenHeightKey, m_displayHeight);
 }

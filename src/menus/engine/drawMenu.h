@@ -8,3 +8,5 @@ void menuFadeOut();
 void enqueueMenuFadeIn();
 void registerMenuLocalSprite(int width, int height, SDL_Texture *texture, bool cleanUp = true);
 void clearMenuLocalSprites();
+bool cursorFlashingEnabled();
+void setFlashMenuCursor(bool flashMenuCursor);

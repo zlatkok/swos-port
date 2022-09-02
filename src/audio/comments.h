@@ -1,7 +1,7 @@
 #pragma once
 
 void loadCommentary();
-void loadAndPlayEndGameComment();
+void playEndGameCrowdSampleAndComment();
 void clearCommentsSampleCache();
 void initCommentsBeforeTheGame();
 void enqueueTacticsChangedSample();
@@ -11,3 +11,7 @@ void enqueueRedCardSample();
 void playEnqueuedSamples();
 bool commenteryOnChannelFinished(int channel);
 void toggleMuteCommentary();
+
+#ifdef SWOS_TEST
+void setEnqueueTimers(const std::vector<int>& values);
+#endif

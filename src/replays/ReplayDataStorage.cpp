@@ -264,7 +264,7 @@ void ReplayDataStorage::skipFrames(int offset)
     } else {
         offset = -offset + 1;
 
-        if (m_replayOffset >= std::min(m_replayLimit, m_replayData.size())) {
+        if (m_replayOffset >= std::min<unsigned>(m_replayLimit, m_replayData.size())) {
             m_replayOffset = m_previousFrameOffset;
             offset--;
         }

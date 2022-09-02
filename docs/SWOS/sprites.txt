@@ -322,7 +322,7 @@ offset  length  description
   18        2   something with y
                 for referee, player and ball shadow this is a dword, pointer to
                 something; dword from sprite table is written here; seems to be
-                a pointer to an array of picture indices
+                a pointer to an array of picture indices, extracted from table at offset 6
   20        2   might be continuation of previous field
                 seems like field 18 is a pointer to array of indices of
                 pictures of sprites that are shown (array of words), array

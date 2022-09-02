@@ -42,6 +42,11 @@ static bool m_doFadeIn;
 
 static bool m_playingMatch;
 
+#ifdef SWOS_TEST
+static std::function<void()> m_gameLoopStartHook = []() {};
+static std::function<void()> m_gameLoopEndHook = []() {};
+#endif
+
 static void initGameLoop();
 static void drawFrame(bool recordingEnabled);
 static void gameFadeOut();
@@ -69,6 +74,9 @@ void gameLoop(TeamGame *topTeam, TeamGame *bottomTeam)
 
         // the really real main game loop ;)
         while (true) {
+#ifdef SWOS_TEST
+            m_gameLoopStartHook();
+#endif
             loadCrowdChantSampleIfNeeded();
             updateTimersHandlePauseAndStats();
 
@@ -94,6 +102,10 @@ void gameLoop(TeamGame *topTeam, TeamGame *bottomTeam)
 
             if (!skipUpdate)
                 updateScreen(true);
+
+#ifdef SWOS_TEST
+            m_gameLoopEndHook();
+#endif
         }
     } while (!gameEnded(topTeam, bottomTeam));
 
@@ -132,6 +144,18 @@ bool isMatchRunning()
 {
     return m_playingMatch;
 }
+
+#ifdef SWOS_TEST
+void setGameLoopStartHook(std::function<void()> hook)
+{
+    m_gameLoopStartHook = hook ? hook : []() {};
+}
+
+void setGameLoopEndHook(std::function<void()> hook)
+{
+    m_gameLoopEndHook = hook ? hook : []() {};
+}
+#endif
 
 static void initGameLoop()
 {
@@ -172,6 +196,9 @@ static void initGameLoop()
     initFrameTicks();
 }
 
+#ifdef SWOS_TEST
+static void drawFrame(bool) {}
+#else
 static void drawFrame(bool recordingEnabled)
 {
     setReplayRecordingEnabled(recordingEnabled);
@@ -186,6 +213,7 @@ static void drawFrame(bool recordingEnabled)
     drawResult();
     drawSpinningLogo();
 }
+#endif
 
 static void gameFadeOut()
 {
@@ -246,7 +274,7 @@ static void coreGameUpdate()
 
 static void handleHighlightsAndReplays()
 {
-    // remove when UpdateCameraBreakMode() is converted
+    // TODO: remove when UpdateCameraBreakMode() is converted
     if (swos.saveHighlightScene) {
         saveHighlightScene();
         swos.saveHighlightScene = 0;
@@ -313,7 +341,7 @@ static void gameOver()
     swos.cameraXVelocity = 0;
     swos.cameraYVelocity = 0;
 
-    loadAndPlayEndGameComment();
+    playEndGameCrowdSampleAndComment();
 
     m_doFadeIn = true;
 }

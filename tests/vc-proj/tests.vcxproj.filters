@@ -74,6 +74,9 @@
     <Filter Include="Source Files\project-files\game\pitch">
       <UniqueIdentifier>{1908b90c-6ed3-4e0e-a7ce-5468379899d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\project-files\options">
+      <UniqueIdentifier>{ba9b647f-41f3-47d1-80d6-443edd34cc8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -103,7 +106,7 @@
     <ClCompile Include="..\src\tests\BaseTest.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tests\VideoOptionsMenuTest.cpp">
+    <ClCompile Include="..\src\tests\WindowModeMenuTest.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
     <ClCompile Include="..\src\mocks\mockAudio.cpp">
@@ -166,14 +169,8 @@
     <ClCompile Include="..\..\src\replays\ReplayDataStorage.cpp">
       <Filter>Source Files\project-files\replays</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\replays\replayOptions.cpp">
-      <Filter>Source Files\project-files\replays</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\replays\replaysMenu.cpp">
       <Filter>Source Files\project-files\replays</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\lib\bmpWriter.cpp">
-      <Filter>Source Files\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\video\videoOptionsMenu.cpp">
       <Filter>Source Files\project-files\video</Filter>
@@ -334,9 +331,6 @@
     <ClCompile Include="..\..\src\sprites\gameSprites.cpp">
       <Filter>Source Files\project-files\sprites</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sprites\renderSprites.cpp">
-      <Filter>Source Files\project-files\sprites</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\sprites\loadTexture.cpp">
       <Filter>Source Files\project-files\sprites</Filter>
     </ClCompile>
@@ -424,6 +418,33 @@
     <ClCompile Include="..\..\src\game\referee.cpp">
       <Filter>Source Files\project-files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\audio\SampleTable.cpp">
+      <Filter>Source Files\project-files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\audio\audioOptionsMenu.cpp">
+      <Filter>Source Files\project-files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\options\optionsMenu.cpp">
+      <Filter>Source Files\project-files\options</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\video\assetManager.cpp">
+      <Filter>Source Files\project-files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mocks\mockRenderSprites.cpp">
+      <Filter>Source Files\mocks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\video\drawPrimitives.cpp">
+      <Filter>Source Files\project-files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\video\gameFieldMapping.cpp">
+      <Filter>Source Files\project-files\video</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\testEnvironment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tests\RecordedDataTest.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\stdinc.h">
@@ -444,7 +465,7 @@
     <ClInclude Include="..\src\tests\BaseTest.h">
       <Filter>Source Files\tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\tests\VideoOptionsMenuTest.h">
+    <ClInclude Include="..\src\tests\WindowModeMenuTest.h">
       <Filter>Source Files\tests</Filter>
     </ClInclude>
     <ClInclude Include="..\src\lib\unitTest.h">
@@ -474,9 +495,6 @@
     <ClInclude Include="..\src\mocks\mockUtil.h">
       <Filter>Source Files\mocks</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\mocks\dirent.h">
-      <Filter>Source Files\mocks</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\tests\ControlOptionsMenuTest.h">
       <Filter>Source Files\tests</Filter>
     </ClInclude>
@@ -495,14 +513,8 @@
     <ClInclude Include="..\..\src\replays\ReplayDataStorage.h">
       <Filter>Source Files\project-files\replays</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\replays\replayOptions.h">
-      <Filter>Source Files\project-files\replays</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\replays\replaysMenu.h">
       <Filter>Source Files\project-files\replays</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\lib\bmpWriter.h">
-      <Filter>Source Files\lib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\controls\joypads\joypad.h">
       <Filter>Source Files\project-files\controls\joypads</Filter>
@@ -714,6 +726,33 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\referee.h">
       <Filter>Source Files\project-files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\SampleTable.h">
+      <Filter>Source Files\project-files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\audio\audioOptionsMenu.h">
+      <Filter>Source Files\project-files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\options\optionsMenu.h">
+      <Filter>Source Files\project-files\options</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\video\assetManager.h">
+      <Filter>Source Files\project-files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mocks\mockRenderSprites.h">
+      <Filter>Source Files\mocks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\video\drawPrimitives.h">
+      <Filter>Source Files\project-files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\video\gameFieldMapping.h">
+      <Filter>Source Files\project-files\video</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\testEnvironment.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tests\RecordedDataTest.h">
+      <Filter>Source Files\tests</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

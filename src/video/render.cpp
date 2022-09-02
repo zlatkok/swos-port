@@ -4,20 +4,19 @@
 #include "windowManager.h"
 #include "joypads.h"
 #include "VirtualJoypad.h"
+#include "text.h"
 #include "dump.h"
 #include "file.h"
 #include "util.h"
-#include "color.h"
 
 static SDL_Renderer *m_renderer;
 static Uint32 m_windowPixelFormat;
 
-static bool m_useLinearFiltering;
-static bool m_clearScreen;
+static bool m_useLinearFiltering = true;
+static bool m_clearScreen = true;
 
 static bool m_pendingScreenshot;
 
-static void drawStraightLine(int x, int y, int width, int height, const Color& color);
 static void fade(bool fadeOut, std::function<void()> render, double factor);
 static void doMakeScreenshot();
 static SDL_Surface *getScreenSurface();
@@ -59,6 +58,8 @@ void initRendering()
 
 void finishRendering()
 {
+    deinitWindow();
+
     if (m_renderer)
         SDL_DestroyRenderer(m_renderer);
 
@@ -98,8 +99,7 @@ void updateScreen(bool delay /* = false */)
     // important call to keep the FPS stable
     SDL_RenderFlush(m_renderer);
 
-    showFps();
-    showZoomFactor();
+    showOverlay();
 
     if (delay)
         frameDelay();
@@ -124,37 +124,6 @@ void fadeIn(std::function<void()> render, double factor /* = 1.0 */)
 void fadeOut(std::function<void()> render, double factor /* = 1.0 */)
 {
     fade(true, render, factor);
-}
-
-void drawHorizontalLine(int x, int y, int width, const Color& color)
-{
-    drawStraightLine(x, y, width + 1, 1, color);
-}
-
-void drawVerticalLine(int x, int y, int height, const Color& color)
-{
-    drawStraightLine(x, y, 1, height + 1, color);
-}
-
-void drawRectangle(int x, int y, int width, int height, const Color& color)
-{
-    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, 255);
-    auto scale = getGameScale();
-
-    auto x1 = x * scale + getGameScreenOffsetX() - scale / 2;
-    auto y1 = y * scale + getGameScreenOffsetY();
-    auto w = (width + 1) * scale;
-    auto h = height * scale;
-    auto x2 = x1 + w - scale;
-    auto y2 = y1 + h - scale;
-
-    SDL_FRect rects[4] = {
-        { x1, y1, w, scale },
-        { x1, y1, scale, h },
-        { x2, y1, scale, h },
-        { x1, y2, w, scale },
-    };
-    SDL_RenderFillRectsF(m_renderer, rects, std::size(rects));
 }
 
 bool getLinearFiltering()
@@ -192,20 +161,6 @@ std::string ensureScreenshotsDirectory()
 void makeScreenshot()
 {
     m_pendingScreenshot = true;
-}
-
-static void drawStraightLine(int x, int y, int width, int height, const Color& color)
-{
-    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, 255);
-    auto scale = getGameScale();
-
-    auto xF = x * scale + getGameScreenOffsetX() - scale / 2;
-    auto yF = y * scale + getGameScreenOffsetY() - scale / 2;
-    auto w = width * scale;
-    auto h = height * scale;
-
-    SDL_FRect rect{ xF, yF, w, h };
-    SDL_RenderFillRectF(m_renderer, &rect);
 }
 
 static void fade(bool fadeOut, std::function<void()> render, double factor)
@@ -246,12 +201,17 @@ static void doMakeScreenshot()
     const auto& path = joinPaths(screenshotsPath.c_str(), filename);
 
     if (auto surface = getScreenSurface()) {
-        if (IMG_SavePNG(surface, path.c_str()) >= 0)
+        if (IMG_SavePNG(surface, path.c_str()) >= 0) {
+            enqueueInfoMessage("Screenshot created: %s", filename);
             logInfo("Screenshot created: %s", filename);
-        else
+        } else {
+            enqueueInfoMessage("Error saving screenshot");
             logWarn("Failed to save screenshot %s: %s", filename, IMG_GetError());
+        }
 
         SDL_FreeSurface(surface);
+    } else {
+        logWarn("Error creating screenshot");
     }
 }
 

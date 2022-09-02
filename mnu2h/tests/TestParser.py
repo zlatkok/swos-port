@@ -139,6 +139,15 @@ class TestParser(unittest.TestCase):
         ('Menu Romerquelle`{`Entry { multilineText: [ "Hagaard" ] text: "Tombeek" }`}', 3,
             "can't use properties `text' and `multilineText' at the same time"),
 
+        # bool option errors
+        ('Menu Basilashvili`{`Entry { boolOption: 123`}`}', 3, "`123' is not a valid identifier"),
+        ('Menu Basilashvili`{`Entry { boolOption: ok`123 }`}', 4, "expected `,', but got `123' instead"),
+        ('Menu Basilashvili`{`Entry { boolOption: ok,`123 }`}', 4, "`123' is not a valid identifier"),
+        ('Menu Basilashvili`{`Entry { boolOption: ok,`123 }`}', 4, "`123' is not a valid identifier"),
+        ('Menu Basilashvili`{`Entry { boolOption: ok1,`ok2,`ok3 }`}', 5, 'expected string description'),
+        ('Menu Basilashvili`{`Entry { boolOption: ok1, ok2, "ues" `onSelect: broken }`}', 4,
+            'onSelect is reserved in boolOption entries'),
+
         # function errors
         ('Menu Hightower`{`onInit:', 3, "missing property value for `onInit'"),
         ('Menu Hightower`{`onInit: else', 3, "can't use a C++ keyword `else' as a name of a menu handler function"),

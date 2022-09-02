@@ -203,7 +203,7 @@ static void initRefereeAnimationTable(SwosDataPointer<void> animTable)
 
     m_refereeSprite.frameDelay = delay;
     m_refereeSprite.frameIndicesTable = frameTable[m_refereeSprite.direction];
-    assert(m_refereeSprite.frameIndicesTable);
+    assert(m_refereeSprite.frameIndicesTable.asAligned());
 
     m_refereeSprite.delayedFrameTimer = -1;
     m_refereeSprite.frameIndex = -1;

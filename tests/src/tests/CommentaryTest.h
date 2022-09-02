@@ -12,31 +12,26 @@ class CommentaryTest : public BaseTest
     CaseList getCases() override;
 
 private:
-    using EnqueuedSamplesData = std::vector<std::pair<int16_t *, void (*)()>>;
+    using EnqueuedSamplesData = std::vector<void (*)()>;
 
-    void setupOriginalSamplesLoadingTest();
-    void testOriginalSamples();
     void setupCustomSamplesLoadingTest();
     void testCustomSamples();
     void setupLoadingCustomExtensionsTest();
     void testLoadingCustomExtensions();
-    void setupAudioOverridingOriginalCommentsTest();
-    void testAudioOverridingOriginalComments();
     void setupHandlingBadFileTest();
     void testHandlingBadFile();
     void setupCommentInterruptionTest();
     void testCommentInterruption();
     void setupMutingCommentsTest();
     void testMutingComments();
+    void setupEnqueuedCommentsTest();
+    void testEnqueuedComments();
+    void setupEndGameCommentsTest();
+    void testEndGameComment();
+    void testEndGameChantsAndCrowdSamples();
 
-    void testIfOriginalSamplesLoaded();
-    void testOriginalEnqueuedSamples();
     void applyEnqueuedSamplesData(const EnqueuedSamplesData& data, const std::vector<int>& values);
     bool createNextPermutation(std::vector<int>& values);
-    void *getPlaybackFunctionFromChunk(const Mix_Chunk *chunk);
     void testResultChants();
     void testEndGameCrowdSample();
-    void testEndGameComment();
-
-    static const CommentaryTest::EnqueuedSamplesData kEnqueuedSamplesData;
 };

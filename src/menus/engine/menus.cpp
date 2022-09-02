@@ -1,4 +1,5 @@
 #include "menus.h"
+#include "unpackMenu.h"
 #include "menuProc.h"
 #include "menuAlloc.h"
 #include "menuMouse.h"
@@ -87,7 +88,7 @@ static const char *entryText(int entryOrdinal)
     }
 }
 
-// These are macros instead of functions because we need to save these variables for each level of nesting;
+// These are macros instead of functions because we need to save the variables for each level of nesting;
 // being functions they can't create local variables on callers stack, and then we'd need explicit stacks.
 #define saveCurrentMenu() \
     auto currentMenu = getCurrentMenu(); \

@@ -2,7 +2,6 @@
 
 #include "replays.h"
 #include "ReplayDataStorage.h"
-#include "replayOptions.h"
 #include "hilFile.h"
 #include "render.h"
 #include "timer.h"
@@ -25,6 +24,7 @@
 #include "text.h"
 #include "stats.h"
 #include "menus.h"
+#include "unpackMenu.h"
 #include "menuBackground.h"
 #include "drawMenu.h"
 #include "stadiumMenu.h"
@@ -59,6 +59,9 @@ static bool m_instantReplay;
 
 static bool m_fastReplay;
 static bool m_slowMotion;
+
+static int m_autoSaveReplays;
+static int m_showReplayPercentage;
 
 static void runReplay(bool inGame, bool isReplay);
 static Status replayScene(bool inGame, bool isReplay, bool userRequested = false);
@@ -247,6 +250,26 @@ bool saveReplayFile(const char *path, bool overwrite /* = true */)
     return m_replayData.save(path, m_header, true, overwrite);
 }
 
+bool getAutoSaveReplays()
+{
+    return m_autoSaveReplays != 0;
+}
+
+void setAutoSaveReplays(bool autoSave)
+{
+    m_autoSaveReplays = autoSave;
+}
+
+bool getShowReplayPercentage()
+{
+    return m_showReplayPercentage != 0;
+}
+
+void setShowReplayPercentage(bool showPercentage)
+{
+    m_showReplayPercentage = showPercentage;
+}
+
 static void runReplay(bool inGame, bool isReplay)
 {
     assert(!m_replaying && !m_replayData.empty());
@@ -385,7 +408,7 @@ static Status checkReplayControlKeys(bool inGame, bool userRequested)
 
         case SDL_SCANCODE_I:
             if (!m_instantReplay)
-                toggleShowReplayPercentage();
+                setShowReplayPercentage(!getShowReplayPercentage());
             break;
 
         case SDL_SCANCODE_F:

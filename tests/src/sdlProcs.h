@@ -22,10 +22,12 @@ enum SdlApiIndex : size_t {
     SDL_GetKeyboardStateIndex = 180,
     SDL_GetMouseStateIndex = 209,
     SDL_SetCursorIndex = 217,
+    SDL_SetTextureColorModIndex = 272,
     SDL_GetTicksIndex = 444,
     SDL_DelayIndex = 447,
     SDL_GetNumDisplayModesIndex = 465,
     SDL_GetDisplayModeIndex = 466,
+    SDL_RenderCopyFIndex = 664,
 };
 
 bool initSdlApiTable();
@@ -43,11 +45,18 @@ void queueSdlKeyDown(SDL_Scancode keyCode);
 void queueSdlKeyUp(SDL_Scancode keyCode);
 
 void setSdlMouseState(int x, int y, bool leftClick = false, bool rightClick = false);
+void bumpMouse();
 void resetSdlInput();
 void killSdlDelay();
 
+void disableRendering();
+void enableRendering();
+
 void setFakeDisplayModes(const std::vector<SDL_DisplayMode>& displayModes);
 void restoreRealDisplayModes();
+
+void clearTextureColorMods();
+bool hadTextureColorMod(int r, int g, int b);
 
 void setSetTicksDelta(int delta);
 void freezeSdlTime();

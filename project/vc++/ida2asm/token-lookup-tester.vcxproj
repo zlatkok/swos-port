@@ -114,9 +114,9 @@
       <FileType>Document</FileType>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Creating token lookup tester...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Creating token lookup tester...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)main.cpp</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)main.cpp</Outputs>
@@ -124,9 +124,9 @@ python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) -
       <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</TreatOutputAsContent>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\src\Tokenizer.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst;$(SolutionDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenLookup.h;$(SolutionDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenTypeEnum.h</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\src\Tokenizer.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst;$(SolutionDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenLookup.h;$(SolutionDir)..\..\tmp\ida2asm-$(Platform)-$(Configuration)\TokenTypeEnum.h</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=C:\swos-port\project\vc++\..\..\tmp\pycache
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">@set PYTHONPYCACHEPREFIX=f:\swos-port\project\vc++\..\..\tmp\pycache
 python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir) --test --performance-test</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Creating token lookup tester...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Creating token lookup tester...</Message>

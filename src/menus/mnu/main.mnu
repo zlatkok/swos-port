@@ -74,7 +74,7 @@ Menu mainMenu
         rightEntry: season
 
         text: swos.aOptions
-        onSelect: ~"SWOS::OptionsMenuSelected"
+        onSelect: ~showOptionsMenu
     }
 
     // invisible entry in place of "SAVE DISK FILING" to keep everything in place

@@ -1,53 +1,57 @@
 #include "mockWindowManager.h"
 #include "windowManager.h"
 #include "render.h"
+#include "mockRender.h"
+#include "gameFieldMapping.h"
+#include <SDL_syswm.h>
 
-constexpr int kDefaultFullScreenWidth = 640;
-constexpr int kDefaultFullScreenHeight = 480;
-
-static int m_windowWidth = 0;//kWindowWidth;
-static int m_windowHeight = 0;//kWindowHeight;
-static int m_displayWidth = kDefaultFullScreenWidth;
-static int m_displayHeight = kDefaultFullScreenHeight;
+static int m_windowWidth = kDefaultWindowWidth;
+static int m_windowHeight = kDefaultWindowHeight;
+static int m_displayWidth = kDefaultWindowWidth;
+static int m_displayHeight = kDefaultWindowHeight;
 static bool m_windowResizable = false;
 
+static SDL_Window *m_window;
 static bool m_isInFullScreen = false;
 static bool m_failNextResolutionSwitch;
 static int m_windowIndex = 0;
 static auto m_windowMode = kModeWindow;
 
-static bool m_flashMenuCursor;
-static bool m_showTouchTrails;
-static bool m_transparentButtons;
+static void sendWindowToBack();
+
+SDL_Window *createWindow()
+{
+    m_window = SDL_CreateWindow("test", 0, 0, m_windowWidth, m_windowHeight, 0);
+    assert(m_window);
+
+    sendWindowToBack();
+
+    return m_window;
+}
+
+// If the window is hidden or minimized the renderer won't be rendering anything to our texture,
+// so we do the next best thing and send the window away so it's not occluding anything.
+void sendWindowToBack()
+{
+    SDL_SysWMinfo wmInfo;
+    SDL_VERSION(&wmInfo.version);
+    SDL_GetWindowWMInfo(m_window, &wmInfo);
+    ::SetWindowPos(wmInfo.info.win.window, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+}
 
 std::pair<int, int> getWindowSize()
 {
     return { m_windowWidth, m_windowHeight };
 }
 
-AssetResolution getAssetResolution()
-{
-    return AssetResolution::kInvalid;
-}
-
-void registerAssetResolutionChangeHandler(AssetResolutionChangeHandler handler)
-{
-}
-
-const char *getAssetDir()
-{
-    return nullptr;
-}
-
-std::string getPathInAssetDir(const char *)
-{
-    return {};
-}
-
 void setWindowSize(int width, int height)
 {
     m_windowWidth = width;
     m_windowHeight = height;
+    SDL_SetWindowSize(m_window, m_windowWidth, m_windowHeight);
+    updateGameScaleFactor(width, height);
+    updateLogicalScreenSize();
+    updateRenderTarget(width, height);
 }
 
 bool getWindowResizable()
@@ -140,66 +144,6 @@ void centerWindow() {}
 bool hasMouseFocus()
 {
     return true;
-}
-
-bool mapCoordinatesToGameArea(int &x, int &y)
-{
-    return false;
-}
-
-float getGameScale()
-{
-    return 1.0;
-}
-
-float getGameScreenOffsetX() { return 0; }
-float getGameScreenOffsetY() { return 0; }
-float getFieldWidth() { return 1; }
-float getFieldHeight() { return 1; }
-
-std::pair<int, int> mapPoint(int x, int y)
-{
-    return { x, y };
-}
-
-std::pair<float, float> mapPoint(float x, float y)
-{
-    return { x, y };
-}
-
-SDL_FRect mapRect(int x, int y, int width, int height)
-{
-    return {};
-}
-
-bool getShowTouchTrails()
-{
-    return m_showTouchTrails;
-}
-
-void setShowTouchTrails(bool showTouchTrails)
-{
-    m_showTouchTrails = showTouchTrails;
-}
-
-bool getTransparentVirtualJoypadButtons()
-{
-    return m_transparentButtons;
-}
-
-void setTransparentVirtualJoypadButtons(bool transparentButtons)
-{
-    transparentButtons = m_transparentButtons;
-}
-
-bool cursorFlashingEnabled()
-{
-    return m_flashMenuCursor;
-}
-
-void setFlashMenuCursor(bool flashMenuCursor)
-{
-    m_displayHeight = flashMenuCursor;
 }
 
 bool getShowFps() { return false; }

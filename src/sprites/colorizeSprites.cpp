@@ -30,7 +30,6 @@ static int m_res;
 static const TeamGame *m_topTeam;
 static const TeamGame *m_bottomTeam;
 
-static void clearTextures();
 static void colorizePlayers();
 static void colorizeGoalkeepers();
 static void colorizeBenchPlayers();
@@ -54,30 +53,46 @@ void initSpriteColorizer(int res)
     m_res = res;
 }
 
-void colorizeGameSprites(int res, const TeamGame *topTeam, const TeamGame *bottomTeam, bool invalidateTextures)
+// Do not deallocate, just clear the pointers.
+void clearMatchSpriteCache()
 {
-    if (invalidateTextures)
-        clearTextures();
+    struct {
+        SDL_Texture **textures;
+        size_t numTextures;
+    } static const kTextures[] = {
+        { m_topTeamPlayerTextures.data(), m_topTeamPlayerTextures.size() },
+        { m_bottomTeamPlayerTextures.data(), m_bottomTeamPlayerTextures.size() },
+        { m_topTeamGoalkeeperTextures.data(), m_topTeamGoalkeeperTextures.size() },
+        { m_bottomTeamGoalkeeperTextures.data(), m_bottomTeamGoalkeeperTextures.size() },
+        { &m_topTeamBenchPlayersTexture, 1 },
+        { &m_bottomTeamBenchPlayersTexture, 1 },
+    };
 
+    for (const auto& texturePack : kTextures)
+        for (size_t i = 0; i < texturePack.numTextures; i++)
+            texturePack.textures[i] = nullptr;
+}
+
+void colorizeGameSprites(int res, const TeamGame *topTeam, const TeamGame *bottomTeam)
+{
     m_res = res;
     m_topTeam = topTeam;
     m_bottomTeam = bottomTeam;
 
-    if (!gotPlayerTextures()) {
+    if (!gotPlayerTextures())
         colorizePlayers();
-        fillPlayerSprites(&m_topTeamPlayerTextures[0], &m_bottomTeamPlayerTextures[0], m_topTeamPlayerTextures.size(),
-            kPlayerBackground[m_res].data(), kPlayerBackground[m_res].size());
-    }
-    if (!gotGoalkeeperTextures()) {
+    fillPlayerSprites(&m_topTeamPlayerTextures[0], &m_bottomTeamPlayerTextures[0], m_topTeamPlayerTextures.size(),
+        kPlayerBackground[m_res].data(), kPlayerBackground[m_res].size());
+
+    if (!gotGoalkeeperTextures())
         colorizeGoalkeepers();
-        fillGoalkeeperSprites(m_topTeamGoalkeeperTextures.data(), m_bottomTeamGoalkeeperTextures.data(),
-            m_topTeamGoalkeeperTextures.size(), kGoalkeeperBackground[m_res].data(), kGoalkeeperBackground[m_res].size());
-    }
-    if (!gotBenchPlayerTextures()) {
+    fillGoalkeeperSprites(m_topTeamGoalkeeperTextures.data(), m_bottomTeamGoalkeeperTextures.data(),
+        m_topTeamGoalkeeperTextures.size(), kGoalkeeperBackground[m_res].data(), kGoalkeeperBackground[m_res].size());
+
+    if (!gotBenchPlayerTextures())
         colorizeBenchPlayers();
-        fillBenchSprites(m_topTeamBenchPlayersTexture, m_bottomTeamBenchPlayersTexture,
-            kBenchBackground[m_res].data(), kBenchBackground[m_res].size());
-    }
+    fillBenchSprites(m_topTeamBenchPlayersTexture, m_bottomTeamBenchPlayersTexture,
+        kBenchBackground[m_res].data(), kBenchBackground[m_res].size());
 }
 
 int getGoalkeeperIndexFromFace(bool topTeam, int face)
@@ -151,26 +166,6 @@ void copyShirtPixels(int baseColor, int stripesColor, const PackedSprite& back, 
         dst += backSurface->pitch / 4;
         src += shirtSurface->pitch / 4;
     }
-}
-
-// Do not deallocate, just clear the pointers.
-static void clearTextures()
-{
-    struct {
-        SDL_Texture **textures;
-        size_t numTextures;
-    } static const kTextures[] = {
-        { m_topTeamPlayerTextures.data(), m_topTeamPlayerTextures.size() },
-        { m_bottomTeamPlayerTextures.data(), m_bottomTeamPlayerTextures.size() },
-        { m_topTeamGoalkeeperTextures.data(), m_topTeamGoalkeeperTextures.size() },
-        { m_bottomTeamGoalkeeperTextures.data(), m_bottomTeamGoalkeeperTextures.size() },
-        { &m_topTeamBenchPlayersTexture, 1 },
-        { &m_bottomTeamBenchPlayersTexture, 1 },
-    };
-
-    for (const auto& texturePack : kTextures)
-        for (size_t i = 0; i < texturePack.numTextures; i++)
-            texturePack.textures[i] = nullptr;
 }
 
 static void colorizePlayers()
@@ -298,24 +293,25 @@ void colorizeBenchPlayers()
     SDL_FreeSurface(shirtSurface);
 }
 
-template <size_t N>
-static bool gotTextures(const std::array<SDL_Texture *, N>& team1Textures, const std::array<SDL_Texture *, N>& team2Textures)
-{
-    for (const auto& textures : { team1Textures, team2Textures })
-        if (std::any_of(textures.begin(), textures.end(), [](const auto texture) { return texture; }))
-            return true;
-
-    return false;
-}
-
 static bool gotPlayerTextures()
 {
-    return gotTextures(m_topTeamPlayerTextures, m_bottomTeamPlayerTextures);
+    const auto& topTeamFaces = faceTypesInTeam(m_topTeam, true);
+    for (size_t i = 0; i < topTeamFaces.size(); i++)
+        if (topTeamFaces[i] && !m_topTeamPlayerTextures[i])
+            return false;
+
+    const auto& bottomTeamFaces = faceTypesInTeam(m_bottomTeam, true);
+    for (size_t i = 0; i < bottomTeamFaces.size(); i++)
+        if (bottomTeamFaces[i] && !m_bottomTeamPlayerTextures[i])
+            return false;
+
+    return true;
 }
 
 static bool gotGoalkeeperTextures()
 {
-    return gotTextures(m_topTeamGoalkeeperTextures, m_bottomTeamGoalkeeperTextures);
+    return m_topTeamGoalkeeperTextures[0] && m_topTeamGoalkeeperTextures[1] &&
+        m_bottomTeamGoalkeeperTextures[0] && m_bottomTeamGoalkeeperTextures[1];
 }
 
 static bool gotBenchPlayerTextures()

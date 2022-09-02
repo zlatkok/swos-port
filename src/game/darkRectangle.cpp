@@ -1,6 +1,6 @@
 #include "darkRectangle.h"
 #include "render.h"
-#include "windowManager.h"
+#include "gameFieldMapping.h"
 
 class ScopedGameScaler
 {

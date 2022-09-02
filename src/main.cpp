@@ -54,11 +54,11 @@ int main(int argc, char **argv)
     normalizeOptions();
     initJoypads();
 
-    // set zoom again since the window wasn't created at the time the options were loaded
+    // set zoom again since the window wasn't created at the time options were loaded
     setZoomFactor(getZoomFactor());
 
     atexit(finishRendering);
-    atexit(saveOptions);        // must be set after finishRendering
+    atexit(saveOptions);        // must be saved only after finishRendering
     atexit(finishAudio);
     atexit(IMG_Quit);
 

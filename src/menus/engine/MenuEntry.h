@@ -13,6 +13,7 @@ enum MenuEntryContent : word
 
     // extensions
     kEntryMenuSpecificSprite,
+    kEntryBoolOption,
 };
 
 enum MenuEntryBackground : word

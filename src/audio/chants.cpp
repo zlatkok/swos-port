@@ -15,7 +15,7 @@ static int m_fadeInChantTimer;
 static int m_fadeOutChantTimer;
 static int m_nextChantTimer;
 
-static bool m_crowdChantsEnabled;
+static bool m_crowdChantsEnabled = true;
 
 enum ChantFunctionIndices {
     kPlayIntroChant, kPlayFansChant8l, kPlayFansChant10l, kPlayFansChant4l,
@@ -170,11 +170,15 @@ bool areCrowdChantsEnabled()
     return m_crowdChantsEnabled;
 }
 
+void initCrowdChantsEnabled(bool crowdChantsEnabled)
+{
+    m_crowdChantsEnabled = crowdChantsEnabled;
+}
+
 void setCrowdChantsEnabled(bool crowdChantsEnabled)
 {
     if (crowdChantsEnabled != m_crowdChantsEnabled) {
         if (m_crowdChantsEnabled = crowdChantsEnabled) {
-            logInfo("Enabling crowd chants");
             m_chantsChannel = -1;
             m_fadeInChantTimer = 0;
             m_fadeOutChantTimer = 0;
@@ -183,12 +187,18 @@ void setCrowdChantsEnabled(bool crowdChantsEnabled)
             if (isMatchRunning())
                 playCrowdNoise();
         } else {
-            logInfo("Disabling crowd chants");
             stopChants();
             stopBackgroudCrowdNoise();
         }
     }
 }
+
+#ifdef SWOS_TEST
+auto getPlayChants10lFunction() -> void (*)()
+{
+    return m_chants[kPlayFansChant10l];
+}
+#endif
 
 static void playChant(Mix_Chunk *chunk)
 {

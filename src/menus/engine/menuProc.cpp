@@ -1,5 +1,6 @@
 #include "menuProc.h"
 #include "menus.h"
+#include "menuControls.h"
 #include "drawMenu.h"
 #include "menuMouse.h"
 #include "music.h"
@@ -20,7 +21,7 @@ void menuProc()
 
     updateMouse();
 
-    SWOS::MenuCheckControls();
+    menuCheckControls();
     updateSongState();
 
     auto currentMenu = getCurrentMenu();

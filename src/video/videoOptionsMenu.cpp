@@ -1,19 +1,14 @@
 #include "videoOptionsMenu.h"
 #include "joypads.h"
-#include "VirtualJoypad.h"
 #include "windowManager.h"
+#include "drawMenu.h"
 #include "windowModeMenu.h"
+#include "menuItemRenderer.h"
 #include "render.h"
+#include "overlay.h"
 #include "pitch.h"
 
 constexpr float kZoomIncrement = 0.1f;
-
-static int16_t m_useLinearFiltering = 0;
-static int16_t m_flashCursor = 1;
-static int16_t m_showTouchTrails;
-static int16_t m_transparentButtons = 1;
-static int16_t m_showFps;
-static int16_t m_clearScreen;
 
 #include "videoOptions.mnu.h"
 
@@ -30,14 +25,7 @@ void showVideoOptionsMenu()
 
 static void videoOptionsMenuOnInit()
 {
-    m_useLinearFiltering = getLinearFiltering();
-    m_flashCursor = cursorFlashingEnabled();
-    m_showFps = getShowFps();
-    m_clearScreen = getClearScreen();
-#ifdef VIRTUAL_JOYPAD
-    m_showTouchTrails = getShowTouchTrails();
-    m_transparentButtons = getTransparentVirtualJoypadButtons();
-#else
+#ifndef VIRTUAL_JOYPAD
     hideVirtualJoypadOptions();
 #endif
 }
@@ -84,50 +72,35 @@ static void enterZoom()
 {
 }
 
-static void switchLinearFiltering()
+static void setTouchTrailsEntryText()
 {
-    m_useLinearFiltering = !m_useLinearFiltering;
-    logInfo("Linear filtering %s", m_useLinearFiltering ? "enabled" : "disabled");
-    setLinearFiltering(m_useLinearFiltering != 0);
-}
-
-static void changeFlashCursor()
-{
-    m_flashCursor = !m_flashCursor;
-    logInfo("Flash cursor changed to %s", m_flashCursor ? "ON" : "OFF");
-    setFlashMenuCursor(m_flashCursor != 0);
-    swos.menuCursorFrame = 0;
-}
-
-static void changeShowFps()
-{
-    m_showFps = !m_showFps;
-    setShowFps(m_showFps != 0);
-}
-
-static void toggleClearScreen()
-{
-    m_clearScreen = !getClearScreen();
-    setClearScreen(m_clearScreen != 0);
+#ifdef VIRTUAL_JOYPAD
+    auto entry = A5.asMenuEntry();
+    entry->copyString(getShowTouchTrails() ? "ON" : "OFF");
+#endif
 }
 
 static void changeShowTouchTrails()
 {
 #ifdef VIRTUAL_JOYPAD
-    m_showTouchTrails = !m_showTouchTrails;
-    logInfo("Touch trails changed to %s", m_showTouchTrails ? "ON" : "OFF");
-    setShowTouchTrails(m_showTouchTrails != 0);
-    getVirtualJoypad().enableTouchTrails(m_showTouchTrails != 0);
+    logInfo("Changing touch trails to %s", getShowTouchTrails() ? "OFF" : "ON");
+    setShowTouchTrails(!getShowTouchTrails());
+#endif
+}
+
+static void setTransparentButtonsEntryText()
+{
+#ifdef VIRTUAL_JOYPAD
+    auto entry = A5.asMenuEntry();
+    entry->copyString(getTransparentVirtualJoypadButtons() ? "ON" : "OFF");
 #endif
 }
 
 static void changeVirtualJoypadTransparentButtons()
 {
 #ifdef VIRTUAL_JOYPAD
-    m_transparentButtons = !m_transparentButtons;
-    logInfo("Turning transparent virtual joypad buttons %s", m_transparentButtons ? "ON" : "OFF");
-    setTransparentVirtualJoypadButtons(m_transparentButtons != 0);
-    getVirtualJoypad().enableTransparentButtons(m_transparentButtons != 0);
+    logInfo("Turning transparent virtual joypad buttons %s", getTransparentVirtualJoypadButtons() ? "OFF" : "ON");
+    setTransparentVirtualJoypadButtons(!getTransparentVirtualJoypadButtons());
 #endif
 }
 

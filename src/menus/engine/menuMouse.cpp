@@ -2,10 +2,12 @@
 
 #include "menuMouse.h"
 #include "menus.h"
+#include "unpackMenu.h"
 #include "menuControls.h"
 #include "mainMenu.h"
 #include "controls.h"
 #include "windowManager.h"
+#include "gameFieldMapping.h"
 #include "render.h"
 #include "game.h"
 #include "replayExitMenu.h"

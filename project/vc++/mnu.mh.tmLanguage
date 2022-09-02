@@ -326,7 +326,7 @@
                     defX|defaultX|defY|defaultY|defaultColor|defaultTextFlags|
                     defaultLeftEntry|defaultRightEntry|defaultUpEntry|defaultDownEntry|defaultTopEntry|defaultBottomEntry|
                     menuX|menuY|width|height|ordinal|name|color|textFlags|controlMask|
-                    text|stringTable|multilineText|number|sprite|menuSpecificSprite|customDrawForeground|customDrawBackground|
+                    text|stringTable|multilineText|boolOption|number|sprite|menuSpecificSprite|customDrawForeground|customDrawBackground|
                     func1|invisible|disabled|directionLeft|directionRight|directionUp|directionDown|
                     leftEntry|rightEntry|upEntry|downEntry|topEntry|bottomEntry|skipLeft|skipRight|skipUp|skipDown|
                     onSelect|beforeDraw|onReturn|customDrawBackground|customDrawForeground)\s*(?=:)
