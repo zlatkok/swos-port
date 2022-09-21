@@ -170,17 +170,7 @@ static bool handleClickScrolling()
 static bool handleRightClickExitMenu(bool rightButtonJustReleased)
 {
     if (rightButtonJustReleased) {
-        swos.chosenTactics = -1;    // edit tactics menu
-        swos.teamsType = -1;        // select files menu
-        if (getCurrentPackedMenu() == &swos.diyCompetitionMenu)
-            swos.diySelected = -1;
-        ExitSelectTeams();
-        if (swos.choosingPreset)    // preset competition must be aborted at any level
-            swos.abortSelectTeams = -1;
-        swos.g_exitGameFlag = -1;   // play match menu
-        swos.gameCanceled = 1;
-        if (mainMenuActive())
-            activateExitGameButton();
+        exitCurrentMenu();
         return true;
     }
 

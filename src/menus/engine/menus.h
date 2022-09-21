@@ -49,25 +49,13 @@ static inline void copyStringToEntry(int entryIndex, const char *str)
     getMenuEntry(entryIndex)->copyString(str);
 }
 
-static inline char *copyStringToMenuBuffer(const char *str)
-{
-    auto buf = getCurrentMenu()->endOfMenuPtr.asAlignedCharPtr();
-    strcpy(buf, str);
-    assert(buf + strlen(str) <= swos.g_currentMenu + sizeof(swos.g_currentMenu));
-    return buf;
-}
-
-static inline char *getMenuTempBuffer()
-{
-    auto tempBuf = getCurrentMenu()->endOfMenuPtr.asAlignedCharPtr();
-    assert(tempBuf + 256 < swos.g_currentMenu + sizeof(swos.g_currentMenu));
-    return tempBuf;
-}
-
-
 void setEntriesVisibility(const std::vector<int>& entryIndices, bool visible);
 void selectEntry(MenuEntry *entry, int controlMask = kShortFireMask);
 void selectEntry(int ordinal);
 
 void showMenu(const BaseMenu& menu);
 void saveCurrentMenuAndStartGameLoop();
+void exitCurrentMenu();
+
+char *copyStringToMenuBuffer(const char *str);
+char *getMenuTempBuffer();

@@ -256,7 +256,6 @@
     <ClCompile Include="..\..\src\controls\keyboard\scancodes.cpp" />
     <ClCompile Include="..\..\src\controls\keyboard\setupKeyboardMenu.cpp" />
     <ClCompile Include="..\..\src\controls\keyboard\testKeyboardMenu.cpp" />
-    <ClCompile Include="..\..\src\controls\menuControls.cpp" />
     <ClCompile Include="..\..\src\controls\mouse\mouse.cpp" />
     <ClCompile Include="..\..\src\controls\quickConfigMenu.cpp" />
     <ClCompile Include="..\..\src\controls\selectGameControlEventsMenu.cpp" />
@@ -283,6 +282,7 @@
     <ClCompile Include="..\..\src\menus\continueAbortMenu.cpp" />
     <ClCompile Include="..\..\src\menus\continueMenu.cpp" />
     <ClCompile Include="..\..\src\menus\engine\drawMenu.cpp" />
+    <ClCompile Include="..\..\src\menus\engine\menuControls.cpp" />
     <ClCompile Include="..\..\src\menus\mainMenu.cpp" />
     <ClCompile Include="..\..\src\menus\engine\menuAlloc.cpp" />
     <ClCompile Include="..\..\src\menus\engine\menuBackground.cpp" />
@@ -303,6 +303,7 @@
     <ClCompile Include="..\..\src\sprites\colorizeSprites.cpp" />
     <ClCompile Include="..\..\src\sprites\gameSprites.cpp" />
     <ClCompile Include="..\..\src\sprites\loadTexture.cpp" />
+    <ClCompile Include="..\..\src\sprites\SharedTexture.cpp" />
     <ClCompile Include="..\..\src\sprites\spinningLogo.cpp" />
     <ClCompile Include="..\..\src\stdinc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -383,7 +384,6 @@
     <ClInclude Include="..\..\src\controls\keyboard\scancodes.h" />
     <ClInclude Include="..\..\src\controls\keyboard\setupKeyboardMenu.h" />
     <ClInclude Include="..\..\src\controls\keyboard\testKeyboardMenu.h" />
-    <ClInclude Include="..\..\src\controls\menuControls.h" />
     <ClInclude Include="..\..\src\controls\mouse\mouse.h" />
     <ClInclude Include="..\..\src\controls\quickConfigMenu.h" />
     <ClInclude Include="..\..\src\controls\selectGameControlEventsMenu.h" />
@@ -410,6 +410,7 @@
     <ClInclude Include="..\..\src\menus\continueAbortMenu.h" />
     <ClInclude Include="..\..\src\menus\continueMenu.h" />
     <ClInclude Include="..\..\src\menus\engine\drawMenu.h" />
+    <ClInclude Include="..\..\src\menus\engine\menuControls.h" />
     <ClInclude Include="..\..\src\menus\mainMenu.h" />
     <ClInclude Include="..\..\src\menus\engine\menuAlloc.h" />
     <ClInclude Include="..\..\src\menus\engine\menuBackground.h" />
@@ -430,6 +431,7 @@
     <ClInclude Include="..\..\src\sprites\gameSprites.h" />
     <ClInclude Include="..\..\src\sprites\renderSprites.h" />
     <ClInclude Include="..\..\src\sprites\loadTexture.h" />
+    <ClInclude Include="..\..\src\sprites\SharedTexture.h" />
     <ClInclude Include="..\..\src\sprites\spinningLogo.h" />
     <ClInclude Include="..\..\src\stdinc.h" />
     <ClInclude Include="..\..\src\text\text.h" />

@@ -134,7 +134,7 @@ static void setupPlayerSprites()
     registerMenuLocalSprite(width, height, m_goalkeeper2Texture);
 
     setupTeamPlayerSprites(team1SpriteIndices, currentSpriteIndex, &leftTeamPlayerSpritesStartEntry, m_team1);
-    setupTeamPlayerSprites(team2SpriteIndices, currentSpriteIndex + 1, &rightTeamPlayerSpritesStartEntry, m_team1);
+    setupTeamPlayerSprites(team2SpriteIndices, currentSpriteIndex + 1, &rightTeamPlayerSpritesStartEntry, m_team2);
 }
 
 static void setupPlayerNames()

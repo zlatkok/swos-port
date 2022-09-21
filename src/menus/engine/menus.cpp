@@ -57,9 +57,6 @@ static void menuDelay()
 # endif
     checkMemory();
 #endif
-
-    if (!swos.menuCycleTimer)
-        timerProc(2);    // imitate int 8 ;) twice since the FPS is halved
 }
 
 static void menuProcCycle()
@@ -73,19 +70,71 @@ void SWOS::WaitRetrace()
     menuDelay();
 }
 
-static const char *entryText(int entryOrdinal)
+// Tries to discover menu title (or something characteristic) using some simple heuristics.
+static const char *discoverMenuTitle()
 {
-    auto entry = getMenuEntry(entryOrdinal);
+    static char buf[40];
 
-    static char buf[16];
+    auto entryText = [](const MenuEntry *entry) -> const char * {
+        if (entry->type == kEntryString)
+            return entry->string();
+        else if (entry->type == kEntryMultilineText)
+            return entry->fg.multilineText.asCharPtr() + 1;
+        else
+            return nullptr;
+    };
 
-    switch (entry->type) {
-    case kEntryString: return entry->string();
-    case kEntryMultilineText: return entry->fg.multilineText.asCharPtr() + 1;
-    case kEntrySprite2:
-    case kEntryNumber: return SDL_itoa(entry->fg.number, buf, 10);
-    default: return "/";
+    auto hasText = [entryText](const MenuEntry *entry) {
+        const char *str = entryText(entry);
+        return str && *str;
+    };
+
+    if (mainMenuActive())
+        return "MAIN MENU";
+
+    auto currentMenu = getCurrentMenu();
+
+    const MenuEntry *colorMatch = nullptr;
+    const MenuEntry *dimensionsMatch = nullptr;
+    const MenuEntry *firstText = nullptr;
+    const MenuEntry *firstSprite = nullptr;
+    const MenuEntry *firstNumeric = nullptr;
+
+    for (auto entry = currentMenu->entries(); entry < currentMenu->sentinelEntry(); entry++) {
+        if (!colorMatch && entry->bg.entryColor == (kGray | kGrayFrame) && hasText(entry)) // title color
+            colorMatch = entry;
+        else if (!dimensionsMatch && entry->width > 250 && entry->height > 12 && hasText(entry)) // very wide entry
+            dimensionsMatch = entry;
+        else if (!firstText && hasText(entry))
+            firstText = entry;
+        else if (!firstSprite && entry->type == kEntrySprite2)
+            firstSprite = entry;
+        else if (!firstNumeric && entry->type == kEntryNumber)
+            firstNumeric = entry;
     }
+
+    if (currentMenu->onReturn.index() == static_cast<int>(SwosVM::Procs::PlayMatchMenuReinit)) {
+        sprintf(buf, "PLAY MATCH MENU (%s)", entryText(firstText));
+        return buf;
+    }
+
+    if (colorMatch) {
+        return colorMatch->string();
+    } else if (dimensionsMatch) {
+        return dimensionsMatch->string();
+    } else if (firstText) {
+        return entryText(firstText);
+    } else if (firstSprite || firstNumeric) {
+        memcpy(buf, firstSprite ? "SPRITE " : "NUMBER ", 7);
+        auto entry = firstSprite ? firstSprite : firstNumeric;
+        SDL_itoa(entry->fg.number, buf + 7, 10);
+        return buf;
+    }
+
+    sprintf(buf, "%d-[%d,%d,%d]-%d", currentMenu->numEntries, currentMenu->onInit.index(), currentMenu->onReturn.index(),
+        currentMenu->onDraw.index(), currentMenu->selectedEntry ? currentMenu->selectedEntry->ordinal : -1);
+
+    return buf;
 }
 
 // These are macros instead of functions because we need to save the variables for each level of nesting;
@@ -105,12 +154,14 @@ void showMenu(const BaseMenu& menu)
     menuMouseOnAboutToShowNewMenu();
 
     saveCurrentMenu();
-    logInfo("Showing menu %#x [%s], previous menu is %#x", &menu, entryText(savedEntry), savedMenu);
+    logInfo("About to activate menu %#x", &menu);
 
     auto memoryMark = SwosVM::markAllMemory();
 
     swos.g_exitMenu = 0;
     activateMenu(&menu);
+
+    logInfo("Showing menu: \"%s\", previous menu is %#x", discoverMenuTitle(), savedMenu);
 
     while (!swos.g_exitMenu) {
         menuProcCycle();
@@ -135,10 +186,41 @@ void showMenu(const BaseMenu& menu)
 void saveCurrentMenuAndStartGameLoop()
 {
     logInfo("Starting the game...");
+    logInfo("Top team: %s, bottom team: %s", swos.topTeamIngame.teamName, swos.bottomTeamIngame.teamName);
 
     saveCurrentMenu();
     startMainGameLoop();
     restorePreviousMenu();
+}
+
+void exitCurrentMenu()
+{
+    swos.chosenTactics = -1;    // edit tactics menu
+    swos.teamsType = -1;        // select files menu
+    if (getCurrentPackedMenu() == &swos.diyCompetitionMenu)
+        swos.diySelected = -1;
+    ExitSelectTeams();
+    if (swos.choosingPreset)    // preset competition must be aborted at any level
+        swos.abortSelectTeams = -1;
+    swos.g_exitGameFlag = -1;   // play match menu
+    swos.gameCanceled = 1;
+    if (mainMenuActive())
+        activateExitGameButton();
+}
+
+char *copyStringToMenuBuffer(const char *str)
+{
+    auto buf = getCurrentMenu()->endOfMenuPtr.asAlignedCharPtr();
+    strcpy(buf, str);
+    assert(buf + strlen(str) <= swos.g_currentMenu + sizeof(swos.g_currentMenu));
+    return buf;
+}
+
+char *getMenuTempBuffer()
+{
+    auto tempBuf = getCurrentMenu()->endOfMenuPtr.asAlignedCharPtr();
+    assert(tempBuf + 256 < swos.g_currentMenu + sizeof(swos.g_currentMenu));
+    return tempBuf;
 }
 
 // ShowMenu

@@ -115,7 +115,7 @@ class SwosProcPointer
 {
     int32_t m_index;
 public:
-    SwosProcPointer() {}
+    SwosProcPointer() = default;
     constexpr SwosProcPointer(int index) : m_index(index) {}
     constexpr SwosProcPointer(SwosVM::Procs index) : m_index(static_cast<int>(index)) {}
     int32_t index() const { return m_index; }

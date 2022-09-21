@@ -391,7 +391,8 @@ offset:  size:  desc.
                 word 8   - also some speed (goalkeeper when diving)
                 word 10  - table, 16 words, indices into coordinate table used
                            when deciding if goalkeeper should dive (I think)
-                           values 0..7
+                           values up to 8, indexes into another table for the goalkeeper, picks goalkeeper speed per
+                           frame to save this shots
                 word 48  - gets compared with high 4 bits of stoppageTimer
                            after that the keeper claimed comment is played
                 word 52

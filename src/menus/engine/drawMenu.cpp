@@ -10,7 +10,6 @@
 #include "timer.h"
 
 constexpr int kTooSmallHeightForFrame = 8;
-constexpr double kMenuDelayFactor = 2.0;
 
 static bool m_flashMenuCursor = true;
 
@@ -105,7 +104,7 @@ void drawMenuItem(MenuEntry *entry)
 
 void flipInMenu()
 {
-    frameDelay(kMenuDelayFactor);
+    menuFrameDelay();
 
     if (m_fadeIn) {
         menuFadeIn();
@@ -117,12 +116,12 @@ void flipInMenu()
 
 void menuFadeIn()
 {
-    fadeIn([]() { drawMenu(false); }, kMenuDelayFactor);
+    fadeIn([]() { drawMenu(false); });
 }
 
 void menuFadeOut()
 {
-    fadeOut([]() { drawMenu(false); }, kMenuDelayFactor);
+    fadeOut([]() { drawMenu(false); });
 }
 
 void enqueueMenuFadeIn()

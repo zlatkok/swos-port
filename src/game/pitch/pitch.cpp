@@ -281,7 +281,7 @@ static void drawPitch(float xOfs, float yOfs, int row, int column, int numPatter
     auto currentYOfs = destYOfs;
 
     struct RenderPattern {
-        RenderPattern() {}
+        RenderPattern() = default;
         RenderPattern(const SDL_Rect& src, const SDL_FRect& dst, SDL_Texture *texture, int8_t textureIndex)
             : src(src), dst(dst), texture(texture), textureIndex(textureIndex) {}
 

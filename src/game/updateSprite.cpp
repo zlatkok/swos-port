@@ -195,13 +195,13 @@ static DeltasAndAngle calculateDeltaXAndY(int speed, int destX, int destY, int x
             constexpr int kDampenFactorDenominator = 64;
 
             if (cos >= 0)
-                result.deltaX.setRaw((cos * kDampenFactorNumerator + kDampenFactorDenominator - 1) / kDampenFactorDenominator);
+                result.deltaX.setRaw((cos * kDampenFactorNumerator + kDampenFactorDenominator / 2) / kDampenFactorDenominator);
             else
-                result.deltaX.setRaw((cos * kDampenFactorNumerator - kDampenFactorDenominator + 1) / kDampenFactorDenominator);
+                result.deltaX.setRaw((cos * kDampenFactorNumerator - kDampenFactorDenominator / 2) / kDampenFactorDenominator);
             if (sin >= 0)
-                result.deltaY.setRaw((sin * kDampenFactorNumerator + kDampenFactorDenominator - 1) / kDampenFactorDenominator);
+                result.deltaY.setRaw((sin * kDampenFactorNumerator + kDampenFactorDenominator / 2) / kDampenFactorDenominator);
             else
-                result.deltaY.setRaw((sin * kDampenFactorNumerator - kDampenFactorDenominator + 1) / kDampenFactorDenominator);
+                result.deltaY.setRaw((sin * kDampenFactorNumerator - kDampenFactorDenominator / 2) / kDampenFactorDenominator);
         }
     }
 

@@ -80,10 +80,10 @@ SDL_Rect getViewport()
 }
 
 void skipFrameUpdate() {}
-void frameDelay(double) {}
+void gameFrameDelay(double) {}
 void fadeIfNeeded() {}
-void fadeIn(std::function<void()>, double) {}
-void fadeOut(std::function<void()>, double) {}
+void fadeIn(std::function<void()>) {}
+void fadeOut(std::function<void()>) {}
 void makeScreenshot() {}
 bool getLinearFiltering() { return false; }
 void setLinearFiltering(bool) {}

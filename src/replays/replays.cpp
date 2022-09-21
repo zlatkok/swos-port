@@ -572,7 +572,7 @@ static void updateScreen(bool isReplay, bool& doFadeIn, bool aborted)
         s_frameSkip = !s_frameSkip;
         frameSkip = s_frameSkip;
     } else if (!m_paused && m_slowMotion) {
-        frameDelay();
+        gameFrameDelay();
         markFrameStartTime();
     }
 

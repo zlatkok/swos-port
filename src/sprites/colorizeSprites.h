@@ -5,7 +5,7 @@ struct PackedSprite;
 using FacesArray = std::array<int, kNumFaces>;
 
 void initSpriteColorizer(int res);
-void clearMatchSpriteCache();
+void finishSpriteColorizer();
 void colorizeGameSprites(int res, const TeamGame *topTeam, const TeamGame *bottomTeam);
 int getGoalkeeperIndexFromFace(bool topTeam, int face);
 SDL_Surface *loadSurface(const char *filename);

@@ -350,7 +350,7 @@ static void drawSubstitutesMenuEntry(int y, int playerIndex)
     int teamPos = -2;
     // however bench player is 12+ and must not be converted to tactics position (only has 11 slots)
     if (playerIndex >= 0)
-        teamPos = playerIndex >= 0 && playerIndex < 11 ? getBenchPlayerPosition(playerIndex) : playerIndex;
+        teamPos = playerIndex < 11 ? getBenchPlayerPosition(playerIndex) : playerIndex;
 
     drawEntryHighlight(y, teamPos);
 

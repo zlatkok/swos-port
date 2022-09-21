@@ -45,6 +45,7 @@ static const char kStandardSection[] = "standardOptions";
 static const char kVideoSection[] = "video";
 static const char kAudioSection[] = "audio";
 static const char kReplaySection[] = "replays";
+static const char kGameplaySection[] = "gameplay";
 
 // option keys
 // video
@@ -65,38 +66,41 @@ static const char kMusicVolumeKey[] = "musicVolume";
 // replays
 static const char kAutoSaveReplaysKey[] = "autoSaveReplays";
 static const char kShowReplayPercentageKey[] = "showReplayPercentage";
+// gameplay
+static const char kGameStyleKey[] = "gameStyle";
+static const char kShowPreMatchMenusKey[] = "preMatchMenus";
 
-static const std::array<OptionVariable<int16_t>, 7> kStandardOptions = {
+static const std::array<OptionVariable<int16_t>, 5> kStandardOptions = {
     "gameLength",  &swos.g_gameLength, 0, 3, 0,
     "autoReplays",  &swos.g_autoReplays, 0, 1, 0,
     "autoSaveHighlights",  &swos.g_autoSaveHighlights, 0, 1, 1,
     "allPlayerTeamsEqual", &swos.g_allPlayerTeamsEqual, 0, 1, 0,
     "pitchType", &swos.g_pitchType, -2, 6, 4,
-    "preMatchMenus", &m_showPreMatchMenus, 0, 1, 1,
-    "gameStyle", &m_gameStyle, 0, 1, 0,
 };
 
 static const std::array<OptionAccessor<bool>, 13> kBoolOptions = {
-    soundEnabled, initSoundEnabled, kAudioSection, kSoundEnabledKey,
-    musicEnabled, initMusicEnabled, kAudioSection, kMusicEnabledKey,
-    commentaryEnabled, setCommentaryEnabled, kAudioSection, kCommentaryEnabledKey,
-    areCrowdChantsEnabled, initCrowdChantsEnabled, kAudioSection, kCrowdChantsEnabledKey,
-    cursorFlashingEnabled, setFlashMenuCursor, kVideoSection, kFlashMenuCursorKey,
-    getShowFps, setShowFps, kVideoSection, kShowFpsKey,
-    getLinearFiltering, setLinearFiltering, kVideoSection, kUseLinearFilteringKey,
-    getClearScreen, setClearScreen, kVideoSection, kClearScreenKey,
-    spinningLogoEnabled, enableSpinningLogo, kVideoSection, kSpinningLogoKey,
-    getAutoSaveReplays, setAutoSaveReplays, kReplaySection, kAutoSaveReplaysKey,
-    getShowReplayPercentage, setShowReplayPercentage, kReplaySection, kShowReplayPercentageKey,
-    menuGradientFillEnabled, enableMenuGradientFill, kVideoSection, kMenuItemGradientBackground,
+    soundEnabled, initSoundEnabled, kAudioSection, kSoundEnabledKey, true,
+    musicEnabled, initMusicEnabled, kAudioSection, kMusicEnabledKey, true,
+    commentaryEnabled, setCommentaryEnabled, kAudioSection, kCommentaryEnabledKey, true,
+    areCrowdChantsEnabled, initCrowdChantsEnabled, kAudioSection, kCrowdChantsEnabledKey, true,
+    cursorFlashingEnabled, setFlashMenuCursor, kVideoSection, kFlashMenuCursorKey, true,
+    getShowFps, setShowFps, kVideoSection, kShowFpsKey, false,
+    getLinearFiltering, setLinearFiltering, kVideoSection, kUseLinearFilteringKey, true,
+    getClearScreen, setClearScreen, kVideoSection, kClearScreenKey, true,
+    spinningLogoEnabled, enableSpinningLogo, kVideoSection, kSpinningLogoKey, true,
+    getAutoSaveReplays, setAutoSaveReplays, kReplaySection, kAutoSaveReplaysKey, true,
+    getShowReplayPercentage, setShowReplayPercentage, kReplaySection, kShowReplayPercentageKey, false,
+    menuGradientFillEnabled, enableMenuGradientFill, kVideoSection, kMenuItemGradientBackground, true,
+    showPreMatchMenus, setPreMatchMenus, kStandardSection, kShowPreMatchMenusKey, true,
 };
 
-static const std::array<OptionAccessor<int>, 2> kIntOptions = {
-    getMasterVolume, initMasterVolume, kAudioSection, kMasterVolumeKey,
-    getMusicVolume, initMusicVolume, kAudioSection, kMusicVolumeKey,
+static const std::array<OptionAccessor<int>, 3> kIntOptions = {
+    getMasterVolume, initMasterVolume, kAudioSection, kMasterVolumeKey, 60,
+    getMusicVolume, initMusicVolume, kAudioSection, kMusicVolumeKey, 55,
+    getGameStyle, setGameStyle, kGameplaySection, kGameStyleKey, kPcGameStyle,
 };
 static const std::array<OptionAccessor<float>, 1> kFloatOptions = {
-    getZoomFactor, initZoomFactor, kVideoSection, kZoomKey,
+    getZoomFactor, initZoomFactor, kVideoSection, kZoomKey, 0.925f,
 };
 
 #ifdef __ANDROID__
@@ -124,20 +128,20 @@ void loadOptions()
     auto errorCode = ini.LoadFile(path.c_str());
 #endif
 
-    if (errorCode >= 0) {
-        loadOptions(ini, kStandardOptions, kStandardSection);
-        loadWindowOptions(ini);
-        loadControlOptions(ini);
-
-        using namespace std::placeholders;
-
-        bulkLoadOptions(kBoolOptions, std::bind(&CSimpleIniA::GetBoolValue, &ini, _1, _2, _3, nullptr));
-        bulkLoadOptions(kIntOptions, std::bind(&CSimpleIniA::GetLongValue, &ini, _1, _2, _3, nullptr));
-        bulkLoadOptions(kFloatOptions, std::bind(&CSimpleIniA::GetDoubleValue, &ini, _1, _2, _3, nullptr));
-    } else {
+    if (errorCode < 0)
         logWarn("Error loading options, error code: %d", errorCode);
-        setDefaultOptions();
-    }
+
+    setDefaultOptions();
+
+    loadOptions(ini, kStandardOptions, kStandardSection);
+    loadWindowOptions(ini);
+    loadControlOptions(ini);
+
+    using namespace std::placeholders;
+
+    bulkLoadOptions(kBoolOptions, std::bind(&CSimpleIniA::GetBoolValue, &ini, _1, _2, _3, nullptr));
+    bulkLoadOptions(kIntOptions, std::bind(&CSimpleIniA::GetLongValue, &ini, _1, _2, _3, nullptr));
+    bulkLoadOptions(kFloatOptions, std::bind(&CSimpleIniA::GetDoubleValue, &ini, _1, _2, _3, nullptr));
 }
 
 void saveOptions()
@@ -148,6 +152,7 @@ void saveOptions()
     CSimpleIniA ini(true);
     ini.SetValue(kStandardSection, nullptr, nullptr, "; Automatically generated by SWOS\n"
         "; Careful when editing the file -- the changes might get lost!\n" );
+    ini.SetValue(kGameplaySection, nullptr, nullptr, "; gameStyle: 0 = PC, 1 = Amiga");
 
     saveOptions(ini, kStandardOptions, kStandardSection);
     saveWindowOptions(ini);
@@ -167,34 +172,30 @@ void saveOptions()
     }
 }
 
-static void setDefaultOptions()
-{
-    swos.g_autoReplays = 1;
-    swos.g_autoSaveHighlights = 1;
-    swos.g_pitchType = -1;
-    initSoundEnabled(true);
-    initMusicEnabled(true);
-    setCommentaryEnabled(true);
-    m_showPreMatchMenus = 1;
-}
-
 template<typename T, size_t N, typename F>
 static void bulkLoadOptions(const std::array<OptionAccessor<T>, N>& options, F f)
 {
     for (const auto& opt : options) {
-        if (opt.get) {
-            auto value = static_cast<T>(f(opt.section, opt.key, opt.get()));
-            opt.set(value);
-        }
+        auto value = static_cast<T>(f(opt.section, opt.key, opt.defaultValue));
+        opt.set(value);
     }
 }
 
 template<typename IniType, typename T, size_t N, typename F>
 static void bulkSaveOptions(const std::array<OptionAccessor<T>, N>& options, F f)
 {
-    for (const auto& opt : options)
-        if (opt.get)
-            f(opt.section, opt.key, static_cast<IniType>(opt.get()));
+    for (const auto& opt : options) {
+        assert(opt.get);
+        f(opt.section, opt.key, static_cast<IniType>(opt.get()));
+    }
+}
+
+static void setDefaultOptions()
+{
+    swos.g_autoReplays = 1;
+    swos.g_autoSaveHighlights = 1;
+    swos.g_pitchType = -1;
+    m_showPreMatchMenus = 1;
 }
 
 static SI_Error safeSaveIniFile(CSimpleIni& ini, const std::string& path)

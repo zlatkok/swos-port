@@ -5307,3 +5307,31 @@ earlier:
 - implemented Amiga mode (can be changed in options)
 17.09.2022.
 - published a new version and pushed to Github
+- removed menuCycleTimer, it's become completely unnecessary, it wasn't even doing anything
+- fixed menu FPS dropping when switching to Amiga mode
+- fixed Amiga mode not applied from the options at startup
+- amped up crash reporter to suck in all the accessible data from the memory (dumps are now ~200mb on my machine)
+18.09.2022.
+- added goalkeeper changes for Amiga mode, to make them less super-powered
+- added enter as fire to menus, and backspace/alt+left as back command
+- fixed previous menu showing up in log as current, and improving logging (better now before the reports start
+  pouring in ;))
+- fixed default options getting bogus values (when ini file hasn't been created yet), also changed default window
+  dimensions to 1920x1080
+19.09.2022.
+- fixed annoying occasional crash right before the game... very silly error:
+    setupTeamPlayerSprites(..., m_team1);
+    setupTeamPlayerSprites(..., m_team1);
+  lol o_O
+- found that per-team texture cache system was all wrong (never included team colors in consideration, always
+  stupidly saving whatever was there before), and had to rewrite it... still fixing last bugs
+20.09.2022.
+- implemented reference counted shared texture class to properly manage texture sharing and lifetime
+- finished debugging new texture cache system, seems to work fine now, time will tell if things are more stable
+21.09.2022.
+- messing with menu FPS influenced menu controls delay and repeat rate, made it really sluggish and annoying;
+  fixed that by changing delays into millisecond values instead of frame counts, tweaked them a bit until it felt
+  fine; was thinking of adding delays to options, but on second thought it seems like an overkill, so keeping them
+  as constants in code for now and in case someone complains it's super easy to change
+- fixed window size input in options only accepting input up to and including 3 digits
+- published a new version and pushed to Github

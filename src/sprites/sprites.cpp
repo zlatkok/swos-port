@@ -32,6 +32,15 @@ void initSprites()
     initSpriteColorizer(m_res);
 }
 
+void finishSprites()
+{
+    // these textures must be cleaned up or the renderer will destroy them
+    // when getting destroyed itself, leaving us with dangling pointers
+    for (auto& textures : m_textures)
+        for (auto& texture : textures)
+            texture.reset();
+}
+
 static void initMatchSprites()
 {
     colorizeGameSprites(m_res, m_topTeam, m_bottomTeam);
@@ -89,14 +98,14 @@ SDL_Texture *getTexture(const PackedSprite& sprite)
             errorExit("Can't access sprite from unloaded texture %d", sprite.texture);
     }
 
-    return texture;
+    return texture.texture();
 }
 
 void setMenuSpritesColor(const Color& color)
 {
     if (color != m_textColor) {
         traverseMenuTextures([&color](int textureIndex, int) {
-            SDL_SetTextureColorMod(m_textures[m_res][textureIndex], color.r, color.g, color.b);
+            SDL_SetTextureColorMod(m_textures[m_res][textureIndex].texture(), color.r, color.g, color.b);
         });
         m_textColor = color;
     }
@@ -105,12 +114,12 @@ void setMenuSpritesColor(const Color& color)
 }
 
 // Integrates given sprites into the sprites array, so they can be later displayed by index.
-static void fillSprites(int startSprite, int textureIndex, SDL_Texture **topTeamTextures, SDL_Texture **bottomTeamTextures,
+static void fillSprites(int startSprite, int textureIndex, SharedTexture *topTeamTextures, SharedTexture *bottomTeamTextures,
     int numTextures, const PackedSprite *sprites, int numSprites)
 {
     for (auto textures : { topTeamTextures, bottomTeamTextures }) {
         for (int i = 0; i < numTextures; i++) {
-            auto texture = textures[i];
+            auto& texture = textures[i];
             m_textures[m_res][textureIndex] = texture;
 
             if (texture) {
@@ -126,21 +135,23 @@ static void fillSprites(int startSprite, int textureIndex, SDL_Texture **topTeam
     }
 }
 
-void fillPlayerSprites(SDL_Texture **topTeamTextures, SDL_Texture **bottomTeamTextures, int numTextures,
+void fillPlayerSprites(SharedTexture *topTeamTextures, SharedTexture *bottomTeamTextures, int numTextures,
     const PackedSprite *sprites, int numSprites)
 {
+    assert(numTextures <= 6);
     fillSprites(kTeam1WhitePlayerSpriteStart, kNumBasicTextures, topTeamTextures, bottomTeamTextures, numTextures, sprites, numSprites);
 }
 
-void fillGoalkeeperSprites(SDL_Texture **topTeamTextures, SDL_Texture **bottomTeamTextures, int numTextures,
+void fillGoalkeeperSprites(SharedTexture *topTeamTextures, SharedTexture *bottomTeamTextures, int numTextures,
     const PackedSprite *sprites, int numSprites)
 {
+    assert(numTextures <= 4);
     fillSprites(kTeam1MainGoalkeeperSpriteStart, kNumBasicTextures + 6, topTeamTextures, bottomTeamTextures, numTextures, sprites, numSprites);
 }
 
-void fillBenchSprites(SDL_Texture *topTeamTexture, SDL_Texture *bottomTeamTexture, const PackedSprite *sprites, int numSprites)
+void fillBenchSprites(SharedTexture *topTeamTexture, SharedTexture *bottomTeamTexture, const PackedSprite *sprites, int numSprites)
 {
-    fillSprites(kTeam1BenchPlayerSpriteStart, kNumBasicTextures + 10, &topTeamTexture, &bottomTeamTexture, 1, sprites, numSprites);
+    fillSprites(kTeam1BenchPlayerSpriteStart, kNumBasicTextures + 10, topTeamTexture, bottomTeamTexture, 1, sprites, numSprites);
 }
 
 // Since there are still parts of code that refer to the old sprites array, we need to maintain it for a bit longer
@@ -170,30 +181,17 @@ static void loadTextureFile(int textureIndex, int fileIndex)
     assert(static_cast<size_t>(textureIndex) < m_textures[m_res].size());
     assert(static_cast<size_t>(fileIndex) < kTextureFilenames.size());
 
-    auto& texture = m_textures[m_res][textureIndex];
-
-    if (!texture)
-        texture = loadTexture(kTextureFilenames[fileIndex]);
+    m_textures[m_res][textureIndex] = loadTexture(kTextureFilenames[fileIndex]);
 }
 
 static void loadSprites(AssetResolution oldResolution, AssetResolution newResolution)
 {
     logInfo("Reloading sprites for asset resolution %d", newResolution);
 
-    if (oldResolution != AssetResolution::kInvalid) {
-        for (auto& texture : m_textures[static_cast<int>(oldResolution)]) {
-            if (texture) {
-                SDL_DestroyTexture(texture);
-                texture = nullptr;
-            }
-        }
-    }
-
     m_res = static_cast<int>(newResolution);
 
     if (newResolution != AssetResolution::kInvalid) {
         initMenuSprites();
-        clearMatchSpriteCache();
         if (isMatchRunning())
             initMatchSprites();
     }

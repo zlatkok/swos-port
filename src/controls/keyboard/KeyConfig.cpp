@@ -112,7 +112,7 @@ void KeyConfig::save(CSimpleIni& ini, const char *section, const DefaultKeySet& 
         [](const auto& binding, auto key) { return binding.key == key; }))
         return;
 
-    ini.SetValue(section, nullptr, nullptr, "; SDL key codes are on the left side");
+    ini.SetValue(section, nullptr, nullptr, "; SDL keycodes are on the left side");
 
     for (const auto& binding : m_bindings) {
         char keyBuf[32];

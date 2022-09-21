@@ -318,7 +318,6 @@
     <ClInclude Include="..\..\..\src\controls\keyboard\scanCodes.h" />
     <ClInclude Include="..\..\..\src\controls\keyboard\setupKeyboardMenu.h" />
     <ClInclude Include="..\..\..\src\controls\keyboard\testKeyboardMenu.h" />
-    <ClInclude Include="..\..\..\src\controls\menuControls.h" />
     <ClInclude Include="..\..\..\src\controls\mouse\mouse.h" />
     <ClInclude Include="..\..\..\src\controls\quickConfigMenu.h" />
     <ClInclude Include="..\..\..\src\controls\selectGameControlEventsMenu.h" />
@@ -346,6 +345,7 @@
     <ClInclude Include="..\..\..\src\game\updateSprite.h" />
     <ClInclude Include="..\..\..\src\menus\continueAbortMenu.h" />
     <ClInclude Include="..\..\..\src\menus\continueMenu.h" />
+    <ClInclude Include="..\..\..\src\menus\engine\menuControls.h" />
     <ClInclude Include="..\..\..\src\menus\stadiumMenu.h" />
     <ClInclude Include="..\..\..\src\menus\versusMenu.h" />
     <ClInclude Include="..\..\..\src\options\OptionAccessor.h" />
@@ -356,6 +356,7 @@
     <ClInclude Include="..\..\..\src\sprites\gameSprites.h" />
     <ClInclude Include="..\..\..\src\sprites\loadTexture.h" />
     <ClInclude Include="..\..\..\src\sprites\renderSprites.h" />
+    <ClInclude Include="..\..\..\src\sprites\SharedTexture.h" />
     <ClInclude Include="..\..\..\src\sprites\spinningLogo.h" />
     <ClInclude Include="..\..\..\src\util\log.h" />
     <ClInclude Include="..\..\..\src\menus\engine\drawMenu.h" />
@@ -426,7 +427,6 @@
     <ClCompile Include="..\..\..\src\controls\keyboard\scanCodes.cpp" />
     <ClCompile Include="..\..\..\src\controls\keyboard\setupKeyboardMenu.cpp" />
     <ClCompile Include="..\..\..\src\controls\keyboard\testKeyboardMenu.cpp" />
-    <ClCompile Include="..\..\..\src\controls\menuControls.cpp" />
     <ClCompile Include="..\..\..\src\controls\mouse\mouse.cpp" />
     <ClCompile Include="..\..\..\src\controls\quickConfigMenu.cpp" />
     <ClCompile Include="..\..\..\src\controls\selectGameControlEventsMenu.cpp" />
@@ -455,6 +455,7 @@
     <ClCompile Include="..\..\..\src\init.cpp" />
     <ClCompile Include="..\..\..\src\menus\continueAbortMenu.cpp" />
     <ClCompile Include="..\..\..\src\menus\continueMenu.cpp" />
+    <ClCompile Include="..\..\..\src\menus\engine\menuControls.cpp" />
     <ClCompile Include="..\..\..\src\menus\stadiumMenu.cpp" />
     <ClCompile Include="..\..\..\src\menus\versusMenu.cpp" />
     <ClCompile Include="..\..\..\src\options\optionsMenu.cpp" />
@@ -462,6 +463,7 @@
     <ClCompile Include="..\..\..\src\sprites\gameSprites.cpp" />
     <ClCompile Include="..\..\..\src\sprites\loadTexture.cpp" />
     <ClCompile Include="..\..\..\src\sprites\renderSprites.cpp" />
+    <ClCompile Include="..\..\..\src\sprites\SharedTexture.cpp" />
     <ClCompile Include="..\..\..\src\sprites\spinningLogo.cpp" />
     <ClCompile Include="..\..\..\src\util\log.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />

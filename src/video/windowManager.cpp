@@ -4,13 +4,13 @@
 #include "render.h"
 #include "util.h"
 
-constexpr int kWindowWidth = 1280;
-constexpr int kWindowHeight = 800;
+constexpr int kWindowWidth = 1920;
+constexpr int kWindowHeight = 1080;
 
-constexpr int kDefaultFullScreenWidth = 640;
-constexpr int kDefaultFullScreenHeight = 480;
+constexpr int kDefaultFullScreenWidth = 1920;
+constexpr int kDefaultFullScreenHeight = 1080;
 
-constexpr int kMinimumWindowWidth= 640;
+constexpr int kMinimumWindowWidth = 640;
 constexpr int kMinimumWindowHeight = 400;
 
 static SDL_Window *m_window;
@@ -446,10 +446,10 @@ void loadWindowOptions(const CSimpleIni& ini)
     m_nonMaximizedWidth = m_windowWidth;
     m_nonMaximizedHeight = m_windowHeight;
 
-    m_displayWidth = ini.GetLongValue(kWindowSection, kFullScreenWidthKey);
-    m_displayHeight = ini.GetLongValue(kWindowSection, kFullScreenHeightKey);
+    m_displayWidth = ini.GetLongValue(kWindowSection, kFullScreenWidthKey, kDefaultFullScreenWidth);
+    m_displayHeight = ini.GetLongValue(kWindowSection, kFullScreenHeightKey, kDefaultFullScreenHeight);
 
-    normalizeWindowSize(m_displayWidth, m_displayHeight, kDefaultFullScreenWidth, kDefaultFullScreenHeight);
+    normalizeWindowSize(m_displayWidth, m_displayHeight, kWindowWidth, kWindowHeight);
 }
 
 void saveWindowOptions(CSimpleIni& ini)

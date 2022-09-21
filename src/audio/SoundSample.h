@@ -3,7 +3,7 @@
 class SoundSample
 {
 public:
-    SoundSample() {}
+    SoundSample() = default;
     SoundSample(const char *path, int chance = 1);
     SoundSample(const SoundSample& other);
     SoundSample(SoundSample&& other);

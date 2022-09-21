@@ -1,6 +1,7 @@
 #include "timer.h"
 #include "game.h"
 
+static constexpr int kMenuTargetFps = 30;
 static constexpr int kMaxLastFrames = 32;
 
 static double m_targetFps = kTargetFpsPC;
@@ -55,7 +56,6 @@ void timerProc(int factor /* = 1 */)
     framesElapsed = std::min(framesElapsed, 6);
 
     swos.currentTick += framesElapsed;
-    swos.menuCycleTimer += framesElapsed;
 
     if (!isGamePaused())
         swos.stoppageTimer += framesElapsed;
@@ -66,16 +66,17 @@ void markFrameStartTime()
     m_frameStartTime = SDL_GetPerformanceCounter();
 }
 
-void frameDelay(double factor /* = 1.0 */)
+void menuFrameDelay()
 {
-    if (factor > 1.0) {
-        // don't use busy wait in menus
-        auto delay = std::lround(1'000 * factor / targetFps());
-        SDL_Delay(delay);
-        return;
-    }
+    // don't use busy wait in menus and subtract estimated render time to keep things simple
+    constexpr int kEstimatedMenuRenderTime = 4;
+    auto delay = std::max(1'000 / kMenuTargetFps - kEstimatedMenuRenderTime, 0);
+    SDL_Delay(delay);
+}
 
-    Uint64 desiredDelay = std::llround(m_frequency * factor / targetFps());
+void gameFrameDelay()
+{
+    Uint64 desiredDelay = std::lround(m_frequency / targetFps());
     desiredDelay -= getAverageRenderTime();
 
     auto diff = SDL_GetPerformanceCounter() - m_frameStartTime;

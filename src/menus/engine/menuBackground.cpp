@@ -10,7 +10,7 @@
 static std::string m_backgroundName;
 static SDL_Texture *m_background;
 
-static void loadMenuBackground(std::string name);
+static void loadMenuBackground(const std::string& name);
 static void reloadMenuBackground(AssetResolution = AssetResolution::kInvalid, AssetResolution = AssetResolution::kInvalid);
 static SDL_RWops *openImageFile(const std::string& path);
 
@@ -74,7 +74,7 @@ void unloadMenuBackground()
 }
 
 // Not a reference since background name gets cleared when the old background is destroyed.
-static void loadMenuBackground(std::string name)
+static void loadMenuBackground(const std::string& name)
 {
     if (name.empty() || m_background)
         unloadMenuBackground();

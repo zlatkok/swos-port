@@ -285,7 +285,7 @@ static int calculateCurrentValue(const char *start, int newDigit)
 
 bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum, bool allowNegative /* = false */)
 {
-    assert(entry.type == kEntryNumber);
+    assert(entry.type == kEntryNumber && maxDigits <= 6);
 
     int num = static_cast<int16_t>(entry.fg.number);
     assert(num >= minNum && num <= maxNum);
@@ -298,7 +298,8 @@ bool inputNumber(MenuEntry& entry, int maxDigits, int minNum, int maxNum, bool a
     entry.type = kEntryString;
     entry.setString(buf);
 
-    auto result = inputText(entry, sizeof(buf), false, [&](auto key, auto, auto start, auto size, auto cursorPtr) {
+    // +1 for the cursor
+    auto result = inputText(entry, maxDigits + 1, false, [&](auto key, auto, auto start, auto size, auto cursorPtr) {
         switch (key) {
         case SDL_SCANCODE_MINUS:
         case SDL_SCANCODE_KP_MINUS:

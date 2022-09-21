@@ -127,9 +127,6 @@
     <ClInclude Include="..\..\..\src\controls\keyboard\testKeyboardMenu.h">
       <Filter>Source Files\controls\keyboard</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\controls\menuControls.h">
-      <Filter>Source Files\controls</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\controls\joypads\ui\configureAxisMenu.h">
       <Filter>Source Files\controls\joypads\ui</Filter>
     </ClInclude>
@@ -325,6 +322,12 @@
     <ClInclude Include="..\..\..\src\game\updateSprite.h">
       <Filter>Source Files\game</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\sprites\SharedTexture.h">
+      <Filter>Source Files\sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\menus\engine\menuControls.h">
+      <Filter>Source Files\menus\engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
@@ -518,9 +521,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\controls\keyboard\testKeyboardMenu.cpp">
       <Filter>Source Files\controls\keyboard</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\controls\menuControls.cpp">
-      <Filter>Source Files\controls</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\controls\joypads\ui\configureAxisMenu.cpp">
       <Filter>Source Files\controls\joypads\ui</Filter>
@@ -734,6 +734,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\game\amigaMode.cpp">
       <Filter>Source Files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\sprites\SharedTexture.cpp">
+      <Filter>Source Files\sprites</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\menus\engine\menuControls.cpp">
+      <Filter>Source Files\menus\engine</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

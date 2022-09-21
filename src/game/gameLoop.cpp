@@ -191,7 +191,6 @@ static void initGameLoop()
 
     swos.stoppageTimer = 0;
     swos.lastStoppageTimerValue = 0;
-    swos.menuCycleTimer = 0;
 
     initFrameTicks();
 }
@@ -228,7 +227,6 @@ static void gameFadeIn()
 void updateTimersHandlePauseAndStats()
 {
     ReadTimerDelta();
-    swos.menuCycleTimer = 0;
 
     pausedLoop();
 
@@ -263,7 +261,7 @@ static void coreGameUpdate()
     updateCornerFlags();
     updateSpinningLogo();
     //ManageAdvertisements();
-    DoGoalKeeperSprites();
+    DoGoalkeeperSprites();
     UpdateControlledPlayerNumbers();
     MarkPlayer();
     updateCurrentPlayerName();

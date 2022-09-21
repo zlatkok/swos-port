@@ -7,4 +7,5 @@ struct OptionAccessor
     void (*set)(T);
     const char *section;
     const char *key;
+    T defaultValue;
 };

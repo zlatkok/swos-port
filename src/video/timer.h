@@ -9,5 +9,6 @@ double targetFps();
 void setTargetFps(double fps);
 void timerProc(int factor = 1);
 void markFrameStartTime();
-void frameDelay(double factor = 1.0);
+void menuFrameDelay();
+void gameFrameDelay();
 void measureRendering(std::function<void()> render);

@@ -12,8 +12,8 @@ SDL_Renderer *getRenderer();
 SDL_Rect getViewport();
 void updateScreen(bool delay = false);
 
-void fadeIn(std::function<void()> render, double factor = 1.0);
-void fadeOut(std::function<void()> render, double factor = 1.0);
+void fadeIn(std::function<void()> render);
+void fadeOut(std::function<void()> render);
 
 bool getLinearFiltering();
 void setLinearFiltering(bool useLinearFiltering);

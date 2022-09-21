@@ -41,6 +41,7 @@ kAssert: Final = 'static_assert(static_cast<int>(AssetResolution::kNumResolution
 
 kHeader: Final = kWarning + '''\n
 #include "PackedSprite.h"
+#include "SharedTexture.h"
 #include "assetManager.h"
 ''' + '\n' + kAssert
 
@@ -304,7 +305,7 @@ def generateSpriteDatabase(atlasData):
 
         numBasicTextures, numTextures = getNumTexturesNeeded(files)
         out(f'constexpr int kNumBasicTextures = {numBasicTextures};')
-        out(f'static std::array<std::array<SDL_Texture *, {numTextures}>, {kNumResolutions}> m_textures;\n')
+        out(f'static std::array<std::array<SharedTexture, {numTextures}>, {kNumResolutions}> m_textures;\n')
 
         outputSpritesArray(atlasData, out, files)
 

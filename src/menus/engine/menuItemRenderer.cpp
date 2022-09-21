@@ -138,7 +138,7 @@ struct ColorF
     }
 };
 
-#define FIXED_TO_INT(value) ((value >> ColorF::kColorShift) + ((value & ((1 << ColorF::kColorShift) - 1)) > ColorF::kColorRoundLimit))
+#define FIXED_TO_INT(value) (((value) >> ColorF::kColorShift) + (((value) & ((1 << ColorF::kColorShift) - 1)) > ColorF::kColorRoundLimit))
 
 struct Texture {
     Texture(SDL_Texture *texture, int refCount) : texture(texture), refCount(refCount) {}
@@ -261,7 +261,7 @@ static void createTexture(SDL_Surface *surface, std::vector<EntryRenderInfo>& en
 static void createTexture(SDL_Surface *surface, EntryRenderInfo& entry);
 static TextureList::iterator createTexture(SDL_Surface *surface, int refCount);
 static void insertEntry(const MenuEntry *entry, const EntryRenderInfo& renderInfo);
-static EntryCache::iterator deleteCachedEntry(EntryCache& cache, EntryCache::iterator it);
+static EntryCache::iterator deleteCachedEntry(EntryCache& cache, EntryCache::iterator cacheIt);
 static void clearMenuCache(bool all);
 static void clearMenuCache(const CachedMenu& menu);
 static void ensureCacheValidity();
@@ -475,15 +475,16 @@ static void insertEntry(const MenuEntry *entry, const EntryRenderInfo& renderInf
     m_cache[renderInfo.gradient].insert({ entry, renderInfo });
 }
 
-static EntryCache::iterator deleteCachedEntry(EntryCache& cache, EntryCache::iterator it)
+static EntryCache::iterator deleteCachedEntry(EntryCache& cache, EntryCache::iterator cacheIt)
 {
-    if (it->second.texture != m_textures.end() && it->second.texture->texture) {
-        if (!--it->second.texture->refCount) {
-            SDL_DestroyTexture(it->second.texture->texture);
-            m_textures.erase(it->second.texture);
+    auto& textureIt = cacheIt->second.texture;
+    if (textureIt != m_textures.end() && textureIt->texture) {
+        if (!--textureIt->refCount) {
+            SDL_DestroyTexture(textureIt->texture);
+            m_textures.erase(textureIt);
         }
     }
-    return cache.erase(it);
+    return cache.erase(cacheIt);
 }
 
 static void clearMenuCache(bool all)

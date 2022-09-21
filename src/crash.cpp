@@ -58,6 +58,8 @@ void installCrashHandler()
     info.pszAppName = "SWOS port";
     info.pszAppVersion = "1.0.0";
     info.pszEmailSubject = "[SWOS port v1.0.0] Crash Report";
+    info.uMiniDumpType = static_cast<MINIDUMP_TYPE>(MiniDumpWithDataSegs | MiniDumpWithFullMemory |
+        MiniDumpWithHandleData | MiniDumpWithIndirectlyReferencedMemory);
 
     static char email[] = "lztaokk_rakasag^amlic_mo";
     auto len = sizeof(email) - 1;

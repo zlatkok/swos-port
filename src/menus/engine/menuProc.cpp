@@ -17,7 +17,6 @@ void menuProc()
 {
     ReadTimerDelta();
     drawMenu();
-    swos.menuCycleTimer = 0;        // must come after drawMenu(), set to 1 to slow down input
 
     updateMouse();
 
@@ -132,8 +131,6 @@ static int getControlMask(int entryControlMask)
 static void invokeOnSelect(MenuEntry *entry, int controlMask)
 {
     stopTitleSong();
-    swos.menuCycleTimer = 1;    // set the cycle timer to prevent InputText choking
-
     selectEntry(entry, controlMask);
 }
 

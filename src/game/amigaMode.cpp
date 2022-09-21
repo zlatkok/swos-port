@@ -4,6 +4,13 @@
 static bool m_enabled;
 static bool m_preventDirectionFlip;
 
+static const uint32_t kGoalkeeperDiveDeltasAmiga[8] = {
+    0x3'0000, 0x3'8000, 0x4'0000, 0x4'8000, 0x5'0000, 0x5'8000, 0x6'0000, 0x6'8000
+};
+static const uint32_t kGoalkeeperDiveDeltasPC[8] = {
+    0x2'8000, 0x3'0000, 0x3'8000, 0x4'0000, 0x4'8000, 0x5'0000, 0x5'8000, 0x6'0000
+};
+
 bool amigaModeActive()
 {
     return m_enabled;
@@ -30,6 +37,8 @@ void setAmigaModeEnabled(bool enable)
             swos.kBallAirConstant = 10;
             swos.kGravityConstant = 4608;
 
+            memcpy(swos.kGoalkeeperDiveDeltas, kGoalkeeperDiveDeltasAmiga, sizeof(kGoalkeeperDiveDeltasAmiga));
+
             setTargetFps(kTargetFpsAmiga);
         } else {
             logInfo("Switching to PC game mode");
@@ -48,6 +57,8 @@ void setAmigaModeEnabled(bool enable)
             swos.kBallGroundConstant = 13;
             swos.kBallAirConstant = 4;
             swos.kGravityConstant = 3291;
+
+            memcpy(swos.kGoalkeeperDiveDeltas, kGoalkeeperDiveDeltasPC, sizeof(kGoalkeeperDiveDeltasPC));
 
             setTargetFps(kTargetFpsPC);
         }

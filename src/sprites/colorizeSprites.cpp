@@ -1,7 +1,7 @@
 #include "colorizeSprites.h"
 #include "variableSprites.h"
-#include "render.h"
 #include "sprites.h"
+#include "SharedTexture.h"
 #include "file.h"
 #include "util.h"
 #include "color.h"
@@ -12,92 +12,122 @@ static FacesArray m_topTeamGoalkeeperFaceToIndex;
 static FacesArray m_bottomTeamGoalkeeperFaceToIndex;
 
 using PlayerSurfaces = std::array<SDL_Surface *, kNumFaces>;
-using GoalKeeperSurfaces = std::array<SDL_Surface *, 2>;
+using BenchPlayerSurfaces = std::array<SDL_Surface *, 2>;
+using GoalkeeperSurfaces = std::array<SDL_Surface *, 2>;
 using GoalkeeperFaces = std::array<int, 2>;
+using AllTeamsGoalkeeperFaces = std::pair<GoalkeeperFaces, GoalkeeperFaces>;
 
-using PlayerTextures = std::array<SDL_Texture *, kNumFaces>;
-using GoalKeeperTextures = std::array<SDL_Texture *, 2>;
-
-static PlayerTextures m_topTeamPlayerTextures;
-static PlayerTextures m_bottomTeamPlayerTextures;
-static GoalKeeperTextures m_topTeamGoalkeeperTextures;
-static GoalKeeperTextures m_bottomTeamGoalkeeperTextures;
-static SDL_Texture *m_topTeamBenchPlayersTexture;
-static SDL_Texture *m_bottomTeamBenchPlayersTexture;
+using PlayerTextures = std::array<SharedTexture, kNumFaces>;
+using GoalkeeperFaceTextures = std::array<SharedTexture, kNumFaces>;
+using AllTeamsGoalkeeperFaceTextures = std::pair<GoalkeeperFaceTextures, GoalkeeperFaceTextures>;
+using GoalkeeperTextures = std::array<SharedTexture, 2>;
+using AllTeamsGoalkeeperTextures = std::pair<GoalkeeperTextures, GoalkeeperTextures>;
 
 static int m_res;
 
-static const TeamGame *m_topTeam;
-static const TeamGame *m_bottomTeam;
+struct TeamTextureCacheKey
+{
+    TeamTextureCacheKey(const TeamGame *team) :
+        shirtType(static_cast<byte>(team->prShirtType)), shirtColor(static_cast<byte>(team->prShirtCol)),
+        stripesColor(static_cast<byte>(team->prStripesCol)), shortsColor(static_cast<byte>(team->prShortsCol)),
+        socksColor(static_cast<byte>(team->prSocksCol)), res(m_res)
+    {}
+    bool operator==(const TeamTextureCacheKey& other) const {
+        return shirtType == other.shirtType && shirtColor == other.shirtColor &&
+            stripesColor == other.stripesColor && shortsColor == other.shortsColor &&
+            socksColor == other.socksColor && res == other.res;
+    }
+    byte shirtType;
+    byte shirtColor;
+    byte stripesColor;
+    byte shortsColor;
+    byte socksColor;
+    int res;
+};
 
-static void colorizePlayers();
-static void colorizeGoalkeepers();
-static void colorizeBenchPlayers();
-static bool gotPlayerTextures();
-static bool gotGoalkeeperTextures();
-static bool gotBenchPlayerTextures();
-static PlayerSurfaces createPlayerFaceSurfaces(const FacesArray& faces);
+struct TeamTextureCacheValue
+{
+    void reset() {
+        for (auto& texture : playerTextures)
+            texture.reset();
+        for (auto& texture : goalkeeperTextures)
+            texture.reset();
+        benchTexture.reset();
+    }
+    PlayerTextures playerTextures;
+    SharedTexture benchTexture;
+    GoalkeeperFaceTextures goalkeeperTextures;
+};
+
+struct TeamTextureCacheItem
+{
+    TeamTextureCacheItem(const TeamTextureCacheKey& key) : key(key), value{} {}
+    TeamTextureCacheKey key;
+    TeamTextureCacheValue value;
+};
+
+constexpr int kPlayerTextureCacheSize = 6;
+std::list<TeamTextureCacheItem> m_playerTextureCache;
+
+static void colorizePlayers(const TeamGame *topTeam, const TeamGame *bottomTeam,
+    PlayerTextures& topTeamTextures, PlayerTextures& bottomTeamTextures);
+static AllTeamsGoalkeeperFaces colorizeGoalkeepers(const TeamGame *topTeam, const TeamGame *bottomTeam,
+    GoalkeeperFaceTextures& topTeamTextures, GoalkeeperFaceTextures& bottomTeamTextures);
+static void colorizeBenchPlayers(const TeamGame *topTeam, const TeamGame *bottomTeam,
+    SharedTexture *topTeamTexture, SharedTexture *bottomTeamTexture);
+static TeamTextureCacheValue *getTeamTextures(const TeamGame *team);
+static void trimCache();
+static PlayerSurfaces createPlayerFaceSurfaces(const TeamGame *team, const PlayerTextures& textures);
+static BenchPlayerSurfaces createBenchPlayerSurfaces(const SharedTexture& topTeamTexture, const SharedTexture& bottomTeamTexture);
+static GoalkeeperFaces determineGoalkeeperFaces(const TeamGame *team, FacesArray& faceToGoalkeeper);
+static GoalkeeperSurfaces createGoalkeeperSurfaces(const GoalkeeperFaces& faces, const GoalkeeperFaceTextures& textures);
+static void freeGoalkeeperSurfaces(GoalkeeperSurfaces& surfaces);
+static AllTeamsGoalkeeperTextures getGoalkeeperTextures(const AllTeamsGoalkeeperFaces& faces, const AllTeamsGoalkeeperFaceTextures& textures);
 template <size_t N> static SDL_Surface *loadSurface(const std::array<std::array<PackedSprite, N>, kNumAssetResolutions>& sprites);
 template <size_t N> static void pastePlayerLayer(SDL_Surface *dstSurface, SDL_Surface *srcSurface,
     const std::array<std::array<PackedSprite, N>, kNumAssetResolutions>& background,
     const std::array<std::array<PackedSprite, N>, kNumAssetResolutions>& sprites);
 static void pastePlayerShirtLayer(const TeamGame *team, SDL_Surface *dstSurface, SDL_Surface *srcSurface);
-static void convertTextures(SDL_Texture **textures, SDL_Surface **surfaces, int numTextures, bool free = true);
-GoalkeeperFaces determineGoalkeeperFaces(const TeamGame *team, FacesArray& faceToGoalkeeper);
-static GoalKeeperSurfaces createGoalkeeperSurfaces(const GoalkeeperFaces& faces);
-static void freeGoalkeeperTextures(GoalKeeperTextures& textures);
-static void freeGoalkeeperSurfaces(GoalKeeperSurfaces& surfaces);
+static void convertTextures(SharedTexture *textures, SDL_Surface **surfaces, int numTextures);
 
 void initSpriteColorizer(int res)
 {
     m_res = res;
 }
 
-// Do not deallocate, just clear the pointers.
-void clearMatchSpriteCache()
+void finishSpriteColorizer()
 {
-    struct {
-        SDL_Texture **textures;
-        size_t numTextures;
-    } static const kTextures[] = {
-        { m_topTeamPlayerTextures.data(), m_topTeamPlayerTextures.size() },
-        { m_bottomTeamPlayerTextures.data(), m_bottomTeamPlayerTextures.size() },
-        { m_topTeamGoalkeeperTextures.data(), m_topTeamGoalkeeperTextures.size() },
-        { m_bottomTeamGoalkeeperTextures.data(), m_bottomTeamGoalkeeperTextures.size() },
-        { &m_topTeamBenchPlayersTexture, 1 },
-        { &m_bottomTeamBenchPlayersTexture, 1 },
-    };
-
-    for (const auto& texturePack : kTextures)
-        for (size_t i = 0; i < texturePack.numTextures; i++)
-            texturePack.textures[i] = nullptr;
+    // must clean up before the renderer is destroyed
+    for (auto& texture : m_playerTextureCache)
+        texture.value.reset();
 }
 
 void colorizeGameSprites(int res, const TeamGame *topTeam, const TeamGame *bottomTeam)
 {
     m_res = res;
-    m_topTeam = topTeam;
-    m_bottomTeam = bottomTeam;
 
-    if (!gotPlayerTextures())
-        colorizePlayers();
-    fillPlayerSprites(&m_topTeamPlayerTextures[0], &m_bottomTeamPlayerTextures[0], m_topTeamPlayerTextures.size(),
-        kPlayerBackground[m_res].data(), kPlayerBackground[m_res].size());
+    auto topTeamTextures = getTeamTextures(topTeam);
+    auto bottomTeamTextures = getTeamTextures(bottomTeam);
 
-    if (!gotGoalkeeperTextures())
-        colorizeGoalkeepers();
-    fillGoalkeeperSprites(m_topTeamGoalkeeperTextures.data(), m_bottomTeamGoalkeeperTextures.data(),
-        m_topTeamGoalkeeperTextures.size(), kGoalkeeperBackground[m_res].data(), kGoalkeeperBackground[m_res].size());
+    colorizePlayers(topTeam, bottomTeam, topTeamTextures->playerTextures, bottomTeamTextures->playerTextures);
+    fillPlayerSprites(topTeamTextures->playerTextures.data(), bottomTeamTextures->playerTextures.data(),
+        topTeamTextures->playerTextures.size(), kPlayerBackground[m_res].data(), kPlayerBackground[m_res].size());
 
-    if (!gotBenchPlayerTextures())
-        colorizeBenchPlayers();
-    fillBenchSprites(m_topTeamBenchPlayersTexture, m_bottomTeamBenchPlayersTexture,
+    const auto& goalkeeperFaces = colorizeGoalkeepers(topTeam, bottomTeam,
+        topTeamTextures->goalkeeperTextures, bottomTeamTextures->goalkeeperTextures);
+    const auto& goalkeeperPerFaceTextures = std::make_pair(topTeamTextures->goalkeeperTextures, bottomTeamTextures->goalkeeperTextures);
+    auto goalkeeperTextures = getGoalkeeperTextures(goalkeeperFaces, goalkeeperPerFaceTextures);
+    fillGoalkeeperSprites(goalkeeperTextures.first.data(), goalkeeperTextures.second.data(),
+        goalkeeperTextures.first.size(), kGoalkeeperBackground[m_res].data(), kGoalkeeperBackground[m_res].size());
+
+    colorizeBenchPlayers(topTeam, bottomTeam, &topTeamTextures->benchTexture, &bottomTeamTextures->benchTexture);
+    fillBenchSprites(&topTeamTextures->benchTexture, &bottomTeamTextures->benchTexture,
         kBenchBackground[m_res].data(), kBenchBackground[m_res].size());
 }
 
 int getGoalkeeperIndexFromFace(bool topTeam, int face)
 {
-    assert(face >= 0 && face <= 2);
+    assert(face >= 0 && face < kNumFaces);
     return topTeam ? m_topTeamGoalkeeperFaceToIndex[face] : m_bottomTeamGoalkeeperFaceToIndex[face];
 }
 
@@ -168,24 +198,24 @@ void copyShirtPixels(int baseColor, int stripesColor, const PackedSprite& back, 
     }
 }
 
-static void colorizePlayers()
+static void colorizePlayers(const TeamGame *topTeam, const TeamGame *bottomTeam,
+    PlayerTextures& topTeamTextures, PlayerTextures& bottomTeamTextures)
 {
     assert(kPlayerBackground[m_res].size() == kPlayerSkin[m_res].size());
 
-    auto kTeamData = {
-        std::make_pair(m_topTeam, std::ref(m_topTeamPlayerTextures)),
-        std::make_pair(m_bottomTeam, std::ref(m_bottomTeamPlayerTextures)),
+    auto teamsData = {
+        std::make_pair(topTeam, std::ref(topTeamTextures)),
+        std::make_pair(bottomTeam, std::ref(bottomTeamTextures)),
     };
 
-    for (auto& teamData : kTeamData) {
+    for (auto& teamData : teamsData) {
         auto team = teamData.first;
         auto& textures = teamData.second;
 
-        auto faces = faceTypesInTeam(teamData.first, true);
-        auto surfaces = createPlayerFaceSurfaces(faces);
+        auto surfaces = createPlayerFaceSurfaces(team, textures);
 
-        for (int i = 0; i < kNumFaces; i++) {
-            if (faces[i]) {
+        for (size_t i = 0; i < surfaces.size(); i++) {
+            if (surfaces[i]) {
                 const std::pair<const Color&, const decltype(kPlayerSkin)&> kLayers[] = {
                     { kSkinColor[i], kPlayerSkin },
                     { kHairColor[i], kPlayerHair },
@@ -210,27 +240,31 @@ static void colorizePlayers()
     }
 }
 
-static void colorizeGoalkeepers()
+static AllTeamsGoalkeeperFaces colorizeGoalkeepers(const TeamGame *topTeam, const TeamGame *bottomTeam,
+    GoalkeeperFaceTextures& topTeamTextures, GoalkeeperFaceTextures& bottomTeamTextures)
 {
-    auto topTeamFaces = determineGoalkeeperFaces(m_topTeam, m_topTeamGoalkeeperFaceToIndex);
-    auto bottomTeamFaces = determineGoalkeeperFaces(m_bottomTeam, m_bottomTeamGoalkeeperFaceToIndex);
+    auto topTeamFaces = determineGoalkeeperFaces(topTeam, m_topTeamGoalkeeperFaceToIndex);
+    auto bottomTeamFaces = determineGoalkeeperFaces(bottomTeam, m_bottomTeamGoalkeeperFaceToIndex);
 
     assert(topTeamFaces[0] != -1 && bottomTeamFaces[0] != -1);
 
-    const auto kTeamData = { std::make_tuple(m_topTeam, std::cref(topTeamFaces), std::ref(m_topTeamGoalkeeperTextures)),
-        std::make_tuple(m_bottomTeam, std::cref(bottomTeamFaces), std::ref(m_bottomTeamGoalkeeperTextures)) };
+    const auto kTeamData = {
+        std::make_tuple(topTeam, std::cref(topTeamFaces), std::ref(topTeamTextures)),
+        std::make_tuple(bottomTeam, std::cref(bottomTeamFaces), std::ref(bottomTeamTextures))
+    };
 
     for (const auto& teamData : kTeamData) {
         auto team = std::get<0>(teamData);
         const auto& faces = std::get<1>(teamData);
+        auto& textures = std::get<2>(teamData);
 
-        auto surfaces = createGoalkeeperSurfaces(faces);
+        auto surfaces = createGoalkeeperSurfaces(faces, textures);
 
         for (size_t i = 0; i < faces.size(); i++) {
-            if (faces[i] < 0)
+            if (faces[i] < 0 || textures[faces[i]])
                 continue;
 
-            assert(faces[i] <= 3);
+            assert(faces[i] <= kNumFaces);
 
             const std::pair<const Color&, const decltype(kGoalkeeperSkin)&> kLayers[] = {
                 { kSkinColor[faces[i]], kGoalkeeperSkin },
@@ -246,36 +280,32 @@ static void colorizeGoalkeepers()
                 pastePlayerLayer(surfaces[i], layerSurface, kGoalkeeperBackground, layer.second);
                 SDL_FreeSurface(layerSurface);
             }
+
+            convertTextures(&textures[faces[i]], &surfaces[i], 1);
         }
-
-        auto& textures = std::get<2>(teamData);
-        freeGoalkeeperTextures(textures);
-
-        convertTextures(textures.data(), surfaces.data(), textures.size(), false);
-
         freeGoalkeeperSurfaces(surfaces);
     }
+
+    return { topTeamFaces, bottomTeamFaces };
 }
 
-void colorizeBenchPlayers()
+void colorizeBenchPlayers(const TeamGame *topTeam, const TeamGame *bottomTeam,
+    SharedTexture *topTeamTexture, SharedTexture *bottomTeamTexture)
 {
     assert(kBenchBackground[m_res].size() == kBenchShirt[m_res].size());
 
-    auto surface1 = loadSurface(kBenchBackground);
-    auto surface2 = SDL_DuplicateSurface(surface1);
+    if (*topTeamTexture && *bottomTeamTexture)
+        return;
+
     auto shirtSurface = loadSurface(kBenchShirt);
+    auto surfaces = createBenchPlayerSurfaces(*topTeamTexture, *bottomTeamTexture);
 
-    if (m_topTeamBenchPlayersTexture)
-        SDL_DestroyTexture(m_topTeamBenchPlayersTexture);
-    if (m_bottomTeamBenchPlayersTexture)
-        SDL_DestroyTexture(m_bottomTeamBenchPlayersTexture);
-
-    const auto kTeamData = {
-        std::make_tuple(m_topTeam, surface1, &m_topTeamBenchPlayersTexture),
-        std::make_tuple(m_bottomTeam, surface2, &m_bottomTeamBenchPlayersTexture),
+    const auto teamsData = {
+        std::make_tuple(topTeam, surfaces[0], topTeamTexture),
+        std::make_tuple(bottomTeam, surfaces[1], bottomTeamTexture),
     };
 
-    for (const auto& teamData : kTeamData) {
+    for (const auto& teamData : teamsData) {
         auto team = std::get<0>(teamData);
         auto backSurface = std::get<1>(teamData);
         auto texture = std::get<2>(teamData);
@@ -286,37 +316,38 @@ void colorizeBenchPlayers()
             copyShirtPixels(team->prShirtCol, team->prStripesCol, back, shirt, backSurface, shirtSurface);
         }
 
-        convertTextures(texture, &backSurface, 1, false);
+        convertTextures(texture, &backSurface, 1);
     }
 
-    SDL_FreeSurface(surface1);
+    for (auto surface : surfaces)
+        SDL_FreeSurface(surface);
     SDL_FreeSurface(shirtSurface);
 }
 
-static bool gotPlayerTextures()
+static TeamTextureCacheValue *getTeamTextures(const TeamGame *team)
 {
-    const auto& topTeamFaces = faceTypesInTeam(m_topTeam, true);
-    for (size_t i = 0; i < topTeamFaces.size(); i++)
-        if (topTeamFaces[i] && !m_topTeamPlayerTextures[i])
-            return false;
+    TeamTextureCacheKey key(team);
+    auto it = std::find_if(m_playerTextureCache.begin(), m_playerTextureCache.end(), [key](const auto& item) {
+        return item.key == key;
+    });
 
-    const auto& bottomTeamFaces = faceTypesInTeam(m_bottomTeam, true);
-    for (size_t i = 0; i < bottomTeamFaces.size(); i++)
-        if (bottomTeamFaces[i] && !m_bottomTeamPlayerTextures[i])
-            return false;
+    if (it == m_playerTextureCache.end()) {
+        m_playerTextureCache.emplace_back(key);
+        if (m_playerTextureCache.size() > kPlayerTextureCacheSize)
+            m_playerTextureCache.pop_front();
+    } else {
+        m_playerTextureCache.splice(m_playerTextureCache.end(), m_playerTextureCache, it);
+    }
 
-    return true;
+    it = std::prev(m_playerTextureCache.end());
+    return &it->value;
 }
 
-static bool gotGoalkeeperTextures()
+static void trimCache()
 {
-    return m_topTeamGoalkeeperTextures[0] && m_topTeamGoalkeeperTextures[1] &&
-        m_bottomTeamGoalkeeperTextures[0] && m_bottomTeamGoalkeeperTextures[1];
-}
-
-static bool gotBenchPlayerTextures()
-{
-    return m_topTeamBenchPlayersTexture && m_bottomTeamBenchPlayersTexture;
+    // leave only two current teams, drop everything else
+    while (m_playerTextureCache.size() > 2)
+        m_playerTextureCache.pop_front();
 }
 
 template <size_t N>
@@ -342,27 +373,83 @@ static SDL_Surface *loadGoalkeeperBackgroundSurface()
     return loadSurface(kGoalkeeperBackground);
 }
 
-static PlayerSurfaces createPlayerFaceSurfaces(const FacesArray& faces)
+static PlayerSurfaces createPlayerFaceSurfaces(const TeamGame *team, const PlayerTextures& textures)
 {
-    PlayerSurfaces surfaces{};
+    auto faces = faceTypesInTeam(team, true);
 
-    auto surface = loadPlayerBackgroundSurface();
-    bool copy = false;
+    assert(faces.size() == textures.size());
+
+    PlayerSurfaces surfaces{};
+    SDL_Surface *surface{};
 
     for (size_t i = 0; i < faces.size(); i++) {
-        if (faces[i]) {
-            if (copy) {
+        if (faces[i] && !textures[i]) {
+            if (surface) {
                 surfaces[i] = SDL_DuplicateSurface(surface);
                 if (!surfaces[i])
                     sdlErrorExit("Failed to duplicate player surface");
             } else {
-                surfaces[i] = surface;
-                copy = true;
+                surfaces[i] = surface = loadPlayerBackgroundSurface();
             }
         }
     }
 
     return surfaces;
+}
+
+static BenchPlayerSurfaces createBenchPlayerSurfaces(const SharedTexture& topTeamTexture, const SharedTexture& bottomTeamTexture)
+{
+    BenchPlayerSurfaces surfaces{};
+    auto surface = loadSurface(kBenchBackground);
+
+    if (!topTeamTexture)
+        surfaces[0] = surface;
+    if (!bottomTeamTexture) {
+        surfaces[1] = surface;
+        if (surfaces[0]) {
+            surfaces[1] = SDL_DuplicateSurface(surface);
+            if (!surfaces[1])
+                errorExit("Failed to duplicate bench surface %#x", surface);
+        }
+    }
+
+    return surfaces;
+}
+
+static GoalkeeperSurfaces createGoalkeeperSurfaces(const GoalkeeperFaces& faces, const GoalkeeperFaceTextures& textures)
+{
+    assert(static_cast<unsigned>(faces[0]) < kNumFaces && faces[1] < kNumFaces);
+
+    GoalkeeperSurfaces surfaces{};
+
+    int neededSurfaces = !textures[faces[0]] + (faces[1] >= 0 && !textures[faces[1]]);
+    if (neededSurfaces > 0) {
+        surfaces[0] = loadGoalkeeperBackgroundSurface();
+        if (neededSurfaces > 1) {
+            surfaces[1] = SDL_DuplicateSurface(surfaces[0]);
+            if (!surfaces[1])
+                sdlErrorExit("Failed to duplicate goalkeeper surface %#x", surfaces[0]);
+        }
+    }
+
+    return surfaces;
+}
+
+static void freeGoalkeeperSurfaces(GoalkeeperSurfaces& surfaces)
+{
+    SDL_FreeSurface(surfaces[0]);
+    if (surfaces[1] && surfaces[1] != surfaces[0])
+        SDL_FreeSurface(surfaces[1]);
+}
+
+static AllTeamsGoalkeeperTextures getGoalkeeperTextures(const AllTeamsGoalkeeperFaces& faces, const AllTeamsGoalkeeperFaceTextures& textures)
+{
+    AllTeamsGoalkeeperTextures result;
+    result.first[0] = textures.first[faces.first[0]];
+    result.first[1] = faces.first[1] >= 0 ? textures.first[faces.first[1]] : result.first[0];
+    result.second[0] = textures.second[faces.second[0]];
+    result.second[1] = faces.second[1] >= 0 ? textures.second[faces.second[1]] : result.second[0];
+    return result;
 }
 
 template <size_t N>
@@ -415,21 +502,25 @@ static void pastePlayerShirtLayer(const TeamGame *team, SDL_Surface *backSurface
     }
 }
 
-static void convertTextures(SDL_Texture **textures, SDL_Surface **surfaces, int numTextures, bool free /* = true */)
+static void convertTextures(SharedTexture *textures, SDL_Surface **surfaces, int numTextures)
 {
     for (int i = 0; i < numTextures; i++) {
         if (surfaces[i]) {
-            if (free && textures[i])
-                SDL_DestroyTexture(textures[i]);
-            textures[i] = SDL_CreateTextureFromSurface(getRenderer(), surfaces[i]);
-            if (!textures[i])
-                sdlErrorExit("Error creating player textures");
-            if (free)
-                SDL_FreeSurface(surfaces[i]);
+            textures[i] = SharedTexture::fromSurface(surfaces[i]);
+            if (!textures[i]) {
+                // try releasing cached textures, maybe there wasn't enough GPU RAM
+                trimCache();
+
+                textures[i] = SharedTexture::fromSurface(surfaces[i]);
+                if (!textures[i])
+                    sdlErrorExit("Error creating texture from surface %#x", surfaces[i]);
+            }
         }
     }
 }
 
+// Returns face graphic types of main and reserve goalkeeper in a given team.
+// Also fill opposite mapping array which maps face type to goalkeeper index (0 = main, 1 = reserve).
 GoalkeeperFaces determineGoalkeeperFaces(const TeamGame *team, FacesArray& faceToGoalkeeper)
 {
     int goalieIndex = 0;
@@ -437,7 +528,7 @@ GoalkeeperFaces determineGoalkeeperFaces(const TeamGame *team, FacesArray& faceT
     GoalkeeperFaces faces = { -1, -1 };
     faceToGoalkeeper.fill(0);
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < kNumPlayersInTeam; i++) {
         const auto& player = team->players[i];
         int playerPos = static_cast<int>(player.position);
         if (playerPos >= 0) {
@@ -455,31 +546,4 @@ GoalkeeperFaces determineGoalkeeperFaces(const TeamGame *team, FacesArray& faceT
     }
 
     return faces;
-}
-
-static GoalKeeperSurfaces createGoalkeeperSurfaces(const GoalkeeperFaces& faces)
-{
-    GoalKeeperSurfaces surfaces;
-
-    surfaces[0] = loadGoalkeeperBackgroundSurface();
-    surfaces[1] = faces[0] == faces[1] ? surfaces[0] : SDL_DuplicateSurface(surfaces[0]);
-    if (!surfaces[1])
-        sdlErrorExit("Failed to copy goalkeeper surface");
-
-    return surfaces;
-}
-
-static void freeGoalkeeperTextures(GoalKeeperTextures& textures)
-{
-    if (textures[0])
-        SDL_DestroyTexture(textures[0]);
-    if (textures[1] && textures[1] != textures[0])
-        SDL_DestroyTexture(textures[1]);
-}
-
-static void freeGoalkeeperSurfaces(GoalKeeperSurfaces& surfaces)
-{
-    SDL_FreeSurface(surfaces[0]);
-    if (surfaces[1] && surfaces[1] != surfaces[0])
-        SDL_FreeSurface(surfaces[1]);
 }

@@ -70,7 +70,6 @@ aGrafsLoader00_ - g_pitchDatBuffer
 # remove intro image reel data too
 aSfxFlcWincup_r - big_S_pictureIndexArray
 fansSidesSwapped
-drawSpritesWriteOnly - averagePlayerPrice
 animPatternsIndex - animPatternsState
 
 # color palette
@@ -223,7 +222,8 @@ SetPitchTypeAndNumber - cseg_67646
 dseg_1327EE
 hilStarted
 deadHilVar
-currentHilBuffer - menuCycleTimer
+# removes some pitch variables too
+currentHilBuffer - averagePlayerPrice
 goalBasePtr - userRequestedReplay
 currentGoalPtr - cameraCoordinatesValid
 hilLeftTeamGoals - winningTeamPtr
@@ -342,7 +342,6 @@ CalcMenuEntryAddress, function
 g_currentMenu, array char[6500] (align: 4)
 previousMenuItem, MenuEntry *
 g_exitMenu, word
-menuCycleTimer, word
 menuCursorFrame, word
 g_allowShorterMenuItemsWithFrames, word
 
@@ -539,7 +538,7 @@ dosMemOfs60c00h, char *
 # game loop
 UpdateBall, function
 MovePlayers, function
-DoGoalKeeperSprites, function
+DoGoalkeeperSprites, function
 MarkPlayer, function
 BookPlayer, function
 UpdateControlledPlayerNumbers, function
@@ -595,6 +594,7 @@ kKeeperSaveDistance, word
 kBallGroundConstant, word
 kBallAirConstant, word
 kGravityConstant, dword
+kGoalkeeperDiveDeltas, array FixedPoint[8]
 
 # referee
 refComingAnimTable, word

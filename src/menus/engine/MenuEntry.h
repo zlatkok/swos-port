@@ -39,6 +39,25 @@ enum MenuEntryBackgrounds
     kYellow = 15,
 };
 
+enum MenuEntryFrameColors
+{
+    kGrayFrame = 0x10,
+    kWhiteFrame = 0x20,
+    kBlackFrame = 0x30,
+    kBrownFrame = 0x40,
+    kLightBrownFrame = 0x50,
+    kOrangeFrame = 0x60,
+    kDarkGrayFrame = 0x70,
+    kNearBlackFrame = 0x80,
+    kVeryDarkGreenFrame = 0x90,
+    kRedFrame = 0xa0,
+    kBlueFrame = 0xb0,
+    kPurpleFrame = 0xc0,
+    kSoftBlueFrame = 0xd0,
+    kGreenFrame = 0xe0,
+    kYellowFrame = 0xf0
+};
+
 #pragma pack(push, 1)
 struct MenuEntry
 {
@@ -96,7 +115,7 @@ struct MenuEntry
         kNumDirections,
     };
 
-    MenuEntry() {}
+    MenuEntry() = default;
 
     int centerX() const;
     int endX() const;

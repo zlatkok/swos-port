@@ -2,14 +2,14 @@
 
 // fixed point, 16.16, signed (sign bit in the whole part), fraction always positive
 struct FixedPoint {
-    FixedPoint() {}
+    FixedPoint() = default;
     FixedPoint(const FixedPoint& other) : m_value(other.m_value) {}
     constexpr FixedPoint(int value, bool raw = false) : m_value(raw ? value : value << 16) {}
     constexpr FixedPoint(unsigned value) : m_value(value) {}
     constexpr FixedPoint(int whole, int fraction) : m_value((whole << 16) | fraction) {}
     static FixedPoint fromFloat(float value) {
         float whole, fraction = std::modf(value, &whole);
-        return FixedPoint(static_cast<int>(whole), static_cast<int>(fraction * 0xffff));
+        return FixedPoint(static_cast<int>(whole), static_cast<int>(fraction * 0x10000));
     }
     float asFloat() const {
         return *this;

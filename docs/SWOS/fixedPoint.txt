@@ -15,8 +15,19 @@ Some examples (in hex notation):
 -0.5  ffff.8000
  3.25 0003.0400
 
-When stored in memory, first word is fractional part, second word is integer part (offset +2) - most of the
+When stored in memory, first word is the fractional part, second word is the integer part (offset +2) - most of the
 time only integer part is used.
 
 They can be added and subtracted as 32-bit numbers. Shifting left and right also works. After multiplying two
-numbers result needs to be shifter right 16 bits.
+numbers result needs to be shifted right 16 bits.
+
+# Conversions
+
+To floating point:
+    (value & 0xffff) / 0x10000 + (value >> 16)
+
+From floating point:
+    (int(floatValue) << 16) | ((floatValue - int(floatValue)) * 0x10000)
+
+Rounding to integer:
+    (value >> 16) + ((value & 0xffff) > 0x8000)

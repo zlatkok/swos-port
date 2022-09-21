@@ -300,12 +300,12 @@ void loadControlOptions(const CSimpleIni& ini)
     loadKeyboardConfig(ini);
 
     m_pl1Controls = kKeyboard1;
-    auto pl1Controls = ini.GetLongValue(kControlsSection, kPlayer1ControlsKey);
+    auto pl1Controls = ini.GetLongValue(kControlsSection, kPlayer1ControlsKey, kKeyboard1);
     if (pl1Controls >= 0 && pl1Controls < kNumControls)
         m_pl1Controls = static_cast<Controls>(pl1Controls);
 
     m_pl2Controls = kNone;
-    auto pl2Controls = ini.GetLongValue(kControlsSection, kPlayer2ControlsKey);
+    auto pl2Controls = ini.GetLongValue(kControlsSection, kPlayer2ControlsKey, kKeyboard2);
     if (pl2Controls >= 0 && pl2Controls < kNumControls)
         m_pl2Controls = static_cast<Controls>(pl2Controls);
 

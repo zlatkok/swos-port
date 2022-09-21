@@ -52,7 +52,6 @@
     <ClCompile Include="..\..\..\src\controls\joypads\SdlMappingParser.cpp" />
     <ClCompile Include="..\..\..\src\controls\keyboard\setupKeyboardMenu.cpp" />
     <ClCompile Include="..\..\..\src\controls\keyboard\testKeyboardMenu.cpp" />
-    <ClCompile Include="..\..\..\src\controls\menuControls.cpp" />
     <ClCompile Include="..\..\..\src\controls\mouse\mouse.cpp" />
     <ClCompile Include="..\..\..\src\controls\quickConfigMenu.cpp" />
     <ClCompile Include="..\..\..\src\controls\selectGameControlEventsMenu.cpp">
@@ -71,7 +70,12 @@
     <ClCompile Include="..\..\..\src\debug\dump.cpp" />
     <ClCompile Include="..\..\..\src\files\file.cpp" />
     <ClCompile Include="..\..\..\src\files\selectFilesMenu.cpp" />
-    <ClCompile Include="..\..\..\src\game\amigaMode.cpp" />
+    <ClCompile Include="..\..\..\src\game\amigaMode.cpp">
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </AssemblerOutput>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\game\bench\benchControls.cpp" />
     <ClCompile Include="..\..\..\src\game\bench\drawBench.cpp" />
     <ClCompile Include="..\..\..\src\game\camera.cpp" />
@@ -90,6 +94,7 @@
     <ClCompile Include="..\..\..\src\init.cpp" />
     <ClCompile Include="..\..\..\src\menus\continueAbortMenu.cpp" />
     <ClCompile Include="..\..\..\src\menus\continueMenu.cpp" />
+    <ClCompile Include="..\..\..\src\menus\engine\menuControls.cpp" />
     <ClCompile Include="..\..\..\src\menus\stadiumMenu.cpp" />
     <ClCompile Include="..\..\..\src\menus\versusMenu.cpp" />
     <ClCompile Include="..\..\..\src\options\optionsMenu.cpp" />
@@ -97,6 +102,7 @@
     <ClCompile Include="..\..\..\src\sprites\gameSprites.cpp" />
     <ClCompile Include="..\..\..\src\sprites\loadTexture.cpp" />
     <ClCompile Include="..\..\..\src\sprites\renderSprites.cpp" />
+    <ClCompile Include="..\..\..\src\sprites\SharedTexture.cpp" />
     <ClCompile Include="..\..\..\src\sprites\spinningLogo.cpp" />
     <ClCompile Include="..\..\..\src\util\log.cpp" />
     <ClCompile Include="..\..\..\src\main.cpp" />
@@ -254,7 +260,6 @@
     <ClInclude Include="..\..\..\src\controls\joypads\SdlMappingParser.h" />
     <ClInclude Include="..\..\..\src\controls\keyboard\setupKeyboardMenu.h" />
     <ClInclude Include="..\..\..\src\controls\keyboard\testKeyboardMenu.h" />
-    <ClInclude Include="..\..\..\src\controls\menuControls.h" />
     <ClInclude Include="..\..\..\src\controls\mouse\mouse.h" />
     <ClInclude Include="..\..\..\src\controls\quickConfigMenu.h" />
     <ClInclude Include="..\..\..\src\controls\selectGameControlEventsMenu.h" />
@@ -286,6 +291,7 @@
     <ClInclude Include="..\..\..\src\menus\continueAbortMenu.h" />
     <ClInclude Include="..\..\..\src\menus\continueMenu.h" />
     <ClInclude Include="..\..\..\src\menus\engine\Menu.h" />
+    <ClInclude Include="..\..\..\src\menus\engine\menuControls.h" />
     <ClInclude Include="..\..\..\src\menus\engine\unpackMenu.h" />
     <ClInclude Include="..\..\..\src\menus\stadiumMenu.h" />
     <ClInclude Include="..\..\..\src\menus\versusMenu.h" />
@@ -297,6 +303,7 @@
     <ClInclude Include="..\..\..\src\sprites\gameSprites.h" />
     <ClInclude Include="..\..\..\src\sprites\loadTexture.h" />
     <ClInclude Include="..\..\..\src\sprites\renderSprites.h" />
+    <ClInclude Include="..\..\..\src\sprites\SharedTexture.h" />
     <ClInclude Include="..\..\..\src\sprites\spinningLogo.h" />
     <ClInclude Include="..\..\..\src\util\FixedPoint.h" />
     <ClInclude Include="..\..\..\src\util\log.h" />

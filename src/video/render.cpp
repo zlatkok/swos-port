@@ -1,6 +1,8 @@
 #include "render.h"
 #include "timer.h"
 #include "overlay.h"
+#include "sprites.h"
+#include "colorizeSprites.h"
 #include "windowManager.h"
 #include "joypads.h"
 #include "VirtualJoypad.h"
@@ -17,7 +19,7 @@ static bool m_clearScreen = true;
 
 static bool m_pendingScreenshot;
 
-static void fade(bool fadeOut, std::function<void()> render, double factor);
+static void fade(bool fadeOut, std::function<void()> render);
 static void doMakeScreenshot();
 static SDL_Surface *getScreenSurface();
 
@@ -59,6 +61,9 @@ void initRendering()
 void finishRendering()
 {
     deinitWindow();
+
+    finishSpriteColorizer();
+    finishSprites();
 
     if (m_renderer)
         SDL_DestroyRenderer(m_renderer);
@@ -102,7 +107,7 @@ void updateScreen(bool delay /* = false */)
     showOverlay();
 
     if (delay)
-        frameDelay();
+        gameFrameDelay();
 
     measureRendering([]() {
         SDL_RenderPresent(m_renderer);
@@ -116,14 +121,14 @@ void updateScreen(bool delay /* = false */)
     }
 }
 
-void fadeIn(std::function<void()> render, double factor /* = 1.0 */)
+void fadeIn(std::function<void()> render)
 {
-    fade(false, render, factor);
+    fade(false, render);
 }
 
-void fadeOut(std::function<void()> render, double factor /* = 1.0 */)
+void fadeOut(std::function<void()> render)
 {
-    fade(true, render, factor);
+    fade(true, render);
 }
 
 bool getLinearFiltering()
@@ -163,12 +168,12 @@ void makeScreenshot()
     m_pendingScreenshot = true;
 }
 
-static void fade(bool fadeOut, std::function<void()> render, double factor)
+static void fade(bool fadeOut, std::function<void()> render)
 {
     constexpr int kFadeDelayMs = 900;
     constexpr int kMaxAlpha = 255;
 
-    auto numSteps = std::ceil(kFadeDelayMs * targetFps() / factor / 1'000);
+    auto numSteps = std::ceil(kFadeDelayMs * targetFps() / 1'000);
     auto alphaPerFrame = kMaxAlpha / numSteps;
 
     for (auto i = .0; i <= numSteps; i++) {

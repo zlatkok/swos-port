@@ -881,7 +881,6 @@ void SelectFilesMenuTest::testSaveCompetition()
 
         queueSdlKeyDown(SDL_SCANCODE_Z);
         queueSdlKeyDown(SDL_SCANCODE_RETURN);
-        swos.menuCycleTimer = 2;
         selectItem(entry);
 
         return false;
