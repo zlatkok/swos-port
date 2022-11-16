@@ -589,5 +589,4 @@ constexpr int kMenuScreenWidth = 320;
 constexpr int kMenuScreenHeight = 200;
 constexpr int kGameScreenWidth = 384;
 
-// can't keep this a constexpr in C++17 anymore, sigh...
-static char *kSentinel = reinterpret_cast<char *>(-1);
+#define kSentinel (reinterpret_cast<char *>(-1))

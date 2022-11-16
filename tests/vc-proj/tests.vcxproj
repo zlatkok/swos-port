@@ -69,30 +69,30 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);..\..\lib\win32\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win32;..\..\lib\win32\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
     <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
     <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
-    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);..\..\lib\win64\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win64;..\..\lib\win64\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
     <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);..\..\lib\win32\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-32;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win32;..\..\lib\win32\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
     <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
     <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
-    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);..\..\lib\win64\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <IncludePath>..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\include;$(SolutionDir)..\..\include\dirent;$(SolutionDir)..\..\include\SDL2;$(OutDir);$(SolutionDir)..\..\include\crashrpt;$(SolutionDir)..\..\include\simpleini;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\mnu2h;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win64;..\..\lib\win64\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
     <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -101,7 +101,7 @@
       <WarningLevel>Level2</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";DEBUG;SDL_ADDRESS_FETCHER_DLL="SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";WITH_GZFILEOP;DEBUG;SDL_ADDRESS_FETCHER_DLL="SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
@@ -113,10 +113,10 @@
       <AssemblerOutput>NoListing</AssemblerOutput>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SdlAddressTableFetcher.lib;SDL2d.lib;SDL2maind.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SdlAddressTableFetcher.lib;zlib-ng.lib;SDL2d.lib;SDL2maind.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <GenerateMapFile>true</GenerateMapFile>
+      <GenerateMapFile>false</GenerateMapFile>
     </Link>
     <CustomBuildStep>
       <Command>copy $(SolutionDir)..\tmp\sdl-address-table-fetcher-$(Configuration)\SdlAddressTableFetcher.dll $(OutDir)</Command>
@@ -132,7 +132,7 @@
       <WarningLevel>Level2</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";DEBUG;SDL_ADDRESS_FETCHER_DLL="SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";WITH_GZFILEOP;DEBUG;SDL_ADDRESS_FETCHER_DLL="SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
@@ -144,10 +144,10 @@
       <AssemblerOutput>NoListing</AssemblerOutput>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SdlAddressTableFetcher.lib;SDL2d.lib;SDL2maind.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SdlAddressTableFetcher.lib;zlib-ng.lib;SDL2d.lib;SDL2maind.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <GenerateMapFile>true</GenerateMapFile>
+      <GenerateMapFile>false</GenerateMapFile>
     </Link>
     <CustomBuildStep>
       <Command>copy $(SolutionDir)..\tmp\sdl-address-table-fetcher-$(Configuration)\SdlAddressTableFetcher.dll $(OutDir)</Command>
@@ -165,7 +165,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";NDEBUG;SDL_ADDRESS_FETCHER_DLL=".\\SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";WITH_GZFILEOP;NDEBUG;SDL_ADDRESS_FETCHER_DLL=".\\SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
@@ -178,7 +178,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>SdlAddressTableFetcher.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SdlAddressTableFetcher.lib;zlib-ng.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
@@ -198,7 +198,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";NDEBUG;SDL_ADDRESS_FETCHER_DLL=".\\SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SWOS_TEST;SWOS_VM;VIRTUAL_JOYPAD;TEST_DATA_DIR=R"($(ProjectDir)..\data)";WITH_GZFILEOP;NDEBUG;SDL_ADDRESS_FETCHER_DLL=".\\SdlAddressTableFetcher.dll";NOMINMAX;_CRT_SECURE_NO_WARNINGS;DECLSPEC=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
@@ -207,11 +207,12 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
+      <ExceptionHandling>Sync</ExceptionHandling>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>SdlAddressTableFetcher.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SdlAddressTableFetcher.lib;zlib-ng.lib;SDL2.lib;SDL2main.lib;SDL2_image.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>

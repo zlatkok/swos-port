@@ -33,6 +33,6 @@ private:
     void checkArrowsOverlap();
 
     static constexpr char kCanadaDiy[] = "canada.diy";
-    std::unique_ptr<const char> m_canadaDiyData;
+    std::unique_ptr<const char[]> m_canadaDiyData;
     size_t m_canadaDiySize;
 };

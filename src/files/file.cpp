@@ -242,6 +242,16 @@ std::string pathInRootDir(const char *filename)
     return m_rootDir.empty() ? filename : m_rootDir + filename;
 }
 
+int pathCompare(const char *path1, const char *path2)
+{
+    return isFileSystemCaseSensitive() ? strcmp(path1, path2) : _stricmp(path1, path2);
+}
+
+int pathNCompare(const char *path1, const char *path2, size_t count)
+{
+    return isFileSystemCaseSensitive() ? strncmp(path1, path2, count) : _strnicmp(path1, path2, count);
+}
+
 std::string joinPaths(const char *path1, const char *path2)
 {
     std::string result = path1;
@@ -332,7 +342,12 @@ FoundFileList findFiles(const char *extension, const char *dirName /* = nullptr 
     if (!dir)
         sdlErrorExit("Couldn't open %s directory", dirName ? dirName : "SWOS root");
 
-    bool acceptAll = extension && (extension[0] == '\0' || extension[1] == '*');
+    auto acceptAll = false;
+    if (extension) {
+        if (extension[0] == '.')
+            extension++;
+        acceptAll = extension[0] == '\0' || extension[1] == '*';
+    }
     if (acceptAll)
         extension = nullptr;
 
@@ -366,11 +381,14 @@ static bool isAbsolutePath(const char *path)
 
 // Traverses a given directory and invokes callback function for every encountered file/directory.
 // If an extension is given callback will only be invoked for the files with matching extension.
-// If not nullptr, extension is expected to start with a dot.
+// Extension is not expected to start with a dot, but if it does, it will be ignored.
 static void traverseDirectory(DIR *dir, const char *extension,
     std::function<bool(const char *, int, const char *)> f)
 {
     assert(dir);
+
+    if (extension && *extension == '.')
+        extension++;
 
     for (dirent *entry; entry = readdir(dir); ) {
 #ifdef _WIN32
@@ -378,34 +396,18 @@ static void traverseDirectory(DIR *dir, const char *extension,
 #else
         auto len = strlen(entry->d_name);
 #endif
+        // skip '.' and '..' entries
         if (!len || entry->d_name[0] == '.' && (len == 1 || len == 2 && entry->d_name[1] == '.'))
             continue;
 
         auto dot = entry->d_name + len - 1;
         while (dot >= entry->d_name && *dot != '.')
             dot--;
+        // if no extension set up dot to be empty string for comparison (to match empty extension string)
+        if (*dot != '.')
+            dot = entry->d_name + len - 1;
 
-        if (extension && *extension) {
-            if (dot < entry->d_name)
-                continue;
-
-            assert(extension[0] == '.' && dot[0] == '.');
-
-            bool match = true;
-            int extLen = strlen(extension);
-
-            int i = 1;
-            for (; i < extLen && dot[i]; i++) {
-                if (toupper(extension[i]) != toupper(dot[i])) {
-                    match = false;
-                    break;
-                }
-            }
-
-            if (!match || i == extLen && dot[i] && i > 1)
-                continue;
-        }
-        if (!f(entry->d_name, len, dot))
+        if ((!extension || !pathCompare(extension, dot + 1)) && !f(entry->d_name, len, dot))
             break;
     }
     closedir(dir);

@@ -641,7 +641,7 @@ void RecordedDataTest::verifySpritePointer(SwosDataPointer<Sprite> recSprite, Sw
 
 auto RecordedDataTest::openDataFile(const std::string& file) -> std::pair<SDL_RWops *, HeaderV1p2>
 {
-    auto f = openFile(file.c_str(), "rb");
+    auto f = openResFile(file.c_str());
     assertMessage(f, "Failed to open file "s + file);
 
     HeaderV1p2 h;

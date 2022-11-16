@@ -5740,3 +5740,21 @@ earlier:
 - fixed colored frame showing up on columns 2 & 3 of select files menu tests (g_allowShorterMenuItemsWithFrames
   wasn't reset back to 0 by recorded games tester)
 - pushed to Github
+14.11.2022.
+- whoops, seems I broke my Github account data limit, will need to compress *.rgd files and add decompression
+  functionality to tests; will probably link dynamically to zlib1.dll (already used by some of the project
+  libraries), and provide a local directory pointed to by an environment variable where the uncompressed files
+  could reside and override the compressed equivalents when looked up; will need some of the functionality to go
+  in the game as the sound files will be loaded from an archive
+15.11.2022.
+- I was interested why the executable takes up 3.3mb, was expecting some big junk taking up a lot of space, but
+  it's actually pretty lean, saw some interesting stuff in there; seems that VM fixing of unaligned memory access
+  has been bloating code a bit, will take care of that in the future; also would be great if flags could be more
+  aggressively optimized; changed kSentinel to macro, it was getting instantiated as a variable for pretty much
+  every cpp file; kRandomTable wasn't const, whoops!
+- refactored directory file search routine, much shorter and simpler now
+- added support for test resource files as compressed *.gz files, they are transparently decompressed as if they
+  are ordinary files (via SDL SDLRwops mechanism); this made tests even faster by 5 seconds!! the only slightly
+  annoying thing is I've added another dll to the deployment, zlib-ng along with ordinary zlib (opted for ng since
+  it's faster -- optimized for modern machines and easier to build); also went with dll over static lib to avoid
+  CRT linking conundrum; the way I added zlib-ng will be applied as a model for the rest of external libraries

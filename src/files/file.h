@@ -28,6 +28,18 @@ inline constexpr char getDirSeparator()
 #endif
 }
 
+inline constexpr bool isFileSystemCaseSensitive()
+{
+#ifdef _WIN32
+    return false;
+#else
+    return true;
+#endif
+}
+
+int pathCompare(const char *path1, const char *path2);
+int pathNCompare(const char *path1, const char *path2, size_t count);
+
 std::string joinPaths(const char *path1, const char *path2);
 bool fileExists(const char *path);
 bool dirExists(const char *path);

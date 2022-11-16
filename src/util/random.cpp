@@ -7,7 +7,7 @@ static byte m_xorKey;
 static std::function<int()> m_hook;
 #endif
 
-static std::array<byte, 256> kRandomTable = {
+static const std::array<byte, 256> kRandomTable = {
     124, 154, 146, 70, 101, 250, 173, 89, 117, 26, 67, 12, 238, 147, 226,
     34, 78, 199, 253, 107, 125, 87, 170, 208, 188, 72, 5, 51, 224, 246,
     145, 32, 110, 234, 68, 43, 99, 39, 203, 86, 177, 163, 198, 162, 128,
