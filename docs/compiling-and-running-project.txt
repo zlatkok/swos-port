@@ -1,0 +1,27 @@
+* compiling project
+1. check folder
+- check if "tmp" folder exists. if not, create "tmp" folder
+
+2. compile assets
+- go to "assets" folder
+- run "pip uninstall PyTexturePacker"
+- run "pip install git+https://github.com/zlatkok/PyTexturePacker.git"
+- run "python compileAssets.py"
+
+* running project
+1. check folder and files
+- create "run\x64\release" and "run\x64\debug" folder somewhere (not under "swos-port" folder recommanded)
+- copy "assets\*.*" to "run\x64\release\assets" and "run\x64\debug\assets" when assets created or changed
+- copy "DATA\*.*" from original SWOS to "run\x64\release\DATA" and "run\x64\debug\DATA"
+- create "commentary.zip" from "audio\commentary\*.* of original SWOS
+- copy "commentary.zip" to "run\x64\release\audio" and "run\x64\debug\audio"
+- copy "audio\fx\*.*" from original SWOS to "run\x64\release\audio\fx" and "run\x64\debug\audio\fx"
+- copy "dll-files\x64\*.*" to "run\x64\release" and "run\x64\debug"
+- copy "dll-files\x64\release\*.*" to "run\x64\release"
+- copy "dll-files\x64\debug\*.*" to "run\x64\debug"
+
+2. compiling and running
+- open "project\vc++\swos-port.sln" in vs
+- set "Debugging Working Directory" to "run\x64\release" for x64-release
+- set "Debugging Working Directory" to "run\x64\debug" for x64-debug
+- compile and run "x64-release" or "x64-debug" in vs
