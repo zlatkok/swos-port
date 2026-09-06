@@ -2,6 +2,7 @@
 
 void activateReferee();
 bool refereeActive();
+void removeReferee();
 bool cardHandingInProgress();
 void updateReferee();
 void updateBookedPlayerNumberSprite();

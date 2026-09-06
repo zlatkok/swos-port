@@ -107,6 +107,7 @@ SymbolFileParser::SymbolFileParser(const char *symbolFilePath, const char *heade
     m_cppOutput = len > 4 && !_stricmp(outputPath + len - 4, ".cpp");
 
     parseSymbolFile();
+    warnAboutMergeableRemoveEntries();
 
     addHookProcs();
     m_symbolTable.seal();
@@ -493,7 +494,7 @@ void SymbolFileParser::parseSymbolFile()
                         if (procLen >= ProcHookList::kProcNameLength)
                             error("proc name too long");
                         if (action == kInsertCall)
-                            line = parseHookProcLine(symStart, symEnd, start, p);
+                            line = parseHookProcTarget(symStart, symEnd, start, p);
                         else
                             line = parseConstantToVariableLine(symStart, symEnd, start, p);
                     } else {
@@ -713,12 +714,46 @@ const char *SymbolFileParser::handlePotentialAlignment(const char *start, const 
     return pOrig;
 }
 
-int SymbolFileParser::parseHookProcLine(const char *symStart, const char *symEnd, const char *start, const char *end)
+int SymbolFileParser::parseHookProcTarget(const char *symStart, const char *symEnd, const char *start, const char *end)
 {
-    auto [lineNum, lineNumString, hookName, newStart] = parseProcNameLineNumberId(start, end, false);
-    start = newStart;
-
     String procName(symStart, symEnd);
+    String targetLabel;
+    String lineNumString;
+    String hookName;
+    int lineNum = 0;
+
+    start = skipWhiteSpace(start);
+    auto targetStart = start;
+    while (start < end && *start != ',' && !Util::isSpace(*start))
+        start++;
+    auto targetEnd = start;
+
+    if (targetStart == targetEnd)
+        error("missing hook target");
+
+    if (Util::isDigit(*targetStart)) {
+        auto parsedEnd = targetStart;
+        std::tie(lineNum, parsedEnd) = parseInt32(targetStart, targetEnd);
+        if (parsedEnd != targetEnd || lineNum <= 0)
+            error("line number must be positive non-zero integer");
+        lineNumString.assign(targetStart, targetEnd);
+    } else {
+        targetLabel.assign(targetStart, targetEnd);
+        if (targetLabel.length() >= ProcHookList::kProcNameLength)
+            error("hook target label too long");
+    }
+
+    start = skipWhiteSpace(start);
+    if (start < end && *start == ',') {
+        start = skipWhiteSpace(start + 1);
+        if (start >= end)
+            error("expected hook name");
+        hookName.assign(start, end);
+    } else if (!targetLabel.empty()) {
+        error("label-based hooks require an explicit hook name");
+    } else if (start != end) {
+        commaExpectedError();
+    }
 
     if (!hookName) {
         constexpr int kProcNameLength = ProcHookList::kProcNameLength;
@@ -738,10 +773,12 @@ int SymbolFileParser::parseHookProcLine(const char *symStart, const char *symEnd
 
         hookName.assign(buf, hookLen);
     } else if (isRemoveHook(start, end)) {
+        if (!targetLabel.empty())
+            error("@remove is not supported for label-based hooks");
         hookName.clear();
     }
 
-    m_procHookList.add(procName, hookName, lineNum, 0, false, m_lineNo);
+    m_procHookList.add(procName, hookName, lineNum, targetLabel, 0, false, m_lineNo);
 
     if (!hookName.empty()) {
         m_imports.add(hookName);
@@ -781,7 +818,7 @@ int SymbolFileParser::parseConstantToVariableLine(const char *symStart, const ch
         commaExpectedError();
     }
 
-    m_procHookList.add(procName, variableName, lineNum, initialValue, true, m_lineNo);
+    m_procHookList.add(procName, variableName, lineNum, {}, initialValue, true, m_lineNo);
     auto it = m_introducedVariableValues.try_emplace(variableName, initialValue);
     if (!it.second && it.first->second != initialValue)
         error("trying to initialize variable `" + variableName.string() + "' to " + std::to_string(initialValue) +
@@ -799,6 +836,8 @@ void SymbolFileParser::parseRemoveAndNullLine(SymbolAction action, const char *s
 
     auto flags = action;
     if (action == kRemove) {
+        m_removeEntries.push_back({ { symStart, static_cast<size_t>(symEnd - symStart) },
+            { start, static_cast<size_t>(end - start) }, m_lineNo });
         if (end > start)
             m_symbolTable.addSymbolAction(start, end, kRemoveEndRange, symStart, symEnd);
         else
@@ -807,6 +846,41 @@ void SymbolFileParser::parseRemoveAndNullLine(SymbolAction action, const char *s
         error("range expression not supported in this context");
     }
     m_symbolTable.addSymbolAction(symStart, symEnd, flags, start, end);
+}
+
+void SymbolFileParser::warnAboutMergeableRemoveEntries() const
+{
+    std::unordered_multimap<std::string_view, const RemoveEntry *> entriesByStart;
+    entriesByStart.reserve(m_removeEntries.size());
+
+    for (const auto& entry : m_removeEntries)
+        entriesByStart.emplace(std::string_view(entry.start.data(), entry.start.length()), &entry);
+
+    for (const auto& entry : m_removeEntries) {
+        if (entry.end.empty() || entry.end == kEndMarker)
+            continue;
+
+        auto end = std::string_view(entry.end.data(), entry.end.length());
+        auto matches = entriesByStart.equal_range(end);
+        for (auto it = matches.first; it != matches.second; ++it) {
+            const auto next = it->second;
+            if (next == &entry)
+                continue;
+
+            auto format = next->end.empty() ?
+                "%s(%zu): warning: mergeable @remove entries `%.*s - %.*s' and `%.*s' (line %zu)\n" :
+                "%s(%zu): warning: mergeable @remove entries `%.*s - %.*s' and `%.*s - %.*s' (line %zu)\n";
+            if (next->end.empty()) {
+                fprintf(stderr, format, m_path, entry.line, static_cast<int>(entry.start.length()), entry.start.data(),
+                    static_cast<int>(entry.end.length()), entry.end.data(), static_cast<int>(next->start.length()),
+                    next->start.data(), next->line);
+            } else {
+                fprintf(stderr, format, m_path, entry.line, static_cast<int>(entry.start.length()), entry.start.data(),
+                    static_cast<int>(entry.end.length()), entry.end.data(), static_cast<int>(next->start.length()),
+                    next->start.data(), static_cast<int>(next->end.length()), next->end.data(), next->line);
+            }
+        }
+    }
 }
 
 std::tuple<int32_t, String, String, const char *>
@@ -872,9 +946,15 @@ void SymbolFileParser::addHookProcs()
     for (size_t i = 0; i < procHookItems.size(); ) {
         const auto item = &procHookItems[i];
 
-        for (int j = i + 1; j < item->nextIndex; j++)
-            if (procHookItems[j].line == procHookItems[j - 1].line)
-                error("can't set more than one hook per line", procHookItems[j].definedAtLine);
+        for (int j = i + 1; j < item->nextIndex; j++) {
+            for (int k = i; k < j; k++) {
+                auto sameLine = procHookItems[j].line && procHookItems[j].line == procHookItems[k].line;
+                auto sameLabel = !procHookItems[j].targetLabel.empty() &&
+                    procHookItems[j].targetLabel == procHookItems[k].targetLabel;
+                if (sameLine || sameLabel)
+                    error("can't set more than one hook per target", procHookItems[j].definedAtLine);
+            }
+        }
 
         auto procHookData = m_procHookList.encodeProcHook(item, procHookItems.data() + item->nextIndex);
         m_symbolTable.addSymbolAction(item->procName, item->isVariable ? kConstantToVariable : kInsertCall, procHookData);

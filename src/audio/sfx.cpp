@@ -78,6 +78,11 @@ void playCrowdNoise()
         m_crowdLoopChannel = playSfx(kBackgroundCrowd, 100, -1);
 }
 
+void playBallBounceSample()
+{
+    playSfx(kBounce, 42);
+}
+
 void stopBackgroudCrowdNoise()
 {
     if (m_crowdLoopChannel >= 0) {
@@ -100,23 +105,43 @@ void playSfx(int sample, int volume)
         logWarn("Got invalid SFX sample %d", sample);
 }
 
-void SWOS::PlayMissGoalSample()
+void playMissGoalSample()
 {
     playSfx(kMissGoal);
 }
 
+void SWOS::PlayMissGoalSample()
+{
+    playMissGoalSample();
+}
+
 void SWOS::PlayHomeGoalSample()
+{
+    playHomeGoalSample();
+}
+
+void SWOS::PlayAwayGoalSample()
+{
+    playAwayGoalSample();
+}
+
+void playHomeGoalSample()
 {
     playSfx(kHomeGoal);
 }
 
-void SWOS::PlayAwayGoalSample()
+void playAwayGoalSample()
 {
     // playing same sample as home goal, but perfectly able to separate if needed
     playSfx(kHomeGoal);
 }
 
 void SWOS::PlayRefereeWhistleSample()
+{
+    playRefereeWhistleSample();
+}
+
+void playRefereeWhistleSample()
 {
     playSfx(kWhistle, 42);
 }
@@ -129,9 +154,4 @@ void SWOS::PlayFoulWhistleSample()
 void SWOS::PlayKickSample()
 {
     playSfx(kKick, 25);
-}
-
-void SWOS::PlayBallBounceSample()
-{
-    playSfx(kBounce, 42);
 }

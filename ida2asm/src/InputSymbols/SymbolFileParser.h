@@ -108,9 +108,10 @@ private:
     static SymbolAction getSectionName(const char *begin, const char *end);
     const char *handlePotentialArray(const char *start, const char *p, ExportEntry& e);
     const char *handlePotentialAlignment(const char *start, const char *p, ExportEntry& e);
-    int parseHookProcLine(const char *symStart, const char *symEnd, const char *start, const char *end);
+    int parseHookProcTarget(const char *symStart, const char *symEnd, const char *start, const char *end);
     int parseConstantToVariableLine(const char *symStart, const char *symEnd, const char *start, const char *end);
     void parseRemoveAndNullLine(SymbolAction action, const char *symStart, const char *symEnd, const char *start, const char *end);
+    void warnAboutMergeableRemoveEntries() const;
     std::tuple<int32_t, String, String, const char *> parseProcNameLineNumberId(const char *start, const char *end, bool fetchVariable);
     static bool isRemoveHook(const char *start, const char *end);
     void addHookProcs();
@@ -138,6 +139,14 @@ private:
     };
 
     void ensureUniqueSymbol(const char *start, const char *end, Namespace symNamespace, SymbolAction action, int lineNumber = 0);
+
+    struct RemoveEntry {
+        String start;
+        String end;
+        size_t line;
+    };
+
+    std::vector<RemoveEntry> m_removeEntries;
 
 #pragma pack(push, 1)
     enum ImportReturnType : uint8_t { kVoid, kInt, };

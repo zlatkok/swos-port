@@ -4,10 +4,16 @@ import sys
 import math
 import pathlib
 import operator
+import shutil
 import traceback
 import multiprocessing
 
 from typing import Final
+
+kAssetsDir: Final = pathlib.Path(__file__).resolve().parent
+kRepoDir: Final = kAssetsDir.parent
+sys.path.insert(0, str(kRepoDir / '3rd-party' / 'PyTexturePacker'))
+
 from tabulate import tabulate
 
 from PIL import Image
@@ -34,6 +40,13 @@ kVariableSpritePrefixes: Final = ('goalkeeper', 'player', 'bench')
 
 kWrapLimit: Final = 120
 
+kInPlayMatchPitchSprite: Final = 225
+kInPlayMatchPitchWidth: Final = 132
+kInPlayMatchPitchHeight: Final = 115
+kTacticsPitchSprite: Final = 226
+kTacticsPitchWidth: Final = 130
+kTacticsPitchHeight: Final = 200
+
 kWarning: Final = r'''// auto-generated, do not edit!
 #pragma once'''
 
@@ -56,6 +69,17 @@ def createDirs():
     mkdir(k4kDir)
     mkdir(kHdDir)
     mkdir(kLowResDir)
+
+def deployAssets(outDir=kOutDir):
+    swosDir = os.environ.get('SWOS_DIR')
+    if not swosDir:
+        return
+
+    destination = pathlib.Path(swosDir, 'assets')
+    for resolution in ('4k', 'hd', 'low-res'):
+        shutil.copytree(pathlib.Path(outDir, resolution), destination / resolution, dirs_exist_ok=True)
+
+    print(f'Assets deployed to {destination}')
 
 def pack(kwargs):
     input = kwargs.pop('input')
@@ -177,12 +201,31 @@ def getSprites(atlasData, atlasNamePrefixes, metadataPaths, files):
             textureIndices[res] += len(dirAtlasData)
 
     numSprites += 1
+    includeProceduralPitch = atlasNamePrefixes == kFixedSpritePrefixes
+    if includeProceduralPitch:
+        numSprites = max(numSprites, kTacticsPitchSprite + 1)
     spriteArray = [[None] * numSprites, [None] * numSprites, [None] * numSprites]
 
     for res, resSprites in enumerate(sprites):
         for index, sprite in resSprites:
             assert spriteArray[res][index] is None
             spriteArray[res][index] = sprite
+
+        # Sprites 225 and 226 are rendered directly by renderSprites.cpp. Retain their
+        # logical dimensions so packed menus can position and center them without
+        # keeping the large pitch images in a texture atlas.
+        if includeProceduralPitch:
+            for spriteIndex, width, height in (
+                (kInPlayMatchPitchSprite, kInPlayMatchPitchWidth, kInPlayMatchPitchHeight),
+                (kTacticsPitchSprite, kTacticsPitchWidth, kTacticsPitchHeight),
+            ):
+                spriteArray[res][spriteIndex] = [
+                    0, 0, 0, 0,
+                    0, 0, 0.0, 0.0,
+                    width, height, float(width), float(height),
+                    0, 0, 0.0, 0.0,
+                    -1, 'false',
+                ]
 
     return spriteArray, numSprites
 
@@ -398,8 +441,12 @@ def printPitchMemoryUsage(memoryPerPitch):
         row = list(map(humanize, row))
         memoryPerPitch[i] = [i + 1] + row
 
+    # MSBuild captures stdout through a pipe and may decode UTF-8 box-drawing
+    # characters using the active Windows code page. Keep captured build logs
+    # ASCII-only, while retaining the nicer table in an interactive terminal.
+    tableFormat = 'fancy_grid' if sys.stdout.isatty() else 'simple'
     print('Approximate video memory requirements per pitch:')
-    print(tabulate(memoryPerPitch, headers=['#', '4k', 'HD', 'low-res'], tablefmt='fancy_grid'))
+    print(tabulate(memoryPerPitch, headers=['#', '4k', 'HD', 'low-res'], tablefmt=tableFormat))
 
 def outputPitchPatternData(atlasData, pitches, trainingPitch, out):
     resPatterns, pitchStartPatterns, memoryPerPitch = getPatterns(atlasData, pitches)
@@ -629,7 +676,9 @@ def getOptions(pitches):
 
     options = [
         dict(input=gameSprites, atlasNamePattern='gameSprites%d'),
-        dict(input=os.path.join('sprites', 'menu'), atlasNamePattern='charset%d'),
+        dict(input=tuple(str(path) for path in pathlib.Path('sprites', 'menu').glob('spr*.png')
+            if extractIndex(path.name) not in (kInPlayMatchPitchSprite, kTacticsPitchSprite)),
+            atlasNamePattern='charset%d'),
         dict(input=os.path.join('sprites', 'game', 'stadium'), enable_rotated=False, atlasNamePattern='stadium%d'),
     ]
 
@@ -686,6 +735,7 @@ def parseCommandLine(options):
     return options, trainingPitch
 
 def main():
+    os.chdir(kAssetsDir)
     createDirs()
 
     pitches = getPitches()
@@ -705,6 +755,9 @@ def main():
     generateVariableSprites(atlasData)
     generatePitchDatabase(atlasData, pitches, trainingPitch)
     generateStadiumSprites(atlasData)
+
+    deployAssets()
+    pathlib.Path(kOutDir, 'assets.stamp').touch()
 
     print('\nSuccess.', end='');
 

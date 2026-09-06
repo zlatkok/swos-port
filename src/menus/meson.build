@@ -1,22 +1,18 @@
-# gather menu files and set up additional dependencies
-c = run_command([python, '-c', getFilesCommand.format('.', '*.mnu')])
-menuFiles = c.stdout().strip().split('\n')
-
-menuFilesDeps = {}
-foreach menu : menuFiles
-    if menu == 'main.mnu'
-        menuFilesDeps += {menu: []}
-    else
-        menuFilesDeps += {menu: ['common.mh']}
-    endif
-endforeach
+# Compile the same menu inputs as the Visual Studio mnu2h utility project.
+c = run_command([python, '-c', getFilesCommand.format('mnu', '*.mnu')], check: true)
+rawMenus = c.stdout().strip().split('\n')
 
 menuFiles = []
-foreach menu, dependencies : menuFilesDeps
-    menuFiles += custom_target('mnu2h_@0@'.format(menu),
+foreach menu : rawMenus
+    dependencies = [mnu2hDeps]
+    if menu != 'mnu/main.mnu'
+        dependencies += files('mnu/common.mh')
+    endif
+
+    menuFiles += custom_target('mnu2h_@0@'.format(fs.name(menu)),
         input: menu,
         output: '@PLAINNAME@.h',
-        depend_files: [dependencies, mnu2hDeps],
+        depend_files: dependencies,
         command: [python, mnu2h, '@INPUT@', '@OUTPUT@'],
     )
 endforeach

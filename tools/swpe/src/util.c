@@ -100,18 +100,15 @@ void my_strncpy(char *dest, const char *src, uint len)
    Fills bmfh and bmih with all data needed for saving. Works only with 8-bit
    (paletised) bitmaps.
 */
-void FillBitmapInfo(BITMAPFILEHEADER *bmfh, BITMAPINFOHEADER *bmih,
-                    uint num_colors, uint width, uint height)
+void FillBitmapInfo(BITMAPFILEHEADER *bmfh, BITMAPINFOHEADER *bmih, uint num_colors, uint width, uint height)
 {
     uint size = width * height;
 
     bmfh->bfType = 'MB';
-    bmfh->bfSize = sizeof(*bmfh) + sizeof(*bmih) +
-                   num_colors * sizeof(RGBQUAD) + size;
+    bmfh->bfSize = sizeof(*bmfh) + sizeof(*bmih) + num_colors * sizeof(RGBQUAD) + size;
     bmfh->bfReserved1 = 0;
     bmfh->bfReserved2 = 0;
-    bmfh->bfOffBits = sizeof(*bmfh) + sizeof(*bmih) +
-                      num_colors * sizeof(RGBQUAD);
+    bmfh->bfOffBits = sizeof(*bmfh) + sizeof(*bmih) + num_colors * sizeof(RGBQUAD);
     bmih->biSize = sizeof(*bmih);
     bmih->biWidth = width;
     bmih->biHeight = height;

@@ -16,8 +16,7 @@ static const int16_t kPlayerShotChanceTable[] = {
     8, 1024, 112, 800, 144, 7, 7, 7, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 1, 6, 9, 4, 12, 1, 6, 9, 4
 };
 
-static SwosDataPointer<GoalieSkillTableRow> m_goalieSkillsTable;
-static SwosDataPointer<int16_t> m_playerShotChanceTable;
+static SwosDataPointer<int16_t> m_shotChanceTables;
 
 static void stopPlayers(TeamGeneralInfo& team);
 
@@ -25,7 +24,7 @@ using namespace SwosVM;
 
 void stopAllPlayers()
 {
-    for (auto& team : { &swos.topTeamData, &swos.bottomTeamData }) {
+    for (auto team : { &swos.topTeamData, &swos.bottomTeamData }) {
         stopPlayers(*team);
         team->ballInPlay = 0;
         team->ballOutOfPlay = 0;
@@ -57,10 +56,10 @@ static void stopPlayers(TeamGeneralInfo& team)
 // Remove this when we don't rely on VM for the gameplay anymore.
 void initPlayerShotChanceTables()
 {
-    m_goalieSkillsTable = SwosVM::allocateMemory(sizeof(kGoalieSkillTables)).as<GoalieSkillTableRow *>();
-    memcpy(m_goalieSkillsTable, kGoalieSkillTables, sizeof(kGoalieSkillTables));
-    m_playerShotChanceTable = SwosVM::allocateMemory(sizeof(kPlayerShotChanceTable)).as<int16_t *>();
-    memcpy(m_playerShotChanceTable, kPlayerShotChanceTable, sizeof(kPlayerShotChanceTable));
+    auto tables = SwosVM::allocateMemory(sizeof(kGoalieSkillTables) + sizeof(kPlayerShotChanceTable));
+    memcpy(tables, kGoalieSkillTables, sizeof(kGoalieSkillTables));
+    memcpy(tables + sizeof(kGoalieSkillTables), kPlayerShotChanceTable, sizeof(kPlayerShotChanceTable));
+    m_shotChanceTables = tables.as<int16_t *>();
 }
 
 void updatePlayerShotChanceTable(TeamGeneralInfo& team, const Sprite& player)
@@ -68,22 +67,22 @@ void updatePlayerShotChanceTable(TeamGeneralInfo& team, const Sprite& player)
     const auto& playerInfo = getPlayerPointerFromShirtNumber(team, player);
     if (playerInfo.position == PlayerPosition::kGoalkeeper) {
         assert(playerInfo.goalieSkill < 8);
-        team.shotChanceTable = m_goalieSkillsTable.as<GoalieSkillTableRow *>()[playerInfo.goalieSkill];
+        team.shotChanceTable = m_shotChanceTables.as<GoalieSkillTableRow *>()[playerInfo.goalieSkill];
     } else {
-        team.shotChanceTable = *m_playerShotChanceTable;
+        team.shotChanceTable = reinterpret_cast<int16_t *>(m_shotChanceTables.asCharPtr() + sizeof(kGoalieSkillTables));
     }
 }
 
 #ifdef SWOS_TEST
 const int16_t *getPlayerShotChanceTable()
 {
-    return kPlayerShotChanceTable;
+    return reinterpret_cast<int16_t *>(m_shotChanceTables.asCharPtr() + sizeof(kGoalieSkillTables));
 }
 
 int getGoalieShotChanceTableIndex(const int16_t *ptr)
 {
     for (size_t i = 0; i < std::size(kGoalieSkillTables); ++i) {
-        if (ptr == m_goalieSkillsTable[i])
+        if (ptr == m_shotChanceTables.as<GoalieSkillTableRow *>()[i])
             return static_cast<int>(i);
     }
 

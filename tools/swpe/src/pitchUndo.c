@@ -263,7 +263,7 @@ static void undoDeletePattern(const PatternDeletionUndoRecord *rec, PitchPattern
     byte *dataDest = (char *)patterns->data + PATTERN_BYTE_SIZE * rec->deletedPatternNo;
     if (rec->deletedPatternNo < (int)patterns->numPatterns++ - 1)
         memmove(dataDest + PATTERN_BYTE_SIZE, dataDest,
-            (patterns->numPatterns - rec->deletedPatternNo) * PATTERN_BYTE_SIZE);
+            (patterns->numPatterns - rec->deletedPatternNo - 1) * PATTERN_BYTE_SIZE);
     memcpy(dataDest, rec->data, PATTERN_BYTE_SIZE);
 
     for (int i = 0; i < patterns->numPtrs; i++)
@@ -271,7 +271,8 @@ static void undoDeletePattern(const PatternDeletionUndoRecord *rec, PitchPattern
             patterns->ptrs[i] += PATTERN_BYTE_SIZE;
 
     uint patternPtr = rec->deletedPatternNo * PATTERN_BYTE_SIZE + (uint)patterns->data;
-    int *indices = rec->numNulledPatterns > kNumInlineNulledPatterns ? rec->nulledPatterns : rec->nulledPatternsInline;
+    const int *indices = rec->numNulledPatterns > kNumInlineNulledPatterns ?
+        rec->nulledPatterns : rec->nulledPatternsInline;
     for (int i = 0; i < rec->numNulledPatterns; i++)
         patterns->ptrs[*indices++] = patternPtr;
 
@@ -282,7 +283,7 @@ static void redoDeletePattern(const PatternDeletionUndoRecord *rec, char *msgBuf
 {
     assert(rec->groupLeader && !rec->numJoinedOperations);
 
-    deletePattern(rec->pitchNo, rec->deletedPatternNo);
+    deletePatternWithoutUndo(rec->pitchNo, rec->deletedPatternNo);
     wsprintf(msgBuf, "TILE %d DELETED AGAIN", rec->deletedPatternNo);
 }
 

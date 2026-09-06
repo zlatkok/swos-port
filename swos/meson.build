@@ -1,60 +1,34 @@
-kOutputFormat = 'masm'
-kInputs = ['swos.asm', 'symbols.txt']   # the order is important
-kSwosAsmFiles = [        # sadly, couldn't figure out a way to generate this programatically from a number
-    'swos-01.asm',
-    'swos-02.asm',
-    'swos-03.asm',
-    'swos-04.asm',
-    'swos-05.asm',
-    'swos-06.asm',
-    'swos-07.asm',
-    'swos-08.asm',
+kSwosCppFiles = [
+    'swos-01.cpp',
+    'swos-02.cpp',
+    'swos-03.cpp',
+    'swos-04.cpp',
+    'swos-05.cpp',
+    'swos-06.cpp',
+    'swos-07.cpp',
+    'swos-08.cpp',
 ]
 
-# Find and version check MASM
-masm = find_program('ml')
-mlRun = run_command(masm, '/?')
-
-assert(mlRun.returncode() == 0, 'failed to obtain MASM version')
-
-output = mlRun.stderr().strip().split()
-assert(output[4].to_lower() == 'version', 'unexpected MASM version string: @0@'.format(mlRun.stderr()))
-assert(output[5].version_compare('>=14'), 'MASM version 14 or later required')
-
-# generate MASM SWOS files
-swosAsm = custom_target('swos-asm',
-    input: kInputs,
-    output: ['swossym.h', kSwosAsmFiles,],  # swossym.h must be first
+# Generate the VM-backed C++ implementation used by the current Visual Studio
+# projects. ida2asm is deliberately built as an optimized target because its
+# Debug diagnostics are unsuitable for normal game and test builds.
+swosCpp = custom_target('swos-cpp',
+    input: ['swos.asm', 'symbols.txt'],
+    output: ['swossym.h'] + kSwosCppFiles + ['vm.cpp', 'vm.h', 'defs.h'],
     command: [
         ida2asm,
         '@INPUT0@',
-        '@OUTDIR@' / 'swos.asm',
+        '@OUTDIR@' / 'swos.cpp',
         '@INPUT1@',
-        '@OUTDIR@' / 'swossym.h',
-        kOutputFormat,
-        kSwosAsmFiles.length().to_string(),
+        '@OUTPUT0@',
+        'c++',
+        kSwosCppFiles.length().to_string(),
+        '--extra-memory-size=60000',
+        '--disable-alignment-checks',
     ],
 )
 
-# assemble generated SWOS ASM files into object files
-i = 1
-swosObjFiles = []
-
-foreach asmFile : kSwosAsmFiles
-    objFile = fs.replace_suffix(asmFile, '.obj')
-
-    swosObjFiles += custom_target(objFile,
-        input: swosAsm[i],
-        output: objFile,
-        command: [
-            masm,
-            '/Cp',
-            '/coff',
-            '/c',
-            '/nologo',
-            '/Fo', '@OUTPUT@',
-            '@INPUT@',
-        ],
-    )
-    i += 1
+swosGeneratedSources = []
+foreach i : range(1, 10)
+    swosGeneratedSources += swosCpp[i]
 endforeach

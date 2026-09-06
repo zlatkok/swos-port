@@ -6,13 +6,105 @@
 
 constexpr int kDefinesCapacity = 45'000;
 
+static size_t findSymbolDefinitionLine(const char *data, size_t dataLength, const String& symbol)
+{
+    auto end = data + dataLength;
+    auto lineStart = data;
+    size_t lineNo = 1;
+
+    if (dataLength >= 3 && !memcmp(data, "\xef\xbb\xbf", 3))
+        lineStart += 3;
+
+    while (lineStart < end) {
+        auto lineEnd = static_cast<const char *>(memchr(lineStart, '\n', end - lineStart));
+        if (!lineEnd)
+            lineEnd = end;
+
+        auto token = lineStart;
+        while (token < lineEnd && (*token == ' ' || *token == '\t'))
+            token++;
+
+        auto remaining = static_cast<size_t>(lineEnd - token);
+        if (remaining >= symbol.length() && !memcmp(token, symbol.data(), symbol.length())) {
+            auto next = token + symbol.length();
+            if (next == lineEnd || Util::isSpace(*next) || *next == ':' || *next == '=')
+                return lineNo;
+        }
+
+        lineStart = lineEnd + (lineEnd < end);
+        lineNo++;
+    }
+
+    return 0;
+}
+
+static std::vector<std::string> getSourceItemNames(const char *data, size_t dataLength)
+{
+    std::vector<std::string> result;
+    bool inProc = false;
+    auto end = data + dataLength;
+    auto lineStart = data;
+
+    const auto isIgnoredToken = [](const std::string& token) {
+        static const char *ignored[] = {
+            "align", "assume", "db", "dd", "df", "dq", "dt", "dw", "end", "even", "extrn",
+            "include", "option", "org", "public", "title",
+        };
+        return std::find(std::begin(ignored), std::end(ignored), token) != std::end(ignored);
+    };
+
+    while (lineStart < end) {
+        auto lineEnd = static_cast<const char *>(memchr(lineStart, '\n', end - lineStart));
+        if (!lineEnd)
+            lineEnd = end;
+
+        auto token = lineStart;
+        while (token < lineEnd && (*token == ' ' || *token == '\t'))
+            token++;
+        const bool startsAtColumnZero = token == lineStart;
+
+        if (token < lineEnd && *token != ';' && *token != '.') {
+            auto firstEnd = token;
+            while (firstEnd < lineEnd && !Util::isSpace(*firstEnd) && *firstEnd != ':' && *firstEnd != '=')
+                firstEnd++;
+            std::string first(token, firstEnd);
+
+            auto second = firstEnd;
+            while (second < lineEnd && Util::isSpace(*second))
+                second++;
+            auto secondEnd = second;
+            while (secondEnd < lineEnd && !Util::isSpace(*secondEnd) && *secondEnd != ';')
+                secondEnd++;
+            std::string secondToken(second, secondEnd);
+
+            if (secondToken == "proc") {
+                result.push_back(std::move(first));
+                inProc = true;
+            } else if (secondToken == "endp") {
+                inProc = false;
+            } else if (!inProc && startsAtColumnZero && !first.empty() && !isIgnoredToken(first)) {
+                const bool label = firstEnd < lineEnd && *firstEnd == ':';
+                const bool data = !secondToken.empty() && secondToken != "=" && secondToken != "equ" &&
+                    secondToken != "ends" && secondToken != "macro" && secondToken != "segment" &&
+                    secondToken != "struc";
+                if (label || data)
+                    result.push_back(std::move(first));
+            }
+        }
+
+        lineStart = lineEnd + (lineEnd < end);
+    }
+
+    return result;
+}
+
 InputConverter::InputConverter(const char *inputPath, const char *outputPath, const char *swosHeaderFile,
     OutputFormatResolver::OutputFormat format, int numFiles, int extraMemorySize, bool disableOptimizations,
-    bool disableAlignmentChecks, SymbolFileParser& symFileParser)
+    bool disableAlignmentChecks, const char *unreferencedReportPath, SymbolFileParser& symFileParser)
 :
     m_inputPath(inputPath), m_outputPath(outputPath), m_headerPath(swosHeaderFile), m_format(format), m_numFiles(numFiles),
     m_extraMemorySize(extraMemorySize), m_disableOptimizations(disableOptimizations), m_disableAlignmentChecks(disableAlignmentChecks),
-    m_defines(kDefinesCapacity), m_symFileParser(symFileParser), m_dataBank(symFileParser)
+    m_unreferencedReportPath(unreferencedReportPath), m_defines(kDefinesCapacity), m_symFileParser(symFileParser), m_dataBank(symFileParser)
 {
     loadFile(inputPath);
 }
@@ -26,12 +118,14 @@ void InputConverter::convert()
 
     int blockSize = remainingLength / m_numFiles;
 
-    auto lineNo = parse(commonPartLength, blockSize);
+    parse(commonPartLength, blockSize);
 
-    checkForParsingErrors(lineNo);
+    checkForParsingErrors();
     auto workersToOutput = connectRanges();
     resolveExterns(workersToOutput);
     consolidateVariables();
+    if (m_unreferencedReportPath)
+        reportUnreferencedItems(workersToOutput);
     output(commonPrefix, workersToOutput);
     checkForUnusedSymbols();
 }
@@ -99,7 +193,7 @@ size_t InputConverter::parseCommonPart(int length)
     return parser.lineCount();
 }
 
-size_t InputConverter::parse(int commonPartLength, int blockSize)
+void InputConverter::parse(int commonPartLength, int blockSize)
 {
     for (int i = 0; i < m_numFiles; i++) {
         m_symbolTables.push_back(new SymbolTable(m_symFileParser.symbolTable()));
@@ -116,26 +210,22 @@ size_t InputConverter::parse(int commonPartLength, int blockSize)
     }
 
     // utilize main thread too, this should finish first
-    auto lineNo = parseCommonPart(commonPartLength);
+    parseCommonPart(commonPartLength);
 
     // workers should still be busy, so we basically we get this for free :)
     m_symFileParser.outputHeaderFile(m_headerPath);
 
     waitForWorkers();
 
-    return lineNo;
 }
 
-void InputConverter::checkForParsingErrors(size_t lineNo)
+void InputConverter::checkForParsingErrors()
 {
     for (auto worker : m_workers) {
         const auto& parser = worker->parser();
 
-        if (!parser.ok()) {
-            auto errorLine = lineNo + parser.errorLine();
-            error(parser.errorDescription(), errorLine);
-        }
-        lineNo += parser.lineCount();
+        if (!parser.ok())
+            error(parser.errorDescription(), worker->errorLine());
     }
 }
 
@@ -144,7 +234,7 @@ std::vector<int> InputConverter::connectRanges()
     std::vector<int> activeChunks(m_numFiles, false);
     String missingSymbol;
 
-    for (int i = 0; i < m_numFiles - 1; i++) {
+    for (int i = 0; i < m_numFiles; i++) {
         const auto& parser = m_workers[i]->parser();
 
         if (missingSymbol.empty()) {
@@ -153,6 +243,9 @@ std::vector<int> InputConverter::connectRanges()
 
             activeChunks[i] = true;
             missingSymbol = parser.missingEndRangeSymbol();
+        } else if (missingSymbol == SymbolFileParser::kEndMarker) {
+            // An @end range consumes every chunk following the one containing its start.
+            continue;
         } else {
             if (missingSymbol == parser.foundEndRangeSymbol()) {
                 missingSymbol.clear();
@@ -166,11 +259,8 @@ std::vector<int> InputConverter::connectRanges()
         }
     }
 
-    if (!missingSymbol.empty())
+    if (!missingSymbol.empty() && missingSymbol != SymbolFileParser::kEndMarker)
         Util::exit("End range symbol `%s' is missing", EXIT_FAILURE, missingSymbol.string().c_str());
-
-    assert(m_workers.back()->parser().missingEndRangeSymbol().empty());
-    activeChunks.back() = true;
 
     return activeChunks;
 }
@@ -291,18 +381,43 @@ void InputConverter::checkForOutputErrors()
 
 void InputConverter::checkForUnusedSymbols()
 {
-    auto exitIfUndefinedSymbols = [](const char *lead, const std::vector<String>& symbols) {
+    auto exitIfUndefinedSymbols = [this](const char *lead, const std::vector<String>& symbols) {
         if (!symbols.empty()) {
             std::unordered_set<String> uniqueSymbols;
             for (const auto& str : symbols)
                 uniqueSymbols.insert(str);
 
             std::string error = lead;
+            auto removalRanges = m_symFileParser.symbolTable().removalRanges();
 
-            for (const auto& str : uniqueSymbols)
-                error += str.string() + ", ";
+            for (const auto& str : uniqueSymbols) {
+                error += "\n  " + str.string();
 
-            error.erase(error.length() - 2, 2);
+                auto definitionLine = findSymbolDefinitionLine(m_data.get(), m_dataLength, str);
+                if (definitionLine) {
+                    error += " -- defined in " + std::string(m_inputPath) + ":" + std::to_string(definitionLine);
+
+                    bool removalRangeFound = false;
+                    for (const auto& range : removalRanges) {
+                        auto rangeStartLine = findSymbolDefinitionLine(m_data.get(), m_dataLength, range.first);
+                        auto rangeEndLine = range.second == SymbolFileParser::kEndMarker ? m_dataLength :
+                            findSymbolDefinitionLine(m_data.get(), m_dataLength, range.second);
+
+                        if (rangeStartLine && rangeStartLine <= definitionLine && definitionLine < rangeEndLine) {
+                            error += ", removed by @remove entry `" + range.first.string();
+                            if (!range.second.empty())
+                                error += " - " + range.second.string();
+                            error += "'";
+                            removalRangeFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!removalRangeFound)
+                        error += ", but not present after parsing (possibly removed or skipped)";
+                }
+            }
+
             Util::exit("%s", EXIT_FAILURE, error.c_str());
         }
     };
@@ -330,6 +445,234 @@ void InputConverter::checkForUnusedSymbols()
         }
 
         exitIfUndefinedSymbols("Unknown symbol(s) found: ", unusedSymbols);
+    }
+}
+
+void InputConverter::reportUnreferencedItems(const AllowedChunkList& activeChunks) const
+{
+    struct Node {
+        std::string name;
+        bool procedure;
+        std::unordered_set<std::string> references;
+        size_t line = 0;
+        size_t sourceIndex = SIZE_MAX;
+    };
+
+    std::vector<Node> nodes;
+    std::unordered_map<std::string, size_t> nodeByName;
+    std::unordered_map<std::string, std::string> definitionOwner;
+
+    auto addNode = [&](const String& name, bool procedure) -> std::string {
+        auto str = name.string();
+        auto [it, inserted] = nodeByName.emplace(str, nodes.size());
+        if (inserted)
+            nodes.push_back({ str, procedure });
+        definitionOwner[str] = str;
+        return str;
+    };
+
+    for (size_t workerIndex = 0; workerIndex < m_workers.size(); workerIndex++) {
+        if (!activeChunks[workerIndex])
+            continue;
+
+        std::string currentProc;
+        std::vector<std::string> pendingLabels;
+        for (const auto& item : m_workers[workerIndex]->parser().outputItems()) {
+            switch (item.type()) {
+            case OutputItem::kProc:
+                currentProc = addNode(item.getItem<Proc>()->name(), true);
+                for (const auto& label : pendingLabels)
+                    definitionOwner[label] = currentProc;
+                pendingLabels.clear();
+                break;
+
+            case OutputItem::kEndProc:
+                currentProc.clear();
+                break;
+
+            case OutputItem::kLabel:
+                {
+                    auto label = item.getItem<Label>()->name().string();
+                    if (!currentProc.empty())
+                        definitionOwner[label] = currentProc;
+                    else
+                        pendingLabels.push_back(std::move(label));
+                }
+                break;
+
+            case OutputItem::kDataItem:
+                if (currentProc.empty()) {
+                    auto data = item.getItem<DataItem>();
+                    if (!data->name().empty()) {
+                        if (data->size()) {
+                            auto owner = addNode(data->name(), false);
+                            for (const auto& label : pendingLabels)
+                                definitionOwner[label] = owner;
+                            pendingLabels.clear();
+                        } else {
+                            pendingLabels.push_back(data->name().string());
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    auto normalizedSymbol = [](const String& symbol) {
+        auto result = symbol.string();
+        while (!result.empty() && (result.front() == '(' || result.front() == '['))
+            result.erase(result.begin());
+        auto separator = result.find_first_of(".+-)]");
+        if (separator != std::string::npos)
+            result.resize(separator);
+        return result;
+    };
+
+    std::unordered_set<std::string> roots;
+    auto addReference = [&](const std::string& owner, const String& symbol) {
+        auto targetName = normalizedSymbol(symbol);
+        auto target = definitionOwner.find(targetName);
+        if (target == definitionOwner.end())
+            return;
+
+        if (owner.empty()) {
+            roots.insert(target->second);
+        } else {
+            auto ownerNode = nodeByName.find(owner);
+            assert(ownerNode != nodeByName.end());
+            if (target->second != owner)
+                nodes[ownerNode->second].references.insert(target->second);
+        }
+    };
+
+    for (size_t workerIndex = 0; workerIndex < m_workers.size(); workerIndex++) {
+        if (!activeChunks[workerIndex])
+            continue;
+
+        std::string currentProc;
+        std::string currentData;
+        for (const auto& item : m_workers[workerIndex]->parser().outputItems()) {
+            switch (item.type()) {
+            case OutputItem::kProc:
+                currentProc = item.getItem<Proc>()->name().string();
+                currentData.clear();
+                break;
+
+            case OutputItem::kEndProc:
+                currentProc.clear();
+                break;
+
+            case OutputItem::kDataItem:
+                if (currentProc.empty()) {
+                    auto data = item.getItem<DataItem>();
+                    if (!data->name().empty() && data->size())
+                        currentData = data->name().string();
+
+                    if (!currentData.empty()) {
+                        auto element = data->initialElement();
+                        for (size_t i = 0; i < data->numElements(); i++, element = element->next())
+                            if ((element->type() & DataItem::kTypeMask) == DataItem::kLabel)
+                                addReference(currentData, element->text());
+                    }
+                }
+                break;
+
+            case OutputItem::kInstruction:
+                {
+                    auto instruction = item.getItem<Instruction>();
+                    for (const auto& operand : instruction->operands())
+                        for (const auto& token : operand)
+                            if (token.type() == Token::T_ID && !token.isRegister() && !token.isNumber())
+                                addReference(currentProc, token.text());
+                }
+                break;
+            }
+        }
+    }
+
+    for (const auto& symbol : m_symFileParser.exports()) {
+        auto owner = definitionOwner.find(symbol.string());
+        if (owner != definitionOwner.end())
+            roots.insert(owner->second);
+    }
+
+    std::unordered_set<std::string> reachable;
+    std::vector<std::string> pending(roots.begin(), roots.end());
+    while (!pending.empty()) {
+        auto name = std::move(pending.back());
+        pending.pop_back();
+        if (!reachable.insert(name).second)
+            continue;
+
+        auto node = nodeByName.find(name);
+        if (node != nodeByName.end())
+            for (const auto& reference : nodes[node->second].references)
+                pending.push_back(reference);
+    }
+
+    for (auto& node : nodes)
+        node.line = findSymbolDefinitionLine(m_data.get(), m_dataLength,
+            String(node.name.data(), node.name.length()));
+
+    const auto sourceItems = getSourceItemNames(m_data.get(), m_dataLength);
+    std::unordered_map<std::string, size_t> sourceItemIndices;
+    for (size_t i = 0; i < sourceItems.size(); i++)
+        sourceItemIndices.emplace(sourceItems[i], i);
+    for (auto& node : nodes) {
+        auto sourceItem = sourceItemIndices.find(node.name);
+        if (sourceItem != sourceItemIndices.end())
+            node.sourceIndex = sourceItem->second;
+    }
+
+    std::sort(nodes.begin(), nodes.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.line < rhs.line;
+    });
+
+    std::string report = "Unreferenced VM items:\n";
+    size_t count = 0;
+    for (size_t i = 0; i < nodes.size();) {
+        if (reachable.count(nodes[i].name)) {
+            i++;
+            continue;
+        }
+
+        size_t end = i + 1;
+        while (end < nodes.size() && !reachable.count(nodes[end].name) &&
+            nodes[end].procedure == nodes[i].procedure && nodes[end - 1].sourceIndex != SIZE_MAX &&
+            nodes[end].sourceIndex == nodes[end - 1].sourceIndex + 1)
+            end++;
+
+        const bool region = end - i > 1;
+        if (region) {
+            const auto nextSourceIndex = nodes[end - 1].sourceIndex + 1;
+            const auto exclusiveEnd = nextSourceIndex < sourceItems.size() ? sourceItems[nextSourceIndex] : "@end";
+            report += "  " + std::string(nodes[i].procedure ? "procedure" : "data") + " region: " +
+                nodes[i].name + " - " + exclusiveEnd + " (end exclusive)\n";
+        }
+
+        for (; i < end; i++) {
+            const auto& node = nodes[i];
+            report += region ? "    " : "  ";
+            report += std::string(node.procedure ? "procedure " : "data      ") + node.name;
+            if (node.line)
+                report += " -- " + std::string(m_inputPath) + ':' + std::to_string(node.line);
+            report += '\n';
+            count++;
+        }
+    }
+
+    if (!count)
+        report = "No unreferenced VM items found.\n";
+
+    if (!*m_unreferencedReportPath) {
+        std::cout << report;
+    } else {
+        auto file = fopen(m_unreferencedReportPath, "wb");
+        if (!file)
+            Util::exit("Unable to open unreferenced-items report file: %s", EXIT_FAILURE, m_unreferencedReportPath);
+        fwrite(report.data(), 1, report.size(), file);
+        fclose(file);
     }
 }
 

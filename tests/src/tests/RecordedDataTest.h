@@ -51,6 +51,7 @@ protected:
     const char *name() const override;
     const char *displayName() const override;
     CaseList getCases() override;
+    bool shouldRunLast() const override { return true; }
 
 private:
     static constexpr int kFrameNumSprites = 33;
@@ -144,8 +145,6 @@ private:
     void verifyTeamGame(const TeamGame& recTeam, const TeamGame& team);
     void verifySprites(const Sprite *sprites);
     void verifyBench();
-    PlayerAnimationTable *convertAnimationTable(int offset);
-    int16_t *convertFrameIndicesTable(int offset);
     void verifyPlayerSpriteOrder(char *players, const TeamGeneralInfo& team);
     void verifyShotChanceTable(int recOffset, SwosDataPointer<const int16_t> table);
     void verifySpritePointer(SwosDataPointer<Sprite> recSprite, SwosDataPointer<Sprite> sprite);

@@ -12,6 +12,7 @@
 #include "file.h"
 #include "util.h"
 #include "mainMenu.h"
+#include "team.h"
 
 #ifndef SWOS_TEST
 static_assert(offsetof(SwosVM::SwosVariables, g_selectedTeams) -
@@ -142,6 +143,7 @@ static void init()
     initSprites();
     initPitches();
     initMenuMouse();
+    initPlayerShotChanceTables();   // to be removed once game play is fully moved out of VM
 }
 
 static void initRandomSeed()

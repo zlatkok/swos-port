@@ -1,5 +1,8 @@
 bin
 dll
+!3rd-party/bin/
+!3rd-party/bin/dll/
+!3rd-party/bin/dll/**
 /tmp/*
 /project/vc++/.vs
 /tests/vc-proj/.vs
@@ -21,3 +24,6 @@ __pycache__
 build
 /.tgitconfig
 v16
+tmp
+.vs
+dist

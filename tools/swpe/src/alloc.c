@@ -2,7 +2,6 @@
 #include "util.h"
 #include "file.h"
 #include "debug.h"
-#include "dx.h"
 #include <assert.h>
 
 #ifdef DEBUG
@@ -96,10 +95,6 @@ void *xmalloc(uint size)
         return p;
     } else {
         WriteToLog(("xmalloc(): Memory allocation failure. Terminating program."));
-        if (g.fscreen) {
-            FinishDirectDraw(g.hWnd);
-            g.fscreen = FALSE;
-        }
         g.crashed = TRUE;
         ShowWindow(g.hWnd, SW_HIDE);
         MessageBox(g.hWnd, "Out of memory!", "Error", MB_OK);

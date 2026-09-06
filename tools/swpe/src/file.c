@@ -35,8 +35,7 @@ void logOpenFiles()
     }
 }
 
-static void RecordFile(HANDLE h,const char *fname, const char *file,
-                       const int line)
+static void RecordFile(HANDLE h, const char *fname, const char *file, const int line)
 {
     if (m_trackFiles && h != ERR_HANDLE) {
         m_files[m_openFilesIndex].h = h;
@@ -54,8 +53,7 @@ void SetTrackFiles(bool state)
 }
 #endif
 
-static void TranslateFlags(const uint flags, uint *access, uint *share_mode,
-                           uint *attribs)
+static void TranslateFlags(const uint flags, uint *access, uint *share_mode, uint *attribs)
 {
     *access = 0;
     if (flags & FF_READ)
@@ -73,8 +71,7 @@ static void TranslateFlags(const uint flags, uint *access, uint *share_mode,
 }
 
 #ifdef DEBUG
-HANDLE FOpenDbg(const char *fname, const uint flags,
-                   const char *file, const int line)
+HANDLE FOpenDbg(const char *fname, const uint flags, const char *file, const int line)
 #else
 HANDLE FOpen(const char *fname, const uint flags)
 #endif
@@ -101,8 +98,7 @@ HANDLE FOpen(const char *fname, const uint flags)
    line -  line number of request in file
 */
 #ifdef DEBUG
-HANDLE FCreateDbg(const char *fname, const uint flags,
-                     const char *file, const int line)
+HANDLE FCreateDbg(const char *fname, const uint flags, const char *file, const int line)
 #else
 HANDLE FCreate(const char *fname, const uint flags)
 #endif
@@ -137,8 +133,7 @@ void FCloseDbg(HANDLE h, const char *file, const int line)
         return;
     for (i = 0; i < m_openFilesIndex && m_files[i].h != h; i++);
     if (i >= m_openFilesIndex) {
-        WriteToLog(("*** %s(%d): closing invalid file handle [%#x]",
-                    file, line, h));
+        WriteToLog(("*** %s(%d): closing invalid file handle [%#x]", file, line, h));
         return;
     }
     m_totalOpenFiles--;

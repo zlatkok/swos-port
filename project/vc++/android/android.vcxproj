@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
@@ -347,6 +347,7 @@
     <ClInclude Include="..\..\..\src\game\camera.h" />
     <ClInclude Include="..\..\..\src\game\color.h" />
     <ClInclude Include="..\..\..\src\game\pitch\pitchConstants.h" />
+    <ClInclude Include="..\..\..\src\game\playerDirection.h" />
     <ClInclude Include="..\..\..\src\game\playerNameDisplay.h" />
     <ClInclude Include="..\..\..\src\game\darkRectangle.h" />
     <ClInclude Include="..\..\..\src\game\game.h" />
@@ -471,7 +472,6 @@
     <ClCompile Include="..\..\..\src\game\result.cpp" />
     <ClCompile Include="..\..\..\src\game\spinningLogo.cpp" />
     <ClCompile Include="..\..\..\src\game\stats.cpp" />
-    <ClCompile Include="..\..\..\src\game\updateGoals.cpp" />
     <ClCompile Include="..\..\..\src\init.cpp" />
     <ClCompile Include="..\..\..\src\menus\continueAbortMenu.cpp" />
     <ClCompile Include="..\..\..\src\menus\continueMenu.cpp" />

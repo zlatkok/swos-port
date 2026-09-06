@@ -5,6 +5,7 @@
 #include "referee.h"
 #include "replays.h"
 #include "camera.h"
+#include "ball.h"
 #ifdef SWOS_TEST
 # include "render.h"
 #endif
@@ -20,8 +21,8 @@ static const std::array<Sprite *, 4> kCornerFlagSprites = {
 };
 
 static Sprite * const kAllSprites[] = {
-    &swos.ballShadowSprite,
-    &swos.ballSprite,
+    &getBallShadowSprite(),
+    &getBallSprite(),
     &swos.goal1TopSprite,
     &swos.goal2BottomSprite,
     &swos.goalie1Sprite,
@@ -68,11 +69,13 @@ static bool shouldZoomSprite(int imageIndex);
 
 void initGameSprites(const TeamGame *topTeam, const TeamGame *bottomTeam)
 {
+    initBallSprites();
+
     m_topTeam = topTeam;
     m_bottomTeam = bottomTeam;
 
     for (auto sprite : kAllSprites)
-        sprite->init();
+         sprite->init();
     for (auto sprite : kCornerFlagSprites) {
         sprite->init();
         sprite->teamNumber = 3;
@@ -137,17 +140,14 @@ void initializePlayerSpriteFrameIndices()
 #ifdef DEBUG
 static void verifySprites()
 {
+    verifyBallSprites();
+
     for (const auto& sprite : kAllSprites) {
         auto assertIn = [sprite](int start, int end, bool allowEmpty = false) {
             if (!allowEmpty || sprite->hasImage())
                 assert(sprite->imageIndex >= start && sprite->imageIndex <= end);
         };
-
-        if (sprite == &swos.ballShadowSprite)
-            assert(sprite->imageIndex == kBallShadowSprite || sprite->hasNoImage());
-        else if (sprite == &swos.ballSprite)
-            assertIn(kBallSprite1, kBallSprite4, true);
-        else if (sprite == &swos.goal1TopSprite)
+        if (sprite == &swos.goal1TopSprite)
             assert(sprite->imageIndex == kTopGoalSprite);
         else if (sprite == &swos.goal2BottomSprite)
             assert(sprite->imageIndex == kBottomGoalSprite);
@@ -211,7 +211,7 @@ void drawSprites(float xOffset, float yOffset)
         auto y = sprite->y - cameraY - sprite->z;
 
         auto zoom = shouldZoomSprite(sprite->imageIndex);
-        sprite->onScreen = drawSprite(sprite->imageIndex, x, y, zoom, xOffset, yOffset);
+        sprite->onScreen = drawSprite(sprite->imageIndex, x.asFloat(), y.asFloat(), zoom, xOffset, yOffset);
 
 #ifdef SWOS_TEST
         const auto& sprImage = getSprite(sprite->imageIndex);

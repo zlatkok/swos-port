@@ -30,6 +30,7 @@ typedef struct _Patterns_info {
 void DrawPattern(char *where, uint pitch);
 void CopyPattern(char *from, char *where, uint pitch);
 void deletePattern(int pitchNo, int patternNo);
+void deletePatternWithoutUndo(int pitchNo, int patternNo);
 void showPattern(int pitchNo, int patternNo);
 bool SaveChangesToPatterns(int forcedSavePitchNo);
 byte *PatternsGetPalette(void);

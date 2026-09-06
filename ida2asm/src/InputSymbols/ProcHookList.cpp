@@ -1,6 +1,7 @@
 #include "ProcHookList.h"
 
-void ProcHookList::add(const String& procName, const String& hookName, int line, int initialValue, bool isVariable, int definedAtLine)
+void ProcHookList::add(const String& procName, const String& hookName, int line, const String& targetLabel,
+    int initialValue, bool isVariable, int definedAtLine)
 {
     ProcHookItemInternal item;
     auto procLen = std::min(procName.length(), kProcNameLength - 1);
@@ -12,6 +13,11 @@ void ProcHookList::add(const String& procName, const String& hookName, int line,
     memcpy(item.hookName, hookName.data(), hookLen);
     item.hookName[hookLen] = '\0';
     item.hookNameLen = hookLen;
+
+    auto targetLabelLen = std::min(targetLabel.length(), kProcNameLength - 1);
+    memcpy(item.targetLabel, targetLabel.data(), targetLabelLen);
+    item.targetLabel[targetLabelLen] = '\0';
+    item.targetLabelLen = targetLabelLen;
 
     item.initialValue = initialValue;
     item.line = line;
@@ -32,7 +38,8 @@ auto ProcHookList::getItems() -> std::vector<ProcHookItem>
         int nextIndex = item->lastIndex > 0 ? item->lastIndex : i + 1;
 
         result.emplace_back(String(item->procName, item->procNameLen), String(item->hookName, item->hookNameLen),
-            item->initialValue, item->line, nextIndex, item->definedAtLine, item->isVariable);
+            String(item->targetLabel, item->targetLabelLen), item->initialValue, item->line, nextIndex,
+            item->definedAtLine, item->isVariable);
     }
 
     return result;
@@ -78,6 +85,16 @@ bool ProcHookList::moveToNextHook(const String& procHook)
     return hookList->moveToNextHook();
 }
 
+String ProcHookList::takeLabelHook(const String& procHook, const String& label)
+{
+    return ((PackedProcHookList *)procHook.data())->takeLabelHook(label);
+}
+
+String ProcHookList::firstUnconsumedLabelHook(const String& procHook)
+{
+    return ((PackedProcHookList *)procHook.data())->firstUnconsumedLabelHook();
+}
+
 // Sorts all items, by proc first and then by line number. Also set lastItem field which is used to group
 // items belonging to the same proc.
 auto ProcHookList::getSortedItems() -> std::vector<ProcHookItemInternal *>
@@ -97,6 +114,9 @@ auto ProcHookList::getSortedItems() -> std::vector<ProcHookItemInternal *>
             int cmp = strcmp(current->procName, sortedItems[j]->procName);
             int lastIndex = j + 2;
 
+            auto currentOrder = current->targetLabelLen ? INT_MAX : current->line;
+            auto previousOrder = sortedItems[j]->targetLabelLen ? INT_MAX : sortedItems[j]->line;
+
             if (cmp > 0) {
                 // this must be the first hook of this proc
                 if (current->lastIndex < 0)
@@ -105,7 +125,7 @@ auto ProcHookList::getSortedItems() -> std::vector<ProcHookItemInternal *>
                 break;
             } else if (cmp == 0) {
                 // there is at least one other hook
-                if (current->line > sortedItems[j]->line) {
+                if (currentOrder > previousOrder) {
                     assert(j > 0 || sortedItems[j]->first);
 
                     if (current->lastIndex < 0)
@@ -147,22 +167,28 @@ ProcHookList::PackedProcHookList::PackedProcHookList(const ProcHookItem *begin, 
     assert(end > begin);
 
     m_sentinel = (char *)this + size;
-    m_currentHook = reinterpret_cast<HookHeader *>((char *)(this + 1) + begin->procName.length());
+    m_firstHook = reinterpret_cast<HookHeader *>((char *)(this + 1) + begin->procName.length());
+    m_currentHook = m_firstHook;
 
     Util::assignSize(m_procNameLen, begin->procName.length());
     begin->procName.copy((char *)(this + 1));
 
-    auto header = reinterpret_cast<HookHeader *>(m_currentHook);
+    auto header = m_currentHook;
 
     for (auto it = begin; it != end; it++) {
         assert(it->procName == begin->procName);
-        assert(it == begin || (it->line >= it[-1].line && (it->line != it[-1].line || it->definedAtLine < it[-1].definedAtLine)));
+        assert(it == begin || !it->targetLabel.empty() ||
+            it[-1].targetLabel.empty() && it->line >= it[-1].line &&
+                (it->line != it[-1].line || it->definedAtLine < it[-1].definedAtLine));
 
         header->line = it->line;
+        header->targetLabelLen = it->targetLabel.length();
         header->initialValue = it->initialValue;
         header->isVariable = it->isVariable;
+        header->consumed = false;
         header->hookNameLen = it->hookName.length();
-        it->hookName.copy((char *)(header + 1));
+        it->targetLabel.copy((char *)(header + 1));
+        it->hookName.copy((char *)(header + 1) + header->targetLabelLen);
 
         header = header->next();
     }
@@ -177,7 +203,7 @@ size_t ProcHookList::PackedProcHookList::requiredSize(const ProcHookItem *begin,
     for (auto it = begin; it != end; it++) {
         assert(it->procName == begin->procName);
 
-        requiredSize += it->hookName.length() + sizeof(HookHeader);
+        requiredSize += it->targetLabel.length() + it->hookName.length() + sizeof(HookHeader);
     }
 
     return sizeof(PackedProcHookList) + requiredSize + begin->procName.length();
@@ -197,7 +223,7 @@ bool ProcHookList::PackedProcHookList::moveToNextHook()
 int ProcHookList::PackedProcHookList::getCurrentLine() const
 {
     assert(m_currentHookCharPtr < m_sentinel);
-    return m_currentHook->line;
+    return m_currentHook->targetLabelLen ? -1 : m_currentHook->line;
 }
 
 int ProcHookList::PackedProcHookList::initialValue() const
@@ -216,4 +242,26 @@ String ProcHookList::PackedProcHookList::getCurrentHookProc() const
 {
     assert(m_currentHookCharPtr < m_sentinel);
     return m_currentHook->hookName();
+}
+
+String ProcHookList::PackedProcHookList::takeLabelHook(const String& label)
+{
+    for (auto header = m_firstHook; (char *)header < m_sentinel; header = header->next()) {
+        if (!header->consumed && header->targetLabel() == label) {
+            header->consumed = true;
+            return header->hookName();
+        }
+    }
+
+    return {};
+}
+
+String ProcHookList::PackedProcHookList::firstUnconsumedLabelHook() const
+{
+    for (auto header = m_firstHook; (char *)header < m_sentinel; header = header->next()) {
+        if (!header->consumed && header->targetLabelLen)
+            return header->targetLabel();
+    }
+
+    return {};
 }

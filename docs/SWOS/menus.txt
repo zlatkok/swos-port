@@ -450,10 +450,10 @@ There are 5 unique colors.
 Shining cursor
 --------------
 
-Njega crta DrawSelected. Svaki frejm se povecava promenljiva
-game_timer_index, koja se koristi kao indeks u tablicu koja sadrzi boje:
-color_table_shine dw 2, 2, 1, 1, 7, 7, 1, 1
-Kursor se azurira 70 puta u sekundi.
+It is drawn by DrawSelected. The currentGameTick variable is incremented every
+frame and is used as an index into the table containing the colors:
+kColorTableShine dw 2, 2, 1, 1, 7, 7, 1, 1
+The cursor is updated 70 times per second.
 
 
 Play match menu

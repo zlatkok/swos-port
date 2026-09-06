@@ -28,6 +28,7 @@ public:
     std::string limitsError() const;
     std::string getOutputError() const;
     std::string filename() const;
+    size_t errorLine() const;
     const IdaAsmParser& parser() const;
     IdaAsmParser& parser();
     OutputWriter& outputWriter();
@@ -48,6 +49,7 @@ private:
     int m_offset = 0;
     int m_chunkLength = 0;
     int m_index;
+    size_t m_startLine = 1;
 
     const SymbolFileParser& m_symFileParser;
 

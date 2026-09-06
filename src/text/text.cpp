@@ -3,6 +3,7 @@
 #include "renderSprites.h"
 #include "MenuEntry.h"
 #include "color.h"
+#include "fontAdvanceWidths.h"
 
 constexpr int kSmallFontSpace = 3;
 constexpr int kBigFontSpace = 4;
@@ -85,7 +86,7 @@ static bool isBlank(char c)
     return c == ' ';
 }
 
-static int charSpriteWidth(char c, bool bigFont)
+static int charSpriteWidth(char c, bool bigFont, char next = '\0')
 {
     assert(static_cast<unsigned char>(c) >= ' ' || c == '\t');
 
@@ -95,7 +96,10 @@ static int charSpriteWidth(char c, bool bigFont)
         return kTabSpace;
 
     auto spriteIndex = charToSprite(c, bigFont);
-    return spriteIndex ? getSprite(spriteIndex).width : 0;
+    if (!spriteIndex)
+        return 0;
+
+    return getFontSpriteAdvanceWidth(spriteIndex) + getFontPairSpacing(c, next, bigFont);
 }
 
 struct ElisionInfo {
@@ -110,8 +114,7 @@ static ElisionInfo getElisionInfo(int x, int maxWidth, const char *str, bool big
 {
     assert(str);
     assert(maxWidth > 0);
-    assert(charSpriteWidth('.', false) == kSmallDotWidth &&
-        charSpriteWidth('.', true) == kBigDotWidth);
+//    assert(charSpriteWidth('.', false) == kSmallDotWidth && charSpriteWidth('.', true) == kBigDotWidth);
 
     int len = 0;
     int ellipsisWidth = 3 * (bigFont ? kBigDotWidth : kSmallDotWidth);
@@ -123,7 +126,7 @@ static ElisionInfo getElisionInfo(int x, int maxWidth, const char *str, bool big
 
     int i = 0;
     for (; str[i]; i++) {
-        int charWidth = charSpriteWidth(str[i], bigFont);
+        int charWidth = charSpriteWidth(str[i], bigFont, str[i + 1]);
         int newLen = len + charWidth;
 
         if (newLen > maxWidth) {
@@ -173,7 +176,7 @@ static void drawText(int x, int y, const char *str, const char *limit, int color
             // account for characters with diacritics, they will have 1 extra pixel at the top
             int cy = sprite.height - fontHeight;
             drawCharSprite(spriteIndex, x, y - cy, alpha);
-            x += sprite.width;
+            x += charSpriteWidth(c, bigFont, str < limit ? *str : '\0');
         }
     }
 
@@ -186,6 +189,16 @@ static void drawText(int x, int y, const char *str, const char *limit, int color
         x += dotSpriteWidth;
         drawCharSprite(dotSprite, x, y, alpha);
     }
+}
+
+static int trailingGlyphOverhang(const char *str, int length, bool bigFont, bool addEllipsis)
+{
+    unsigned char c = addEllipsis ? '.' : length > 0 ? str[length - 1] : 0;
+    int spriteIndex = charToSprite(c, bigFont);
+    if (!spriteIndex)
+        return 0;
+
+    return std::max(0, getSprite(spriteIndex).width - charSpriteWidth(c, bigFont));
 }
 
 void drawText(int x, int y, const char *str, int maxWidth /* = INT_MAX */, int color /* = kWhiteText2 */,
@@ -206,7 +219,10 @@ void drawTextRightAligned(int x, int y, const char *str, int maxWidth /* = INT_M
     int tempX = x - std::min(textLength, maxWidth);
     auto elisionInfo = getElisionInfo(tempX, maxWidth, str, bigFont);
     auto end = elisionInfo.start + elisionInfo.stringLength;
-    drawText(x - elisionInfo.pixelWidth, y, elisionInfo.start, end, color, bigFont, elisionInfo.needsEllipsis, alpha);
+    int overhang = trailingGlyphOverhang(elisionInfo.start, elisionInfo.stringLength, bigFont,
+        elisionInfo.needsEllipsis);
+    drawText(x - elisionInfo.pixelWidth - overhang, y, elisionInfo.start, end, color, bigFont,
+        elisionInfo.needsEllipsis, alpha);
 }
 
 void drawTextCentered(int x, int y, const char *str, int maxWidth /* = INT_MAX */, int color /* = kWhiteText2 */,
@@ -216,7 +232,9 @@ void drawTextCentered(int x, int y, const char *str, int maxWidth /* = INT_MAX *
     int textLength = getStringPixelLength(str, bigFont);
     int tempX = x - (std::min(textLength, maxWidth) + 1) / 2;
     auto elisionInfo = getElisionInfo(tempX, maxWidth, str, bigFont);
-    x -= (elisionInfo.pixelWidth + 1) / 2;
+    int overhang = trailingGlyphOverhang(elisionInfo.start, elisionInfo.stringLength, bigFont,
+        elisionInfo.needsEllipsis);
+    x -= (elisionInfo.pixelWidth + overhang + 1) / 2;
     auto end = elisionInfo.start + elisionInfo.stringLength;
     drawText(x, y, elisionInfo.start, end, color, bigFont, elisionInfo.needsEllipsis, alpha);
 }
@@ -231,7 +249,7 @@ int getStringPixelLength(const char *str, bool bigFont /* = false */)
     int len = 0;
 
     for (char c; c = *str; str++)
-        len += charSpriteWidth(c, bigFont);
+        len += charSpriteWidth(c, bigFont, str[1]);
 
     return len;
 }
@@ -253,7 +271,7 @@ void elideString(char *str, int maxStrLen, int maxPixels, bool bigFont /* = fals
     for (int i = 0; str[i]; i++) {
         auto c = str[i];
 
-        int charWidth = charSpriteWidth(c, bigFont);
+        int charWidth = charSpriteWidth(c, bigFont, str[i + 1]);
 
         if (len + charWidth > maxPixels) {
             int pixelsRemaining = maxPixels - len;

@@ -14,7 +14,16 @@ bool commenteryOnChannelFinished(int channel);
 void toggleMuteCommentary();
 void playHeaderComment(const TeamGeneralInfo& team);
 void playInjuryComment(const TeamGeneralInfo& team);
+void playPostHitComment();
+void playBarHitComment();
+void playNearMissComment();
+void playGoalComment();
+void playOwnGoalComment();
 void clearPenaltyFlag();
+
+namespace SWOS {
+    void PlayNearMissComment();
+}
 
 #ifdef SWOS_TEST
 void clearCommentsSampleCache();

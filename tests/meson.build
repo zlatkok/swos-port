@@ -1,60 +1,75 @@
-# generate fetcher DLL
 subdir('sdl-address-table-fetcher')
 
-# get test source files
-c = run_command([python, '-c', getFilesCommand.format('src', '*.cpp')])
+custom_target('copy-fetcher-dll',
+    input: sdlAddressTableFetcher,
+    output: fetcherDllName,
+    command: [python, '-c', 'import shutil;shutil.copy2(r"@INPUT@", r"@OUTPUT@")'],
+    build_by_default: true,
+)
+
+c = run_command([python, '-c', getFilesCommand.format('src', '*.cpp')], check: true)
 rawSources = c.stdout().strip().split('\n')
 
 testSources = []
 foreach source : rawSources
-    if source != 'stdinc.cpp'
+    if source != 'src/stdinc.cpp'
         testSources += source
     endif
 endforeach
 
-# get test dirs for include path
-c = run_command([python, '-c', getDirsCommand.format('src')])
-testIncludeDirs = c.stdout().strip().split('\n')
+c = run_command([python, '-c', getDirsCommand.format('src')], check: true)
+testIncludeDirs = include_directories(c.stdout().strip().split('\n'))
 
-projectFilenames = [
-    'audio' / 'chants.cpp',
-    'audio' / 'comments.cpp',
-    'audio' / 'sfx.cpp',
-    'audio' / 'SoundSample.cpp',
-    'controls' / 'controlOptionsMenu.cpp',
-    'controls' / 'controls.cpp',
-    'controls' / 'joypadConfigMenu.cpp',
-    'controls' / 'joypads.cpp',
-    'controls' / 'scanCodes.cpp',
-    'files' / 'selectFilesMenu.cpp',
-    'menus' / 'menu.cpp',
-    'menus' / 'menuMouse.cpp',
-    'replays' / 'ReplayData.cpp',
-    'replays' / 'replayOptions.cpp',
-    'replays' / 'replays.cpp',
-    'replays' / 'replaysMenu.cpp',
-    'substitutes' / 'substitutes.cpp',
-    'video' / 'sprites.cpp',
-    'video' / 'videoOptionsMenu.cpp',
-    'game.cpp',
-    'init.cpp',
-    'pitch.cpp',
+# The test project mirrors the Visual Studio project: it links most production
+# sources, replacing platform-facing modules with mocks.
+testExcludedProjectSources = [
+    'audio/audio.cpp',
+    'audio/music.cpp',
+    'crash.cpp',
+    'debug/dump.cpp',
+    'files/file.cpp',
+    'main.cpp',
+    'options/options.cpp',
+    'sprites/renderSprites.cpp',
+    'util/log.cpp',
+    'util/util.cpp',
+    'video/overlay.cpp',
+    'video/render.cpp',
+    'video/timer.cpp',
+    'video/windowManager.cpp',
 ]
 
-# extract source files from the prefilled dict
-projectSources = []
-foreach filename : projectFilenames
-    projectSources += sourceFilenamesToFiles[filename]
+testProjectSources = []
+foreach filename, source : sourceFilenamesToFiles
+    if filename not in testExcludedProjectSources
+        testProjectSources += source
+    endif
 endforeach
 
-# we inherit a lot from main projects, such as include paths, libs and some of the sources
-# make sure test include dirs come first so we can override dirent.h
-# also make sure project sources come before test sources to avoid some weirdness (it was fixed but just in case)
-tests = executable('tests', projectSources, testSources, swosAsm[0], swosObjFiles, menuFiles,
-    include_directories: [testIncludeDirs, includeDirs, srcIncludeDirs, 'sdl-address-table-fetcher' / 'src'],
+testCppArgs = commonCppArgs + [
+    '-DSWOS_TEST',
+    '-DVIRTUAL_JOYPAD',
+    '-DDECLSPEC=',
+    '-DTEST_DATA_DIR=R"(@0@)"'.format(meson.current_source_dir() / 'data'),
+    fetcherDefine,
+]
+
+if host_machine.cpu_family() == 'x86_64'
+    testCppArgs += '-DDISABLE_ALIGNMENT_CHECKS=1'
+endif
+
+testsExecutable = executable('tests',
+    testProjectSources,
+    testSources,
+    swosGeneratedSources,
+    swosCpp[0],
+    menuFiles,
+    animationTables[0],
+    assetHeaders,
+    include_directories: [testIncludeDirs, thirdPartyIncludeDirs, srcIncludeDirs,
+        'sdl-address-table-fetcher' / 'src'],
     link_with: sdlAddressTableFetcher,
-    dependencies: libs,
-    cpp_args: ['-DSWOS_TEST', '-DDIRENT_H', fetcherDefine],
+    dependencies: commonLibraries,
+    cpp_args: testCppArgs,
     cpp_pch: '..' / 'src' / 'stdinc.h',
 )
-test('SWOS tester', tests)

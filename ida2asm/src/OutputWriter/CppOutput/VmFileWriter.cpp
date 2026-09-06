@@ -135,6 +135,10 @@ void VmFileWriter::outputHeaderFile()
         "char *offsetToPtr(uint32_t offset);\n"
         "char *getExtraMemoryArea();\n"
         "SwosDataPointer<char> allocateMemory(size_t size);\n"
+        "template <typename T> SwosDataPointer<T> allocateMemoryTyped(size_t size) {\n"
+        "    auto ptr = allocateMemory(size);\n"
+        "    return SwosDataPointer<T>(ptr.getRaw());\n"
+        "}\n"
         "SwosDataPointer<char> allocateString(const char *str);\n"
         "SwosDataPointer<char> cacheString(const char *str);\n"
         "void resetStringCache(uint32_t mark);\n"
@@ -162,12 +166,14 @@ void VmFileWriter::outputHeaderFile()
         "# endif\n"
         "void initSafeMemoryAreas();\n"
         "void verifySafeMemoryAreas();\n"
+        "bool dumpMemoryToFile(const char *filename);\n"
         "#else\n"
         "# ifndef debugBreak\n"
         "#  define debugBreak()\n"
         "# endif\n"
         "static inline void initSafeMemoryAreas() {}\n"
         "static inline void verifySafeMemoryAreas() {}\n"
+        "static inline bool dumpMemoryToFile(const char *filename) {}\n"
         "#endif\n\n"
 
         "# define push(a) (stack[--stackTop] = (a))\n"
@@ -228,7 +234,7 @@ void VmFileWriter::outputHeaderFile()
         static_cast<int>(DataBank::zeroRegionSize()), static_cast<int>(memArraySize()), kPointerPoolSize, m_extendedMemorySize, kDynamicMemSize
     };
     for (auto size : kMemSizes)
-        xfprintf("static_assert(%u %% sizeof(void *) == 0, \"Run to the Hills\");\n", size);
+        xfprintf("static_assert(%u %% sizeof(void *) == 0);\n", size);
 
     xfputs("\nextern uint8_t g_memByte[kMemSize];\n");
 
@@ -951,6 +957,17 @@ void VmFileWriter::outputDebugFunctions()
         "    verifySafeMemoryArea(kExtendedMemStart + kExtendedMemSize);\n"
         "    verifySafeMemoryArea(kPointerPoolStart + kPointerPoolSize);\n"
         "    verifySafeMemoryArea(kDynamicMemStart + kDynamicMemSize);\n"
+        "}\n"
+        "\n"
+        "bool dumpMemoryToFile(const char *filename)\n"
+        "{\n"
+        "    auto f = fopen(filename, \"wb\");\n"
+        "    if (!f)\n"
+        "        return false;\n"
+        "    if (fwrite(g_memByte, 1, kMemSize, f) != 1)\n"
+        "        return false;\n"
+        "    fclose(f);\n"
+        "    return true;\n"
         "}\n"
         "\n"
         "#endif\n\n";

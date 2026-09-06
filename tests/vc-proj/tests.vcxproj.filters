@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -89,6 +89,9 @@
     <Filter Include="Source Files\project-files\game\ball">
       <UniqueIdentifier>{c896b4b9-816b-4ee5-b0e7-126e661ec073}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\project-files\game\animation">
+      <UniqueIdentifier>{df1d6e51-8acd-4f0b-a880-2dc262f3327b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -113,6 +116,9 @@
       <Filter>Source Files\project-files\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tests\BaseTest.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tests\SwosDataLayoutTest.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tests\WindowModeMenuTest.cpp">
@@ -143,6 +149,9 @@
       <Filter>Source Files\lib</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tests\EditTacticsMenuTest.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tests\MenuWalkerTest.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
     <ClCompile Include="..\src\mocks\mockFile.cpp">
@@ -322,9 +331,6 @@
     <ClCompile Include="..\..\src\game\gameTime.cpp">
       <Filter>Source Files\project-files\game</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\updateGoals.cpp">
-      <Filter>Source Files\project-files\game</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\game\replayExitMenu.cpp">
       <Filter>Source Files\project-files\game</Filter>
     </ClCompile>
@@ -487,6 +493,9 @@
     <ClCompile Include="..\..\src\game\team.cpp">
       <Filter>Source Files\project-files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\animation\animation.cpp">
+      <Filter>Source Files\project-files\game\animation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\controls\controlOptionsMenu.h">
@@ -502,6 +511,9 @@
       <Filter>Source Files\project-files\files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tests\BaseTest.h">
+      <Filter>Source Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tests\SwosDataLayoutTest.h">
       <Filter>Source Files\tests</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tests\WindowModeMenuTest.h">
@@ -750,6 +762,9 @@
     <ClInclude Include="..\..\src\game\pitch\pitchConstants.h">
       <Filter>Source Files\project-files\game\pitch</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\game\playerDirection.h">
+      <Filter>Source Files\project-files\game</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\game\referee.h">
       <Filter>Source Files\project-files\game</Filter>
     </ClInclude>
@@ -837,8 +852,20 @@
     <ClInclude Include="..\..\src\game\team.h">
       <Filter>Source Files\project-files\game</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\game\animation\animation.h">
+      <Filter>Source Files\project-files\game\animation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="..\..\src\game\animation\animationTables.in">
+      <Filter>Source Files\project-files\game\animation</Filter>
+    </None>
+    <None Include="..\..\src\game\animation\generateAnimationTables.py">
+      <Filter>Source Files\project-files\game\animation</Filter>
+    </None>
+    <None Include="..\..\src\game\animation\originalSwosAnimationTables.py">
+      <Filter>Source Files\project-files\game\animation</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -493,7 +493,7 @@ def outputTokensCppFile(outputDir, tokens):
     if specialTokens()[0] != 'T_ID':
         sys.exit('T_ID must be first special token.')
 
-    header = '// automatically generated, do not edit'
+    header = f'// automatically generated from {os.path.basename(__file__)}, do not edit'
     global out
 
     with open(makePath(outputDir, kTokenTypeEnumFilename), 'w') as f:

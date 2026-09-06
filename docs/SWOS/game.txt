@@ -19,22 +19,23 @@ speed (1280). Result is further divided by 128, increased by 6 and that's how a
 delay between animation frames for the players is formed. Notice that this
 system forces larger delay for slower players.
 
-Najvisa tri bita offset-a 35 u in-game strukturi odredjuju tezinu povrede. Oni
-se koriste kao indeks u tablicu:
+The highest three bits of offset 35 in the in-game structure determine injury
+severity. They are used as an index into the table:
 dw 0, -96, -128, -160, -192, -224, -256, -288
-i negativna vrednost se dodaje na izracunatu brzinu igraca. Kompjuterski igraci
-su imuni na povrede (valjda zato sto komp ne zna da vrsi izmene :P)
+and the negative value is added to the player's calculated speed. Computer
+players are immune to injuries (presumably because the computer does not know
+how to make substitutions :P).
 
-Brzina igraca koji uklizava se mnozi sa 0.78125, osim ako je kompjuter, onda se
-mnozi sa 0.5.
+The speed of a tackling player is multiplied by 0.78125, except for a computer
+player, when it is multiplied by 0.5.
 
-Nakon suta brzina lopte se umanjuje na 87.5% ako je sut u kosom pravcu,
-na 75% za ostale pravce. Nakon dodavanja brzina lopte se povecava na 112,5%.
+After a kick, ball speed is reduced to 87.5% for a diagonal direction and to
+75% for other directions. After a pass, ball speed is increased to 112.5%.
 
-Kontrolisanom igracu se izgleda dest x i y namesta preko
-default_ball_dest_offsets tabele; u igri sam video da se dest x kontrolisanog
-igraca namesta na x +/-1000 bez obzira da li vodi loptu ili ne. Izgleda se iz
-te tabele uzimaju dest x/y offseti i za loptu i za igraca.
+The controlled player's destination x and y apparently get set through the
+kDefaultDestinations table; in the game I saw the controlled player's
+destination x set to x +/-1000 regardless of whether he controls the ball. It
+appears that destination x/y offsets for both ball and player come from it.
 
 
 === Ball after-touch
@@ -44,62 +45,65 @@ touch in kicks and passes and triggers high kicks (lobs).
 
 Ball after-touch is applied equally to both normal and high kicks.
 
-Ako je dodavanje u toku proverava se da li je protivnicki golman uhvatio/drzi
-loptu i da li je igra u toku. Spin tajmer mora biti pokrenut - vrednost 0
-(resetuju se fels promenljive), ili veci od nule. Ako je manji od nule fels
-nije u toku.
+If a pass is in progress, the code checks whether the opposing goalkeeper has
+caught/is holding the ball and whether play is in progress. The spin timer must
+be running: value 0 (the spin variables are reset) or greater. If it is less
+than zero, spin is not in progress.
 
-Tabela koja sadrzi dest x i y offsete za loptu kada je fels u toku:
-spin_factor_already dw -16, 0, 16, 0, 0, -11, 11, 0, 0, -16, 0, 16, 11, 0, 0,
+Table containing ball destination x and y offsets while spin is in progress:
+kPassingSpinFactor dw -16, 0, 16, 0, 0, -11, 11, 0, 0, -16, 0, 16, 11, 0, 0,
     11, 16, 0, -16, 0, 0, 11, -11, 0, 0, 16, 0, -16, -11, 0, 0, -11
-Indeksira se na sledeci nacin:
-0 - levi fels x   \
-1 - levi fels y    |
-2 - desni fels x   +-> pravac lopte 0
-3 - desni fels y  /
-4 - levi fels x   \
-5 - levi fels y    |
-6 - desni fels x   +-> pravac lopte 1
-7 - desni fels y  /
+It is indexed as follows:
+0 - left spin x   \
+1 - left spin y    |
+2 - right spin x   +-> ball direction 0
+3 - right spin y  /
+4 - left spin x   \
+5 - left spin y    |
+6 - right spin x   +-> ball direction 1
+7 - right spin y  /
         .
         .
         .
 
-Preglednije:
+In a more readable form:
 
- Pravac 0  | (gore):       levi fels(-16, 0), desni fels(16, 0)
- Pravac 1  / (gore-desno): levi fels(0, -11), desni fels(11, 0)
- Pravac 2  - (desno):      levi fels(0, -16), desni fels(0, 16)
- Pravac 3  \ (dole-desno): levi fels(11, 0),  desni fels(0, 11)
- Pravac 4  | (dole):       levi fels(16, 0),  desni fels(-16, 0)
- Pravac 5  / (dole-levo):  levi fels(0, 11),  desni fels(-11, 0)
- Pravac 6  - (levo):       levi fels(0, 16),  desni fels(0, -16)
- Pravac 7  \ (gore-levo):  levi fels(-11, 0), desni fels(0, -11)
+ Direction 0  | (up):         left spin(-16, 0), right spin(16, 0)
+ Direction 1  / (up-right):   left spin(0, -11), right spin(11, 0)
+ Direction 2  - (right):      left spin(0, -16), right spin(0, 16)
+ Direction 3  \ (down-right): left spin(11, 0),  right spin(0, 11)
+ Direction 4  | (down):       left spin(16, 0),  right spin(-16, 0)
+ Direction 5  / (down-left):  left spin(0, 11),  right spin(-11, 0)
+ Direction 6  - (left):       left spin(0, 16),  right spin(0, -16)
+ Direction 7  \ (up-left):    left spin(-11, 0), right spin(0, -11)
 
-Kada se utvrdi vrsta felsa, vrednosti se jednostavno dodaju na odredisno x i y
-lopte.
+Once the spin type is determined, the values are simply added to the ball's
+destination x and y.
 
-=== Sut
+=== Kick
 
-Nakon 4 tika se primenjuje sut, povecava se delta z lopte. Tu se i proverava
-da li je igrac cimnuo unazad, i ako jeste koriste se vrednosti za visoki sut.
-Nakon suta umanji brzinu lopte na 87.5% ako je sut u dijagonalnom pravcu,
-na 75% za ostale pravce.
+The kick is applied after 4 ticks, increasing the ball's delta z. The code also
+checks whether the player jerked backward; if so, lob-kick values are used.
+Afterward ball speed is reduced to 87.5% for a diagonal direction and to 75%
+for other directions.
 
 === Pass
 
-The AI has a certain chance to botch the pass. It happens only during the game, and depends on player's passing
-skill. There's a table with chances:
+The AI has a certain chance to botch the pass. It happens only during the game,
+and depends on player's passing skill. There's a table with chances:
 6, 4, 3, 2, 1, 0, 0, 0
-Table is indexed by player's passing skill, and the value is compared to bits 1-4 from current tick counter shifted
-one position to the right (0..15). If the value from the table is less than the counter bits value, the pass is
-botched. Translated to probabilities:
+Table is indexed by player's passing skill, and the value is compared to bits
+1-4 from current tick counter shifted one position to the right (0..15). If the
+value from the table is less than the counter bits value, the pass is botched.
+Translated to probabilities:
 37.5%, 25%, 18.75%, 12.5%, 6.25%, 0%, 0%, 0%
-So the elite passers never make such rookie mistakes ;) Bad pass has an angle messed up: it's initially aimed to the
-correct player position, but then one dimension gets divided by 2 which ruins it. The ball destination x and y are
-set to: current ball x/y + (player x/y - ball x/y) * 32, or 16. Whether it's 16 or 32 is decided by game tick
-counter bit 5: if set multiply x by 32 and y by 16, if clear vice versa. When multiplying with 16, the delta value
-is first shifted to the right once, so it losses the least significant bit.
+So the elite passers never make such rookie mistakes ;) Bad pass has an angle
+messed up: it's initially aimed to the correct player position, but then one
+dimension gets divided by 2 which ruins it. The ball destination x and y are
+set to: current ball x/y + (player x/y - ball x/y) * 32, or 16. Whether it's 16
+or 32 is decided by game tick counter bit 5: if set multiply x by 32 and y by
+16, if clear vice versa. When multiplying with 16, the delta value is first
+shifted to the right once, so it losses the least significant bit.
 
 === Lob kick
 
@@ -108,35 +112,40 @@ pressed in directions: back, back-left, back-right in regards to the player
 controlling the ball, lob kick ensues. In case of perpendicular directions
 (left/right), or no direction at all standard kick happens.
 
-[oduzeti 16 od koordinata]
-Udarcem na gol se smatra sut kada je igrac po y manje ili jednako 342 (kada
-napada na gore), ili vece ili jednako 556 (kada napada na dole) + ako je
-okrenut otprilike na tu stranu (pravci 0,1,7 i 4,3,5) i tada se na brzinu lopte
-primenjuje shooting skill igraca (iz tabele ball_speed_when_kicking:
-dw -384, -270, -162, -54, -65482, -65374, -65266, -65152). Ako je pravac ok i
-ako je igrac po x izmedju 241 i 431 ukljuceno, i manje od 204 (na gore) ili
-vece od 694 (na dole) koristi se finishing skill igraca (i tabela
-ball_speed_finishing:
-dw -288, -160, -32, -65440, -65312, -65184, -65056, -64928).
-Nova brzina lopte je vrednost iz tabele + ball_kicking_speed (2208).
+=== Ball speed when kicking
+
+[subtract 16 from y coordinates]
+A kick is considered a shot on goal when the player's y is <= 342 (attacking
+upward), or >= 556 (attacking downward), and he faces roughly that way
+(directions 0,1,7 and 4,3,5). There's another condition that decides whether to
+use player's shooting or finishing skill: if it's a more precise shot, more
+toward the goal -- if x is between 241 and 431 inclusive, and y is < 204
+(upward) or > 694 (downward), player's finishing skill would be used as an
+index into a kBallSpeedFinishing table:
+dw -288, -160, -32, 96, 224, 352, 480, 608  ; stronger shot/higher ball speed
+Value from the table is added to base ball kick speed (= 2208) and forms the
+final ball speed.
+Otherwise, player's shooting skill is used to index into a kBallSpeedKicking
+table:
+dw -384, -270, -162, -54, 54, 162, 270, 384
 
 
 === Tackling
 
-Igrac provodi 55 frejmova u stanju uklizavanja. Medjutim ako je neka
-promenljiva setovana moze biti i manje.
-Za vreme uklizavanja smanjuj brzinu na 78.125% (ili 50% ako je komp). Ako je
-protivnicki kontrolisani igrac vise od 9 jedinica dalji od lopte, i razdaljina
-izmedju 2 igraca je veca od 32 jedinice, to se smatra za dobro krsenje (i pusta
-se good tackle komentar). Jedinice su: sqr((x1 - x2) ^ 2) + sqr((y1 - y2) ^ 2).
+A player spends 55 frames in the tackling state, although it can be fewer if
+a certain variable is set. During a tackle, speed is reduced to 78.125% (or
+50% for the computer). If the opposing controlled player is more than 9 units
+from the ball and the distance between the two players is over 32 units, this
+is considered a good tackle (and the good-tackle commentary is played). Units
+are: sqr((x1 - x2) ^ 2) + sqr((y1 - y2) ^ 2).
 
 
-=== Otimanje lopte/kretanje
+=== Winning the ball/movement
 
-Igrac mora da bude vrlo blizu lopte (d <= 32u), i lopta mora da je blizu zemlje
-(z lopte ispod 8). Izgleda da ako igrac izleti iz terena zaustavlja se, osim
-ako se drzi pravac koji vodi dalje od terena (neka inercija mozda). Granice
-igrive povrsine:
+The player must be very close to the ball (d <= 32u), and the ball must be near
+the ground (ball z below 8). It appears that a player stops after leaving the
+pitch unless a direction leading farther off the pitch is held (perhaps some
+inertia). Bounds of the playable area:
 79 <= x <= 592
 11 <= y <= 111
 
@@ -165,48 +174,45 @@ x increases to the right, y increases downward, z increases upward (height).
 
 === Animation
 
-Za animacije igraca koriste se specijalne tablice. Uvek pocinju sa wordom, to
-je broj frejmova koliko se ceka izmedju slicica (frame delay). Zatim ide lista
-pokazivaca. Svaki pokazivac pokazuje na listu wordova - indeksa slicica, koja
-se zavrsava sa -999 ili -101. -999 oznacava kraj liste, ali kada se stigne do
-kraja, animacija krece iz pocetka (infinite loop animacija). -101 oznacava kraj
-animacije bez ponavljanja (mislim da ostaje prikazan poslednji frejm do
-daljnjeg). Ukoliko je indeks manji ili jednak -100, na njega se dodaje 100,
-pretvara se u 0, -1, -2,... i dodaje na indeks frejma - sto znaci
-predstavlja negativni indeks unazad - vrati se na n-ti prethodni frejm,
-verovatno za delimicno ponovljene animacije.
-Negativni indeksi u opsegu -99..-1 oznacavaju novu vrednost razmaka izmedju
-frejmova (frame delay). Kada se podese promenljive prelazi se na sledeci
-indeks.
+Special tables are used for player animations. They always start with a word:
+the number of frames to wait between images (frame delay). Next comes a list of
+pointers. Each points to a list of words (image indices) ending in -999 or -101.
+-999 marks the end, after which animation restarts (an infinite-loop animation).
+-101 marks the end of a non-repeating animation (I think the last frame remains
+displayed). For an index <= -100, 100 is added, converting it to 0, -1, -2,...;
+it is then added to the frame index. Thus it is a negative backward index:
+return to the nth previous frame, probably for partially repeated animations.
+Negative indices in the range -99..-1 specify a new frame-delay value. After
+the variables are set, processing continues with the next index.
 
-Format glavne tabele:
-dw frame_delay
-8 pokazivaca na tabele za prvi tim, igrace, za svaki pravac
-           - || -         drugi tim,            - || -
-           - || -         prvog golmana,        - || -
-           - || -         drugog golmana,       - || -
+Main table format:
+dw frameDelay
+8 pointers to tables for first-team players, one for each direction
+           - || -        second team,             - || -
+           - || -        first goalkeeper,        - || -
+           - || -        second goalkeeper,       - || -
 
-Indeksira se za igraca br. tima * 4 + pravac, i odatle se dobija pokazivac na
-listu slicica. Mislim da deo za golmana moze nedostajati (dodatnih 16
-pokazivaca) ukoliko su sigurni da tablica nikad nece biti pozvana nad njim
-(ali ako bude - trs!).
+It is indexed for a player by team number * 4 + direction, yielding a pointer
+to the image list. I think the goalkeeper section (16 additional pointers) may
+be absent if they are certain the table will never be called for him (but if it
+is--crash!).
 
-Za standardnog igraca u normalnom stanju se koriste tabele
-pl_normal_standing_table i pl_normal_running_table. 3200 je izgleda udaljenost
-nakon koje igrac pocinje da juri loptu.
+For a standard player in the normal state, playerNormalStandingAnimTable and
+playerRunningAnimTable are used. 3200 appears to be the distance at which a
+player starts chasing the ball.
 
 
-=== Lopta
+=== Ball
 
-Lopta odskakuje u zavisnosti od terena na kome se igra, na osnovu tablice (z):
+The ball bounces according to the pitch type, based on this table (z):
 88, 112, 104, 104, 96, 88, 80
-A kod odskakivanja brzina se mnozi sa faktorima iz sledece tablice:
+When bouncing, speed is multiplied by factors from the following table:
 24, 80, 80, 72, 64, 40, 32
 
 
-To su vrednosti
+Those are the values.
 
-=== Bitne lokacije koje bi trebalo detaljnije pogledati
+=== Important locations that should be examined in more detail
 
 CalculateDeltaXAndY()
 SortSprites()
@@ -221,49 +227,49 @@ AIKick()
 UpdatePlayerSpeed()
 
 
-=== Setovanje broja igraca (iznad glava)
+=== Setting player numbers (above their heads)
 
-Obavlja se u SetCurrentPlayerNumber, na ofsetu 0x16c.
-
-
-=== Ogranicenje u vezi broja liga u zemlji
-
-U meniju koji ih prikazuje, odvojeno je 10 stavki za lige. Toliko se moze
-puniti sto se tice ovog menija, bez programskih modifikacija.
+Done in SetCurrentPlayerNumber, at offset 0x16c.
 
 
-=== Frekvencija glavne petlje
+=== Limit on the number of leagues in a country
 
-1193181 (frekvencija PIT timera) / 17045 = 70.00181871517
-Priblizno 70 herca, tj. 70 frejmova u sekundi.
+The menu displaying them reserves 10 league entries. Without code changes,
+that is the maximum this menu can hold.
 
-=== Stanje igre
 
-Promenljiva game_state:
+=== Main-loop frequency
+
+1193181 (PIT timer frequency) / 17045 = 70.00181871517
+Approximately 70 hertz, i.e. 70 frames per second.
+
+=== Game state
+
+The gameState variable:
  0 - ...
- 1 - gornji desni, donji levi gol aut
- 2 - gornji levi, donji desni gol aut (isto se tretiraju)
+ 1 - upper-right, lower-left goal kick
+ 2 - upper-left, lower-right goal kick (treated identically)
  3 - ...
- 4 - gornji levi, donji desni korner
- 5 - gornji desni, donji levi korner (isto se tretiraju)
+ 4 - upper-left, lower-right corner
+ 5 - upper-right, lower-left corner (treated identically)
  ...
-28 - zavrsetak prvog produzetka
+28 - end of the first period of extra time
 
        y:
 
-leva polovina terena:
-15 - [556..753] (desni tim)
+left half of the pitch:
+15 - [556..753] (right team)
 16 - [342..555]
 17 - [  0..341]
-18 - [  0..341] (levi tim)
+18 - [  0..341] (left team)
 19 - [342..555]
 20 - [556..753]
 
-desna polovina terena:
-15 - [  0..341] (levi tim)
+right half of the pitch:
+15 - [  0..341] (left team)
 16 - [342..555]
 17 - [556..753]
-18 - [556..753] (desni tim)
+18 - [556..753] (right team)
 19 - [342..555]
 20 - [  0..341]
 
@@ -275,12 +281,12 @@ desna polovina terena:
 | 20/15 | 17/18 |
 +-------+-------+
 
-=== Golman
+=== Goalkeeper
 
-"Domet": I po x i po y, +/-12
-Granice "setkanja" golmana po x: 285..387
+"Reach": +/-12 along both x and y
+Bounds of the goalkeeper's x-axis "wandering": 285..387
 
-Kada se baca, 75 frejmova je neoperativan.
+When diving, he is inactive for 75 frames.
 
 
 === Time keeping

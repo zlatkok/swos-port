@@ -5,7 +5,6 @@
 #include "pattern.h"
 #include "pitch.h"
 #include "debug.h"
-#include "dx.h"
 #include "alloc.h"
 #include "util.h"
 #include "printstr.h"
@@ -24,9 +23,6 @@ static char *fsw_buffer;
 static uint fsw_align;
 static uint fsw_flag;
 
-/* palette to set when fullscreen */
-static byte *palette;
-
 static HDC     hdcMem;  /* our memory hdc for drawing */
 static HBITMAP hbmp;    /* handle to bitmap in memory */
 
@@ -37,8 +33,7 @@ static void CALLBACK WarningOff(HWND hWnd, uint msg, uint idEvent, uint time);
 
    hdc   - Device context of our window
 
-   Actual drawing is done here. Handles both windowed and full screen mode.
-   Parameter is ignored in full screen mode.
+   Actual drawing is done here and presented through GDI.
 */
 void DoDraw(HDC hdc)
 {
@@ -46,14 +41,8 @@ void DoDraw(HDC hdc)
     uint pitch;
     byte *pbits;
 
-    if (g.fscreen) {
-        /* if surface lock fails, there's not much we can do... */
-        if (!LockSurface(&pitch, &pbits) && !LockSurface(&pitch, &pbits))
-            return;
-    } else {
-        pitch = WIDTH;
-        pbits = g.pbits;
-    }
+    pitch = WIDTH;
+    pbits = g.pbits;
 
     /* do the actual drawing */
     pbits = g_modes[g.mode]->Draw(pbits, pitch);
@@ -63,8 +52,7 @@ void DoDraw(HDC hdc)
     if (g.show_help) {
         char buf[4096];
         uint flags = ALIGN_CENTERY;
-        strcpy(buf, "F1\t\t\t\t\t- toggle help\nA\t\t\t\t\t- about\n"
-               "Alt + enter\t\t\t- toggle fullscreen\n");
+        strcpy(buf, "F1\t\t\t\t\t- toggle help\nA\t\t\t\t\t- about\n");
         strcat(buf, g_modes[g.mode]->help);
         flags |= -(g.mode == MODE_HIL) & SOLID_BACK;
         PrintString(buf, 16, 16, pbits, pitch, FALSE, txt_col, flags);
@@ -73,26 +61,8 @@ void DoDraw(HDC hdc)
     if (fsw_flag)
         PrintString(fsw_buffer, 0, 0, pbits, pitch, TRUE, txt_col, fsw_align);
 
-    if (g.fscreen) {
-        UnlockSurface();
-        /* change palette only if necessary */
-        if (palette) {
-            WriteToLog(("DoDraw(): Full screen: Setting palette for %s",
-                        g_modes[g.mode]->name));
-            DXSetPalette(palette);
-        }
-        /* make all this stuff visible */
-        if (!palette) /* because DXSetPalette() will wait for retrace */
-            WaitRetrace();
-        else
-            palette = NULL;
-        DXBlit();
-    } else {
-        //BitBlt(hdc, 0, 0, WIDTH, HEIGHT, hdcMem, 0, 0, SRCCOPY);
-        //SetStretchBltMode(hdc, HALFTONE);
-        StretchBlt(hdc, 0, 0, 3 * WIDTH, 3 * HEIGHT, hdcMem, 0, 0, WIDTH, HEIGHT, SRCCOPY);
-        g.pbits = pbits;
-    }
+    StretchBlt(hdc, 0, 0, 3 * WIDTH, 3 * HEIGHT, hdcMem, 0, 0, WIDTH, HEIGHT, SRCCOPY);
+    g.pbits = pbits;
 }
 
 /* SetPalette
@@ -101,30 +71,25 @@ void DoDraw(HDC hdc)
    pbits - address of pointer to bitmap bits (for windowed mode)
    force - if true, force palette change
 
-   Set palette, no mather in which mode (fullscreen or windowed). Disallow
-   uneccessary palette changes, unless force is set.
+   Set the GDI framebuffer palette. Disallow unnecessary palette changes,
+   unless force is set.
 */
 void SetPalette(uchar *pal, byte **ppbits, bool force)
 {
     static uchar *old_pal;
     if (!force && old_pal == pal)
         return;
-    if (g.fscreen) {
-        WriteToLog(("SetPalette(): Invalidating palette for %s",
-                    g_modes[g.mode]->name));
-        palette = pal;
-    } else
-        *ppbits = CreateDIB(pal);
+    *ppbits = CreateDIB(pal);
     old_pal = pal;
 }
 
 /* UpdateScreen
 
-   Update screen, both in windowed and fullscreen mode
+   Schedule a GDI repaint.
 */
 void UpdateScreen()
 {
-    g.fscreen ? DoDraw(0) : InvalidateRect(g.hWnd, NULL, FALSE);
+    InvalidateRect(g.hWnd, NULL, FALSE);
 }
 
 
@@ -175,8 +140,7 @@ void Zoom(char *pbits, uint factor, uint pitch)
 
 
     for (i = 0; i < mody; i++)
-        memset(&scrcopy[HEIGHT - mody + i][WIDTH - modx], *(pbits+endy*pitch +
-               endx), modx);
+        memset(&scrcopy[HEIGHT - mody + i][WIDTH - modx], *(pbits + endy * pitch + endx), modx);
     for (i = 0; i < HEIGHT; i++)
         memcpy(pbits + i * pitch, scrcopy[i], WIDTH);
 }

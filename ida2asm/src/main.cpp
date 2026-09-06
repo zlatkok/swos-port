@@ -18,6 +18,7 @@ struct CommandLineParameters {
     int extraMemorySize;
     bool disableOptimizations;
     bool disableAlignmentChecks;
+    const char *unreferencedReportPath;
 };
 
 constexpr int kMaxOutputFiles = 20;
@@ -26,7 +27,8 @@ static CommandLineParameters getCommandLineParameters(int argc, char **argv)
 {
     if (argc < 2 || !strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))
         Util::exit("usage: %s <input IDA asm file path> <output asm files path> <input symbols file> <SWOS header path>\n"
-            "       <format> <number of output files> [--disable-optimizations] [--extra-memory-size=<int>]\n",
+            "       <format> <number of output files> [--disable-optimizations] [--extra-memory-size=<int>]\n"
+            "       [--report-unreferenced | --unreferenced-report=<path>]\n",
             EXIT_SUCCESS, Util::getFilename(argv[0]));
 
     if (argc < 3)
@@ -51,9 +53,11 @@ static CommandLineParameters getCommandLineParameters(int argc, char **argv)
     int extraMemorySize = 0;
     bool disableOptimizations = false;
     bool disableAlignmentChecks = false;
+    const char *unreferencedReportPath = nullptr;
     for (int i = 7; i < argc; i++) {
         if (argv[i][0] == '-' && argv[i][1] == '-') {
             constexpr char kExtraMemorySize[] = "extra-memory-size=";
+            constexpr char kUnreferencedReport[] = "unreferenced-report=";
             if (!strcmp(argv[i] + 2, "disable-optimizations")) {
                 disableOptimizations = true;
             } else if (!strcmp(argv[i] + 2, "disable-alignment-checks")) {
@@ -61,11 +65,16 @@ static CommandLineParameters getCommandLineParameters(int argc, char **argv)
             } else if (!strncmp(argv[i] + 2, kExtraMemorySize, sizeof(kExtraMemorySize) - 1)) {
                 auto sizePtr = argv[i] + 2 + sizeof(kExtraMemorySize) - 1;
                 extraMemorySize = atoi(sizePtr);
+            } else if (!strcmp(argv[i] + 2, "report-unreferenced")) {
+                unreferencedReportPath = "";
+            } else if (!strncmp(argv[i] + 2, kUnreferencedReport, sizeof(kUnreferencedReport) - 1)) {
+                unreferencedReportPath = argv[i] + 2 + sizeof(kUnreferencedReport) - 1;
             }
         }
     }
 
-    return { argv[1], argv[2], argv[3], argv[4], argv[5], numFiles, extraMemorySize, disableOptimizations, disableAlignmentChecks };
+    return { argv[1], argv[2], argv[3], argv[4], argv[5], numFiles, extraMemorySize, disableOptimizations,
+        disableAlignmentChecks, unreferencedReportPath };
 }
 
 static auto start = std::chrono::high_resolution_clock::now();
@@ -91,7 +100,7 @@ int main(int argc, char **argv)
     SymbolFileParser symFileParser(params.symbolFilePath, params.swosHeaderPath, params.outputPath);
     InputConverter converter(params.inputPath, params.outputPath, params.swosHeaderPath, format,
         params.numOutputFiles, params.extraMemorySize, params.disableOptimizations,
-        params.disableAlignmentChecks, symFileParser);
+        params.disableAlignmentChecks, params.unreferencedReportPath, symFileParser);
     converter.convert();
 
     return EXIT_SUCCESS;

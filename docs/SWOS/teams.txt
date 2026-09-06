@@ -485,46 +485,44 @@ offset:  size:  desc.
  104       4    pointer to some sprite (which one I don't know yet)
                 changes during passes and kicks
  108       2    ???
- 110       2    true kada lopta moze da se vodi, kada "miruje", false prilikom
-                suta i dodavanja (sticky)
- 112       2    pravac igraca koji vodi loptu, menja se samo dok stvarno vodi,
-                sticky, init na -1
+ 110       2    true when the ball can be controlled, when it is "at rest";
+                false during kicks and passes (sticky)
+ 112       2    direction of the player controlling the ball; changes only
+                while he actually controls it; sticky, initialized to -1
  114       2    ???
  116       2    ???
- 118       2    fels tajmer, aktivira se samo kada se igrac oslobodi lopte
-                preko suta ili dodavanja, i dok je aktivan moguce je primeniti
-                fels na sut/dodavanje (ako igrac pritisne levo/desno); kada
-                istekne nema vise mogucnosti felsa
-                init na -1 (= fels nije u toku), opseg 0..9
-                ako je nula, ponisti i levi i desni fels (polja 120 i 122)
-                (moguci pocetak felsiranja)
-                koristi se kao indeks u tablicu:
+ 118       2    spin timer; activated only when the player releases the ball
+                through a kick or pass; while active, spin can be applied to
+                the kick/pass (if the player presses left/right); after it
+                expires, spin can no longer be applied
+                initialized to -1 (= spin not in progress), range 0..9
+                if zero, clear both left and right spin (fields 120 and 122)
+                (possible start of applying spin)
+                used as an index into the table:
                 dw 5, 4, 3, 2, 2, 2, 2, 1, 1, 1
-                ako nije 4 povecava se za jedan, i ako dodje do 10 postavlja
-                se na -1 stoji na -1
-                smisao ovog tajmera je da mora malo vremena da prodje nakon
-                suta/dodavanja da bi fels mogao da se primeni i ako se pritisne
-                levo/desno za to vreme dodajemo fels
- 120       2    levi fels, boolean, relativno u odnosu na pravac igraca
- 122       2    desni fels,               - || -
- 124       2    flag za dugacko dodavanje - kada se doda, i brzo otpusti
-                pucanje + levo/desno/nista nakon toga - tada dodavanje moze da
-                ide i do pola terena (sticky, obican pas ga resetuje)
-                smanji brzinu igraca koji dodaje na 12,5%
-                nakon sto je aktivirano ne cacka se nista vise oko brzine
-                igraca
- 126       2    dugacko uvrnuto dodavanje - kada se pritsne nazad i fels u
-                stranu, nadogradjuje se na obicno dodavanje (ne na dugo!)
-                i za ovo smanji brzinu igracu na 12,5%, i posle ne diraj
-                nije bas jasno u cemu je razlika izmedju ovog i prethodnog
-                polja
- 128       2    passing flag; setovan bez obzira da li se dodaje u prazno;
-                resetovanje nije bas najbolje uradjeno
-                ako je razlicito od nule, oduzmi jedan
+                if not 4, increment it; if it reaches 10, set it to -1, where
+                it remains
+                this timer ensures a short delay after the kick/pass before
+                spin can be applied; pressing left/right during that period
+                adds spin
+ 120       2    left spin, boolean, relative to player direction
+ 122       2    right spin,               - || -
+ 124       2    long-pass flag: pass, then quickly release fire and press
+                left/right/nothing; the pass can travel as far as half the
+                pitch (sticky; a normal pass resets it)
+                reduce the passing player's speed to 12.5%
+                once activated, do not alter player speed further
+ 126       2    long curved pass: press backward and apply sideways spin; it
+                extends a normal pass (not a long pass!)
+                also reduce player speed to 12.5%, then leave it unchanged
+                the difference from the previous field is unclear
+ 128       2    passing flag; set whether or not passing into empty space;
+                reset behavior is not implemented very well
+                if nonzero, subtract one
                 after touch is applied as pass/kick based on this
- 130       2    AI tajmer; inkrementuje se u svakom frejmu ako kompjuter
-                kontrolise tim; ne resetuje se nikad
- 132       2    AI; tajmer, init na 4; setuje se random
+ 130       2    AI timer; incremented every frame if the computer controls the
+                team; never reset
+ 132       2    AI timer; initialized to 4; set randomly
  134       2    AI; strength of ball after-touch to apply to the ball after
                 kick/pass; possible values are 0, 1, 2 and it will be used as
                 an index into a 3-element table which will decide the
@@ -538,14 +536,13 @@ offset:  size:  desc.
                                                     ; strong kick
  138       2    possibly timer, while active ball can't be won over from the player that controls it
                 gets set to 12 when a player in the opposing team tackles the ball
- 140       2    true ako golman vodi loptu kao obican igrac
-                koliko sam video, za vreme utakmice nula
- 142       2    ako je != 0 preskoci AI
-                ne apdejtuj loptu ako je true
- 144       1    joy1SecondaryFire - -1 dok se drzi drugo dugme, 0 dok je
-                pusteno
+ 140       2    true if goalkeeper controls the ball like a regular player;
+                from what I have seen, zero during a match
+ 142       2    if != 0, skip AI; do not update the ball if true
+ 144       1    joy1SecondaryFire: -1 while the second button is held, 0 while
+                released
 
-Velicina 145 bajtova.
+Size: 145 bytes.
 
 
 ===============================================================================
@@ -553,156 +550,156 @@ Structure that contains informations about team statistics:
 
 offset:  size:  desc.
 -------  -----  -----
-   0       2     vreme poseda lopte (u sekundama ili vec nekim jedinicama)
-   2       2     broj izvedenih kornera
-   4       2     broj faulova
-   6       2     broj zutih kartona
-   8       2     broj crvenih kartona
-  10       2     sutevi na gol (ukupno)
-  12       2     sutevi u okvir gola
+   0       2     possession time (in seconds or some other units)
+   2       2     number of corners taken
+   4       2     number of fouls
+   6       2     number of yellow cards
+   8       2     number of red cards
+  10       2     shots on goal (total)
+  12       2     shots on target
 
-Velicina 14 bajtova.
+Size: 14 bytes.
 
 
 ===============================================================================
-Mapa team fajlova:
+Map of team files:
 
-fajl:                zemlja:
+file:                country:
 ------------        ----------
-team.000             Albanija
-team.001             Austrija
-team.002             Belgija
-team.003             Bugarska
-team.004             Hrvatska
-team.005             Kipar
-team.006             Ceska
-team.007             Danska
-team.008             Engleska
-team.010             Estonija
-team.011             Farska ostrva
-team.012             Finska
-team.013             Francuska
-team.014             Nemacka
-team.015             Grcka
-team.016             Madjarska
-team.017             Island
-team.018             Republika Irska
+team.000             Albania
+team.001             Austria
+team.002             Belgium
+team.003             Bulgaria
+team.004             Croatia
+team.005             Cyprus
+team.006             Czech Republic
+team.007             Denmark
+team.008             England
+team.010             Estonia
+team.011             Faroe Icelands
+team.012             Finland
+team.013             France
+team.014             Germany
+team.015             Greece
+team.016             Hungary
+team.017             Iceland
+team.018             Republic of Ireland
 team.019             Izrael
-team.020             Italija
-team.021             Letonija
-team.022             Litvanija
-team.023             Luksemburg
+team.020             Italy
+team.021             Latvia
+team.022             Lithuania
+team.023             Luxembourg
 team.024             Malta
-team.025             Holandija
-team.026             Severna Irska
-team.027             Norveska
-team.028             Poljska
+team.025             Netherlands
+team.026             Northern Ireland
+team.027             Norway
+team.028             Poland
 team.029             Portugal
-team.030             Rumunija
-team.031             Rusija
+team.030             Romania
+team.031             Russia
 team.032             San Marino
-team.033             Skotska
+team.033             Scotland
 team.034             Slovenija
-team.035             Spanija
-team.036             Svedska
-team.037             Svajcarska
-team.038             Turska
-team.039             Ukrajina
-team.040             Vels
-team.041             Jugoslavija
-team.042             Alzir
+team.035             Spain
+team.036             Sweden
+team.037             Switzerland
+team.038             Turkey
+team.039             Ukraine
+team.040             Wales
+team.041             Yugoslavia
+team.042             Algeria
 team.043             Argentina
-team.044             Australija
-team.045             Bolivija
+team.044             Australia
+team.045             Bolivia
 team.046             Brazil
-team.047             Kostarika
-team.048             Cile
-team.049             Kolumbija
-team.050             Ekvador
+team.047             Costa Rica
+team.048             Chile
+team.049             Colombia
+team.050             Ecuador
 team.051             El Salvador
 team.055             Japan
-team.057             Juzna Koreja
-team.059             Malezija
-team.060             Meksiko
-team.062             Novi Zeland
-team.064             Paragvaj
+team.057             South Korea
+team.059             Malaysia
+team.060             Mexico
+team.062             New Zealand
+team.064             Paraguay
 team.065             Peru
 team.066             Surinam
-team.067             Tajvan
-team.068             Izgleda neki azijski kup
-team.069             Juzno-africka republika
-team.070             Tanzanija
-team.071             Urugvaj
-team.072             customs valjda
+team.067             Taiwan
+team.068             Apparently some Asian cup
+team.069             South Africa
+team.070             Tanzania
+team.071             Uruguay
+team.072             customs, presumably
 team.073             USA
-team.074             svetsko prvenstvo
-team.075             Indija
-team.076             Belorusija
-team.077             Venecuela
-team.078             Slovacka
-team.079             Gana
-team.080             Evropa          - nacionalne selekcije
-team.081             Afrika          -       - || -
-team.082             Juzna Amerika   -       - || -
-team.083             Severna Amerika -       - || -
-team.084             Azija           -       - || -
-team.085             Okeanija        -       - || -
-team.172             stari timovi (ima i Zvezda 90-91.)
+team.074             World Cup
+team.075             India
+team.076             Belarus
+team.077             Venezuela
+team.078             Slovakia
+team.079             Ghana
+team.080             Europe        - national teams
+team.081             Afrika        -     - || -
+team.082             South America -     - || -
+team.083             North America -     - || -
+team.084             Asia          -     - || -
+team.085             Oceania       -     - || -
+team.172             old teams (including Red Star 90-91)
 ..\customs.edt       edited custom teams
 
-Interna tabela, preko koje se vrsi translacija brojeva zemalja u stringove.
-countries_table:
-                  0   - Albanija
-                  1   - Austrija
-                  2   - Belgija
-                  3   - Bugarska
-                  4   - Hrvatska
-                  5   - Kipar
-                  6   - Ceska
-                  7   - Danska
-                  8   - Engleska
-                  9   - Engleska (drugi put, ali se ne upotrebljava)
-                  10  - Estonija
-                  11  - Farska ostrva
-                  12  - Finska
-                  13  - Francuska
-                  14  - Nemacka
-                  15  - Grcka
-                  16  - Madjarska
-                  17  - Island
-                  18  - Republika Irska
+Internal table used to translate country numbers into strings.
+countriesTable:
+                  0   - Albania
+                  1   - Austria
+                  2   - Belgium
+                  3   - Bulgaria
+                  4   - Croatia
+                  5   - Cyprus
+                  6   - Czech Republic
+                  7   - Denmark
+                  8   - England
+                  9   - England (second occurrence, but unused)
+                  10  - Estonia
+                  11  - Faroe Islands
+                  12  - Finland
+                  13  - France
+                  14  - Germany
+                  15  - Greece
+                  16  - Hungary
+                  17  - Iceland
+                  18  - Republic of Ireland
                   19  - Izrael
-                  20  - Italija
-                  21  - Letonija
-                  22  - Litvanija
-                  23  - Luksemburg
+                  20  - Italy
+                  21  - Latvia
+                  22  - Lithuania
+                  23  - Luxembourg
                   24  - Malta
-                  25  - Holandija
-                  26  - Severna Irska
-                  27  - Norveska
-                  28  - Poljska
+                  25  - Netherlands
+                  26  - Northern Ireland
+                  27  - Norway
+                  28  - Poland
                   29  - Portugal
-                  30  - Rumunija
-                  31  - Rusija
+                  30  - Romania
+                  31  - Russia
                   32  - San Marino
-                  33  - Skotska
+                  33  - Scotland
                   34  - Slovenija
-                  35  - Spanija
-                  36  - Svedska
-                  37  - Svajcarska
-                  38  - Turska
-                  39  - Ukrajina
-                  40  - Vels
-                  41  - Jugoslavija
-                  42  - Alzir
+                  35  - Spain
+                  36  - Sweden
+                  37  - Switzerland
+                  38  - Turkey
+                  39  - Ukraine
+                  40  - Wales
+                  41  - Yugoslavia
+                  42  - Algeria
                   43  - Argentina
-                  44  - Australija
-                  45  - Bolivija
+                  44  - Australia
+                  45  - Bolivia
                   46  - Brazil
                   47  - /
-                  48  - Cile
-                  49  - Kolumbija
-                  50  - Ekvador
+                  48  - Chile
+                  49  - Colombia
+                  50  - Ecuador
                   51  - El Salvador
                   52  - /
                   53  - /
@@ -712,109 +709,107 @@ countries_table:
                   57  - /
                   58  - /
                   59  - /
-                  60  - Meksiko
+                  60  - Mexico
                   61  - /
-                  62  - Novi Zeland
+                  62  - New Zealand
                   63  - /
-                  64  - Paragvaj
+                  64  - Paraguay
                   65  - Peru
                   66  - Surinam
-                  67  - Tajvan
+                  67  - Taiwan
                   68  - /
                   69  - Juzna Afrika
                   70  - /
-                  71  - Urugvaj
+                  71  - Uruguay
                   72  - custom
                   73  - USA
                   74  - /
-                  75  - Indija
-                  76  - Belorusija
-                  77  - Venecuela
-                  78  - Slovacka
-                  79  - Gana
-                  80  - Evropa
+                  75  - India
+                  76  - Belarus
+                  77  - Venezuela
+                  78  - Slovakia
+                  79  - Ghana
+                  80  - Europe
                   81  - Afrika
-                  82  - Juzna Amerika
-                  83  - Severna Amerika
-                  84  - Azija
-                  85  - Okeanija
+                  82  - South America
+                  83  - North America
+                  84  - Asia
+                  85  - Oceania
                   86..99 - /
                   100 - edited customs
                   101..251 - /
-                  252 - kvalifikacije za svetsko prvenstvo
-                  253 - evropsko prvenstvo
-                  254 - svet
+                  252 - World Cup qualifiers
+                  253 - European Championship
+                  254 - world
                   255 - null country
 
 ===============================================================================
-Niz 12 osmobajtnih struktura predstavljaju listu utakmica u contest meniju,
-te strukture su u stvari dva pointera.
+A sequence of twelve eight-byte structures represents the match list in the
+contest menu; these structures are actually two pointers.
 
-Ono na sta pokazuje prvi pointer:
+What the first pointer points to:
 
 offset:  size:  description
 -------  -----  -----------
    0       1    ???
    5       1    ???
 
-Ono na sta pokazuje drugi pointer:
+What the second pointer points to:
 
 offset:  size:  description
 -------  -----  -----------
-  11       1    neki flegovi
-                ako je peti bit setovan i ako je sedmi bit resetovan, printaj
+  11       1    some flags
+                if the fifth bit is set and the seventh bit is clear, print
                 "1ST LEG %0-%1"
-                ako je peti bit resetovan, kao i osmi, ne printaj nista
-                inace:
-                ako su: drugi i treci bit resetovani a sesti bit setovan,
-                printaj "(REPLAY)"
-                i tako dalje i tako blize...
+                if both the fifth and eighth bits are clear, print nothing
+                otherwise, if the second and third bits are clear and the
+                sixth bit is set, print "(REPLAY)", and so on...
 
-  12       2    broj prvog tima
-  14       2    broj drugog tima
+  12       2    first team number
+  14       2    second team number
   16       2    ???
   18       2    ???
   20       2    ???
 
 ===============================================================================
-Organizacija timova
+Team organization
 
-Postoji vise tabela, ali centralna je competitions_table. To je tablica
-pointera na promenljive strukture. Prvi clan je dword, moze biti obican
-pointer, a moze biti i -1 i -2, kao i broj manji od 256 gde taj broj
-predstavlja broj zemlje. Takodje se posebno gleda vrednost indeksa (koja je
-zemlja u pitanju) pa i tu postoji razlicit tretman.
+There are several tables, but competitionsTable is the central one. It is a
+table of pointers to variable structures. The first member is a dword; it may
+be a normal pointer, -1, -2, or a number below 256 representing a country
+number. The index value (which country it is) is also examined separately and
+receives different treatment.
 
-Prvo ide pointer na ligu zemlje. Zatim -2 pa pointeri na kupove i dodatna
-takmicenja. Ona se ne prikazuju kada se bira tim koji ce se voditi u karijeri.
-Kraj je oznacen sa -1.
+First comes a pointer to the country's league, followed by -2 and pointers to
+cups and additional competitions. These are not displayed when selecting the
+team to manage in a career. The end is marked by -1.
 
-Ukoliko je u pitanju kontinent (indeksi 80-85) ili word_table, onda nakon kraja
-tablice (-1 dworda) slede bajtovi - brojevi zemalja koje pripadaju kontinentu,
-i niz tih bajtova zavrsava se bajtom -1 (0xff).
+For a continent (indices 80-85) or wordTable, the end of the table (-1 dword)
+is followed by bytes containing the numbers of countries on that continent.
+The byte sequence ends with byte -1 (0xff).
 
-Format takmicenja:
+Competition format:
 
 offset:  size:  description
 -------  -----  -----------
-   0       1    broj takmicenja
-   1       1    tip takmicenja: 0 = divizija, 1 = kup, 2 = liga
-   2       1    broj zemlje, tj. dat fajla iz koga se citaju timovi, 255 =
+   0       1    competition number
+   1       1    competition type: 0 = division, 1 = cup, 2 = league
+   2       1    country number, i.e. the .dat file teams are read from; 255 =
                 custom
-   3       1    pocetni mesec takmicenja (puta 8)
-   4       1    zavrsni mesec takmicenja   -||-
-   5       1    custom name ako je razlicito od nule: ovo + pointer na
-                takmicenje + 5 daju pointer na dword, koji kada se sabere sa
-                aChairmanScenes (offset 0x16f8) daje pointer na ime takmicenja
+   3       1    competition start month (times 8)
+   4       1    competition end month     -||-
+   5       1    custom name, if nonzero: this + competition pointer + 5 yields
+                a pointer to a dword which, when added to aChairmanScenes
+                (offset 0x16f8), yields a pointer to the competition name
    6       3    ???
-   9       1    broj liga
+   9       1    number of leagues
 
 
 1) 14BDC6 (-1 terminated)
-2) 14BE62 (     -||-    ) - tablica kontinentalnih takmicenja
+2) 14BE62 (     -||-    ) - continental competitions table
 3) 14BE7E (     -||-    )
 4) 14BF36 (     -||-    )
-5) 14BFD2, verovatno kupovi,
+5) 14BFD2 probably cups
 
 
 POOLPLYR.DAT
@@ -834,51 +829,50 @@ offset:  size:  description
 GetPlayerPrice
 ==============
 
-Odredjuje cenu zadatog igraca.
+Determines the price of the specified player.
 
-terminologija:
-- kvadrant - teren je podeljen u 35 kvadranata na kojima se moze naci lopta
-- za svakog igraca je definisan odredisni kvadrant na koji ce trcati za svaki
-  od 35 kvadranata na kojima se moze naci lopta
+Terminology:
+- quadrant - the pitch is divided into 35 quadrants in which the ball may be
+- each player has a destination quadrant to run to for each of the 35 possible
+  ball quadrants
 
-Algoritam:
-- uzmi skilove igraca i spakuj ih u jedan dword sledecim redosledom (niblovi):
+Algorithm:
+- take the player's skills and pack them into one dword in this nibble order:
   ???, passing, shooting, heading, tackling, ball control, speed, finishing
-- skilovi inace zauzimaju po pola bajta, znaci 0..15 ali se prilikom
-  kalkulisanja cene uzimaju u obzir samo donja tri bita (vrednosti % 8)
-- za svaki kvadrant lopte:
-    - ukoliko trenutni kvadrant nije u gornja i donja dva reda i nije donji
-      centralni kvadrant ispred sesnaesterca odredi broj igraca koji tamo idu
-      (uporedi sa kvadrantima na koji trce svih 10 igraca kad je lopta na
-      trenutnom kvadrantu)
-    - inace za pomenute kvadrante se uzima broj jedan
-    - za CPU team vrednuj svaki kvadrant sa 1
-    - spremi vrednost u numPlayersAtQuadrant
-  - na osnovu odredisnog kvadranta igrac uzima se maska iz tablice, tu su ponderi
-    skilova spakovani u dword, sa vrednostima od 0 do 5
+- skills normally occupy half a byte (0..15), but only the lower three bits
+  (value % 8) are considered when calculating the price
+- for each ball quadrant:
+    - unless it is in the top or bottom two rows, or is the lower central
+      quadrant in front of the penalty area, determine how many players go
+      there (compare where all 10 players run for the current ball quadrant)
+    - use one for the excluded quadrants
+    - for a CPU team, value every quadrant as 1
+    - store the value in numPlayersAtQuadrant
+  - use the player's destination quadrant to fetch a mask from the table; it
+    packs skill weights with values from 0 to 5 into a dword
 
-    priceSkillPonders: (indeks je broj kvadranta)
+    priceSkillPonders: (the index is the quadrant number)
     dd 00005020h, 00024010h, 00034000h, 00024010h, 00005020h, 01003030h, 01013020h
     dd 00024010h, 01013020h, 01003030h, 02002030h, 02013010h, 01013000h, 02013010h
     dd 02002030h, 02010130h, 02013000h, 03011000h, 02013000h, 02010130h, 02001230h
     dd 03000220h, 04100200h, 03000220h, 02001230h, 03000240h, 02210220h, 03230312h
     dd 02210220h, 03000240h, 03000330h, 02200221h, 01220124h, 02200221h, 03000330h
 
-  - poenta ovoga je da se za odbrambene pozicije vise vrednuje npr. tackling,
-    za napadacke shooting/finishing itd.
-  - primetimo da je maksimalna vrednost zbira pondera skilova 14, a minimalna 5
-  - maksimalno razlicitih skilova po poziciji: 6, minimalno 2
+  - the point is to weight tackling more highly for defensive positions, for
+    example, and shooting/finishing more highly for attacking positions
+  - the maximum sum of skill weights is 14 and the minimum is 5
+  - maximum distinct skills per position: 6; minimum: 2
 
-- vrednost skill-a se pomera u opseg 1..8, i zatim se odredjuje vrednost sa kojom
-  se mnozi iz sledece tablice:
+- shift the skill value into range 1..8, then obtain its multiplier from the
+  following table:
 
   skillValuePonders:
   db 0, 1, 3, 6, 10, 15, 21, 28
-  indeks je ekstraktovana vrednost skill-a iz priceSkillPonders
+  the index is the skill value extracted from priceSkillPonders
 
-- tako ponderisana vrednost skill-a se smesta u akumulator
+- put the weighted skill value into the accumulator
 
-  ponder | val |
+  weight | val |
          |     | skill: 1   2   3   4   5   6   7   8
   =======+=====+=====================================
     0    |  0  |        0   0   0   0   0   0   0   0
@@ -890,11 +884,11 @@ Algoritam:
     /    |  21 |
     /    |  28 |
 
-- na osnovu tablice minimalna vrednost akumulatora je na kraju 8, a maksimalna 200
-- taj akumulator je nekakva vrednost skilova igraca za dati kvadrant
+- based on the table, the final accumulator minimum is 8 and maximum is 200
+- this accumulator is a measure of player skills for the given quadrant
 
-- zbirna vrednost skilova se prepolovljuje [4..100]
-- dalje se mnozi sa koeficijentom iz donje tablice:
+- halve the total skill value [4..100]
+- then multiply it by a coefficient from the table below:
   skillsPerQuadrant:
   db 4, 4, 4, 3, 3, 4, 4, 4, 3, 3, 4, 4, 3, 3, 3, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 3, 2, 1, 1, 2, 3, 1, 1, 1, 2
   db 3, 3, 4, 4, 4, 3, 3, 4, 4, 4, 3, 3, 3, 4, 4, 3, 3, 3, 4, 4, 2, 2, 2, 3, 3, 2, 1, 1, 2, 3, 2, 1, 1, 1, 3
@@ -904,14 +898,14 @@ Algoritam:
   db 1, 1, 2, 1, 1, 2, 3, 4, 3, 2, 3, 4, 4, 4, 3, 3, 4, 4, 4, 3, 3, 4, 4, 4, 3, 1, 2, 3, 2, 1, 1, 1, 1, 1, 1
   db 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 3, 2, 1, 2, 3, 4, 3, 2, 3, 4, 4, 4, 3, 3, 4, 4, 4, 3, 3, 4, 4, 4, 3
 
-  Red se odredjuje na osnovu pozicije igraca: G, RB, LB, D, RW, LW, M, A (golman se ne racuna)
-  Ideks unutar reda je kvadrant. Vrednost oznacava koliko vrednujemo kvadrant za zadatog igraca (na osnovu pozicije
-  na kojoj igra). Tako da vidimo da se za odbrambene igrace vise vrednuju kvadranti blizi nasem golu, dok se to
-  pomera kako se blizimo napadacima.
+  The row is selected from player position: G, RB, LB, D, RW, LW, M, A (the goalkeeper is not counted).
+  The index within the row is the quadrant. Its value says how highly that quadrant is valued for the player based
+  on his position. Thus defenders value quadrants nearer our goal more highly, and the emphasis shifts toward the
+  other end as positions become more attacking.
 
-- vrednost je sada [4..400]
+- the value is now [4..400]
 
-- tablica poredjana po pod-matricama (prvo razviti svaku pod-matricu u red za linearni prikaz):
+- table arranged in submatrices (first expand each submatrix into a row for linear representation):
 quadrantDistanceFactor:
 32,  24,  16,   8,   2,     24,  32,  24,  16,   8,     16,  24,  32,  24,  16,      8,  16,  24,  32,  24,      2,   8,  16,  24,  32,
 24,  24,  16,   8,   2,     24,  24,  24,  16,   8,     16,  24,  24,  24,  16,      8,  16,  24,  24,  24,      2,   8,  16,  24,  24,
@@ -969,33 +963,32 @@ quadrantDistanceFactor:
 24,  24,  16,   8,   2,      24,  24,  24,  16,   8,      16,  24,  24,  24,  16,    8,  16,  24,  24,  24,      2,   8,  16,  24,  24,
 32,  24,  16,   8,   2       24,  32,  24,  16,   8       16,  24,  32,  24,  16     8,  16,  24,  32,  24       2,   8,  16,  24,  32
 
-- red se bira na osnovu kvadranta lopte, a kolona je kvadrant na koji igrac treba da ode za zadati kvadrant lopte
-- ovo je izgleda koeficijent uticaja blizine kvadranta - sto je dalji kvadrant na koji igrac treba da otrci to ce manji uticaj na ukupni
-  zbir imati skill koeficijent tog kvadranta
-- nakon mnozenja rezultat se deli sa 8, tako da su koeficijenti u stvari 0..4, ali pomnozeni sa 8 radi preciznijeg mnozenja i deljenja
-- vrednost je sada [0..1600]
-- ako ima vise od dva igraca koji idu na taj kvadrant (znaci jos neki osim ovog), vrednost se deli sa brojem igraca koji tamo idu manje jedan
+- select the row by ball quadrant; the column is the player's destination quadrant for that ball quadrant
+- this appears to be a coefficient for the effect of quadrant proximity: the farther the destination quadrant, the
+  less its skill coefficient contributes to the total
+- after multiplication divide by 8; coefficients are really 0..4 but multiplied by 8 for more precise arithmetic
+- the value is now [0..1600]
+- if more than two players go to that quadrant, divide by the number going there minus one
   [0..1600] / 1..9
-- za CPU team se ne vrsi deljenje
-- zatim se mnozi sa "faktorom blizine" (takodje se preskace za CPU tim)
-  - broje se "blizi" kvadranti za trenutni kvadrant, po tablici iznad, racunaju se samo kvadranti sa udaljenoscu barem 8
-  - za svaki od tih "bliskih" kvadranata se gleda odredisni kvadrant, i on se poredi sa odredisnim kvadrantom trenutnog
-  - broje se odredisni kvadranti koji nisu udaljeniji od 4 (efektivno isto ko ovo iznad)
-  - faktor cene se mnozi sa brojem blizih kvadranata i deli sa brojem blizih odredisnih kvadranata (taj kolicnik moze biti max 1)
-- ovo je sve po kvadrantu, na kraju se sabira za svih 35 kvadranata [0..56000]
-- deli se sa 350 [0..160]
-- oduzima se 8 [-8..152]
-- namesta se u opseg [0..49], ako je manje od 0 => 0, ako je vece od 49 => 49
-- od dobijenog rezultata se oduzima cena igraca iz fajla
-- ukoliko je nasa izracunata cena manja, to ce biti rezultat i vracamo se
-- ukoliko je veca, sa razlikom indeksiramo tablicu plPricesIncreaseTable i na rezultat dodajemo na cenu iz fajla,
-  i to vracamo kao rezultat
+- do not divide for a CPU team
+- then multiply by the "proximity factor" (also skipped for a CPU team)
+  - count "nearby" quadrants for the current quadrant using the table above; only distances of at least 8 count
+  - inspect each nearby quadrant's destination and compare it to the current destination quadrant
+  - count destination quadrants no farther than 4 away (effectively the same as above)
+  - multiply the price factor by nearby-quadrant count and divide by nearby-destination count (quotient at most 1)
+- do this per quadrant, then sum all 35 quadrants [0..56000]
+- divide by 350 [0..160]
+- subtract 8 [-8..152]
+- clamp to [0..49]: below 0 => 0; above 49 => 49
+- subtract the player's file price from the result
+- if our calculated price is lower, return it
+- if higher, index plPricesIncreaseTable by the difference, add the result to the file price, and return it
 plPricesIncreaseTable:
 db 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10,
 db 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10
-- s obzirom da su oba broja u opsegu [0..49], razlika mora biti u opsegu [1..49]
-- vrednosti tablice su tako nastelovane da ce rezultat u svakom slucaju biti [0..49]
-- vrednosti tablice moraju biti manje ili jednake vrednosti indeksa da bi rezultat bio u [0..49] opsegu
+- since both numbers are in [0..49], the difference must be in [1..49]
+- table values are tuned so the result is always in [0..49]
+- table values must be <= their indices for the result to remain in [0..49]
 
 Player swapping
 ===============

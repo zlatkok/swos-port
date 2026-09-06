@@ -3,7 +3,7 @@
 void updatePlayerSpeedAndFrameDelay(const TeamGeneralInfo& team, Sprite& player);
 void updatePlayerWithBall();
 void updateControllingPlayer();
-void updateBallWithControllingGoalkeeper();
+void updateBallWithControllingGoalkeeper(const Sprite& player);
 void calculateIfPlayerWinsBall();
 void playerKickingBall();
 void playerHittingStaticHeader();
@@ -15,5 +15,5 @@ void goalkeeperDeflectedBall();
 void doFlyingHeader();
 void doPass();
 void setPlayerDowntimeAfterTackle();
-void setJumpHeaderHitAnimTable();
+void setJumpHeaderHitAnimTable(Sprite& player);
 const PlayerInfo& getPlayerPointerFromShirtNumber(const TeamGeneralInfo& team, const Sprite& player);

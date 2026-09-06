@@ -1,15 +1,22 @@
 #include "player.h"
+#include "animation.h"
 #include "ball.h"
 #include "team.h"
 #include "comments.h"
 
 using namespace SwosVM;
 
+static const std::array<int8_t, 16> kControlledBallJiggleOffsets = {
+    0, -1, 1, -1, 1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1,
+};
+static constexpr int kGoalkeeperStrongDeflectBallSpeed = 1536;
+static constexpr int kGoalkeeperMediumDeflectBallSpeed = 1024;
+static constexpr int kGoalkeeperWeakDeflectBallSpeed = 512;
+static constexpr int kGoalkeeperDeflectDeltaZ = 49152;
+
 static void doLobHeader();
 static void getClosestNonControlledPlayerInDirection();
 static void setPlayerJumpHeaderHitAnimationTable();
-static void setPlayerAnimationTableAndPictureIndex();
-static void getBallDestCoordinatesTable();
 static void playStopGoodPassSampleIfNeeded();
 static void stopGoodPassSample();
 static void enqueuePlayingGoodPassSample();
@@ -82,9 +89,11 @@ void updatePlayerSpeedAndFrameDelay(const TeamGeneralInfo& team, Sprite& player)
 // Set coordinates of player that has the ball. Make him dodge
 // a little, by varying x and y coordinates by 1.
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void updatePlayerWithBall()
 {
-    A0 = 328988;                            // mov A0, offset ballSprite
+    A0 = 328492;                            // mov A0, offset ballSprite
     esi = A0;                               // mov esi, A0
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
@@ -97,7 +106,7 @@ void updatePlayerWithBall()
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 2
-    A0 = 524200;                            // mov A0, offset kPlayerWithBallOffsets
+    A0 = 516362;                            // mov A0, offset kPlayerWithBallOffsets
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -132,6 +141,8 @@ void updatePlayerWithBall()
 // in:
 //      A1 -> sprite (player)
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void updateControllingPlayer()
 {
     esi = A1;                               // mov esi, A1
@@ -141,7 +152,7 @@ void updateControllingPlayer()
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 2
-    A0 = 523928;                            // mov A0, offset kBallPlOffsets
+    A0 = 516178;                            // mov A0, offset kControlledBallJiggleOffsets
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     esi = A0;                               // mov esi, A0
@@ -164,7 +175,7 @@ void updateControllingPlayer()
         word res = dstSigned + srcSigned;
         *(word *)&D2 = res;
     }                                       // add word ptr D2, ax
-    A0 = 328988;                            // mov A0, offset ballSprite
+    A0 = 328492;                            // mov A0, offset ballSprite
     esi = A0;                               // mov esi, A0
     writeMemory(esi + 44, 2, 0);            // mov [esi+Sprite.speed], 0
     ax = D1;                                // mov ax, word ptr D1
@@ -197,71 +208,24 @@ void updateControllingPlayer()
 // always about a pixel in front of player, wherever he may be turned.
 // If it's in the air, steady it down.
 //
-void updateBallWithControllingGoalkeeper()
+void updateBallWithControllingGoalkeeper(const Sprite& player)
 {
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    {
-        word res = *(word *)&D0 << 2;
-        *(word *)&D0 = res;
-    }                                       // shl word ptr D0, 2
-    A0 = 523928;                            // mov A0, offset kBallPlOffsets
-    ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    esi = A0;                               // mov esi, A0
-    ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
-    {
-        int16_t dstSigned = *(word *)&D1;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D1 = res;
-    }                                       // add word ptr D1, ax
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    *(word *)&D2 = ax;                      // mov word ptr D2, ax
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi + ebx + 2, 2); // mov ax, [esi+ebx+2]
-    {
-        int16_t dstSigned = *(word *)&D2;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D2 = res;
-    }                                       // add word ptr D2, ax
-    A0 = 328988;                            // mov A0, offset ballSprite
-    esi = A0;                               // mov esi, A0
-    writeMemory(esi + 44, 2, 0);            // mov [esi+Sprite.speed], 0
-    ax = D1;                                // mov ax, word ptr D1
-    writeMemory(esi + 32, 2, ax);           // mov word ptr [esi+(Sprite.x+2)], ax
-    ax = D2;                                // mov ax, word ptr D2
-    writeMemory(esi + 36, 2, ax);           // mov word ptr [esi+(Sprite.y+2)], ax
-    ax = D1;                                // mov ax, word ptr D1
-    writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = D2;                                // mov ax, word ptr D2
-    writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    eax = readMemory(esi + 54, 4);          // mov eax, [esi+Sprite.deltaZ]
-    D0 = eax;                               // mov D0, eax
-    {
-        int32_t res = *(int32_t *)&D0 >> 1;
-        flags.carry = ((dword)*(int32_t *)&D0 >> 31) & 1;
-        *(int32_t *)&D0 = res;
-        flags.sign = (res & 0x80000000) != 0;
-        flags.zero = res == 0;
-    }                                       // sar D0, 1
-    if (flags.sign)
-        goto l_delta_z_negative;            // js short @@delta_z_negative
+    assert(player.direction >= 0 && player.direction <= 7);
 
-    flags.carry = *(int32_t *)&D0 != 0;
-    *(int32_t *)&D0 = -*(int32_t *)&D0;
-    flags.sign = (*(int32_t *)&D0 & 0x80000000) != 0;
-    flags.zero = *(int32_t *)&D0 == 0;      // neg D0
+    int ballX = player.x.whole() + kControlledBallJiggleOffsets[player.direction * 2];
+    int ballY = player.y.whole() + kControlledBallJiggleOffsets[player.direction * 2 + 1];
 
-l_delta_z_negative:;
-    eax = D0;                               // mov eax, D0
-    esi = A0;                               // mov esi, A0
-    writeMemory(esi + 54, 4, eax);          // mov [esi+Sprite.deltaZ], eax
-    resetBothTeamSpinTimers();              // call ResetBothTeamSpinTimers
+    auto& ball = getBallSprite();
+    ball.speed = 0;
+    ball.x.setWhole(ballX);
+    ball.y.setWhole(ballY);
+    ball.destX = ballX;
+    ball.destY = ballY;
+    ball.deltaZ >>= 1;
+    if (ball.deltaZ.raw() > 0)
+        ball.deltaZ.setRaw(-ball.deltaZ.raw());
+
+    resetBothTeamSpinTimers();
 }
 
 // in:
@@ -273,6 +237,8 @@ l_delta_z_negative:;
 // Sets team's direction of player controlling the ball.
 // Updates the ball when controlled by the player (makes it "run away" a bit).
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void calculateIfPlayerWinsBall()
 {
     esi = A6;                               // mov esi, A6
@@ -399,7 +365,7 @@ cseg_7A26D:;
     al = D1;                                // mov al, byte ptr D1
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    A0 = 523920;                            // mov A0, offset kPlAvgTacklingBallControlDiffChance
+    A0 = 516170;                            // mov A0, offset kPlAvgTacklingBallControlDiffChance
     SWOS::Rand();                           // call Rand
     {
         word res = *(word *)&D0 & 31;
@@ -449,7 +415,7 @@ l_set_team_direction:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
-    A2 = 328988;                            // mov A2, offset ballSprite
+    A2 = 328492;                            // mov A2, offset ballSprite
     esi = A2;                               // mov esi, A2
     eax = readMemory(esi + 54, 4);          // mov eax, [esi+Sprite.deltaZ]
     flags.carry = false;
@@ -544,7 +510,7 @@ l_nudge_ball_right:;
     }                                       // add word ptr [esi+(Sprite.x+2)], 1
 
 l_set_player_destination:;
-    A0 = 523294;                            // mov A0, offset kDefaultDestinations
+    A0 = 515768;                            // mov A0, offset kDefaultDestinations
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -586,7 +552,7 @@ l_set_player_destination:;
     A4 -= kTeamGameHeaderSize;
     *(word *)&D1 = 0;                       // mov word ptr D1, 0
     {
-        byte src = g_memByte[323906];
+        byte src = g_memByte[323628];
         byte res = src & 2;
         flags.carry = false;
         flags.overflow = false;
@@ -596,7 +562,7 @@ l_set_player_destination:;
     if (flags.zero)
         goto l_update_ball_speed;           // jz short @@update_ball_speed
 
-    A0 = 523904;                            // mov A0, offset kBallSpeedDeltaWhenControlled
+    A0 = 516154;                            // mov A0, offset kBallSpeedDeltaWhenControlled
     esi = A4;                               // mov esi, A4
     al = (byte)readMemory(esi + 73, 1);     // mov al, [esi+PlayerGameHeader.ballControl]
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
@@ -710,7 +676,7 @@ cseg_7A523:;
         src = res;
         writeMemory(esi + 108, 2, src);
     }                                       // add [esi+TeamGeneralInfo.unkBallTimer], 1
-    A0 = 523856;                            // mov A0, offset dseg_17E276
+    A0 = 516106;                            // mov A0, offset dseg_17E276
     esi = A4;                               // mov esi, A4
     al = (byte)readMemory(esi + 73, 1);     // mov al, [esi+PlayerGameHeader.ballControl]
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
@@ -747,9 +713,11 @@ l_reset_ball_spin:;
 //      A1 -> player sprite
 //      A6 -> team
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void playerKickingBall()
 {
-    *(word *)&g_memByte[456262] = 0;        // mov stateGoal, 0
+    *(word *)&g_memByte[449514] = 0;        // mov stateGoal, 0
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 32, 4);          // mov eax, [esi+TeamGeneralInfo.controlledPlayer]
     A0 = eax;                               // mov A0, eax
@@ -759,18 +727,13 @@ void playerKickingBall()
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
-    getBallDestCoordinatesTable();          // call GetBallDestCoordinatesTable
-    A2 = 328988;                            // mov A2, offset ballSprite
-    {
-        word res = *(word *)&D0 << 2;
-        *(word *)&D0 = res;
-    }                                       // shl word ptr D0, 2
+    auto table = getBallDestCoordinatesTable();          // call GetBallDestCoordinatesTable
+    A2 = 328492;                            // mov A2, offset ballSprite
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    esi = A0;                               // mov esi, A0
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
+    ax = table[ebx].x;
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -782,8 +745,7 @@ void playerKickingBall()
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi + ebx + 2, 2); // mov ax, [esi+ebx+2]
+    ax = table[ebx].y;
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -797,14 +759,14 @@ void playerKickingBall()
     ax = D1;                                // mov ax, word ptr D1
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[325772];       // mov ax, kBallKickingSpeed
+    ax = *(word *)&g_memByte[325438];       // mov ax, kBallKickingSpeed
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
-    eax = *(dword *)&g_memByte[325768];     // mov eax, kBallKickingDeltaZ
+    eax = *(dword *)&g_memByte[325434];     // mov eax, kBallKickingDeltaZ
     writeMemory(esi + 54, 4, eax);          // mov [esi+Sprite.deltaZ], eax
     resetBothTeamSpinTimers();              // call ResetBothTeamSpinTimers
     {
-        word src = *(word *)&g_memByte[523116];
+        word src = *(word *)&g_memByte[515596];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -817,7 +779,7 @@ void playerKickingBall()
         goto l_game_in_progress;            // jz short @@game_in_progress
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 15;
         word res = dstSigned - srcSigned;
@@ -830,7 +792,7 @@ void playerKickingBall()
         goto l_game_in_progress;            // jb short @@game_in_progress
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -845,7 +807,7 @@ void playerKickingBall()
 l_game_in_progress:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 522792;
+        int32_t srcSigned = 515272;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -1018,7 +980,7 @@ l_possible_shot_on_goal:;
 l_its_a_finishing_shot:;
     A4 = &getPlayerPointerFromShirtNumber(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());
     A4 -= kTeamGameHeaderSize;
-    A0 = 523888;                            // mov A0, offset kBallSpeedFinishing
+    A0 = 516138;                            // mov A0, offset kBallSpeedFinishing
     esi = A4;                               // mov esi, A4
     al = (byte)readMemory(esi + 75, 1);     // mov al, [esi+PlayerGameHeader.finishing]
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
@@ -1049,7 +1011,7 @@ l_its_a_finishing_shot:;
 l_its_a_long_shot:;
     A4 = &getPlayerPointerFromShirtNumber(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());
     A4 -= kTeamGameHeaderSize;
-    A0 = 523840;                            // mov A0, offset kBallSpeedKicking
+    A0 = 516090;                            // mov A0, offset kBallSpeedKicking
     esi = A4;                               // mov esi, A4
     al = (byte)readMemory(esi + 70, 1);     // mov al, [esi+PlayerGameHeader.shooting]
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
@@ -1143,24 +1105,16 @@ l_play_kick_sample_and_leave:;
 // Applies ball speed and destination. Increases player speed, updates delta z
 // and plays kick sample.
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void playerHittingStaticHeader()
 {
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 128, 2, 0);           // mov [esi+TeamGeneralInfo.passInProgress], 0
-    esi = A1;                               // mov esi, A1
-    {
-        dword src = readMemory(esi + 6, 4);
-        int32_t dstSigned = src;
-        int32_t srcSigned = 452454;
-        dword res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
-        flags.sign = (res & 0x80000000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+Sprite.animationTable], offset staticHeaderHitAnimTable
-    if (flags.zero)
-        goto l_set_static_header_anim_table; // jz @@set_static_header_anim_table
 
-    esi = A6;                               // mov esi, A6
+    if (A1.as<Sprite&>().animTable == getStaticHeaderHitAnimTable())
+        goto l_set_static_header_anim_table;
+
     ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+TeamGeneralInfo.currentAllowedDirection]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
@@ -1291,8 +1245,7 @@ l_fix_sprite_direction:;
     }                                       // and [esi+Sprite.direction], 7
 
 l_set_static_header_anim_table:;
-    A0 = 452454;                            // mov A0, offset staticHeaderHitAnimTable
-    setPlayerAnimationTableAndPictureIndex();     // call SetAnimationTableAndPictureIndex
+    setPlayerAnimationTableAndPictureIndex(A1.as<Sprite&>(), getStaticHeaderHitAnimTable());
     esi = A6;                               // mov esi, A6
     ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+TeamGeneralInfo.currentAllowedDirection]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
@@ -1304,12 +1257,12 @@ l_set_static_header_anim_table:;
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
 
 l_got_direction:;
-    A2 = 328988;                            // mov A2, offset ballSprite
+    A2 = 328492;                            // mov A2, offset ballSprite
     ax = D1;                                // mov ax, word ptr D1
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
-    A0 = 523294;                            // mov A0, offset kDefaultDestinations
+    A0 = 515768;                            // mov A0, offset kDefaultDestinations
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -1344,11 +1297,11 @@ l_got_direction:;
     ax = D1;                                // mov ax, word ptr D1
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[524722];       // mov ax, kStaticHeaderBallSpeed
+    ax = *(word *)&g_memByte[516884];       // mov ax, kStaticHeaderBallSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     A4 = &getPlayerPointerFromShirtNumber(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());
     A4 -= kTeamGameHeaderSize;
-    A0 = 523766;                            // mov A0, offset kPlayerHeaderSpeedIncrease
+    A0 = 516016;                            // mov A0, offset kPlayerHeaderSpeedIncrease
     esi = A4;                               // mov esi, A4
     al = (byte)readMemory(esi + 71, 1);     // mov al, [esi+PlayerGameHeader.heading]
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
@@ -1393,6 +1346,8 @@ l_got_direction:;
 //
 // Hitting flying or lob header. Only triggers on ball contact.
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void playerHittingJumpHeader()
 {
     esi = A6;                               // mov esi, A6
@@ -1410,8 +1365,8 @@ void playerHittingJumpHeader()
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
 
 l_set_player_z_and_ball_speed:;
-    A2 = 328988;                            // mov A2, offset ballSprite
-    eax = *(dword *)&g_memByte[325636];     // mov eax, kBallJumpHeaderDeltaZ
+    A2 = 328492;                            // mov A2, offset ballSprite
+    eax = *(dword *)&g_memByte[325304];     // mov eax, kBallJumpHeaderDeltaZ
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 54, 4, eax);          // mov [esi+Sprite.deltaZ], eax
     esi = A1;                               // mov esi, A1
@@ -1595,7 +1550,7 @@ l_update_player_direction:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
-    A0 = 523294;                            // mov A0, offset kDefaultDestinations
+    A0 = 515768;                            // mov A0, offset kDefaultDestinations
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -1632,7 +1587,7 @@ l_update_player_direction:;
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
     A4 = &getPlayerPointerFromShirtNumber(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());
     A4 -= kTeamGameHeaderSize;
-    A0 = 523766;                            // mov A0, offset kPlayerHeaderSpeedIncrease
+    A0 = 516016;                            // mov A0, offset kPlayerHeaderSpeedIncrease
     esi = A4;                               // mov esi, A4
     al = (byte)readMemory(esi + 71, 1);     // mov al, [esi+PlayerGameHeader.heading]
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
@@ -1681,6 +1636,8 @@ l_update_player_direction:;
 // between the 2 players is greater than 32u it is considered a good tackle.
 //  u = sqr((x1 - x2) ^ 2) + sqr((y1 - y2) ^ 2)
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void playerTackledTheBallStrong()
 {
     esi = A6;                               // mov esi, A6
@@ -1697,7 +1654,7 @@ void playerTackledTheBallStrong()
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
 
 l_current_direction_allowed:;
-    A2 = 328988;                            // mov A2, offset ballSprite
+    A2 = 328492;                            // mov A2, offset ballSprite
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
@@ -1773,7 +1730,7 @@ l_set_new_direction:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
-    A0 = 523294;                            // mov A0, offset kDefaultDestinations
+    A0 = 515768;                            // mov A0, offset kDefaultDestinations
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -1971,6 +1928,8 @@ l_out:;
 //
 // Weak tackle: player speed goes down to 50%, ball speed = 75% of original player speed.
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void playerTackledTheBallWeak()
 {
     esi = A6;                               // mov esi, A6
@@ -1988,7 +1947,7 @@ void playerTackledTheBallWeak()
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
 
 l_controls_something:;
-    A2 = 328988;                            // mov A2, offset ballSprite
+    A2 = 328492;                            // mov A2, offset ballSprite
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
@@ -2064,7 +2023,7 @@ l_set_new_ball_direction_and_speed:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
-    A0 = 523294;                            // mov A0, offset kDefaultDestinations
+    A0 = 515768;                            // mov A0, offset kDefaultDestinations
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -2235,17 +2194,19 @@ l_out:;
 //      A2 -> ball sprite
 //      A6 -> player team (general)
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void goalkeeperClaimedTheBall()
 {
-    eax = *(dword *)&g_memByte[523096];     // mov eax, lastPlayerPlayed
-    *(dword *)&g_memByte[522756] = eax;     // mov lastPlayerBeforeGoalkeeper, eax
-    eax = *(dword *)&g_memByte[523092];     // mov eax, lastTeamPlayed
-    *(dword *)&g_memByte[522752] = eax;     // mov lastTeamScored, eax
+    eax = *(dword *)&g_memByte[515576];     // mov eax, lastPlayerPlayed
+    *(dword *)&g_memByte[515236] = eax;     // mov lastPlayerBeforeGoalkeeper, eax
+    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
+    *(dword *)&g_memByte[515232] = eax;     // mov lastTeamScored, eax
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 44, 2, 0);            // mov [esi+Sprite.speed], 0
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 522940;
+        int32_t srcSigned = 515420;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -2254,13 +2215,13 @@ void goalkeeperClaimedTheBall()
     if (flags.zero)
         goto l_right_team;                  // jz short @@right_team
 
-    *(word *)&g_memByte[523128] = 4;        // mov cameraDirection, 4
-    g_memByte[523130] = 124;                // mov byte ptr playerTurnFlags, 7Ch
+    *(word *)&g_memByte[515608] = 4;        // mov cameraDirection, 4
+    g_memByte[515610] = 124;                // mov byte ptr playerTurnFlags, 7Ch
     goto l_camera_direction_set;            // jmp short @@camera_direction_set
 
 l_right_team:;
-    *(word *)&g_memByte[523128] = 0;        // mov cameraDirection, 0
-    g_memByte[523130] = 199;                // mov byte ptr playerTurnFlags, 0C7h
+    *(word *)&g_memByte[515608] = 0;        // mov cameraDirection, 0
+    g_memByte[515610] = 199;                // mov byte ptr playerTurnFlags, 0C7h
 
 l_camera_direction_set:;
     esi = A6;                               // mov esi, A6
@@ -2272,15 +2233,15 @@ l_camera_direction_set:;
         goto l_player_controlled_team;      // jnz short @@player_controlled_team
 
     {
-        byte src = g_memByte[523130];
+        byte src = g_memByte[515610];
         byte res = src & 187;
         src = res;
-        g_memByte[523130] = src;
+        g_memByte[515610] = src;
     }                                       // and byte ptr playerTurnFlags, 10111011b
 
 l_player_controlled_team:;
     {
-        word src = *(word *)&g_memByte[455960];
+        word src = *(word *)&g_memByte[449234];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -2291,21 +2252,21 @@ l_player_controlled_team:;
     if (!flags.zero)
         goto l_keeper_holds_the_ball;       // jnz short @@keeper_holds_the_ball
 
-    A6 = 522792;                            // mov A6, offset topTeamData
+    A6 = 515272;                            // mov A6, offset topTeamData
 
 l_keeper_holds_the_ball:;
-    *(word *)&g_memByte[523118] = 3;        // mov gameState, ST_KEEPER_HOLDS_BALL
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    ax = *(word *)&g_memByte[329020];       // mov ax, word ptr ballSprite.x+2
-    *(word *)&g_memByte[523124] = ax;       // mov foulXCoordinate, ax
-    ax = *(word *)&g_memByte[329024];       // mov ax, word ptr ballSprite.y+2
-    *(word *)&g_memByte[523126] = ax;       // mov foulYCoordinate, ax
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, ST_STOPPED
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515598] = 3;        // mov gameState, ST_KEEPER_HOLDS_BALL
+    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
+    ax = *(word *)&g_memByte[328524];       // mov ax, word ptr ballSprite.x+2
+    *(word *)&g_memByte[515604] = ax;       // mov foulXCoordinate, ax
+    ax = *(word *)&g_memByte[328528];       // mov ax, word ptr ballSprite.y+2
+    *(word *)&g_memByte[515606] = ax;       // mov foulYCoordinate, ax
+    *(word *)&g_memByte[515596] = 101;      // mov gameStatePl, ST_STOPPED
+    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[523108] = eax;     // mov lastTeamPlayedBeforeBreak, eax
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
+    *(dword *)&g_memByte[515588] = eax;     // mov lastTeamPlayedBeforeBreak, eax
+    *(word *)&g_memByte[515592] = 0;        // mov stoppageTimerTotal, 0
+    *(word *)&g_memByte[515594] = 0;        // mov stoppageTimerActive, 0
     stopAllPlayers();                       // call StopAllPlayers
     esi = A6;                               // mov esi, A6
     ax = (word)readMemory(esi + 80, 2);     // mov ax, [esi+TeamGeneralInfo.goalkeeperDivingRight]
@@ -2325,26 +2286,28 @@ l_keeper_holds_the_ball:;
     eax = A1;                               // mov eax, A1
     writeMemory(esi + 32, 4, eax);          // mov [esi+TeamGeneralInfo.controlledPlayer], eax
     writeMemory(esi + 84, 1, 1);            // mov byte ptr [esi+TeamGeneralInfo.ballOutOfPlayOrKeeper], 1
-    ax = *(word *)&g_memByte[523128];       // mov ax, cameraDirection
+    ax = *(word *)&g_memByte[515608];       // mov ax, cameraDirection
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 86, 1, 1);            // mov byte ptr [esi+TeamGeneralInfo.goaliePlayingOrOut], 1
     updatePlayerWithBall();                 // call UpdatePlayerWithBall
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
+    *(word *)&g_memByte[449176] = 0;        // mov cameraXVelocity, 0
+    *(word *)&g_memByte[449178] = 0;        // mov cameraYVelocity, 0
 }
 
 // in:
 //      A2 -> ball sprite
 //      A6 -> player team (general)
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void goalkeeperDeflectedBall()
 {
     *(word *)&D0 = 0;                       // mov word ptr D0, 0
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 522940;
+        int32_t srcSigned = 515420;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -2356,7 +2319,7 @@ void goalkeeperDeflectedBall()
     *(word *)&D0 = 4;                       // mov word ptr D0, 4
 
 cseg_78DB8:;
-    A0 = 523294;                            // mov A0, offset kDefaultDestinations
+    A0 = 515768;                            // mov A0, offset kDefaultDestinations
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -2389,7 +2352,7 @@ cseg_78DB8:;
     ax = D1;                                // mov ax, word ptr D1
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[323904];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 31;
@@ -2417,7 +2380,7 @@ cseg_78DB8:;
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 24, 4);          // mov eax, [esi+TeamGeneralInfo.shotChanceTable]
     A0 = eax;                               // mov A0, eax
-    ax = *(word *)&g_memByte[323904];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         word res = *(word *)&D1 & 60;
@@ -2454,12 +2417,12 @@ cseg_78DB8:;
     if (flags.sign)
         goto l_medium_deflect;              // js short @@medium_deflect
 
-    ax = *(word *)&g_memByte[324044];       // mov ax, kGoalkeeperWeakDeflectBallSpeed
+    ax = kGoalkeeperWeakDeflectBallSpeed;   // mov ax, kGoalkeeperWeakDeflectBallSpeed
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     goto l_set_ball_speed;                  // jmp short @@set_ball_speed
 
 l_medium_deflect:;
-    ax = *(word *)&g_memByte[324042];       // mov ax, kGoalkeeperMediumDeflectBallSpeed
+    ax = kGoalkeeperMediumDeflectBallSpeed; // mov ax, kGoalkeeperMediumDeflectBallSpeed
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2467,11 +2430,11 @@ l_medium_deflect:;
     goto l_set_ball_speed;                  // jmp short @@set_ball_speed
 
 l_strong_deflect:;
-    ax = *(word *)&g_memByte[324040];       // mov ax, kGoalkeeperStrongDeflectBallSpeed
+    ax = kGoalkeeperStrongDeflectBallSpeed; // mov ax, kGoalkeeperStrongDeflectBallSpeed
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
 
 l_set_ball_speed:;
-    ax = *(word *)&g_memByte[323904];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 511;
@@ -2493,9 +2456,9 @@ l_set_ball_speed:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
-    eax = *(dword *)&g_memByte[324046];     // mov eax, kGoalkeeperDeflectDeltaZ
+    eax = kGoalkeeperDeflectDeltaZ;         // mov eax, kGoalkeeperDeflectDeltaZ
     D1 = eax;                               // mov D1, eax
-    ax = *(word *)&g_memByte[323904];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         dword res = D0 & 127;
@@ -2527,9 +2490,11 @@ l_set_ball_speed:;
     SWOS::PlayKickSample();                 // call PlayKickSample
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void doFlyingHeader()
 {
-    eax = *(dword *)&g_memByte[523798];     // mov eax, kHeaderLowJumpHeight
+    eax = *(dword *)&g_memByte[516048];     // mov eax, kHeaderLowJumpHeight
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 54, 4, eax);          // mov [esi+Sprite.deltaZ], eax
     ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
@@ -2557,10 +2522,12 @@ void doFlyingHeader()
 //      A1 -> player sprite
 //      A6 -> team
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void doPass()
 {
-    *(word *)&g_memByte[523658] = 0;        // mov goodPassSampleCommand, 0
-    *(word *)&g_memByte[456262] = 0;        // mov stateGoal, 0
+    *(word *)&g_memByte[515910] = 0;        // mov goodPassSampleCommand, 0
+    *(word *)&g_memByte[449514] = 0;        // mov stateGoal, 0
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 32, 4);          // mov eax, [esi+TeamGeneralInfo.controlledPlayer]
     A0 = eax;                               // mov A0, eax
@@ -2595,7 +2562,7 @@ void doPass()
     writeMemory(esi + 88, 2, 1);            // mov [esi+TeamGeneralInfo.passingBall], 1
     writeMemory(esi + 90, 2, 1);            // mov [esi+TeamGeneralInfo.passingToPlayer], 1
     {
-        word src = *(word *)&g_memByte[523116];
+        word src = *(word *)&g_memByte[515596];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -2623,8 +2590,8 @@ void doPass()
         word res = *(word *)&D0 << 1;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 1
-    A1 = 523872;                            // mov A1, offset kAIFailedPassChance
-    ax = *(word *)&g_memByte[323904];       // mov ax, currentGameTick
+    A1 = 516122;                            // mov A1, offset kAIFailedPassChance
+    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
     *(word *)&D7 = ax;                      // mov word ptr D7, ax
     {
         word res = *(word *)&D7 & 30;
@@ -2649,8 +2616,8 @@ void doPass()
     if (!flags.carry)
         goto l_calculate_pass_to_player_delta_x_y; // jnb @@calculate_pass_to_player_delta_x_y
 
-    *(word *)&g_memByte[523658] = -2;       // mov goodPassSampleCommand, -2
-    A1 = 328988;                            // mov A1, offset ballSprite
+    *(word *)&g_memByte[515910] = -2;       // mov goodPassSampleCommand, -2
+    A1 = 328492;                            // mov A1, offset ballSprite
     esi = A0;                               // mov esi, A0
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
@@ -2663,7 +2630,7 @@ void doPass()
         *(word *)&D0 = res;
     }                                       // sub word ptr D0, ax
     {
-        byte src = g_memByte[323904];
+        byte src = g_memByte[323626];
         byte res = src & 32;
         flags.carry = false;
         flags.overflow = false;
@@ -2705,7 +2672,7 @@ l_multiply_dx:;
         *(word *)&D0 = res;
     }                                       // sub word ptr D0, ax
     {
-        byte src = g_memByte[323904];
+        byte src = g_memByte[323626];
         byte res = src & 32;
         flags.carry = false;
         flags.overflow = false;
@@ -2742,7 +2709,7 @@ l_multiply_dy:;
     goto l_determine_ball_speed;            // jmp @@determine_ball_speed
 
 l_calculate_pass_to_player_delta_x_y:;
-    A1 = 328988;                            // mov A1, offset ballSprite
+    A1 = 328492;                            // mov A1, offset ballSprite
     esi = A0;                               // mov esi, A0
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
@@ -2881,7 +2848,7 @@ l_set_dest_x_y:;
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
 
 l_determine_ball_speed:;
-    ax = *(word *)&g_memByte[523822];       // mov ax, kPassingSpeedCloserThan2500
+    ax = *(word *)&g_memByte[516072];       // mov ax, kPassingSpeedCloserThan2500
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     esi = A0;                               // mov esi, A0
     eax = readMemory(esi + 74, 4);          // mov eax, [esi+Sprite.ballDistance]
@@ -2898,7 +2865,7 @@ l_determine_ball_speed:;
     if (flags.carry)
         goto l_set_ball_speed;              // jb @@set_ball_speed
 
-    ax = *(word *)&g_memByte[523824];       // mov ax, kPassingSpeed_2500_10000
+    ax = *(word *)&g_memByte[516074];       // mov ax, kPassingSpeed_2500_10000
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     eax = readMemory(esi + 74, 4);          // mov eax, [esi+Sprite.ballDistance]
     {
@@ -2913,7 +2880,7 @@ l_determine_ball_speed:;
     if (flags.carry)
         goto l_set_ball_speed;              // jb @@set_ball_speed
 
-    ax = *(word *)&g_memByte[523826];       // mov ax, kPassingSpeed_10000_22500
+    ax = *(word *)&g_memByte[516076];       // mov ax, kPassingSpeed_10000_22500
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     eax = readMemory(esi + 74, 4);          // mov eax, [esi+Sprite.ballDistance]
     {
@@ -2928,7 +2895,7 @@ l_determine_ball_speed:;
     if (flags.carry)
         goto l_set_ball_speed;              // jb @@set_ball_speed
 
-    ax = *(word *)&g_memByte[523828];       // mov ax, kPassingSpeed_22500_40000
+    ax = *(word *)&g_memByte[516078];       // mov ax, kPassingSpeed_22500_40000
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     eax = readMemory(esi + 74, 4);          // mov eax, [esi+Sprite.ballDistance]
     {
@@ -2943,7 +2910,7 @@ l_determine_ball_speed:;
     if (flags.carry)
         goto l_set_ball_speed;              // jb @@set_ball_speed
 
-    ax = *(word *)&g_memByte[523830];       // mov ax, kPassingSpeed_40000_62500
+    ax = *(word *)&g_memByte[516080];       // mov ax, kPassingSpeed_40000_62500
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     eax = readMemory(esi + 74, 4);          // mov eax, [esi+Sprite.ballDistance]
     {
@@ -2958,7 +2925,7 @@ l_determine_ball_speed:;
     if (flags.carry)
         goto l_set_ball_speed;              // jb short @@set_ball_speed
 
-    ax = *(word *)&g_memByte[523832];       // mov ax, kPassingSpeed_62500_90000
+    ax = *(word *)&g_memByte[516082];       // mov ax, kPassingSpeed_62500_90000
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     eax = readMemory(esi + 74, 4);          // mov eax, [esi+Sprite.ballDistance]
     {
@@ -2973,7 +2940,7 @@ l_determine_ball_speed:;
     if (flags.carry)
         goto l_set_ball_speed;              // jb short @@set_ball_speed
 
-    ax = *(word *)&g_memByte[523834];       // mov ax, kPassingSpeed_90000_122500
+    ax = *(word *)&g_memByte[516084];       // mov ax, kPassingSpeed_90000_122500
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     eax = readMemory(esi + 74, 4);          // mov eax, [esi+Sprite.ballDistance]
     {
@@ -2988,7 +2955,7 @@ l_determine_ball_speed:;
     if (flags.carry)
         goto l_set_ball_speed;              // jb short @@set_ball_speed
 
-    ax = *(word *)&g_memByte[523836];       // mov ax, kPassingSpeedFurtherThan122500
+    ax = *(word *)&g_memByte[516086];       // mov ax, kPassingSpeedFurtherThan122500
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
 
 l_set_ball_speed:;
@@ -3000,7 +2967,7 @@ l_set_ball_speed:;
         word res = *(word *)&D0 << 1;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 1
-    A0 = 523806;                            // mov A0, offset kBallSpeedPassingIncrease
+    A0 = 516056;                            // mov A0, offset kBallSpeedPassingIncrease
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -3017,22 +2984,19 @@ l_set_ball_speed:;
     ax = D1;                                // mov ax, word ptr D1
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
-    *(word *)&g_memByte[523658] = -1;       // mov goodPassSampleCommand, -1
+    *(word *)&g_memByte[515910] = -1;       // mov goodPassSampleCommand, -1
     goto l_reset_spin_timers;               // jmp @@reset_spin_timers
 
 l_no_closest_player:;
-    getBallDestCoordinatesTable();          // call GetBallDestCoordinatesTable
-    A1 = 328988;                            // mov A1, offset ballSprite
-    {
-        word res = *(word *)&D7 << 2;
-        *(word *)&D7 = res;
-    }                                       // shl word ptr D7, 2
+{
+    auto table = getBallDestCoordinatesTable();          // call GetBallDestCoordinatesTable
+    A1 = 328492;                            // mov A1, offset ballSprite
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D7;                     // movzx ebx, word ptr D7
-    ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
+    ax = table[ebx].x;
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -3044,8 +3008,8 @@ l_no_closest_player:;
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi + ebx + 2, 2); // mov ax, [esi+ebx+2]
+    ax = table[ebx].y;
+}
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -3059,7 +3023,7 @@ l_no_closest_player:;
     ax = D1;                                // mov ax, word ptr D1
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[523838];       // mov ax, kFreePassReleasingBallSpeed
+    ax = *(word *)&g_memByte[516088];       // mov ax, kFreePassReleasingBallSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
 
 l_reset_spin_timers:;
@@ -3079,7 +3043,7 @@ l_player_passing:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 128, 2, 1);           // mov [esi+TeamGeneralInfo.passInProgress], 1
     {
-        word src = *(word *)&g_memByte[523116];
+        word src = *(word *)&g_memByte[515596];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -3092,7 +3056,7 @@ l_player_passing:;
         goto l_play_kick_and_pass_samples;  // jz short @@play_kick_and_pass_samples
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 15;
         word res = dstSigned - srcSigned;
@@ -3105,7 +3069,7 @@ l_player_passing:;
         goto l_play_kick_and_pass_samples;  // jb short @@play_kick_and_pass_samples
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -3129,11 +3093,13 @@ l_play_kick_and_pass_samples:;
 // Set how much time will player be lying on the ground after tackle.
 // Better tackling skill means less time.
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 void setPlayerDowntimeAfterTackle()
 {
     A4 = &getPlayerPointerFromShirtNumber(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());
     A4 -= kTeamGameHeaderSize;
-    A0 = 524000;                            // mov A0, offset kPlayerTacklingDownTime
+    A0 = 516250;                            // mov A0, offset kPlayerTacklingDownTime
     esi = A1;                               // mov esi, A1
     {
         word src = (word)readMemory(esi + 106, 2);
@@ -3147,7 +3113,7 @@ void setPlayerDowntimeAfterTackle()
     if (!flags.zero)
         goto l_ordinary_player;             // jnz short @@ordinary_player
 
-    A0 = 524016;                            // mov A0, offset kComputerTacklingDownTime
+    A0 = 516266;                            // mov A0, offset kComputerTacklingDownTime
 
 l_ordinary_player:;
     esi = A4;                               // mov esi, A4
@@ -3169,77 +3135,16 @@ l_ordinary_player:;
     writeMemory(esi + 13, 1, al);           // mov [esi+Sprite.playerDownTimer], al
 }
 
-// in:
-//      A1 -> player
-//
-void setJumpHeaderHitAnimTable()
+void setJumpHeaderHitAnimTable(Sprite& player)
 {
-    esi = A1;                               // mov esi, A1
+    // this is an animation switch from previous heading "intro" animation
+    if (player.animTable != getJumpHeaderHitAnimTable() && !player.isHeadingBall &&
+        player.playerDownTimer == 40 && static_cast<uint16_t>(player.frameSwitchCounter) <= 2 &&
+        swos.currentGameTick & 0x0200)
     {
-        dword src = readMemory(esi + 6, 4);
-        int32_t dstSigned = src;
-        int32_t srcSigned = 452714;
-        dword res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
-        flags.sign = (res & 0x80000000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+Sprite.animationTable], offset jumpHeaderHitAnimTable
-    if (flags.zero)
-        return;                             // jz short @@out
-
-    ax = (word)readMemory(esi + 98, 2);     // mov ax, [esi+Sprite.heading]
-    flags.carry = false;
-    flags.sign = (ax & 0x8000) != 0;
-    flags.zero = ax == 0;                   // or ax, ax
-    if (!flags.zero)
-        return;                             // jnz short @@out
-
-    {
-        byte src = (byte)readMemory(esi + 13, 1);
-        int8_t dstSigned = src;
-        int8_t srcSigned = 40;
-        byte res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint8_t>(dstSigned) < static_cast<uint8_t>(srcSigned);
-        flags.sign = (res & 0x80) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+Sprite.playerDownTimer], 40
-    if (!flags.zero)
-        return;                             // jnz short @@out
-
-    {
-        word src = (word)readMemory(esi + 28, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = 2;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+Sprite.frameSwitchCounter], 2
-    if (!flags.carry && !flags.zero)
-        return;                             // ja short @@out
-
-    {
-        byte src = g_memByte[323905];
-        byte res = src & 2;
-        flags.carry = false;
-        flags.sign = (res & 0x80) != 0;
-        flags.zero = res == 0;
-    }                                       // test byte ptr currentGameTick+1, 2
-    if (flags.zero)
-        return;                             // jz short @@out
-
-    A0 = 452714;                            // mov A0, offset jumpHeaderHitAnimTable
-    setPlayerAnimationTableAndPictureIndex(); // call SetPlayerAnimationTableAndPictureIndex
-    esi = A1;                               // mov esi, A1
-    {
-        word src = (word)readMemory(esi + 44, 2);
-        word res = src >> 1;
-        flags.carry = ((word)src >> 15) & 1;
-        src = res;
-        writeMemory(esi + 44, 2, src);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // shr [esi+Sprite.speed], 1
+        setPlayerAnimationTableAndPictureIndex(A1.as<Sprite&>(), getJumpHeaderHitAnimTable());
+        player.speed >>= 1;
+    }
 }
 
 const PlayerInfo& getPlayerPointerFromShirtNumber(const TeamGeneralInfo& team, const Sprite& player)
@@ -3254,9 +3159,11 @@ const PlayerInfo& getPlayerPointerFromShirtNumber(const TeamGeneralInfo& team, c
 //     A1 -> player sprite
 //     A2 -> ball sprite
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void doLobHeader()
 {
-    eax = *(dword *)&g_memByte[523802];     // mov eax, kHeaderHighJumpHeight
+    eax = *(dword *)&g_memByte[516052];     // mov eax, kHeaderHighJumpHeight
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 54, 4, eax);          // mov [esi+Sprite.deltaZ], eax
     ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
@@ -3290,6 +3197,8 @@ static void doLobHeader()
 // Return pointer to player closest to the ball facing approximately given
 // direction. Also return his distance from the ball.
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void getClosestNonControlledPlayerInDirection()
 {
     eax = A1;                               // mov eax, A1
@@ -3297,7 +3206,7 @@ static void getClosestNonControlledPlayerInDirection()
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 20, 4);          // mov eax, [esi+TeamGeneralInfo.spritesTable]
     A2 = eax;                               // mov A2, eax
-    A0 = 328988;                            // mov A0, offset ballSprite
+    A0 = 328492;                            // mov A0, offset ballSprite
     esi = A0;                               // mov esi, A0
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
@@ -3424,6 +3333,8 @@ l_next:;
 //
 // Table for flying and lob headers.
 //
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void setPlayerJumpHeaderHitAnimationTable()
 {
     esi = A1;                               // mov esi, A1
@@ -3439,290 +3350,15 @@ static void setPlayerJumpHeaderHitAnimationTable()
     if (!flags.carry && !flags.zero)
         return;                             // ja short @@out
 
-    A0 = 452714;                            // mov A0, offset jumpHeaderHitAnimTable
-    setPlayerAnimationTableAndPictureIndex();     // call SetAnimationTableAndPictureIndex
+    setPlayerAnimationTableAndPictureIndex(A1.as<Sprite&>(), getJumpHeaderHitAnimTable());
 }
 
-// in:
-//      A0 -> animation table
-//      A1 -> player (sprite)
-//
-static void setPlayerAnimationTableAndPictureIndex()
-{
-    eax = A0;                               // mov eax, A0
-    esi = A1;                               // mov esi, A1
-    writeMemory(esi + 6, 4, eax);           // mov [esi+Sprite.animationTable], eax
-    push(D0);                               // push D0
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi+Sprite.teamNumber]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        *(word *)&D0 = res;
-    }                                       // sub word ptr D0, 1
-    {
-        word src = (word)readMemory(esi + 2, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+Sprite.playerOrdinal], 1
-    if (!flags.zero)
-        goto l_calc_table_index;            // jnz short @@calc_table_index
-
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 2;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, 2
-
-l_calc_table_index:;
-    {
-        word res = *(word *)&D0 << 3;
-        *(word *)&D0 = res;
-    }                                       // shl word ptr D0, 3
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, ax
-    {
-        word res = *(word *)&D0 << 2;
-        *(word *)&D0 = res;
-    }                                       // shl word ptr D0, 2
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    esi = A1;                               // mov esi, A1
-    writeMemory(esi + 24, 2, ax);           // mov [esi+Sprite.frameDelay], ax
-    esi = A0;                               // mov esi, A0
-    ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    eax = readMemory(esi + ebx + 2, 4);     // mov eax, [esi+ebx+2]
-    esi = A1;                               // mov esi, A1
-    writeMemory(esi + 18, 4, eax);          // mov [esi+Sprite.frameIndicesTable], eax
-    flags.carry = false;
-    flags.sign = (eax & 0x80000000) != 0;
-    flags.zero = eax == 0;                  // or eax, eax
-    if (flags.zero)
-        goto l_fatal_error;                 // jz @@fatal_error
-
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    writeMemory(esi + 10, 2, ax);           // mov [esi+Sprite.startingDirection], ax
-    eax = readMemory(esi + 18, 4);          // mov eax, [esi+Sprite.frameIndicesTable]
-    A0 = eax;                               // mov A0, eax
-    ax = (word)readMemory(esi + 22, 2);     // mov ax, [esi+Sprite.frameIndex]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    {
-        word res = *(word *)&D0 << 1;
-        *(word *)&D0 = res;
-    }                                       // shl word ptr D0, 1
-    esi = A0;                               // mov esi, A0
-    ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    flags.carry = false;
-    flags.sign = (ax & 0x8000) != 0;
-    flags.zero = ax == 0;                   // or ax, ax
-    if (flags.sign)
-        goto l_out;                         // js short @@out
-
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 4, 2);      // mov ax, [esi+Sprite.frameOffset]
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, ax
-    ax = D0;                                // mov ax, word ptr D0
-    writeMemory(esi + 70, 2, ax);           // mov [esi+Sprite.imageIndex], ax
-
-l_out:;
-    pop(D0);                                // pop D0
-    return;                                 // retn
-
-l_fatal_error:;
-    debugBreak();                           // int 3
-
-l_endless_loop:;
-    goto l_endless_loop;                    // jmp short @@endless_loop
-}
-
-// out:
-//      A0 -> ball factor table, depending on game state
-//
-// Even indices are delta x, odd are delta y. They are added to ball
-// delta x and y. Tables are different for each type of game halt.
-// Called when player kicks the ball or does a pass.
-//
-static void getBallDestCoordinatesTable()
-{
-    {
-        word src = *(word *)&g_memByte[523118];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 15;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp gameState, ST_THROW_IN_FORWARD_RIGHT
-    if (flags.carry)
-        goto l_not_throw_in;                // jb short @@not_throw_in
-
-    {
-        word src = *(word *)&g_memByte[523118];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 20;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp gameState, ST_THROW_IN_BACK_LEFT
-    if (!flags.carry && !flags.zero)
-        goto l_not_throw_in;                // ja short @@not_throw_in
-
-    {
-        word src = *(word *)&g_memByte[523124];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 336;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp foulXCoordinate, 336
-    if (!flags.carry && !flags.zero)
-        goto l_right_throw_in;              // ja short @@right_throw_in
-
-    A0 = 523326;                            // mov A0, offset kLeftThrowInBallDestDelta
-    return;                                 // retn
-
-l_right_throw_in:;
-    A0 = 523358;                            // mov A0, offset kRightThrowInBallDestDelta
-    return;                                 // retn
-
-l_not_throw_in:;
-    {
-        word src = *(word *)&g_memByte[523118];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 14;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp gameState, ST_PENALTY
-    if (flags.zero)
-        goto l_penalty;                     // jz short @@penalty
-
-    {
-        word src = *(word *)&g_memByte[523118];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 31;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp gameState, ST_PENALTIES
-    if (!flags.zero)
-        goto l_not_penalty;                 // jnz short @@not_penalty
-
-l_penalty:;
-    A0 = 523390;                            // mov A0, offset kPenaltyBallDestDelta
-    return;                                 // retn
-
-l_not_penalty:;
-    {
-        word src = *(word *)&g_memByte[523118];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 4;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp gameState, ST_CORNER_LEFT
-    if (flags.zero)
-        goto l_corner;                      // jz short @@corner
-
-    {
-        word src = *(word *)&g_memByte[523118];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 5;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp gameState, ST_CORNER_RIGHT
-    if (!flags.zero)
-        goto l_not_corner;                  // jnz short @@not_corner
-
-l_corner:;
-    {
-        word src = *(word *)&g_memByte[523126];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 449;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp foulYCoordinate, 449
-    if (!flags.carry && !flags.zero)
-        goto l_lower_corner;                // ja short @@lower_corner
-
-    {
-        word src = *(word *)&g_memByte[523124];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 336;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp foulXCoordinate, 336
-    if (!flags.carry && !flags.zero)
-        goto l_upper_right_corner;          // ja short @@upper_right_corner
-
-    A0 = 523422;                            // mov A0, offset kUpperLeftCornerBallDestDelta
-    return;                                 // retn
-
-l_upper_right_corner:;
-    A0 = 523454;                            // mov A0, offset kUpperRightCornerBallDestDelta
-    return;                                 // retn
-
-l_lower_corner:;
-    {
-        word src = *(word *)&g_memByte[523124];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 336;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp foulXCoordinate, 336
-    if (!flags.carry && !flags.zero)
-        goto l_lower_right_corner;          // ja short @@lower_right_corner
-
-    A0 = 523486;                            // mov A0, offset kLowerLeftCornerBallDestDelta
-    return;                                 // retn
-
-l_lower_right_corner:;
-    A0 = 523518;                            // mov A0, offset kLowerRightCornerBallDestDelta
-    return;                                 // retn
-
-l_not_corner:;
-    A0 = 523294;                            // mov A0, offset kDefaultDestinations
-}
-
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void playStopGoodPassSampleIfNeeded()
 {
     {
-        word src = *(word *)&g_memByte[523658];
+        word src = *(word *)&g_memByte[515910];
         int16_t dstSigned = src;
         int16_t srcSigned = -1;
         word res = dstSigned - srcSigned;
@@ -3734,7 +3370,7 @@ static void playStopGoodPassSampleIfNeeded()
         goto l_enqueue_good_pass_sample;    // jz short @@enqueue_good_pass_sample
 
     {
-        word src = *(word *)&g_memByte[523658];
+        word src = *(word *)&g_memByte[515910];
         int16_t dstSigned = src;
         int16_t srcSigned = -2;
         word res = dstSigned - srcSigned;
@@ -3747,38 +3383,42 @@ static void playStopGoodPassSampleIfNeeded()
 
     return;                                 // retn
 
-    *(word *)&g_memByte[523658] = 0;        // mov goodPassSampleCommand, 0
+    *(word *)&g_memByte[515910] = 0;        // mov goodPassSampleCommand, 0
     //EnqueueDeletedSample();                 // call EnqueueDeletedSample
     return;                                 // retn
 
 l_stop_sample:;
-    *(word *)&g_memByte[523658] = 0;        // mov goodPassSampleCommand, 0
+    *(word *)&g_memByte[515910] = 0;        // mov goodPassSampleCommand, 0
     stopGoodPassSample();                   // call StopGoodPassSample
     return;                                 // retn
 
 l_enqueue_good_pass_sample:;
-    *(word *)&g_memByte[523658] = 0;        // mov goodPassSampleCommand, 0
+    *(word *)&g_memByte[515910] = 0;        // mov goodPassSampleCommand, 0
     enqueuePlayingGoodPassSample();          // call EnqueuPlayingGoodPassSample
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void stopGoodPassSample()
 {
-    *(word *)&g_memByte[485382] = -1;       // mov playingGoodPassTimer, -1
+    *(word *)&g_memByte[477898] = -1;       // mov playingGoodPassTimer, -1
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void enqueuePlayingGoodPassSample()
 {
-    *(word *)&g_memByte[485382] = -1;       // mov playingGoodPassTimer, -1
+    *(word *)&g_memByte[477898] = -1;       // mov playingGoodPassTimer, -1
     {
-        word src = *(word *)&g_memByte[485380];
+        word src = *(word *)&g_memByte[477896];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[485380] = src;
+        *(word *)&g_memByte[477896] = src;
     }                                       // add goodPassTimer, 1
     {
-        word src = *(word *)&g_memByte[485380];
+        word src = *(word *)&g_memByte[477896];
         int16_t dstSigned = src;
         int16_t srcSigned = 5;
         word res = dstSigned - srcSigned;
@@ -3789,6 +3429,6 @@ static void enqueuePlayingGoodPassSample()
     if (!flags.zero)
         return;                             // jnz short @@out
 
-    *(word *)&g_memByte[485380] = 0;        // mov goodPassTimer, 0
-    *(word *)&g_memByte[485382] = 10;       // mov playingGoodPassTimer, 10
+    *(word *)&g_memByte[477896] = 0;        // mov goodPassTimer, 0
+    *(word *)&g_memByte[477898] = 10;       // mov playingGoodPassTimer, 10
 }

@@ -39,12 +39,26 @@ def findNumber(line, i=0, end=None):
     return None, i, start
 
 
+def isPotentialVmSymbol(token):
+    ignored = {
+        'mov', 'movzx', 'movsx', 'lea', 'cmp', 'test', 'add', 'sub', 'and', 'or', 'xor',
+        'shl', 'shr', 'sar', 'inc', 'dec', 'neg', 'not', 'imul', 'mul', 'idiv', 'div',
+        'push', 'pop', 'call', 'byte', 'word', 'dword', 'ptr', 'small',
+        'al', 'ah', 'ax', 'eax', 'bl', 'bh', 'bx', 'ebx', 'cl', 'ch', 'cx', 'ecx',
+        'dl', 'dh', 'dx', 'edx', 'esi', 'edi', 'esp', 'ebp',
+        'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6',
+        'D0', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7',
+    }
+    return token not in ignored and not re.fullmatch(r'[A-Z][A-Z0-9_]*', token)
+
+
 numArgs = len(sys.argv)
 
 if numArgs <= 1:
     sys.exit('No input files specified')
 
 vars = readVariables()
+missingSymbols = []
 
 kOverflowLine8 = 'flags.overflow = dstSigned < 0 ? srcSigned > dstSigned - INT8_MIN : srcSigned < dstSigned - INT8_MAX'
 kOverflowLine16 = 'flags.overflow = dstSigned < 0 ? srcSigned > dstSigned - INT16_MIN : srcSigned < dstSigned - INT16_MAX'
@@ -121,7 +135,11 @@ for i in range(1, numArgs):
                     i = 0
                     firstReplaced = False
                     parenthesizedOffset = False
+                    explicitOffset = False
+                    missingMemorySymbol = None
                     for token in match.group(2).replace(',', ' ').split()[1:]:
+                        if token.startswith(';'):
+                            break
                         if token.startswith('[') and token.endswith(']'):
                             token = token[1:-1]
                         try:
@@ -131,11 +149,14 @@ for i in range(1, numArgs):
                             pass
                         if token == '(offset':
                             parenthesizedOffset = True
+                            explicitOffset = True
                             continue
                         elif token.endswith(')') and parenthesizedOffset:
                             token = token[:-1]
-                            assert '+' in token and token.split('+')[0] in vars
                             parenthesizedOffset = False
+                        elif token == 'offset':
+                            explicitOffset = True
+                            continue
                         if token != 'offset' and re.match(r'^[_a-z][\w.+]+$', token, re.I):
                             displacement = 0
                             if token.count('.') == 1:
@@ -161,7 +182,17 @@ for i in range(1, numArgs):
                                 except:
                                     continue
                             if not (address := vars.get(token)):
+                                if explicitOffset:
+                                    missingSymbols.append((inputFilename, lineNo, token))
+                                elif match.group(1) and isPotentialVmSymbol(token):
+                                    # A numeric g_memByte access is itself an explicit VM address.
+                                    # Remember the last symbol-like operand so a removed VM item
+                                    # cannot silently leave its former numeric address behind.
+                                    missingMemorySymbol = token
+                                explicitOffset = False
                                 continue
+                            missingMemorySymbol = None
+                            explicitOffset = False
                             if displacement:
                                 address = str(int(address) + displacement)
                             num, i, start = findNumber(line, i, match.start(2))
@@ -201,6 +232,8 @@ for i in range(1, numArgs):
                                 outputFile.write(line)
                                 continueOuter = True
                                 break
+                    if missingMemorySymbol:
+                        missingSymbols.append((inputFilename, lineNo, missingMemorySymbol))
                     if continueOuter:
                         pass
                     elif storedLines:
@@ -234,3 +267,8 @@ for i in range(1, numArgs):
                                     addressToReplace[i] = str(addressToReplace[i])
                     else:
                         outputFile.write(line)
+
+if missingSymbols:
+    for filename, lineNo, symbol in missingSymbols:
+        print(f"Unknown VM symbol '{symbol}' in offset comment at {filename}:{lineNo}", file=sys.stderr)
+    sys.exit(1)

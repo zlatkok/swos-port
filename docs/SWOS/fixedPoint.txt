@@ -31,3 +31,16 @@ From floating point:
 
 Rounding to integer:
     (value >> 16) + ((value & 0xffff) > 0x8000)
+
+# Sprite speed
+
+Sprite speed is a 16-bit signed Q7.9 value: the upper seven bits include the sign and the lower nine bits are
+fractional. Consequently, 512 represents 1 pixel per game tick before platform-specific movement scaling.
+For example, 256 is 0.5, 1024 is 2, 1280 is 2.5, 2560 is 5, and 2688 is 5.25 pixels per tick.
+
+CalculateDeltaXAndY() multiplies speed by signed Q1.15 sine/cosine direction components and shifts the product
+right by 8. The result is the signed 16.16 delta stored in the sprite. The original-compatible calculation first
+shifts each direction component right by 8 and then multiplies it by speed, retaining the original truncation.
+
+On the PC movement path, x/y deltas are additionally scaled by 41/64 (0.640625). The Amiga movement path does not
+apply this extra scale.

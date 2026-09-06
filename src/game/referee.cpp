@@ -1,6 +1,7 @@
 #include "referee.h"
 #include "camera.h"
 #include "random.h"
+#include "animation.h"
 #include "sprites.h"
 #include "gameSprites.h"
 #include "updateSprite.h"
@@ -45,7 +46,7 @@ static Sprite m_bookedPlayerNumberSprite{ 3 };
 static void updateRefereeState();
 static void putRefereeToLeavingState();
 static void sendPlayerAway();
-static void initRefereeAnimationTable(SwosDataPointer<void> animTable);
+static void initRefereeAnimationTable(int16_t animTableOffset);
 
 void activateReferee()
 {
@@ -57,7 +58,7 @@ void activateReferee()
     if (swos.foulXCoordinate >= kPitchCenterX)
         xOffset = -xOffset;
 
-    int cameraY = static_cast<int>(getCameraY());
+    int cameraY = getCameraY().truncated();
     int refStartY = cameraY - 20;
 
     if (swos.foulYCoordinate <= kPitchCenterY)
@@ -69,7 +70,7 @@ void activateReferee()
     m_refereeSprite.show();
 
     initDisplaySprites();
-    initRefereeAnimationTable(&swos.refComingAnimTable);
+    initRefereeAnimationTable(getRefComingAnimTable());
 
     swos.refState = kRefIncoming;
 }
@@ -77,6 +78,30 @@ void activateReferee()
 bool refereeActive()
 {
     return swos.refState != kRefOffScreen;
+}
+
+void removeReferee()
+{
+    swos.refState = kRefOffScreen;
+    m_refereeSprite.hide();
+#ifdef SWOS_TEST
+    m_refereeSprite.x.setWhole(kRefereeHidingPlaceX);
+    m_refereeSprite.y.setWhole(kRefereeHidingPlaceY);
+#else
+    m_refereeSprite.x = kRefereeHidingPlaceX;
+    m_refereeSprite.y = kRefereeHidingPlaceY;
+#endif
+    m_refereeSprite.z = 0;
+    m_refereeSprite.destX = kRefereeHidingPlaceX;
+    m_refereeSprite.destY = kRefereeHidingPlaceY;
+    m_refereeSprite.speed = 0;
+    m_refereeSprite.playerDownTimer = 0;
+    m_refereeSprite.frameIndex = -1;
+    m_refereeSprite.cycleFramesTimer = 1;
+    m_refereeSprite.clearImage();
+    m_refereeSprite.direction = kFacingTop;
+    m_refereeSprite.onScreen = 1;
+    initRefereeAnimationTable(getRefWaitingAnimTable());
 }
 
 bool cardHandingInProgress()
@@ -117,7 +142,7 @@ void updateBookedPlayerNumberSprite()
 #ifdef SWOS_TEST
             // emulate SWOS bug: the table for second yellow card is 3 bytes short,
             // and accessing it randomly brings in the bytes from the array that follows it
-            constexpr int kFaultySize = 27;
+            constexpr int kFaultySize = kPlayerNumberBlinkTable.size() - 3;
             if (swos.whichCard != kRedCard && swos.whichCard != kYellowCard && index >= kFaultySize) {
                 static const std::array<int8_t, 3> kJunkBytes = { 96, 3, -98, };
                 action = kJunkBytes[index - kFaultySize];
@@ -160,35 +185,6 @@ Sprite *bookedPlayerNumberSprite()
     return &m_bookedPlayerNumberSprite;
 }
 
-static void removeReferee()
-{
-    swos.refState = kRefOffScreen;
-    m_refereeSprite.hide();
-#ifdef SWOS_TEST
-    m_refereeSprite.x.setWhole(kRefereeHidingPlaceX);
-    m_refereeSprite.y.setWhole(kRefereeHidingPlaceY);
-#else
-    m_refereeSprite.x = kRefereeHidingPlaceX;
-    m_refereeSprite.y = kRefereeHidingPlaceY;
-#endif
-    m_refereeSprite.z = 0;
-    m_refereeSprite.destX = kRefereeHidingPlaceX;
-    m_refereeSprite.destY = kRefereeHidingPlaceY;
-    m_refereeSprite.speed = 0;
-    m_refereeSprite.playerDownTimer = 0;
-    m_refereeSprite.frameIndex = -1;
-    m_refereeSprite.cycleFramesTimer = 1;
-    m_refereeSprite.clearImage();
-    m_refereeSprite.direction = kFacingTop;
-    m_refereeSprite.onScreen = 1;
-    initRefereeAnimationTable(&swos.refWaitingAnimTable);
-}
-
-void SWOS::RemoveReferee()
-{
-    removeReferee();
-}
-
 static void updateRefereeState()
 {
     switch (swos.refState) {
@@ -198,15 +194,15 @@ static void updateRefereeState()
 
         switch (swos.whichCard) {
         case kRedCard:
-            initRefereeAnimationTable(&swos.refRedCardAnimTable);
+            initRefereeAnimationTable(getRefRedCardAnimTable());
             enqueueRedCardSample();
             break;
         case kYellowCard:
-            initRefereeAnimationTable(&swos.refYellowCardAnimTable);
+            initRefereeAnimationTable(getRefYellowCardAnimTable());
             enqueueYellowCardSample();
             break;
         case kSecondYellowCard:
-            initRefereeAnimationTable(&swos.refSecondYellowAnimTable);
+            initRefereeAnimationTable(getRefSecondYellowAnimTable());
             enqueueRedCardSample();
             break;
         }
@@ -219,7 +215,7 @@ static void updateRefereeState()
             initDisplaySprites();
             break;
         }
-        // fall-through
+        [[fallthrough]];
 
     case kRefIncoming:
         m_refereeSprite.speed = kRefereeSpeed;
@@ -231,14 +227,14 @@ static void updateRefereeState()
 #endif
 
         if (oldDirection != m_refereeSprite.direction)
-            initRefereeAnimationTable(&swos.refComingAnimTable);
+            initRefereeAnimationTable(getRefComingAnimTable());
 
         moveSprite(m_refereeSprite);
 
         if (m_refereeSprite.stationary()) {
             swos.refState = kRefWaitingPlayer;
             m_refereeSprite.direction = kFacingLeft;
-            initRefereeAnimationTable(&swos.refWaitingAnimTable);
+            initRefereeAnimationTable(getRefWaitingAnimTable());
         }
         break;
     }
@@ -252,7 +248,7 @@ static void putRefereeToLeavingState()
     int destY = swos.foulYCoordinate > kPitchCenterY ? kRefereeLeavingTopDestY : kRefereeLeavingBottomDestY;
     m_refereeSprite.destY = destY;
 
-    initRefereeAnimationTable(&swos.refComingAnimTable);
+    initRefereeAnimationTable(getRefComingAnimTable());
 
     swos.refState = kRefLeaving;
 }
@@ -272,14 +268,15 @@ static void sendPlayerAway()
     player.destY = kSentOffPlayerY;
 }
 
-static void initRefereeAnimationTable(SwosDataPointer<void> animTable)
+static void initRefereeAnimationTable(int16_t animTableOffset)
 {
-    auto delay = animTable.as<RefereeAnimationTable *>()->numCycles;
-    auto frameTable = animTable.asAligned<RefereeAnimationTable *>()->indicesTable;
+    const auto animTable = getAnimationTable(animTableOffset);
+    assert(animTable && animTable->isRefereeAnimation());
+    if (!animTable)
+        return;
 
-    m_refereeSprite.frameDelay = delay;
-    m_refereeSprite.frameIndicesTable = frameTable[m_refereeSprite.direction];
-    assert(m_refereeSprite.frameIndicesTable.asAligned());
+    m_refereeSprite.frameDelay = animTable->frameDelay;
+    m_refereeSprite.frameIndicesTable = animTable->getFrameTableOffset(m_refereeSprite.direction);
 
     m_refereeSprite.frameSwitchCounter = -1;
     m_refereeSprite.frameIndex = -1;

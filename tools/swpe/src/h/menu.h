@@ -50,12 +50,10 @@ enum menu_flags {
 };
 
 bool InitMenus();
-Menu *CreateMenu(const char *title, int n, char **names, const uint mode,
-                 void (*foo)(Menu_entry *m, uint tag), const uchar color,
-                 const uint flags, const uint tag);
+Menu *CreateMenu(const char *title, int n, char **names, const uint mode, void (*foo)(Menu_entry *m, uint tag), const uchar color,
+    const uint flags, const uint tag);
 void DrawMenu(Menu *m, byte *pbits, const uint pitch);
-void DrawMenuBack(char *where, uint pitch, uint x1, uint y1, uint x2,
-                  uint y2, uchar color);
+void DrawMenuBack(char *where, uint pitch, uint x1, uint y1, uint x2, uint y2, uchar color);
 bool MenuKeyProc(WPARAM wParam, LPARAM lParam);
 byte *MenuDraw(byte *pbits, const uint pitch);
 void SetWarning(const char *str);
@@ -66,6 +64,6 @@ bool HasPendingWarnings(uint mode);
 /* this must be installed by the caller for cursor to work */
 void CALLBACK CursorFlashCallBack(HWND hWnd, uint msg, uint id, uint time);
 
-extern int CURSOR_INTERVAL;
+#define CURSOR_INTERVAL 70
 
 #endif

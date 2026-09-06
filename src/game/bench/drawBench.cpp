@@ -562,7 +562,7 @@ static void drawBenchSprite(int spriteIndex, int x, int y)
     auto xDest = x - getCameraX();
     auto yDest = y - getCameraY();
     saveCoordinatesForHighlights(spriteIndex, xDest, yDest);
-    drawSprite(spriteIndex, xDest, yDest, true, m_xOffset, m_yOffset);
+    drawSprite(spriteIndex, xDest.asFloat(), yDest.asFloat(), true, m_xOffset, m_yOffset);
 }
 
 static void drawRectWithShadow(int x, int y, int width, int height, const Color& baseColor)

@@ -96,6 +96,7 @@ private:
 
     int m_currentHookLine = -1;
     String m_currentProcHook;
+    String m_pendingLabelHook;
 
     SegmentSet m_segments;
     CToken *m_currentSegment = nullptr;

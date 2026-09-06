@@ -1,0 +1,107 @@
+---
+# Requires clang-format >= 14 (ReferenceAlignment was added in v14)
+Language: Cpp
+Standard: c++17
+BasedOnStyle: LLVM
+
+# --- Indentation ---
+IndentWidth: 4
+UseTab: Never
+TabWidth: 4
+ContinuationIndentWidth: 4
+IndentCaseLabels: false
+AccessModifierOffset: -4
+NamespaceIndentation: None
+
+# --- Column limit ---
+ColumnLimit: 130
+
+# --- Pointer / reference alignment ---
+# Type *ptr        (pointer attached to variable name)
+# const Type& ref  (reference attached to type)
+PointerAlignment: Right
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+# --- Brace style ---
+# Allman for functions, classes, structs, enums.
+# Attached (K&R) for control flow (if/for/while/switch).
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:          true
+  AfterControlStatement: false
+  AfterEnum:           true
+  AfterFunction:       true
+  AfterNamespace:      false
+  AfterStruct:         true
+  AfterUnion:          true
+  AfterExternBlock:    false
+  BeforeCatch:         false
+  BeforeElse:          false
+  IndentBraces:        false
+  SplitEmptyFunction:  false
+  SplitEmptyRecord:    false
+  SplitEmptyNamespace: false
+
+# --- Short constructs ---
+# if/for/while body always on its own line; no one-liner ifs.
+# Empty functions and inline methods may stay on one line: h() {}
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine:        false
+AllowShortFunctionsOnASingleLine:    Inline
+AllowShortBlocksOnASingleLine:       Empty
+AllowShortCaseLabelsOnASingleLine:   false
+AllowShortEnumsOnASingleLine:        false
+
+# --- No vertical alignment ---
+# Wrapped call arguments use continuation indentation, not alignment under the opening paren.
+AlignAfterOpenBracket:        DontAlign
+AlignConsecutiveAssignments:  None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros:       None
+AlignConsecutiveBitFields:    None
+AlignOperands:                DontAlign
+AlignTrailingComments:        false
+
+# --- Spaces ---
+SpaceBeforeParens:                ControlStatements
+SpacesInParens:                   Never
+SpacesInAngles:                   Never
+SpaceAfterCStyleCast:             false
+SpaceBeforeAssignmentOperators:   true
+SpaceBeforeRangeBasedForLoopColon: true
+Cpp11BracedListStyle:             true
+
+# --- Ternary operator ---
+# When a ternary wraps, keep ? and : at the end of the line (break after them),
+# never at the start of the next line.
+BreakBeforeTernaryOperators: false
+
+# --- Binary operators ---
+BreakBeforeBinaryOperators: None   # && / || stay at the end of the wrapped line
+# (This is the LLVM default the file already inherits; stated explicitly because the
+# rule is deliberate. It applies to every binary operator, so a wrapped stream chain
+# gets its << at the end of the line too.)
+
+# --- Template declarations ---
+AlwaysBreakTemplateDeclarations: Yes
+
+# --- Include ordering ---
+# Groups: own header (auto-detected, priority 0) | project headers | Qt | STL/system
+SortIncludes:    CaseSensitive
+IncludeBlocks:   Regroup
+IncludeCategories:
+  - Regex:    '^"'
+    Priority: 1
+  - Regex:    '^<Q'
+    Priority: 2
+  - Regex:    '^<'
+    Priority: 3
+
+# --- Miscellaneous ---
+MaxEmptyLinesToKeep:             1
+KeepEmptyLinesAtTheStartOfBlocks: false
+ReflowComments:                  false
+SortUsingDeclarations:           LexicographicNumeric
+FixNamespaceComments:            false
+CompactNamespaces:               false

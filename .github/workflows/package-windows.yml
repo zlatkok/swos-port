@@ -1,0 +1,52 @@
+name: Package Windows x64 demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_symbols:
+        description: Include the Release PDB in the demo package
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-2022
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install asset compiler dependencies
+        run: python -m pip install -r assets/requirements.txt
+
+      - name: Build and package self-contained development demo
+        shell: pwsh
+        run: |
+          $arguments = @(
+            "tools/packageWindows.py",
+            "--demo-data-archive", "assets/demo-data.zip",
+            "--output", "dist/swos-port-demo-windows-x64.zip"
+          )
+          if ("${{ inputs.include_symbols }}" -eq "true") {
+            $arguments += "--include-symbols"
+          }
+          python @arguments
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: swos-port-demo-windows-x64
+          path: dist/swos-port-demo-windows-x64.zip
+          if-no-files-found: error

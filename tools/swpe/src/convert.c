@@ -95,8 +95,7 @@ static bool GetTeamMemory(byte **p, uint size)
     return TRUE;
 }
 
-static bool CopySprites(uint start_sprite, uint num_sprites, byte **where,
-                        uint index)
+static bool CopySprites(uint start_sprite, uint num_sprites, byte **where, uint index)
 {
     uint i, size;
     byte *base, *p;

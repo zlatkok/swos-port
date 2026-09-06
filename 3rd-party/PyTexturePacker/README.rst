@@ -1,0 +1,212 @@
+PyTexturePacker |pypi-status| |build-status| |docs-status|
+==========================================================
+
+PyTexturePacker is an open source python package, released under the MIT License.
+
+A subset of feature of TexturePacker_ has been implemented in this package.
+
+**Now! the cpp version is available, visit** CppTexturePacker_ **for more infomation.**
+
+.. _TexturePacker: https://www.codeandweb.com/texturepacker
+.. _CppTexturePacker: https://github.com/wo1fsea/CppTexturePacker
+
+Features
+========
+
+MaxRectsBinPack algorithm is used to generate sprite sheet in this package.
+
+MaxRectsBinPack
+---------------
+
+MaxRectsBinPack is currently the best packing algorithm.
+It tries to use the least texture space by applying different heuristics when placing the sprites.
+
+- MaxRects
+
+    - Best-known algorithm for packing textures
+    - Is fast and has a high packing ratio
+    - Enable rotation for best results
+
+
+Installation
+============
+
+Install Pillow with pip:
+
+.. code:: bash
+
+    $ pip install PyTexturePacker
+
+
+Usage
+=====
+
+Here comes an example of using PyTexturePacker to pack texture images from a directory.
+
+.. code:: python
+
+    from PyTexturePacker import Packer
+
+    def pack_test():
+        # create a MaxRectsBinPacker
+        packer = Packer.create(max_width=2048, max_height=2048, bg_color=0xffffff00)
+        # pack texture images under directory "test_case/" and name the output images as "test_case".
+        # "%d" in output file name "test_case%d" is a placeholder, which is the atlas index, starting with 0.
+        packer.pack("test_case/", "test_case%d")
+
+
+Packer Setting
+==============
+
+bg_color
+--------
+
+The background color of output image. The pixels of the empty area in the output image will be filled with bg_color.
+The default value is 0x00000000, which is in format of "RGBA". A tuple of values can also be accepted, like (R, G, B, A).
+
+texture_format
+--------------
+
+Choose the texture format that the output file will use, for example ".jpg".
+The default texture format is ".png".
+
+max_width
+---------
+
+Sets the maximum width for the texture, default is 4096.
+
+max_height
+----------
+
+Sets the maximum height for the texture, default is 4096.
+
+enable_rotated
+--------------
+
+Allows the rotating of sprites clockwise or counterclockwise by 90 degrees if they have a better fit in the texture. Might not be supported by all game/web frameworks.
+
+force_square
+------------
+
+Forces the texture to have a squared size.
+
+border_padding
+--------------
+
+Border padding is the space between the sprites and the border of the sprite sheet. Value adds transparent pixels around the borders of the sprite sheet. Default is 2.
+
+shape_padding
+-------------
+
+Shape padding is the space between sprites. Value adds transparent pixels between sprites to avoid artifacts from neighbor sprites. The transparent pixels are not added to the sprites. Default is 2.
+Use a value of at least 2 to avoid dragging in pixels from neighbor sprites when using OpenGL rendering.
+
+inner_padding
+-------------
+
+Adds transparent pixels to the inside of the sprite, growing it. Default is 0.
+
+There are two uses for this:
+
+- It can help in preventing cut-off artifacts near the edges of scaled sprites. E.g. if your sprite has a few pixels along its own boundaries, scaling the sprite up or down won't let these pixels appear as gaps or cuts.
+- It considerably reduces aliasing along the polygon edges when rotating trimmed or cropped sprites. E.g. if your sprite has many pixels along its own boundaries, it will be drawn more smoothly when rotating it.
+
+trim_mode
+---------
+
+Removes transparent pixels from a sprite's border.
+This shrinks the sprite's size, allows tighter packing of the sheet, and speeds up rendering since transparent pixels don't need to be processed.
+Pixels with an alpha value below this value will be considered transparent when trimming the sprite.
+Allowed values: 0 to 255, default is 0. When it's set to 0, the trim mode is disabled.
+Very useful for sprites with nearly invisible alpha pixels at the borders.
+
+reduce_border_artifacts
+-----------------------
+
+Adds color to transparent pixels by repeating a sprite's outer color values.
+These color values can reduce artifacts around sprites and removes dark halos at transparent borders. This feature is also known as "Alpha bleeding".
+
+extrude
+-------
+
+Extrude repeats the sprite's pixels at the border. Sprite's size is not changed.
+
+There are two uses for this:
+
+- Reduce flickering in some cases where sprites have to be put next to each other in the final program.
+- Check if sprite outlines are OK. E.g. if you want to use sprites to create tilemaps this allows you to see if there are semi-transparent pixels at the borders of the tiles.
+
+atlas_format
+------------
+
+Choose the texture config format that file will use. Available options "plist", "json" and "csv". Additionally, you can use a custom function that will receive a dictionary and a path and handle the format in some custom way.
+The default texture config output format is "plist".
+
+atlas_ext
+---------
+
+Forces the atlas to use this extension regardless of the format.
+If not provided, the atlas will use the default extension for the chosen format.
+
+detect_duplicates
+-----------------
+
+Detects duplicate sprites (pixel-identical) and stores them only once in the texture but multiple times in the output config file.
+They will reference the same pixels as the original sprites.
+
+ignore_blank
+------------
+
+Blank images (completely transparent) will not be added to the texture.
+
+draw_border
+-----------
+
+Draws a border around the sprites in the final texture. Useful for debugging purposes.
+
+scale
+-----
+Scale factor to apply to input images before packing.
+
+scale_filter
+------------
+Scaling algorithm to use when scaling input images. Possible values are NEAREST, BOX, BILINEAR, HAMMING, BICUBIC, LANZCOS.
+They correspond to Pillow filters. Default is BICUBIC, or NEAREST for images with 256 or less colors.
+
+crop_atlas
+----------
+Crop resulting texture atlas to the actual content size.
+
+Contribute
+==========
+
+- Issue Tracker: github.com/wo1fsea/PyTexturePacker/issues
+- Source Code: github.com/wo1fsea/PyTexturePacker
+
+Any types of contribution are welcome. Thanks.
+
+
+Support
+=======
+
+If you are having issues, please let us know.
+Please feel free to contact me. email: quanyongh@foxmail.com
+
+
+License
+=======
+
+The project is released under the terms of MIT License. You may find the content of the license here_, or `LICENSE.txt` inside the project directory.
+
+.. _here: http://opensource.org/licenses/MIT
+
+
+.. |build-status| image:: https://github.com/wo1fsea/PyTexturePacker/actions/workflows/test.yml/badge.svg?branch=master
+    :target: https://github.com/wo1fsea/PyTexturePacker/actions/workflows/test.yml
+    :alt: Build status
+.. |docs-status| image:: https://readthedocs.org/projects/pytexturepacker/badge/?version=master
+    :target: http://pytexturepacker.readthedocs.io/
+    :alt: Documentation Status
+.. |pypi-status| image:: https://badge.fury.io/py/PyTexturePacker.svg
+    :target: https://pypi.org/project/pytexturepacker/
+    :alt: PyPI Status

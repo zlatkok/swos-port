@@ -38,7 +38,8 @@ char *DynaArray::add(size_t size)
 
     if (m_used + size > m_reserved) {
         assert(false);
-        std::cerr << "Performance warning: reallocation!\n";
+        std::cerr << "Performance warning: reallocation! reserved=" << m_reserved <<
+            ", used=" << m_used << ", requested=" << size << '\n';
         m_reserved += std::max(std::max(m_reserved, size), static_cast<size_t>(100 * 1024));
         auto newData = new char[m_reserved];
         memcpy(newData, m_data.get(), m_used);

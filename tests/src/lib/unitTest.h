@@ -75,6 +75,8 @@ namespace SWOS_UnitTest
 #define assertFalse(e) SWOS_UnitTest::assertTrueImp(!(e), "!(" #e ")", __FILE__, __LINE__)
 #define assertMessage(e, m) { if (!(e)) throw SWOS_UnitTest::CustomException(__FILE__, __LINE__, m); }
 #define assertEqual(v1, v2) SWOS_UnitTest::assertEqualImp(true, v1, v2, #v1, #v2, __FILE__, __LINE__)
+#define assertEqualAsInt(v1, v2) SWOS_UnitTest::assertEqualImp(true, static_cast<int>(v1), \
+    static_cast<int>(v2), #v1, #v2, __FILE__, __LINE__)
 #define assertNotEqual(v1, v2) SWOS_UnitTest::assertEqualImp(false, v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertMemEqual(v1, v2) SWOS_UnitTest::assertMemEqualImp(v1, v2, #v1, #v2, __FILE__, __LINE__)
 #define assertStringEqualCaseInsensitive(s1, s2) SWOS_UnitTest::assertStringEqualImp(s1, s2, #s1, #s2, __FILE__, __LINE__)

@@ -2,7 +2,7 @@
 mnu2h = files('mnu2h.py')
 
 # gather mnu2h dependencies
-c = run_command([python, '-c', getFilesCommand.format('.', '*.py')])
+c = run_command([python, '-c', getFilesCommand.format('.', '*.py')], check: true)
 rawSources = c.stdout().strip().split('\n')
 
 mnu2hDeps = []

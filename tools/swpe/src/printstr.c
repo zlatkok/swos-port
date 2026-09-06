@@ -143,23 +143,20 @@ void GetStringLength(const char *str, uint *w, uint *h, uint align, uint big)
 
    For special characters, see GetStringLength.
 */
-void PrintString(const char *str, uint x, uint y, char *where, uint pitch,
-                 bool big, int color, uint align)
+void PrintString(const char *str, uint x, uint y, char *where, uint pitch, bool big, int color, uint align)
 {
     uchar c;
     uint i, dx, dy, xorig, xalign, yalign, anchor = 0;
 
     if ((align >> ALIGN_LEFT_BIT & 1) + (align >> ALIGN_RIGHT_BIT & 1) +
         (align >> ALIGN_CENTERX_BIT & 1) > 1) {
-        WriteToLog(("PrintString(): Invalid flags for x alignment: 0x%x",
-                    align));
+        WriteToLog(("PrintString(): Invalid flags for x alignment: 0x%x", align));
         return;
     }
 
     if ((align >> ALIGN_UP_BIT & 1) + (align >> ALIGN_DOWN_BIT & 1) +
         (align >> ALIGN_CENTERY_BIT & 1) > 1) {
-        WriteToLog(("PrintString(): Invalid flags for y alignment: 0x%x",
-                    align));
+        WriteToLog(("PrintString(): Invalid flags for y alignment: 0x%x", align));
         return;
     }
 

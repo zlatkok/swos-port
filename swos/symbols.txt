@@ -7,26 +7,26 @@
 @remove
 # procs
 __int_3 - SelectAndShowSquadToView
-cseg_1994F
+cseg_1994F - WaitRetrace
 # + commentary options handler
 ChangeCommentary - SaveOptions
 OptionsMenuBeforeDraw
 FindFiles
 InitMenuEntry - Int2Ascii
 QuitToDosPromptLoop - SWOSMainMenuInit
+NullMenuInit
+nullMenu - competitionTopGoalScorersMenu
 
 # game loop + intro pics + animations
-UpdateCornerFlagSprite - FadeAndPlayWinCupAnimation
+UpdateGameTimersAndCameraBreakMode - FadeAndPlayWinCupAnimation
 FadeAndPlayRelegatedAnimation - PlayNewSeasonAnimations
 ShowRestOfPics - GameOver
 copySpriteAllowAND - stateGoal
-NextPenalty - DoGoalkeeperSprites
-StartFirstExtraTime - SetPlayerAnimationTable
+StartFirstExtraTime - DoGoalkeeperSprites
 SetJumpHeaderHitAnimTable
-PlayStopGoodPassSampleIfNeeded
 EnqueueDeletedSample - PlayGoodTackleComment
 SetStaticHeaderDirection
-AI_DecideWhetherToTriggerFire - GetFilenameAndExtension
+PlayerHittingStaticHeader - GetFilenameAndExtension
 kPlayerShotChanceTable - AI_turnDirection
 
 # advertisements + some of sprites code
@@ -44,8 +44,6 @@ aSprite_dat
 UnchainSpriteInMenus - DrawSpriteCentered
 ClearSprite - ShowMenu
 DrawSprite_entry2
-PlayerHittingStaticHeader - AI_DecideWhetherToTriggerFire
-MovePlayers
 numberBuffer - prevLastPlayer
 bookedPlayerCardOrNumberSprite
 allSpritesArray - lastSelectedTeam
@@ -59,24 +57,24 @@ spriteFixupFlag - g_skipNonCompetitionFiles
 # do not touch these, they overlap with DIY competition buffer
 #topTeamSaved - numSpritesToRender
 playerCardChances3min - ballOutOfGameTimer
-team1MostFrequentFace - statsTimer
+team1GoalkeeperReplaced - statsTimer
 whiteGuyConvertTable - topTeamPtr
-kBallSpeedBounceFactorTable - kGravityConstant
+kBallSpeedBounceFactorTable - kBallAirFriction
+kTeamsStartingCoordinates - kGoalieSkillTables
 
 # pitches
-UpdateGameTimersAndCameraBreakMode - ActivateReferee
 DrawPatternFromIndex
 # also removes game initialization error strings
 aChris_0 - aDataPoolplyr_d
 # + convertKeysTable + outerFrameColorsTable + nextEntryDirectionOffsets
 aGrafsLoader00_ - g_pitchDatBuffer
 # remove intro image reel data too
-aSfxFlcWincup_r - big_S_pictureIndexArray
+aSfxFlcWincup_r - goodPassSampleCommand
 fansSidesSwapped
 animPatternsIndex - animPatternsState
 
 # color palette
-dseg_17192A - optionsMenu
+dseg_17192A - friendlyGameMenu
 
 # InputText
 InputTextKeyLoop - InitUserTactics
@@ -106,10 +104,13 @@ controlsHeldTimer
 lastControls
 replaySelected
 # select files menu
-dta - dseg_17FCB8
+dta - dseg_180584
 
 # options
-OptionsMenuSelected
+OptionsMenuSelected - FriendlyMenuInit
+
+# friendly menu part
+cseg_234DF - cseg_23538
 
 # CD ROM routines
 # removes select files menu functions as well
@@ -117,11 +118,11 @@ FindFirstFile - SelectFileToSaveDialog
 
 # controls/joypads
 # + FadeOut & SetPalette
-FadeOutToBlack - InitMenuMusic
+FadeOutToBlack - ConvertSpriteColors
 # + char tables + camera vars
 smallCharsTable - pl1Fire
 pl1SecondaryFire - pl2Fire
-pl2SecondaryFire - fadingMenuDeadVar01
+pl2SecondaryFire - kTeamColorsTable
 # pitch patterns + setup.dat vars
 dstBytesDiv4 - g_joy1Fire1
 g_joy1Fire2 - dosMemOfs60c00h
@@ -129,8 +130,9 @@ g_joy1Fire2 - dosMemOfs60c00h
 # commentary & SFX
 PlayHitFrameComment
 SetVolumeOrStopChants - PlayPenaltyComment
-nullsub_1 - PlayFansChant10lSample
+PlayBallBounceSample - PlayFansChant10lSample
 PlayEndGameWhistleSample
+PlayNearMissComment
 #g_commentary   # career file buffer
 # + intro stuff
 g_muteCommentary - goodPassTimer
@@ -147,32 +149,39 @@ PlayCommentarySample - RingABell
 InitIntroAnimation - Rand
 # merge with top range
 introSampleStarted - menuCursorFrame
-g_gotExtraMemoryForSamples - playingCornerSample
-playingCornerSample - playingGoodPassTimer
+g_gotExtraMemoryForSamples - playingGoodPassTimer
 
-# referee
-CheckIfBallOutOfPlay - PlayStopGoodPassSampleIfNeeded
-InitRefereeAnimationTable
-kRefereeSpeed
+# referee + frame tables + ball spin tables
+CheckIfBallOutOfPlay - EndFirstHalf
+kHighKickDeltaZ - dseg_110D8D
+staticHeaderAttemptAnimTable - animTablesEnd
+team2PlayerGettingYellowCardFrames - animTablesStart
+jumpHeaderHitTeam1BottomFrames - staticHeaderAttemptTeam1TopFrames
 
 # big S sprite + some misc.
-big_S_pictureIndexArray - goodPassSampleCommand
 bumpBigSFrame
 
 # big removal: all the EGA crap + AIL + C-lib
 nullsub_F10 - dseg
+nullsub_5
+nullsub_6
+cseg_60003
+cseg_88373 - cseg_883B8
+cseg_8BC06 - cseg_8BF1A
+GlobalRetn
 dataStart - aChairmanScenes
 # get rid of comments too
 introTeamChantIndices - PIT_countdown
-aSwos_xmi - dosMemSegment
-# this removes CD-ROM and pitch routines too
-PlaySwosXmi - ConvertSpriteColors
+aSwos_xmi - aSensibleWorldOfSoccerV2_0
+# this removes CD-ROM, pitch routines and some music too
 dseg_16AECB
-dosVariablesStart - dseg_185BA8
-dseg_185BA8
 sfxLowerQualityTable - introTeamChantsTable
 startGameSamples - endGameCrowdSamples
 aSfxFx11Bgcrd3l - aSfxFxCombrown_
+deadVar01 - sizeOfTeamFile
+dseg_10E8C2 - highestScorersTable
+dseg_16886A - mouseInstalled
+dosVariablesStart - @end
 
 # bench
 subsWriteOnly
@@ -189,7 +198,8 @@ tacticsStringTable - avgTeamValueBases
 
 # stats + bench, highlights, sprite coloring
 WriteStatsNumber - SetCurrentPlayerName
-AllowStatistics - DrawStatistics
+# highlights + camera
+SetPitchTypeAndNumber - DrawStatistics
 
 # random number generator and some MainKeysCheck() variables
 randXorIndex - playerPositionsScoringChances
@@ -201,7 +211,6 @@ g_midiPlaying - instantReplayFlag
 # also removes chain font buffer and keyboard variables
 aBenc2_dat
 aDemo_dat
-optionsMenu - friendlyGameMenu
 dseg_110344 - g_spriteGraphicsPtr
 menuSize - g_exitMenu
 # + pitch patterns
@@ -209,7 +218,7 @@ europeanChampionshipMenu - patternsGoalCounter
 nextCameraDirections
 lastKey
 kAngleCoeficients - importMenuSelectedTactics
-
+dseg_1105EF - kGoalkeeperDiveDeltas
 # highlights
 HighlightsMenu
 # + chairman animations + controls/joypads
@@ -218,8 +227,8 @@ LoadHilFile - SetTeamGlobalNumbers
 # gets rid of darkened calculation and some of the sample loading routines too
 MainKeysCheck - AssignFakeGoalsToScorers
 ReplayExitMenuAfterFriendly - PlayMissGoalSample
-# highlights + camera
-SetPitchTypeAndNumber - ScrollToCurrent
+# unreferenced
+dseg_16F496 - dseg_16F50A
 
 # removes some pitch variables too
 currentHilBuffer - averagePlayerPrice
@@ -227,16 +236,27 @@ goalBasePtr - userRequestedReplay
 currentGoalPtr - cameraCoordinatesValid
 hilLeftTeamGoals - winningTeamPtr
 
-# CD-ROM variables
-dosMemSegment
-dosMemSelector
-dosMemLinAdr - aSensibleWorldOfSoccerV2_0
+# ball sprites and frame indices, moving and static
+ballMovingFrameIndices - goalCounter
+# must keep ballSprite for now, too many references
+ballShadowSprite - gridUpperRowLeftSprite
+kControlledBallSpeedReduction - kPlayerGroundConstant
+kLeftThrowInBallDestDelta - dseg_17DEF4
+# from CheckIfBallOutOfPlay
+teamNumThatScored
+playRefereeWhistle
+
+# startPenalties/nextPenalty
+statsTeam1GoalsCopy2 - statsTeam1GoalsCopy
+team1PenaltyShooterIndex - penaltyShooterSprite
+team1PenaltyAttempts - penaltiesTimer
 
 # dead vars
 throwInDeadVar
 hilStarted
 deadHilVar
 writeOnlyVar02 - dseg_132804
+ballUpdatedByGoalkeeper
 
 
 #
@@ -244,11 +264,9 @@ writeOnlyVar02 - dseg_132804
 #
 
 @null
-ProgramPIT
 CallDrawMultipleItems
 
 # sound
-InitMenuMusic
 CycleMenuMusic
 
 # sprites
@@ -384,6 +402,7 @@ SetDefaultNameAndSurname, function
 InitHighestScorersTable, function
 InitUserTactics, function
 ApplyTeamTactics, function
+diyStatsName, dword
 
 # select files menu
 aAbort, array const char
@@ -423,7 +442,6 @@ bookedPlayer, Sprite *
 ballSprite, Sprite
 goal1TopSprite, Sprite
 goal2BottomSprite, Sprite
-ballShadowSprite, Sprite
 goalie1Sprite, Sprite
 team1Player2Sprite, Sprite
 team1Player3Sprite, Sprite
@@ -452,7 +470,6 @@ playerMarkSprite, Sprite
 
 # pitch
 g_pitchDatBuffer, array char[10032]
-pitchBallSpeedFactor, word
 gamePitchTypeOrSeason, word
 gamePitchType, int16_t
 gameSeason, word
@@ -497,14 +514,11 @@ resultChantFilenames, array const char *
 endGameCrowdSamples, array const char *
 
 # bench
-SetPlayerAnimationTable, function
 g_inSubstitutesMenu, word
 g_substituteInProgress, int16_t
 plComingX, word
 plComingY, word
 hideBall, word
-# make sure no alignment or it breaks tests
-playerNormalStandingAnimTable, PlayerAnimationTable (align: 1)
 stoppageTimerTotal, word
 stoppageTimerActive, word
 pl1Tactics, word
@@ -544,7 +558,6 @@ UpdatePlayerBeingPassedTo, function
 UpdatePlayerInjuries, function
 AssignFakeGoalsToScorers, function
 SetInGameTeamsPrimaryColors, function
-SetNextPlayerFrame, function
 cseg_2F0E2, function
 cseg_2F194, function
 cseg_2F3AB, function
@@ -569,26 +582,26 @@ currentScorer, Sprite *
 lastTeamScored, TeamGeneralInfo *
 lastPlayerPlayed, Sprite *
 lastPlayerBeforeGoalkeeper, Sprite *
+lastKeeperPlayed, Sprite *
+playerHadBall, word
+goalOut, word
 penalty, word
 strikeDestX, word
 playersLeavingPitchBottom, array word[22]
 playersLeavingPitchTop, array word[22]
 halfNumber, word
+inGameCounter, word
+breakState, word
+playerTurnFlags, word
+penaltiesTimer, word
+penaltyShooterSprite, Sprite *
 
 # game constants
 kKeeperSaveDistance, word
-kBallGroundConstant, word
-kBallAirConstant, word
-kGravityConstant, dword
 kGoalkeeperDiveDeltas, array FixedPoint[8]
 
 # referee
 # careful with these tables, must be no alignment bytes or they ruin all frame tables
-refComingAnimTable, word (align: 1)
-refWaitingAnimTable, word (align: 1)
-refYellowCardAnimTable, word (align: 1)
-refRedCardAnimTable, word (align: 1)
-refSecondYellowAnimTable, word (align: 1)
 foulXCoordinate, word
 foulYCoordinate, word
 refTimer, word
@@ -624,12 +637,15 @@ bottomTeamData, TeamGeneralInfo
 lastTeamPlayed, TeamGeneralInfo *
 lastTeamPlayedBeforeBreak, TeamGeneralInfo *
 teamScoredDataPtr, TeamGeneralInfo *
+teamScoredGamePtr, TeamGame *
 chooseTacticsTeamPtr, void *
 winningTeamPtr, TeamGame *
 team1StatsData, TeamStatsData
 team2StatsData, TeamStatsData
 teamPlayingUp, word
 teamStarting, word
+pl1Coach, word
+pl2Coach, word
 
 # must not get alignment, it's inside the load competition buffer
 selTeamsPtr, dword (align: 1)
@@ -637,8 +653,6 @@ selTeamsPtr, dword (align: 1)
 # init match
 playerCardChance, word
 gameRandValue, word
-ballSpeedBounceFactor, word
-ballBounceFactor, word
 dontShowScorers, word
 statsTimer, int16_t
 g_cameraLeavingSubsTimer, word
@@ -712,6 +726,8 @@ gameStatePl, GameState
 gameState, GameState
 playingPenalties, word
 stateGoal, word
+patternsGoalCounter, word
+forceLeftTeam, word
 secondLeg, word
 playing2ndGame, word
 
@@ -728,6 +744,10 @@ runSlower, word
 lastTeamScoredNumber, word
 lastPlayerScored, Sprite *
 goalTypeScored, word
+playerXQuadrantOffset, word
+playerYQuadrantOffset, word
+ballQuadrantIndex, word
+kDefaultDestinations, array int16_t
 
 # keep these so the competition buffer integrity static assert could work
 competitionFileBuffer, word
@@ -743,10 +763,7 @@ maxSubstitutes, word
 animTablesStart, array char (align: 2)
 animTablesEnd, array char
 frameIndicesTablesStart, array char (align: 2)
-jumpHeaderTeam1UpFrames, array char
-refSecondYellowFrames, array int16_t
-ballMovingFrameIndices, array int16_t
-ballStaticFrameIndices, array int16_t
+jumpHeaderHitTeam1TopFrames, array char
 AI_turnDirection, word
 USER_A, TeamTactics (align: 1)
 
@@ -772,8 +789,8 @@ USER_A, TeamTactics (align: 1)
 #
 
 @insert-hook
-AdjustPlayerSkills, 248, FixTwoCPUsGameCrash
-ViewOpponentsSelect, 66, RecalculateReachableEntries
+AdjustPlayerSkills, @@set_goalie_skill, FixTwoCPUsGameCrash
+ViewOpponentsSelect, 63, RecalculateReachableEntries
 ReturnFromViewOpponent, 9, RecalculateReachableEntries
 
 
@@ -815,12 +832,10 @@ Player2StatusProc
 
 # referee
 ActivateReferee
-RemoveReferee
 
 # game
 InitializeInGameTeamsAndStartGame
 ToMainGameLoop
-GoalScored
 GameOver
 CalculateDeltaXAndY
 
@@ -853,7 +868,6 @@ PlayGoodTackleComment
 PlayPostHitComment
 PlayBarHitComment
 PlayKeeperClaimedComment
-PlayNearMissComment
 PlayGoalkeeperSavedComment
 PlayOwnGoalComment
 PlayGoalComment
@@ -863,7 +877,6 @@ PlayAwayGoalSample
 PlayRefereeWhistleSample
 PlayFoulWhistleSample
 PlayKickSample
-PlayBallBounceSample
 PlayFansChant8lSample
 PlayFansChant10lSample
 PlayIntroChantSample
@@ -890,7 +903,6 @@ PackedMenu, 16
 GameState, 2
 TeamStatsData, 14
 FixedPoint, 4
-PlayerAnimationTable, 130
 PositionsTable, 72
 TeamTactics, 370
 TeamFile, 684

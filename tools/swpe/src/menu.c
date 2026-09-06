@@ -25,8 +25,6 @@ static Warning *warn_tail; /* tail of               -||-                     */
 static Menu *menu_head;    /* head of linked list of menus                   */
 static Menu *cur_menu;     /* menu that is current and has focus             */
 
-/* different for 9x and NT (NT timer is much more precise) */
-int CURSOR_INTERVAL;
 #define MAX_CURSOR_FLASH_COLORS sizeof(flash_cols)
 
 /* flash colors table */
@@ -41,9 +39,7 @@ extern Sws_256_pic *fill_ptr;
 
 #define WARNING_SIZE 256
 
-static void DrawFrame(char *where, uint pitch, uint x1, uint y1, uint x2,
-                      uint y2, uchar thickness, uchar color);
-
+static void DrawFrame(char *where, uint pitch, uint x1, uint y1, uint x2, uint y2, uchar thickness, uchar color);
 
 /* ReturnToPrevMenu
 
@@ -67,7 +63,6 @@ static void ReturnToPrevMenu()
 */
 bool InitMenus()
 {
-    CURSOR_INTERVAL = g.is_NT ? 70 : 30; /* set cursor interval based on OS */
     return TRUE;
 }
 
@@ -87,9 +82,8 @@ bool InitMenus()
    strings are copied, caller needs to provide permanent storage.
    Automagically arranges entries in columns.
 */
-Menu *CreateMenu(const char *title, int n, char **names, const uint mode,
-                 void (*foo)(Menu_entry *m, uint tag), const uchar color,
-                 const uint flags, const uint tag)
+Menu *CreateMenu(const char *title, int n, char **names, const uint mode, void (*foo)(Menu_entry *m, uint tag), const uchar color,
+    const uint flags, const uint tag)
 {
     Menu *m;
     int i, j, width, height, columns, column_size, xorig, yorig, mod;
@@ -230,16 +224,13 @@ void DrawMenu(Menu *m, byte *pbits, const uint pitch)
     /* draw items */
     for (i = 0; i < m->num_entries; i++) {
         e = m->entries + i;
-        DrawMenuBack(pbits, pitch, e->x, e->y, e->x + m->width - 1,
-                     e->y + m->height - 1, e->color);
-        PrintString(e->text, e->x + (m->width - e->text_len) / 2 + big,
-                    e->y + 1 + big, pbits, pitch, m->big_font, WHITE,
-                    NO_ALIGNMENT);
+        DrawMenuBack(pbits, pitch, e->x, e->y, e->x + m->width - 1, e->y + m->height - 1, e->color);
+        PrintString(
+            e->text, e->x + (m->width - e->text_len) / 2 + big, e->y + 1 + big, pbits, pitch, m->big_font, WHITE, NO_ALIGNMENT);
     }
     /* draw glowing frame */
     e = m->entries + m->active_entry;
-    DrawFrame(pbits, pitch, e->x, e->y, e->x + m->width - 1,
-              e->y + m->height - 1, 1, flash_cols[cur_index]);
+    DrawFrame(pbits, pitch, e->x, e->y, e->x + m->width - 1, e->y + m->height - 1, 1, flash_cols[cur_index]);
 }
 
 
@@ -253,8 +244,7 @@ void DrawMenu(Menu *m, byte *pbits, const uint pitch)
 
    Draws menu background using original SWOS menu "texture" (fill.256).
 */
-void DrawMenuBack(char *where, uint pitch, uint x1, uint y1, uint x2, uint y2,
-                  uchar color)
+void DrawMenuBack(char *where, uint pitch, uint x1, uint y1, uint x2, uint y2, uchar color)
 {
     static uchar colortable[] = {96, 96, 96, 32, 64, 64, 64, 96, 32, 96, 128,
                                  160, 64, 192, 224, 224};
@@ -337,8 +327,7 @@ bool MenuKeyProc(WPARAM wParam, LPARAM lParam)
             ReturnToPrevMenu();
             break;
         }
-        cur_menu->menu_func(cur_menu->entries + cur_menu->active_entry,
-                            cur_menu->tag);
+        cur_menu->menu_func(cur_menu->entries + cur_menu->active_entry, cur_menu->tag);
         break;
     case VK_UP:
         if (e->up < 0)
@@ -417,22 +406,18 @@ byte *MenuDraw(byte *pbits, const uint pitch)
     }
     GetStringLength(wr->text, &w, &h, ALIGN_CENTER, FALSE);
     if (w >= WIDTH || h >= HEIGHT) {
-        WriteToLog(("MenuDraw(): Got too big warning! Dimensions: %d x %d",
-                    w, h));
+        WriteToLog(("MenuDraw(): Got too big warning! Dimensions: %d x %d", w, h));
         DeleteWarning(wr, p);
     }
     x = (WIDTH - w - 10) / 2;
     y = (HEIGHT - h - 35) / 2;
     DrawFrame(pbits, pitch, x, y, x + w + 10, y + h + 35, 1, LIGHT_GRAY);
-    DrawMenuBack(pbits, pitch, x + 1, y + 1, x + w + 10 - 1,y + h + 35 - 1,
-                 YELLOW_GREEN_BLACK);
+    DrawMenuBack(pbits, pitch, x + 1, y + 1, x + w + 10 - 1, y + h + 35 - 1, YELLOW_GREEN_BLACK);
     PrintString("WARNING", 0, y + 5, pbits, pitch, FALSE, -1, ALIGN_CENTERX);
     PrintString(wr->text, 0, y + 15, pbits, pitch, FALSE, -1, ALIGN_CENTERX);
     /* draw "OK" button */
-    DrawFrame(pbits, pitch, (WIDTH - 45) / 2 - 2, y + h + 20, (WIDTH - 45)
-              / 2 + 45, y + h + 30, 1, flash_cols[cur_index]);
-    DrawMenuBack(pbits, pitch, (WIDTH - 45) / 2 - 1, y + h + 21, (WIDTH - 45)
-                 / 2 + 45 - 1, y + h + 29, BRIGHT_BLUE_TO_BLUE);
+    DrawFrame(pbits, pitch, (WIDTH - 45) / 2 - 2, y + h + 20, (WIDTH - 45) / 2 + 45, y + h + 30, 1, flash_cols[cur_index]);
+    DrawMenuBack(pbits, pitch, (WIDTH - 45) / 2 - 1, y + h + 21, (WIDTH - 45) / 2 + 45 - 1, y + h + 29, BRIGHT_BLUE_TO_BLUE);
     PrintString("OK", 0, y + h + 23, pbits, pitch, FALSE, -1, ALIGN_CENTERX);
     return pbits;
 }
@@ -449,8 +434,7 @@ byte *MenuDraw(byte *pbits, const uint pitch)
 
    Draws frame of specified thickness and color.
 */
-void DrawFrame(char *where, uint pitch, uint x1, uint y1, uint x2, uint y2,
-               uchar thickness, uchar color)
+void DrawFrame(char *where, uint pitch, uint x1, uint y1, uint x2, uint y2, uchar thickness, uchar color)
 {
     while (thickness--) {
         HorLine(where, pitch, x1, x2, y1, color);

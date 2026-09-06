@@ -264,7 +264,7 @@ class EntryMultilineText : EntryElement {
     const SwosDataPointer<MultilineText> multilineText;
 public:
     constexpr EntryMultilineText(word flags, SwosDataPointer<MultilineText> multilineText)
-        : EntryElement(kMultilineTextNative), flags(flags), multilineText(multilineText) {}
+        : EntryElement(kMultilineText), flags(flags), multilineText(multilineText) {}
 };
 
 class EntryMultilineTextNative : EntryElementNative {

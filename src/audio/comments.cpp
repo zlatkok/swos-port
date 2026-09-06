@@ -410,14 +410,37 @@ void SWOS::PlayGoodTackleComment()
     playComment(kGoodTackle, false);
 }
 
-void SWOS::PlayPostHitComment()
+void playPostHitComment()
 {
     playComment(kHitPost);
 }
 
-void SWOS::PlayBarHitComment()
+void playBarHitComment()
 {
     playComment(kHitBar);
+}
+
+void playNearMissComment()
+{
+    if (m_performingPenalty || swos.penaltiesState == -1)
+        playPenaltyMissComment();
+    else
+        playComment(kNearMiss);
+}
+
+void SWOS::PlayNearMissComment()
+{
+    playNearMissComment();
+}
+
+void SWOS::PlayPostHitComment()
+{
+    playPostHitComment();
+}
+
+void SWOS::PlayBarHitComment()
+{
+    playBarHitComment();
 }
 
 void SWOS::PlayKeeperClaimedComment()
@@ -432,14 +455,6 @@ void SWOS::PlayKeeperClaimedComment()
     }
 }
 
-void SWOS::PlayNearMissComment()
-{
-    if (m_performingPenalty || swos.penaltiesState == -1)
-        playPenaltyMissComment();
-    else
-        playComment(kNearMiss);
-}
-
 void SWOS::PlayGoalkeeperSavedComment()
 {
     if (m_performingPenalty || swos.penaltiesState == -1)
@@ -448,7 +463,7 @@ void SWOS::PlayGoalkeeperSavedComment()
         playComment(kKeeperSaved);
 }
 
-void SWOS::PlayOwnGoalComment()
+void playOwnGoalComment()
 {
     playComment(kOwnGoal);
 #ifdef __ANDROID__
@@ -456,7 +471,7 @@ void SWOS::PlayOwnGoalComment()
 #endif
 }
 
-void SWOS::PlayGoalComment()
+void playGoalComment()
 {
     if (m_performingPenalty || swos.penaltiesState == -1)
         playPenaltyGoalComment();
@@ -465,6 +480,16 @@ void SWOS::PlayGoalComment()
 #ifdef __ANDROID__
     vibrate();
 #endif
+}
+
+void SWOS::PlayOwnGoalComment()
+{
+    playOwnGoalComment();
+}
+
+void SWOS::PlayGoalComment()
+{
+    playGoalComment();
 }
 
 static void playYellowCardSample()

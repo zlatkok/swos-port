@@ -241,6 +241,10 @@ auto Tokenizer::determineBlockEnd(const TokenRange& limits, BlockState state, CT
                 auto next = token->next();
 
                 if (next->type == Token::T_PROC) {
+                    // if we end up in trailing debris, leave the following proc for the next chunk and just bail
+                    // however, if we're in a no-break block, we need to continue
+                    if (state[kTrailingDebris] && !state[kInNoBreakBlock])
+                        break;
                     state[kInProc]++;
                     state[kSeenLimitCheckpoint] = 1;
                 } else if (next->type == Token::T_ENDP) {

@@ -1,10 +1,10 @@
-; fiktivni fajl - ovo je citljiva verzija koda koji se ubacuje u SWOS
-; ukratko - ucitati loader.bin u pitchDatBuffer i pozvati ga
-; vrlo cudno - ako pridodam data sekciji atribut executable (sto mi se cini
-; logicnim da bih mogao da izvrsim svoj kod koji ucitavam u pitchDatBuffer)
-; SWOS puca pri pristupu alociranoj memoriji. Cini mi se da je to bag glupog
-; DOS4GW extendera, a kod se izvrsava u data segmentu bez ikakvih problema (i
-; bez executable atributa)
+; fictive file - this is a readable version of the code inserted into SWOS
+; in short - load loader.bin into pitchDatBuffer and call it
+; very strange - if I add the executable attribute to the data section (which
+; seems logical so I can execute my code loaded into pitchDatBuffer), SWOS
+; crashes when accessing the allocated memory. This seems to be a bug in the
+; silly DOS4GW extender, while the code executes in the data segment without
+; any problems (and without the executable attribute)
 
 bits 32
 
@@ -31,60 +31,59 @@ tmp13 equ 0x3149d
 tmp14 equ 0x314a1
 tmp15 equ 0x314a5
 
-; ubacujemo na 0x54f4, preko "SAVE DISK FILING"
+; insert at 0x54f4, over "SAVE DISK FILING"
 filename:
     db "loader.bin"
 
-; patchujemo funkciju DumpTimerVariables na 0xa929
+; patch the DumpTimerVariables function at 0xa929
 start:
-    ;int  1                          ; za debug
+    ;int  1                          ; for debugging
     nop
     nop
-    mov  [stack_top], esp           ; ovo cemo odmah uraditi u slucaju da
-                                    ; loader.bin nije pronadjen
+    mov  [stack_top], esp           ; do this immediately in case
+                                    ; loader.bin is not found
     pushfd
-    pushad                          ; cuvamo sve registre i flegove
-    mov  ebx, data_base             ; ebx ce biti bazni registar za pristup
-                                    ; promenljivama, da ustedimo na fixup
-                                    ; rekordima
+    pushad                          ; preserve all registers and flags
+    mov  ebx, data_base             ; ebx will be the base register for accessing
+                                    ; variables, to save on fixup records
     push dword [ebx + tmp01]
     push dword [ebx + tmp02]
-    push dword [ebx + tmp09]        ; sacuvacemo za svaki slucaj i sve
-    push dword [ebx + tmp10]        ; koriscene pseudo-registre
+    push dword [ebx + tmp09]        ; preserve all used pseudo-registers too,
+    push dword [ebx + tmp10]        ; just in case
     lea  eax, [ebx + filename]
     mov  [ebx + tmp09], eax         ; tmp09 -> filename
     lea  eax, [ebx + pitchDatBuffer]
     mov  [ebx + tmp10], eax         ; tmp10 -> buffer (pitchDatBuffer)
-                                    ; pitchDatBuffer je odabran jer se
-                                    ; inicijalizuje na nulu pre svake partije
-    call LoadFile                   ; ukoliko ne nadje fajl, funkcija prekida
-                                    ; program
-    mov  eax, [ebx + tmp02]         ; tmp02 = duzina fajla
-    cmp  eax, 10032                 ; velicina pitchDatBuffer-a
+                                    ; pitchDatBuffer was chosen because it is
+                                    ; initialized to zero before every match
+    call LoadFile                   ; if the file is not found, the function
+                                    ; terminates the program
+    mov  eax, [ebx + tmp02]         ; tmp02 = file length
+    cmp  eax, 10032                 ; size of pitchDatBuffer
     jbe  .size_ok
 .endless_loop:
     int  3
-    jmp  short .endless_loop        ; njihov sistem
+    jmp  short .endless_loop        ; their system
 .size_ok:
     mov  ecx, ebx
-    mov  eax, ebx                   ; eax = bazna relokacija podataka
-    mov  ebx, code_base             ; ebx = bazna relokacija koda
+    mov  eax, ebx                   ; eax = data relocation base
+    mov  ebx, code_base             ; ebx = code relocation base
     add  ecx, pitchDatBuffer
-    ;int  1                          ; za debug
+    ;int  1                          ; for debugging
     nop
     nop
-    call ecx                        ; startuj loader
+    call ecx                        ; start the loader
     pop  dword [tmp10]
     pop  dword [tmp09]
     pop  dword [tmp02]
     pop  dword [tmp01]
     popad
-    popfd                           ; sada sve je cisto
+    popfd                           ; everything is clean now
     ;int 1
     nop
     nop
-    jmp  SWOS                       ; nastavi sa normalnim izvrsavanjem
+    jmp  SWOS                       ; continue normal execution
     retn
     retn
-    retn                            ; onako bez veze, da popunim do sledece
-    retn                            ; instrukcije
+    retn                            ; just padding up to the next
+    retn                            ; instruction

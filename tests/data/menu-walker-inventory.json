@@ -1,0 +1,1043 @@
+{
+  "schema": 1,
+  "description": "Persistent discovery and execution state for the automatic menu walker.",
+  "menus": [
+    {
+      "id": "audioOptionsMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/audioOptions.mnu",
+        "line": 6
+      },
+      "policy": "blocked-global-audio",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "buyOtherPlayersMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 238609
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "buyPlayerMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 238924
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "careerMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 227546
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "careerOverMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 227740
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "chairmanMemosMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 241873
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "chooseTacticsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 236569
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "chooseTeamsFriendlyMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 235570
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "chooseTeamsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 234342
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "clubBusinessMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 242021
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "competitionStatsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 225030
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "competitionTopGoalScorersMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 225127
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "configureAxisMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/configureAxis.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "configureHatMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/configureHat.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "configureTrackballMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/configureTrackball.mnu",
+        "line": 2
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "contestMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 226984
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "continueAbortMenu",
+      "kind": "converted-mnu+swos-asm",
+      "source": {
+        "file": "src/menus/mnu/continueAbort.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": "",
+      "legacy_source": {
+        "file": "swos/swos.asm",
+        "line": 230364
+      }
+    },
+    {
+      "id": "continueMenu",
+      "kind": "converted-mnu+swos-asm",
+      "source": {
+        "file": "src/menus/mnu/continue.mnu",
+        "line": 4
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": "",
+      "legacy_source": {
+        "file": "swos/swos.asm",
+        "line": 54523
+      }
+    },
+    {
+      "id": "controlOptionsMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/controlOptions.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "designDiyCupMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 231779
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "designDiyLeagueMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 233405
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "designDiyTournamentMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 230425
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "DIY_cupMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 232723
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "DIY_leagueTournamentMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 233800
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "diyCompetitionMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 236301
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "editTacticsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 237006
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "editTeamsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 242410
+      },
+      "policy": "walk",
+      "status": "walked",
+      "reachable_from_main": true,
+      "fixture": "Select the first original custom team through the main-menu Edit Custom Teams workflow.",
+      "manual_cases": [
+        "menu-walker-edit-custom-teams-inventory",
+        "menu-walker-edit-custom-teams-entries",
+        "menu-walker-edit-custom-teams-import",
+        "menu-walker-edit-custom-teams-ok"
+      ],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "endOfMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 199665
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "europeanChampionshipMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 243419
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "friendlyGameMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 224435
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "gameplayOptionsMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/options.mnu",
+        "line": 77
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "gotJobOfferMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 242219
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "highlightsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 247019
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "importTacticsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 236705
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "jobOffersMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 241658
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "joypadConfigMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/joypadConfig.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "mainMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/main.mnu",
+        "line": 4
+      },
+      "policy": "walk",
+      "status": "walked",
+      "reachable_from_main": true,
+      "fixture": null,
+      "manual_cases": [
+        "menu-walker-main-inventory",
+        "menu-walker-main-round-trip"
+      ],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "management_record_menu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 228111
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "nationalTeamAddPlayerMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 241496
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "nullMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 225114
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "offersMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 239050
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "optionsMenu",
+      "kind": "converted-mnu+swos-asm",
+      "source": {
+        "file": "src/menus/mnu/options.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": "",
+      "legacy_source": {
+        "file": "swos/swos.asm",
+        "line": 223845
+      }
+    },
+    {
+      "id": "playerOffersMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 75007
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "playerTransferMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 239985
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "playMatchMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 229475
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "quitMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/quit.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "replayExitMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/replayExit.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "replaysMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/replays.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "selectFilesMenu",
+      "kind": "converted-mnu+swos-asm",
+      "source": {
+        "file": "src/menus/mnu/selectFiles.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": "",
+      "legacy_source": {
+        "file": "swos/swos.asm",
+        "line": 246372
+      }
+    },
+    {
+      "id": "selectGameControlEvents",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/selectGameControlEvents.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "selectMatchControlsMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/selectMatchControls.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "selectNationalTeamMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 241004
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "selectTeamsForTacticsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 4952
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "selectTeamsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 234445
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "setupKeyboardMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/setupKeyboard.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "showPlayerMarketMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 240269
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "squadMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 221706
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "stadiumMenu",
+      "kind": "converted-mnu+swos-asm",
+      "source": {
+        "file": "src/menus/mnu/stadium.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": "",
+      "legacy_source": {
+        "file": "swos/swos.asm",
+        "line": 243490
+      }
+    },
+    {
+      "id": "SWOS_MainMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 224184
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "thirdPartyOfferMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 239296
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "topGoalScorersMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 225650
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "transferMarketMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 238285
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "versusMenu",
+      "kind": "converted-mnu+swos-asm",
+      "source": {
+        "file": "src/menus/mnu/versus.mnu",
+        "line": 6
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": "",
+      "legacy_source": {
+        "file": "swos/swos.asm",
+        "line": 243431
+      }
+    },
+    {
+      "id": "videoOptionsMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/videoOptions.mnu",
+        "line": 6
+      },
+      "policy": "blocked-global-video",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "viewCompetitionsMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 227870
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "viewSquadMenu",
+      "kind": "swos-asm",
+      "source": {
+        "file": "swos/swos.asm",
+        "line": 239604
+      },
+      "policy": "walk",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    },
+    {
+      "id": "windowModeMenu",
+      "kind": "converted-mnu",
+      "source": {
+        "file": "src/menus/mnu/windowMode.mnu",
+        "line": 6
+      },
+      "policy": "blocked-global-video",
+      "status": "discovered",
+      "reachable_from_main": null,
+      "fixture": null,
+      "manual_cases": [],
+      "existing_tests": [],
+      "notes": ""
+    }
+  ]
+}

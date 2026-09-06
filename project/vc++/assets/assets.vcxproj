@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{B315873A-CC47-44CA-AFAB-424429EF2DA8}</ProjectGuid>
+    <RootNamespace>assets</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>assets</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <IntDir>$(SolutionDir)..\..\tmp\assets-project\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(IntDir)</OutDir>
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssetSource Include="$(SolutionDir)..\..\assets\**\*.png" />
+    <AssetSource Include="$(SolutionDir)..\..\assets\**\*.txt" />
+    <AssetCompilerSource Include="$(SolutionDir)..\..\assets\compileAssets.py" />
+    <AssetCompilerSource Include="$(SolutionDir)..\..\assets\requirements.txt" />
+    <AssetCompilerSource Include="$(MSBuildThisFileFullPath)" />
+    <AssetCompilerSource Include="$(SolutionDir)..\..\3rd-party\PyTexturePacker\PyTexturePacker\**\*.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(SolutionDir)..\..\assets\compileAssets.py" />
+    <None Include="$(SolutionDir)..\..\assets\requirements.txt" />
+    <None Include="$(SolutionDir)..\..\3rd-party\PyTexturePacker\UPSTREAM.md" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="CompileAssets" BeforeTargets="Build"
+    Inputs="@(AssetSource);@(AssetCompilerSource)"
+    Outputs="$(SolutionDir)..\..\tmp\assets\spriteDatabase.h;$(SolutionDir)..\..\tmp\assets\variableSprites.h;$(SolutionDir)..\..\tmp\assets\pitchDatabase.h;$(SolutionDir)..\..\tmp\assets\stadiumSprites.h;$(SolutionDir)..\..\tmp\assets\assets.stamp">
+    <Message Importance="High" Text="Compiling sprite and pitch assets..." />
+    <Exec Command="python &quot;$(SolutionDir)..\..\assets\compileAssets.py&quot;" WorkingDirectory="$(SolutionDir)..\..\assets" />
+  </Target>
+</Project>

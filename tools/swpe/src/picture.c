@@ -13,7 +13,6 @@
 #include "draw.h"
 #include "picture.h"
 #include "debug.h"
-#include "dx.h"
 #include "alloc.h"
 #include "file.h"
 #include "util.h"
@@ -182,6 +181,7 @@ void InitPicturesMode(uint old_mode)
     }
     if (!p.pic_current->is_loaded)
         LoadPicture(p.pic_current);
+
     memcpy(p.palette, p.pic_current->palette, 768);
     p.old_gamma = MAX_GAMMA + 1;
     ApplyGammaToPalette();
@@ -210,7 +210,7 @@ bool PicturesKeyProc(uint code, uint data)
 
         /* move to next or previous picture in list */
         p.pic_current = code == VK_SPACE || code == VK_RIGHT ?
-                        p.pic_current->next : p.pic_current->prev;
+            p.pic_current->next : p.pic_current->prev;
 
         /* load it, if necessary */
         if (!p.pic_current->is_loaded)
@@ -235,8 +235,7 @@ bool PicturesKeyProc(uint code, uint data)
         p.gamma += (code == VK_ADD) * 2 - 1;
 
         /* normalize value */
-        p.gamma = code == VK_ADD ? min(MAX_GAMMA, p.gamma) :
-                                   max(MIN_GAMMA, p.gamma);
+        p.gamma = code == VK_ADD ? min(MAX_GAMMA, p.gamma) : max(MIN_GAMMA, p.gamma);
 
         /* if already at max or min value, no need to update palette */
         p.is_pal_valid = p.gamma == p.old_gamma;
@@ -284,7 +283,7 @@ byte *PicturesDraw(byte *pbits, const uint pitch)
 {
     DrawPicture(&pbits, p.pic_current, pitch);
     PrintString(p.pic_current->filename, 0, 0, pbits, pitch, TRUE,
-                p.pic_current->text_color, ALIGN_UPLEFT);
+        p.pic_current->text_color, ALIGN_UPLEFT);
     return pbits;
 }
 
@@ -371,8 +370,7 @@ void LoadPicture(Sws_256_pic *sws_pic)
             uchar *p = sws_pic->picture;
             int colors[256] = {0}, min_used;
 
-            WriteToLog(("LoadPicture(): Can't find color bright enough in %s",
-                       sws_pic->filename));
+            WriteToLog(("LoadPicture(): Can't find color bright enough in %s", sws_pic->filename));
 
             /* find color usage */
             while (p < sws_pic->picture + 64000) colors[*p++]++;
@@ -386,8 +384,7 @@ void LoadPicture(Sws_256_pic *sws_pic)
             sws_pic->palette[3 * min_used + 1] = 255;
             sws_pic->palette[3 * min_used + 2] = 255;
 
-            WriteToLog(("LoadPicture(): Replaced color %d with white in %s",
-                       min_used, sws_pic->filename));
+            WriteToLog(("LoadPicture(): Replaced color %d with white in %s", min_used, sws_pic->filename));
 
             max_color = min_used;
         }
@@ -402,37 +399,25 @@ void LoadPicture(Sws_256_pic *sws_pic)
    sws_pic - picture to draw
    pitch   - distance between lines
 
-   Draws a picture to pbits. Palette changes in windowed mode are handled here,
-   and pbits can be changed during that. In fullscreen mode, palette is not
-   changed here, but in Draw, and the request is made in PicturesKeyProc when
-   switching from picture to picture.
+   Draws a picture to pbits. Palette changes are handled here, and pbits can
+   be changed during that.
 */
 void DrawPicture(byte **pbits, Sws_256_pic *sws_pic, uint pitch)
 {
     uint i;
     if (sws_pic->error) {
-        if (!g.fscreen) {
-            *pbits = CreateDIB(pal);
-            memset(*pbits, 0, WIDTH * HEIGHT);
-        } else {
-            for (i = 0; i < HEIGHT; i++)
-                memset(*pbits + pitch * i, 0, WIDTH);
-        }
+        *pbits = CreateDIB(pal);
+        memset(*pbits, 0, WIDTH * HEIGHT);
         if (sws_pic->error == PIC_ERROR_FILE)
-            PrintString("Can't open file", 0, 0, *pbits, pitch, TRUE, -1,
-                        ALIGN_CENTER);
+            PrintString("Can't open file", 0, 0, *pbits, pitch, TRUE, -1, ALIGN_CENTER);
         else if (sws_pic->error == PIC_ERROR_READING)
-            PrintString("Error reading file", 0, 0, *pbits, pitch, TRUE, -1,
-                        ALIGN_CENTER);
+            PrintString("Error reading file", 0, 0, *pbits, pitch, TRUE, -1, ALIGN_CENTER);
         else if (sws_pic->error == PIC_ERROR_NO_MEMORY)
-            PrintString("Not enough memory for picture", 0, 0, *pbits, pitch,
-                        TRUE, -1, ALIGN_CENTER);
+            PrintString("Not enough memory for picture", 0, 0, *pbits, pitch, TRUE, -1, ALIGN_CENTER);
         else if (sws_pic->error == PIC_ERROR_INV_SIZE)
-            PrintString("Invalid picture size", 0, 0, *pbits, pitch, TRUE, -1,
-                        ALIGN_CENTER);
+            PrintString("Invalid picture size", 0, 0, *pbits, pitch, TRUE, -1, ALIGN_CENTER);
         else
-            PrintString("Unknown error", 0, 0, *pbits, pitch, TRUE, -1,
-                        ALIGN_CENTER);
+            PrintString("Unknown error", 0, 0, *pbits, pitch, TRUE, -1, ALIGN_CENTER);
         return;
     }
 
@@ -440,7 +425,7 @@ void DrawPicture(byte **pbits, Sws_256_pic *sws_pic, uint pitch)
 
     assert(*pbits);
 
-    if (!g.fscreen && !p.is_pal_valid) {
+    if (!p.is_pal_valid) {
         *pbits = CreateDIB(p.palette);
         p.is_pal_valid = TRUE;
         /* just to be sure */
@@ -475,7 +460,7 @@ bool SavePicture(Sws_256_pic *sws_pic)
 
     if (sws_pic->error || !sws_pic->is_loaded) {
         WriteToLog(("SavePicture(): Trying to save corrupt or not loaded "
-                    "picture."));
+            "picture."));
         return FALSE;
     }
 
@@ -562,7 +547,7 @@ void ApplyGammaToPalette()
        error */
     if (p.pic_current->text_color >= 0)
         memcpy(p.palette + 3 * p.pic_current->text_color,
-               p.pic_current->palette + 3 * p.pic_current->text_color, 3);
+            p.pic_current->palette + 3 * p.pic_current->text_color, 3);
 }
 
 /* CleanUpPictures

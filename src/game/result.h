@@ -11,3 +11,4 @@ void updateResult();
 void hideResult();
 void drawResult();
 void registerScorer(const Sprite& scorer, int teamNum, GoalType goalType);
+void goalScored(int teamNum, Sprite& scorer);

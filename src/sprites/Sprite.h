@@ -1,17 +1,6 @@
 #pragma once
 
-#pragma pack(push, 1)
-struct ImageIndicesTable
-{
-    int16_t index[1];
-};
-
-struct PlayerAnimationTable
-{
-    uint16_t numCycles;
-    // indexed as: indicesTable[player/goalkeeper][team1/2][direction]
-    SwosDataPointer<ImageIndicesTable> indicesTable[2][2][8];
-};
+#include "animation.h"
 
 enum class PlayerState : uint8_t
 {
@@ -41,18 +30,21 @@ enum class DestinationState : uint16_t
     kReached = 3,
 };
 
+#pragma pack(push, 1)
 struct Sprite
 {
     uint16_t teamNumber;    // 1 or 2 for player controls, 0 for CPU
     uint16_t playerOrdinal; // 1-11 for players, 0 for other sprites
     uint16_t frameOffset;
-    SwosDataPointer<PlayerAnimationTable> animTablePtr;
+    int16_t animTable;
+    int16_t tag01;
     int16_t startingDirection;
     PlayerState state;
     int8_t playerDownTimer;
     uint16_t unk001;
     uint16_t unk002;
-    SwosDataPointer<int16_t> frameIndicesTable;
+    int16_t frameIndicesTable;
+    int16_t tag02;
     int16_t frameIndex;
     uint16_t frameDelay;
     uint16_t cycleFramesTimer;
@@ -61,7 +53,7 @@ struct Sprite
     FixedPoint y;
     FixedPoint z;
     int16_t direction;
-    int16_t speed;
+    int16_t speed;          // signed Q7.9 magnitude; 512 represents 1 pixel/tick before PC scaling
     FixedPoint deltaX;
     FixedPoint deltaY;
     FixedPoint deltaZ;
@@ -82,7 +74,7 @@ struct Sprite
     int16_t playerDirection;
     uint16_t isMoving;
     uint16_t tackleState;
-    uint16_t unk009;
+    uint16_t isHeadingBall;
     DestinationState destReachedState;
     int16_t cards;
     uint16_t injuryLevel;
@@ -90,8 +82,10 @@ struct Sprite
     uint16_t sentAway;
 
     void init() {
-        int offset = offsetof(Sprite, frameOffset);
+        constexpr int offset = offsetof(Sprite, frameOffset);
         memset(reinterpret_cast<char *>(this) + offset, 0, sizeof(*this) - offset);
+        animTable = kInvalidAnimationTableOffset;
+        frameIndicesTable = kInvalidAnimationTableOffset;
         // this is for SWOS++/tests compatibility
         playerDirection = playerOrdinal ? 0 : -1;
         state = PlayerState::kUnknown;

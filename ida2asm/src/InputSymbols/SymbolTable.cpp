@@ -1,6 +1,6 @@
 #include "SymbolTable.h"
 
-constexpr int kProcCapacity = 20'000;
+constexpr int kProcCapacity = 24'000;
 constexpr int kReplacementsCapacity = 600;
 
 SymbolTable::SymbolTable() : m_procs(kProcCapacity), m_replacements(kReplacementsCapacity)
@@ -110,6 +110,18 @@ const std::vector<String> SymbolTable::unusedSymbolsForRemoval() const
     for (const auto& it : m_procs) {
         if (it.cargo->action() != kNone)
             result.push_back(it.text);
+    }
+
+    return result;
+}
+
+const std::vector<std::pair<String, String>> SymbolTable::removalRanges() const
+{
+    std::vector<std::pair<String, String>> result;
+
+    for (const auto& it : m_procs) {
+        if (it.cargo->action() & kRemove)
+            result.emplace_back(it.text, it.cargo->endSymbol());
     }
 
     return result;

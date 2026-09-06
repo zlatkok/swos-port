@@ -14,7 +14,8 @@ class InputConverter
 {
 public:
     InputConverter(const char *inputPath, const char *outputPath, const char *swosHeaderFile, OutputFormatResolver::OutputFormat format,
-        int numFiles, int extraMemorySize, bool disableOptimizations, bool disableAlignmentChecks, SymbolFileParser& symFileParser);
+        int numFiles, int extraMemorySize, bool disableOptimizations, bool disableAlignmentChecks,
+        const char *unreferencedReportPath, SymbolFileParser& symFileParser);
     void convert();
 
 private:
@@ -22,8 +23,8 @@ private:
     std::pair<const char *, String> findCodeDataStart() const;
     const char *skipBom(int& length);
     size_t parseCommonPart(int length);
-    size_t parse(int commonPartLength, int blockSize);
-    void checkForParsingErrors(size_t lineNo);
+    void parse(int commonPartLength, int blockSize);
+    void checkForParsingErrors();
 
     using AllowedChunkList = std::vector<int>;
 
@@ -35,6 +36,7 @@ private:
     void output(const String& commonPrefix, const AllowedChunkList& activeChunks);
     void checkForOutputErrors();
     void checkForUnusedSymbols();
+    void reportUnreferencedItems(const AllowedChunkList& activeChunks) const;
     void outputStructsAndDefines();
     void waitForWorkers();
     void error(const std::string& desc, size_t lineNo);
@@ -43,6 +45,7 @@ private:
     int m_extraMemorySize;
     bool m_disableOptimizations;
     bool m_disableAlignmentChecks;
+    const char *m_unreferencedReportPath;
 
     const char *m_inputPath;
     const char *m_outputPath;

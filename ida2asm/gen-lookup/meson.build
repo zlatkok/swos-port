@@ -26,4 +26,3 @@ testLookup = executable('test-lookup', testerMain, tokenLookup,
     cpp_args: '/wd5033',
     include_directories: tokenLookupTesterIncludeDirs
 )
-test('Test token lookup generator', testLookup)

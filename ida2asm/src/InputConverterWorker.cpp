@@ -24,7 +24,16 @@ void InputConverterWorker::process()
     auto dataStart = m_data + from;
 
     auto limits = m_tokenizer.tokenize(dataStart, size, hardSize);
+    auto untrimmedStart = m_tokenizer.begin();
     std::tie(m_limitsError, m_noBreakContinued, m_noBreakOverflow) = m_tokenizer.determineBlockLimits(limits);
+
+    // This scans overlapping file prefixes in different workers. It could be optimized by having each worker count
+    // newlines in its fixed, non-overlapping chunk, prefix-summing those counts in InputConverter after synchronization,
+    // and combining the resulting starting line with the small adjustment from the fixed boundary to m_tokenizer.begin().
+    // Keep the simpler implementation for now, since benchmarks show its performance cost is almost negligible.
+    m_startLine = 1 + std::count(m_data, dataStart, '\n');
+    for (auto token = untrimmedStart; token < m_tokenizer.begin(); advance(token))
+        m_startLine += token->isNewLine();
 
     m_parser.parse();
 
@@ -116,6 +125,12 @@ std::string InputConverterWorker::getOutputError() const
 std::string InputConverterWorker::filename() const
 {
     return m_filename;
+}
+
+size_t InputConverterWorker::errorLine() const
+{
+    assert(!m_parser.ok());
+    return m_startLine + m_parser.errorLine() - 1;
 }
 
 const IdaAsmParser& InputConverterWorker::parser() const

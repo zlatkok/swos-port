@@ -8,7 +8,14 @@ const DefaultKeySet kDefaultKeys2 = {
     SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_A, SDL_SCANCODE_D, SDL_SCANCODE_LSHIFT, SDL_SCANCODE_GRAVE
 };
 
-static KeyConfig m_config1(kDefaultKeys1);
+static KeyConfig createDefaultKeyboard1Config()
+{
+    KeyConfig config(kDefaultKeys1);
+    config.addBinding(SDL_SCANCODE_LCTRL, kGameEventKick);
+    return config;
+}
+
+static KeyConfig m_config1(createDefaultKeyboard1Config());
 static KeyConfig m_config2(kDefaultKeys2);
 
 static const char kKeyboard1Section[] = "keyboard1";

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "swspr.h"
 #include "printstr.h"
-#include "dx.h"
 #include "draw.h"
 #include "picture.h"
 #include "debug.h"
@@ -14,6 +13,7 @@
 #include "file.h"
 #include "util.h"
 #include "versus.h"
+#include "animation.h"
 
 static void GetKbdSpeedDelay(uint *speed, uint *delay);
 static void SetKbdSpeedDelay(uint speed, uint delay);
@@ -27,6 +27,7 @@ const Mode *const g_modes[] = {
     &PitchMode,
     &PatternMode,
     &HighlightsMode,
+    &AnimationMode,
     &VersusMode
 };
 
@@ -76,9 +77,6 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         /* primary program initialization */
         g.hWnd = hWnd;
 
-        /* see if we could use DirectInput */
-        g.dinput = InitDirectInput();
-
         /* save current keyboard speed and delay, and set to max if not already
            at maximum */
         GetKbdSpeedDelay(&kbd_speed, &kbd_delay);
@@ -97,9 +95,6 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             MessageBox(NULL, m_errBuf, "Error", MB_OK | MB_ICONERROR);
             return -1;
         }
-
-        /* load ddraw.dll */
-        LoadDirectDraw();
 
         /* now call init routines of each mode */
         for (i = 0; i < NUM_MODES; i++)
@@ -154,7 +149,7 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PrintWarning(buf, 4000, ALIGN_CENTER);
             break;
 #ifdef DEBUG
-        case VK_F11:
+        case VK_F12:
             /* crash it baby! */
             *(uint*)(0) = 5;
             break;
@@ -206,81 +201,31 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_SYSKEYDOWN:
-        if (wParam == VK_RETURN && lParam & 1 << 29) {
-            if (g.fscreen ^= 1) {
-                WriteToLog(("WndProc(): Switching to fullscreen mode..."));
-                if (!InitDirectDraw(hWnd)) {
-                    WriteToLog(("WndProc(): Error initializing DirectX."));
-                    FinishDirectDraw(hWnd);
-                    g.fscreen = 0;
-                    MessageBeep(MB_ICONERROR);
-                    MoveWindow(hWnd, g.r.left, g.r.top,g.r.right,g.r.bottom,1);
-                    SetFocus(hWnd);
-                    MessageBox(hWnd, "Can't go fullscreen!", "Error", MB_OK | MB_TASKMODAL);
-                    SetWindowPos(g.hWnd, HWND_TOPMOST, g.r.left, g.r.top,
-                                 g.r.right, g.r.bottom, SWP_NOMOVE);
-                    break;
-                }
-                SetPalette(g_modes[g.mode]->GetPalette(), &g.pbits, TRUE);
-                DoDraw(0);
-            } else {
-                WriteToLog(("WndProc(): Returning to window mode..."));
-                FinishDirectDraw(hWnd);
-                if (g.mode == MODE_PICTURES) {
-                    /* gamma must be reapplied */
-                    p.old_gamma = MAX_GAMMA + 1;
-                    ApplyGammaToPalette();
-                }
-                SetPalette(g_modes[g.mode]->GetPalette(), &g.pbits, TRUE);
-                SetWindowPos(g.hWnd, HWND_TOPMOST, g.r.left, g.r.top, g.r.right, g.r.bottom, SWP_NOMOVE);
-            }
-        } else if (wParam == VK_F10) {
+        if (wParam == VK_F10) {
             SendMessage(hWnd, WM_KEYDOWN, wParam, lParam);
             return 0;
         }
         break;
 
     case WM_PAINT:
-        if (!g.fscreen) {
+        {
             PAINTSTRUCT ps;
             hdc = BeginPaint(hWnd, &ps);
             DoDraw(hdc);
             EndPaint(hWnd, &ps);
             return 0;
         }
-        /* if I put return 0 instead of break, timer is dead in full-screen
-           (both 9x and 2k) */
-        break;
 
-    /* While initializing DirectX, WM_DISPLAYCHANGE gets sent to window
-       procedure, and then UpdateScreen is called, with g.fullscreen set, but
-       in that stage DX is not fully initialized, causing DoDraw to dereference
-       NULL pointer (g.csurf) and cause access violation. Therefore, we do
-       update only if not fullscreen (presumably, if we are in fullscreen, we
-       are the only ones who can change resolution). The same goes for
-       WM_ERASEBKGND.
-    */
     case WM_DISPLAYCHANGE:
         WriteToLog(("WndProc(): Got WM_DISPLAYCHANGE..."));
-        if (!g.fscreen) {
-            g.r.left = (LOWORD(lParam) - WIDTH) / 2;
-            g.r.top = (HIWORD(lParam) - HEIGHT) / 2;
-            MoveWindow(hWnd, g.r.left, g.r.top, g.r.right, g.r.bottom, TRUE);
-        } /* assume fallthrough */
+        g.r.left = (LOWORD(lParam) - WIDTH) / 2;
+        g.r.top = (HIWORD(lParam) - HEIGHT) / 2;
+        MoveWindow(hWnd, g.r.left, g.r.top, g.r.right, g.r.bottom, TRUE);
+        /* assume fallthrough */
 
     case WM_ERASEBKGND:
-        if (!g.fscreen)
-            InvalidateRect(g.hWnd, NULL, FALSE);
+        InvalidateRect(g.hWnd, NULL, FALSE);
         return TRUE;
-
-    case WM_ACTIVATEAPP:
-        if (wParam != 0 && g.fscreen) {
-            WriteToLog(("WndProc(): Restoring full screen application."));
-            RestoreSurfaces();
-            SetPalette(g_modes[g.mode]->GetPalette(), &g.pbits, TRUE);
-            DoDraw(0);
-        }
-        break;
 
     /* this is to compensate for moronic windows behaviour - when window that
        has on top attribute is exited, taskbar gets focus, instead of last
@@ -297,16 +242,12 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (g.mode == MODE_PITCH && PitchLeftButtonDoubleClicked(LOWORD(lParam), HIWORD(lParam))) {
             UpdateScreen();
         } else if (isControlDown()) {
-            if (g.fscreen) {
-                g.fscreen = 0;
-                FinishDirectDraw(hWnd);
-            }
             ShowWindow(hWnd, SW_MINIMIZE);
         }
         break;
 
     case WM_LBUTTONDOWN:
-        if (g.mode == MODE_PITCH && PitchLeftButtonClicked(true, LOWORD(lParam), HIWORD(lParam)) || g.fscreen)
+        if (g.mode == MODE_PITCH && PitchLeftButtonClicked(true, LOWORD(lParam), HIWORD(lParam)))
             break;
         SetCapture(hWnd);
         x_click = LOWORD(lParam);
@@ -314,7 +255,7 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_LBUTTONUP:
-        if (g.mode == MODE_PITCH && PitchLeftButtonClicked(false, LOWORD(lParam), HIWORD(lParam)) || g.fscreen)
+        if (g.mode == MODE_PITCH && PitchLeftButtonClicked(false, LOWORD(lParam), HIWORD(lParam)))
             break;
         ReleaseCapture();
         return 0;
@@ -337,7 +278,7 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEMOVE:
         if (g.mode == MODE_PITCH && PitchMouseMoved(LOWORD(lParam), HIWORD(lParam), wParam)) {
             UpdateScreen();
-        } else if (!g.fscreen && (wParam & MK_LBUTTON) == MK_LBUTTON && !isControlDown() && !isShiftDown()) {
+        } else if ((wParam & MK_LBUTTON) == MK_LBUTTON && !isControlDown() && !isShiftDown()) {
             const int kSnapLimit = 10;
             int xMove = LOWORD(lParam) - x_click;
             int yMove = HIWORD(lParam) - y_click;
@@ -400,8 +341,6 @@ LRESULT APIENTRY WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY:
         g_modes[g.mode]->FinishMode();
-        FinishDirectDraw(hWnd);
-        FinishDirectInput();
 #if 0
         DeleteObject(g.hbmp);
         DeleteDC(g.hdcMem);

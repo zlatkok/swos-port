@@ -2,6 +2,7 @@
 #include "gameLoop.h"
 #include "updatePlayers.h"
 #include "timer.h"
+#include "ball.h"
 
 static bool m_enabled;
 static bool m_preventDirectionFlip;
@@ -32,9 +33,9 @@ void setAmigaModeEnabled(bool enable)
             setClearResultInterval(600);
             setClearResultHalftimeInterval(350);
             swos.kKeeperSaveDistance = 24;
-            swos.kBallGroundConstant = 16;
-            swos.kBallAirConstant = 10;
-            swos.kGravityConstant = 4608;
+            setControlledBallSpeedReduction(16);
+            setBallAirSpeedReduction(10);
+            setBallAirFriction(4608);
 
             memcpy(swos.kGoalkeeperDiveDeltas, kGoalkeeperDiveDeltasAmiga, sizeof(kGoalkeeperDiveDeltasAmiga));
 
@@ -50,9 +51,9 @@ void setAmigaModeEnabled(bool enable)
             setClearResultInterval(660);
             setClearResultHalftimeInterval(385);
             swos.kKeeperSaveDistance = 16;
-            swos.kBallGroundConstant = 13;
-            swos.kBallAirConstant = 4;
-            swos.kGravityConstant = 3291;
+            setControlledBallSpeedReduction(13);
+            setBallAirSpeedReduction(4);
+            setBallAirFriction(3291);
 
             memcpy(swos.kGoalkeeperDiveDeltas, kGoalkeeperDiveDeltasPC, sizeof(kGoalkeeperDiveDeltasPC));
 

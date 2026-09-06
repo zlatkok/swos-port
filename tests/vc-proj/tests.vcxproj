@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -77,7 +77,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\SDL2\include;$(SolutionDir)..\..\3rd-party\SDL2_image\include;$(SolutionDir)..\..\3rd-party\SDL_mixer\include;$(SolutionDir)..\..\3rd-party\minizip\include;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\3rd-party\dirent;$(SolutionDir)..\..\3rd-party\CrashRpt\include;$(SolutionDir)..\..\3rd-party\SimpleIni;$(SolutionDir)..\..\tmp\mnu2h;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\ball;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\game\updatePlayers;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\SDL2\include;$(SolutionDir)..\..\3rd-party\SDL2_image\include;$(SolutionDir)..\..\3rd-party\SDL_mixer\include;$(SolutionDir)..\..\3rd-party\minizip\include;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\3rd-party\dirent;$(SolutionDir)..\..\3rd-party\CrashRpt\include;$(SolutionDir)..\..\3rd-party\SimpleIni;$(SolutionDir)..\..\tmp\mnu2h;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\animation;$(SolutionDir)..\..\src\game\ball;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\game\updatePlayers;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\..\3rd-party\SDL2\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\SDL2_image\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\SDL_mixer\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win64\;$(SolutionDir)..\..\3rd-party\minizip\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\CrashRpt\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win64;$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
     <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
@@ -91,7 +91,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\SDL2\include;$(SolutionDir)..\..\3rd-party\SDL2_image\include;$(SolutionDir)..\..\3rd-party\SDL_mixer\include;$(SolutionDir)..\..\3rd-party\minizip\include;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\3rd-party\dirent;$(SolutionDir)..\..\3rd-party\CrashRpt\include;$(SolutionDir)..\..\3rd-party\SimpleIni;$(SolutionDir)..\..\tmp\mnu2h;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\ball;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\game\updatePlayers;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\sdl-address-table-fetcher\src;$(SolutionDir)..\..\3rd-party\SDL2\include;$(SolutionDir)..\..\3rd-party\SDL2_image\include;$(SolutionDir)..\..\3rd-party\SDL_mixer\include;$(SolutionDir)..\..\3rd-party\minizip\include;$(SolutionDir)..\..\3rd-party\zlib-ng\include;$(SolutionDir)..\..\3rd-party\dirent;$(SolutionDir)..\..\3rd-party\CrashRpt\include;$(SolutionDir)..\..\3rd-party\SimpleIni;$(SolutionDir)..\..\tmp\mnu2h;$(ProjectDir)..\src;$(ProjectDir)..\src\lib;$(ProjectDir)..\src\tests;$(ProjectDir)..\src\mocks;$(SolutionDir)..\..\src;$(SolutionDir)..\..\src\audio;$(SolutionDir)..\..\src\controls;$(SolutionDir)..\..\src\debug;$(SolutionDir)..\..\src\files;$(SolutionDir)..\..\src\game;$(SolutionDir)..\..\src\game\animation;$(SolutionDir)..\..\src\game\ball;$(SolutionDir)..\..\src\game\bench;$(SolutionDir)..\..\src\game\pitch;$(SolutionDir)..\..\src\game\updatePlayers;$(SolutionDir)..\..\src\menus;$(SolutionDir)..\..\src\menus\engine;$(SolutionDir)..\..\src\options;$(SolutionDir)..\..\src\replays;$(SolutionDir)..\..\src\sprites;$(SolutionDir)..\..\src\sprites\util;$(SolutionDir)..\..\src\swos;$(SolutionDir)..\..\src\text;$(SolutionDir)..\..\src\util;$(SolutionDir)..\..\src\video;$(SolutionDir)..\..\src\controls\joypads;$(SolutionDir)..\..\src\controls\joypads\ui;$(SolutionDir)..\..\src\controls\keyboard;$(SolutionDir)..\..\src\controls\mouse;$(SolutionDir)..\..\tmp\assets;$(SolutionDir)..\..\tmp\swos-cpp-gen-64;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\..\3rd-party\SDL2\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\SDL2_image\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\SDL_mixer\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win64\;$(SolutionDir)..\..\3rd-party\minizip\lib\win64\$(Configuration);$(SolutionDir)..\..\3rd-party\zlib-ng\lib\win64;$(SolutionDir)..\..\tmp\sdl-address-table-fetcher-$(Platform)-$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
     <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
@@ -106,7 +106,7 @@
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4731</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntDir);$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
@@ -137,7 +137,7 @@
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4731</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntDir);$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
@@ -170,7 +170,7 @@
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4731</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntDir);$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -203,7 +203,7 @@
       <PrecompiledHeaderFile>$(SolutionDir)..\..\src\stdinc.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>$(SolutionDir)..\..\src\stdinc.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>4731</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntDir);$(ProjectDir)..\src\mocks;$(ProjectDir)..\src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
       <AssemblerOutput>NoListing</AssemblerOutput>
@@ -264,6 +264,9 @@
     <ClCompile Include="..\..\src\controls\testControlsMenu.cpp" />
     <ClCompile Include="..\..\src\files\selectFilesMenu.cpp" />
     <ClCompile Include="..\..\src\game\amigaMode.cpp" />
+    <ClCompile Include="..\..\src\game\animation\animation.cpp">
+      <AdditionalInputs>$(IntDir)animationTables.h;$(IntDir)animationTables.cpp;%(AdditionalInputs)</AdditionalInputs>
+    </ClCompile>
     <ClCompile Include="..\..\src\game\ball\ball.cpp" />
     <ClCompile Include="..\..\src\game\bench\updateBench.cpp" />
     <ClCompile Include="..\..\src\game\bench\drawBench.cpp" />
@@ -283,7 +286,6 @@
     <ClCompile Include="..\..\src\game\team.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NoListing</AssemblerOutput>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\updateGoals.cpp" />
     <ClCompile Include="..\..\src\game\updatePlayers\updatePlayers.cpp" />
     <ClCompile Include="..\..\src\init.cpp" />
     <ClCompile Include="..\..\src\menus\continueAbortMenu.cpp" />
@@ -360,8 +362,10 @@
     <ClCompile Include="..\src\tests\CommentaryTest.cpp" />
     <ClCompile Include="..\src\tests\ControlOptionsMenuTest.cpp" />
     <ClCompile Include="..\src\tests\EditTacticsMenuTest.cpp" />
+    <ClCompile Include="..\src\tests\MenuWalkerTest.cpp" />
     <ClCompile Include="..\src\tests\JoypadsTest.cpp" />
     <ClCompile Include="..\src\tests\RecordedDataTest.cpp" />
+    <ClCompile Include="..\src\tests\SwosDataLayoutTest.cpp" />
     <ClCompile Include="..\src\tests\SelectFilesMenuTest.cpp" />
     <ClCompile Include="..\src\tests\WindowModeMenuTest.cpp" />
     <ClCompile Include="..\src\tests\SetupKeyboardMenuTest.cpp" />
@@ -402,12 +406,14 @@
     <ClInclude Include="..\..\src\files\file.h" />
     <ClInclude Include="..\..\src\files\selectFilesMenu.h" />
     <ClInclude Include="..\..\src\game\amigaMode.h" />
+    <ClInclude Include="..\..\src\game\animation\animation.h" />
     <ClInclude Include="..\..\src\game\ball\ball.h" />
     <ClInclude Include="..\..\src\game\bench\updateBench.h" />
     <ClInclude Include="..\..\src\game\bench\drawBench.h" />
     <ClInclude Include="..\..\src\game\camera.h" />
     <ClInclude Include="..\..\src\game\color.h" />
     <ClInclude Include="..\..\src\game\pitch\pitchConstants.h" />
+    <ClInclude Include="..\..\src\game\playerDirection.h" />
     <ClInclude Include="..\..\src\game\player.h" />
     <ClInclude Include="..\..\src\game\playerNameDisplay.h" />
     <ClInclude Include="..\..\src\game\darkRectangle.h" />
@@ -480,14 +486,26 @@
     <ClInclude Include="..\src\tests\EditTacticsMenuTest.h" />
     <ClInclude Include="..\src\tests\JoypadsTest.h" />
     <ClInclude Include="..\src\tests\RecordedDataTest.h" />
+    <ClInclude Include="..\src\tests\SwosDataLayoutTest.h" />
     <ClInclude Include="..\src\tests\SelectFilesMenuTest.h" />
     <ClInclude Include="..\src\tests\WindowModeMenuTest.h" />
     <ClInclude Include="..\src\tests\SetupKeyboardMenuTest.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\src\game\animation\animationTables.in" />
+    <None Include="..\..\src\game\animation\generateAnimationTables.py" />
+    <None Include="..\..\src\game\animation\originalSwosAnimationTables.py" />
     <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="GenerateAnimationTables"
+          AfterTargets="Clean"
+          BeforeTargets="ClCompile"
+          Inputs="$(SolutionDir)..\..\src\game\animation\animationTables.in;$(SolutionDir)..\..\src\game\animation\generateAnimationTables.py;$(SolutionDir)..\..\src\game\animation\originalSwosAnimationTables.py;$(SolutionDir)..\..\src\sprites\sprites.h;$(SolutionDir)..\..\src\swos\swos.h"
+          Outputs="$(IntDir)animationTables.h;$(IntDir)animationTables.cpp">
+    <Message Importance="High" Text="Generating animation tables from animationTables.in" />
+    <Exec Command="python &quot;$(SolutionDir)..\..\src\game\animation\generateAnimationTables.py&quot; &quot;$(SolutionDir)..\..\src\game\animation\animationTables.in&quot; &quot;$(IntDir)animationTables.h&quot; &quot;$(IntDir)animationTables.cpp&quot; --sprites &quot;$(SolutionDir)..\..\src\sprites\sprites.h&quot; --swos &quot;$(SolutionDir)..\..\src\swos\swos.h&quot;" />
+  </Target>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

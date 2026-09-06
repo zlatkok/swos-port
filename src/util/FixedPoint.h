@@ -11,131 +11,175 @@ struct FixedPoint {
         float whole, fraction = std::modf(value, &whole);
         return FixedPoint(static_cast<int>(whole), static_cast<int>(fraction * 0x10000));
     }
-    float asFloat() const {
-        return *this;
+    static constexpr FixedPoint fromRaw(int value) {
+        return FixedPoint(value, true);
     }
-    FixedPoint& operator=(const FixedPoint& other) {
+    constexpr float asFloat() const {
+        return static_cast<float>(m_value & 0xffff) / 0x10000 + (m_value >> 16);
+    }
+    constexpr FixedPoint& operator=(const FixedPoint& other) {
         m_value = other.m_value;
         return *this;
     }
-    FixedPoint& operator=(int value) {
+    constexpr FixedPoint& operator=(int value) {
         m_value = value << 16;
         return *this;
     }
-    void set(int whole, int fraction) {
+    constexpr void set(int whole, int fraction) {
         m_value = (whole << 16) | fraction;
     }
-    void setWhole(int whole) {
+    constexpr void setWhole(int whole) {
         m_value = (whole << 16) | fraction();
     }
-    void clearFraction() {
+    constexpr void clearFraction() {
         m_value &= 0xffff0000;
     }
-    int32_t raw() const {
+    constexpr int32_t raw() const {
         return m_value;
     }
-    void setRaw(int32_t value) {
+    constexpr void setRaw(int32_t value) {
         m_value = value;
     }
-    int16_t whole() const {
+    constexpr int16_t whole() const {
         return m_value >> 16;
     }
-    uint16_t fraction() const {
+    constexpr uint16_t fraction() const {
         return m_value & 0xffff;
     }
-    int rounded() const {
+    constexpr int rounded() const {
         return whole() + (fraction() > 0x8000);
     }
-    int truncated() const {
+    constexpr int truncated() const {
         return whole() + (sgn() < 0 && fraction());
     }
-    int sgn() const {
+    constexpr int sgn() const {
         return m_value < 0 ? -1 : 1;
     }
     bool nearlyEqual(const FixedPoint& other) const {
         return std::abs(other.m_value - m_value) < 0x100;
     }
-    operator float() const {
-        return static_cast<float>(m_value & 0xffff) / 0x10000 + (m_value >> 16);
-    }
-    explicit operator bool() const {
+    constexpr explicit operator bool() const {
         return m_value != 0;
     }
-    bool operator<(const FixedPoint& other) const {
+    constexpr bool operator==(const FixedPoint& other) const {
+        return m_value == other.m_value;
+    }
+    constexpr bool operator!=(const FixedPoint& other) const {
+        return !operator==(other);
+    }
+    constexpr bool operator<(const FixedPoint& other) const {
         return m_value < other.m_value;
     }
-    bool operator<(int value) const {
+    constexpr bool operator<(int value) const {
         return whole() < value;
     }
-    bool operator<=(const FixedPoint& other) const {
+    constexpr bool operator<=(const FixedPoint& other) const {
         return m_value <= other.m_value;
     }
-    bool operator<=(int value) const {
+    constexpr bool operator<=(int value) const {
         return !operator>(value);
     }
-    bool operator>(const FixedPoint& other) const {
+    constexpr bool operator>(const FixedPoint& other) const {
         return m_value > other.m_value;
     }
-    bool operator>(int value) const {
+    constexpr bool operator>(int value) const {
         return whole() > value || whole() == value && fraction();
     }
-    bool operator>(int16_t value) const {
+    constexpr bool operator>(int16_t value) const {
         return operator>(static_cast<int>(value));
     }
-    bool operator>=(const FixedPoint& other) const {
+    constexpr bool operator>=(const FixedPoint& other) const {
         return m_value >= other.m_value;
     }
-    bool operator>=(int value) const {
+    constexpr bool operator>=(int value) const {
         return whole() >= value;
     }
-    FixedPoint operator+(const FixedPoint& other) const {
+    constexpr FixedPoint operator+(const FixedPoint& other) const {
         return FixedPoint(m_value + other.m_value, true);
     }
-    FixedPoint operator+(int value) const {
+    constexpr FixedPoint operator+(int value) const {
         return FixedPoint(m_value + (value << 16), true);
     }
-    FixedPoint operator-() const {
+    constexpr FixedPoint operator-() const {
         return FixedPoint(-m_value, true);
     }
-    FixedPoint operator-(const FixedPoint& other) const {
+    constexpr FixedPoint operator-(const FixedPoint& other) const {
         return FixedPoint(m_value - other.m_value, true);
     }
-    FixedPoint operator-(int value) const {
+    constexpr FixedPoint operator-(int value) const {
         return FixedPoint(m_value - (value << 16), true);
     }
-    FixedPoint operator/(int value) const {
+    constexpr FixedPoint operator/(int value) const {
         return FixedPoint(m_value / value, true);
     }
-    FixedPoint& operator+=(int value) {
+    constexpr FixedPoint& operator+=(int value) {
         m_value += value << 16;
         return *this;
     }
-    FixedPoint& operator+=(const FixedPoint& other) {
+    constexpr FixedPoint& operator+=(const FixedPoint& other) {
         m_value += other.m_value;
         return *this;
     }
-    FixedPoint& operator-=(int value) {
+    constexpr FixedPoint& operator-=(int value) {
         m_value -= (value << 16);
         return *this;
     }
-    FixedPoint& operator-=(const FixedPoint& other) {
+    constexpr FixedPoint& operator-=(const FixedPoint& other) {
         m_value -= other.m_value;
         return *this;
     }
-    FixedPoint& operator>>=(int count) {
+    constexpr FixedPoint& operator>>=(int count) {
         m_value >>= count;
+        return *this;
+    }
+    constexpr FixedPoint& operator/=(int value) {
+        m_value /= value;
+        return *this;
+    }
+    constexpr FixedPoint& operator|=(int value) {
+        m_value |= value;
         return *this;
     }
 
 private:
+    struct RawTag {};
+
+    constexpr FixedPoint(int32_t raw, RawTag) : m_value(raw) {}
+
     int32_t m_value;
 };
 
-static inline FixedPoint operator+(int value, const FixedPoint& fixed)
+constexpr FixedPoint operator+(int value, const FixedPoint& fixed)
 {
     return FixedPoint(value) + fixed;
 }
-static inline FixedPoint operator-(int value, const FixedPoint& fixed)
+constexpr FixedPoint operator-(int value, const FixedPoint& fixed)
 {
     return FixedPoint(value) - fixed;
+}
+constexpr bool operator<(int value, const FixedPoint& fixed)
+{
+    return FixedPoint(value) < fixed;
+}
+constexpr bool operator<=(int value, const FixedPoint& fixed)
+{
+    return FixedPoint(value) <= fixed;
+}
+constexpr bool operator>(int value, const FixedPoint& fixed)
+{
+    return FixedPoint(value) > fixed;
+}
+constexpr bool operator>=(int value, const FixedPoint& fixed)
+{
+    return FixedPoint(value) >= fixed;
+}
+
+constexpr FixedPoint operator""_fp(long double value)
+{
+    return FixedPoint(static_cast<int32_t>(value * 65536.0L), true);
+}
+
+constexpr FixedPoint operator""_fp(unsigned long long value)
+{
+    return FixedPoint(static_cast<int32_t>(value << 16), true);
 }

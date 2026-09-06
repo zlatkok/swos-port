@@ -1,0 +1,695 @@
+export ballMovingFrameTable 1182, 1181, 1180, 1179, -999
+export ballStaticFrameTable 1182, 1182, -999
+
+jumpHeaderHitTeam1TopFrames -5, 417, -5, 425, -5, 433, -5, 425, -5, 417, 341, -101
+jumpHeaderHitTeam1BottomFrames -5, 418, -5, 426, -5, 434, -5, 426, -5, 418, 344, -101
+jumpHeaderHitTeam1RightFrames -5, 419, -5, 427, -5, 435, -5, 427, -5, 419, 347, -101
+jumpHeaderHitTeam1LeftFrames -5, 420, -5, 428, -5, 436, -5, 428, -5, 420, 350, -101
+jumpHeaderHitTeam1TopRightFrames -5, 424, -5, 432, -5, 440, -5, 432, -5, 424, 362, -101
+jumpHeaderHitTeam1TopLeftFrames -5, 423, -5, 431, -5, 439, -5, 431, -5, 423, 359, -101
+jumpHeaderHitTeam1BottomRightFrames -5, 422, -5, 430, -5, 438, -5, 430, -5, 422, 356, -101
+jumpHeaderHitTeam1BottomLeftFrames -5, 421, -5, 429, -5, 437, -5, 429, -5, 421, 353, -101
+jumpHeaderHitTeam2TopFrames -5, 720, -5, 728, -5, 736, -5, 728, -5, 720, 644, -101
+jumpHeaderHitTeam2BottomFrames -5, 721, -5, 729, -5, 737, -5, 729, -5, 721, 647, -101
+jumpHeaderHitTeam2RightFrames -5, 722, -5, 730, -5, 738, -5, 730, -5, 722, 650, -101
+jumpHeaderHitTeam2LeftFrames -5, 723, -5, 731, -5, 739, -5, 731, -5, 723, 653, -101
+jumpHeaderHitTeam2TopRightFrames -5, 727, -5, 735, -5, 743, -5, 735, -5, 727, 665, -101
+jumpHeaderHitTeam2TopLeftFrames -5, 726, -5, 734, -5, 742, -5, 734, -5, 726, 662, -101
+jumpHeaderHitTeam2BottomRightFrames -5, 725, -5, 733, -5, 741, -5, 733, -5, 725, 659, -101
+jumpHeaderHitTeam2BottomLeftFrames -5, 724, -5, 732, -5, 740, -5, 732, -5, 724, 656, -101
+jumpHeaderAttemptTeam1TopFrames -5, 417, -5, 425, -10, 433, 403, -101
+jumpHeaderAttemptTeam1BottomFrames -5, 418, -5, 426, -10, 434, 404, -101
+jumpHeaderAttemptTeam1RightFrames -5, 419, -5, 427, -10, 435, 406, -101
+jumpHeaderAttemptTeam1LeftFrames -5, 420, -5, 428, -10, 436, 405, -101
+jumpHeaderAttemptTeam1TopRightFrames -5, 424, -5, 432, -10, 440, 410, -101
+jumpHeaderAttemptTeam1TopLeftFrames -5, 423, -5, 431, -10, 439, 409, -101
+jumpHeaderAttemptTeam1BottomRightFrames -5, 422, -5, 430, -10, 438, 408, -101
+jumpHeaderAttemptTeam1BottomLeftFrames -5, 421, -5, 429, -10, 437, 407, -101
+jumpHeaderAttemptTeam2TopFrames -5, 720, -5, 728, -10, 736, 706, -101
+jumpHeaderAttemptTeam2BottomFrames -5, 721, -5, 729, -10, 737, 707, -101
+jumpHeaderAttemptTeam2RightFrames -5, 722, -5, 730, -10, 738, 709, -101
+jumpHeaderAttemptTeam2LeftFrames -5, 723, -5, 731, -10, 739, 708, -101
+jumpHeaderAttemptTeam2TopRightFrames -5, 727, -5, 735, -10, 743, 713, -101
+jumpHeaderAttemptTeam2TopLeftFrames -5, 726, -5, 734, -10, 742, 712, -101
+jumpHeaderAttemptTeam2BottomRightFrames -5, 725, -5, 733, -10, 741, 711, -101
+jumpHeaderAttemptTeam2BottomLeftFrames -5, 724, -5, 732, -10, 740, 710, -101
+staticHeaderAttemptTeam1TopFrames -10, 417, -15, 425, -5, 417, -10, 341, -101
+staticHeaderAttemptTeam1BottomFrames -10, 418, -15, 426, -5, 418, -10, 344, -101
+staticHeaderAttemptTeam1RightFrames -10, 419, -15, 427, -5, 419, -10, 347, -101
+staticHeaderAttemptTeam1LeftFrames -10, 420, -15, 428, -5, 420, -10, 350, -101
+staticHeaderAttemptTeam1TopRightFrames -10, 424, -15, 432, -5, 424, -10, 362, -101
+staticHeaderAttemptTeam1TopLeftFrames -10, 423, -15, 431, -5, 423, -10, 359, -101
+staticHeaderAttemptTeam1BottomRightFrames -10, 422, -15, 430, -5, 422, -10, 356, -101
+staticHeaderAttemptTeam1BottomLeftFrames -10, 421, -15, 429, -5, 421, -10, 353, -101
+staticHeaderAttemptTeam2TopFrames -10, 720, -15, 728, -5, 720, -10, 644, -101
+staticHeaderAttemptTeam2BottomFrames -10, 721, -15, 729, -5, 721, -10, 647, -101
+staticHeaderAttemptTeam2RightFrames -10, 722, -15, 730, -5, 722, -10, 650, -101
+staticHeaderAttemptTeam2LeftFrames -10, 723, -15, 731, -5, 723, -10, 653, -101
+staticHeaderAttemptTeam2TopRightFrames -10, 727, -15, 735, -5, 727, -10, 665, -101
+staticHeaderAttemptTeam2TopLeftFrames -10, 726, -15, 734, -5, 726, -10, 662, -101
+staticHeaderAttemptTeam2BottomRightFrames -10, 725, -15, 733, -5, 725, -10, 659, -101
+staticHeaderAttemptTeam2BottomLeftFrames -10, 724, -15, 732, -5, 724, -10, 656, -101
+staticHeaderHitTeam1TopFrames -10, 417, -15, 433, -5, 417, -10, 341, -101
+staticHeaderHitTeam1BottomFrames -10, 418, -15, 434, -5, 418, -10, 344, -101
+staticHeaderHitTeam1RightFrames -10, 419, -15, 435, -5, 419, -10, 347, -101
+staticHeaderHitTeam1LeftFrames -10, 420, -15, 436, -5, 420, -10, 350, -101
+staticHeaderHitTeam1TopRightFrames -10, 424, -15, 440, -5, 424, -10, 362, -101
+staticHeaderHitTeam1TopLeftFrames -10, 423, -15, 439, -5, 423, -10, 359, -101
+staticHeaderHitTeam1BottomRightFrames -10, 422, -15, 438, -5, 422, -10, 356, -101
+staticHeaderHitTeam1BottomLeftFrames -10, 421, -15, 437, -5, 421, -10, 353, -101
+staticHeaderHitTeam2TopFrames -10, 720, -15, 736, -5, 720, -10, 644, -101
+staticHeaderHitTeam2BottomFrames -10, 721, -15, 737, -5, 721, -10, 647, -101
+staticHeaderHitTeam2RightFrames -10, 722, -15, 738, -5, 722, -10, 650, -101
+staticHeaderHitTeam2LeftFrames -10, 723, -15, 739, -5, 723, -10, 653, -101
+staticHeaderHitTeam2TopRightFrames -10, 727, -15, 743, -5, 727, -10, 665, -101
+staticHeaderHitTeam2TopLeftFrames -10, 726, -15, 742, -5, 726, -10, 662, -101
+staticHeaderHitTeam2BottomRightFrames -10, 725, -15, 741, -5, 725, -10, 659, -101
+staticHeaderHitTeam2BottomLeftFrames -10, 724, -15, 740, -5, 724, -10, 656, -101
+team1PlayerGettingYellowCardFrames -20, 344, -65, 415, 415, -101
+team2PlayerGettingYellowCardFrames -20, 647, -65, 718, 718, -101
+team1PlayerGettingRedCardFrames -20, 344, -70, 415, 415, -50, 416, -101
+team2PlayerGettingRedCardFrames -20, 647, -70, 718, 718, -50, 719, -101
+team1PlayerGetting2ndYellowCardFrames -20, 344, -80, 415, 415, 415, -75, 416, 416, -101
+team2PlayerGetting2ndYellowCardFrames -20, 647, -80, 718, 718, 718, -75, 719, 719, -101
+playerRunningTopTeam1Frames 343, 341, 342, 341, -999
+playerRunningBottomTeam1Frames 346, 344, 345, 344, -999
+playerRunningRightTeam1Frames 349, 347, 348, 347, -999
+playerRunningLeftTeam1Frames 352, 350, 351, 350, -999
+playerRunningTopRightTeam1Frames 364, 363, 362, 363, -999
+playerRunningTopLeftTeam1Frames 361, 360, 359, 360, -999
+playerRunningBottomRightTeam1Frames 358, 357, 356, 357, -999
+playerRunningBottomLeftTeam1Frames 355, 354, 353, 354, -999
+team1PlayerStandingFacingTopFrames 341, -999
+team1PlayerStandingFacingBottomFrames 344, -999
+team1PlayerStandingFacingRightFrames 347, -999
+team1PlayerStandingFacingLeftFrames 350, -999
+team1PlayerStandingFacingTopRightFrames 363, -999
+team1PlayerStandingFacingTopLeftFrames 360, -999
+team1PlayerStandingFacingBottomRightFrames 357, -999
+team1PlayerStandingFacingBottomLeftFrames 354, -999
+team1PlayerTacklingTopFrames 395, -999
+team1PlayerTacklingBottomFrames 396, -999
+team1PlayerTacklingRightFrames 398, -999
+team1PlayerTacklingLeftFrames 397, -999
+team1PlayerTacklingTopRightFrames 402, -999
+team1PlayerTacklingTopLeftFrames 401, -999
+team1PlayerTacklingBottomRightFrames 400, -999
+team1PlayerTacklingBottomLeftFrames 399, -999
+team1PlayerTackledTopFrames 403, -999
+team1PlayerTackledBottomFrames 404, -999
+team1PlayerTackledRightFrames 406, -999
+team1PlayerTackledLeftFrames 405, -999
+team1PlayerTackledTopRightFrames 410, -999
+team1PlayerTackledTopLeftFrames 409, -999
+team1PlayerTackledBottomRightFrames 408, -999
+team1PlayerTackledBottomLeftFrames 407, -999
+team1PlayerAboutToThrowInTopFrames -90, 372, -20, 371, -20, 372, -104
+team1PlayerAboutToThrowInBottomFrames -90, 375, -20, 374, -20, 375, -104
+team1PlayerAboutToThrowInRightFrames -90, 378, -20, 377, -20, 378, -104
+team1PlayerAboutToThrowInLeftFrames -90, 381, -20, 380, -20, 381, -104
+team1PlayerAboutToThrowInTopRightFrames -90, 393, -20, 392, -20, 393, -104
+team1PlayerAboutToThrowInTopLeftFrames -90, 390, -20, 389, -20, 390, -104
+team1PlayerAboutToThrowInBottomRightFrames -90, 387, -20, 386, -20, 387, -104
+team1PlayerAboutToThrowInBottomLeftFrames -90, 384, -20, 383, -20, 384, -104
+team1Player1ThrowInShortTopFrames -5, 372, 373, -101
+team1Player1ThrowInShortBottomFrames -5, 375, 376, -101
+team1Player1ThrowInShortRightFrames -5, 378, 379, -101
+team1Player1ThrowInShortLeftFrames -5, 381, 382, -101
+team1Player1ThrowInShortTopRightFrames -5, 393, 394, -101
+team1Player1ThrowInShortTopLeftFrames -5, 390, 391, -101
+team1Player1ThrowInShortBottomRightFrames -5, 387, 388, -101
+team1Player1ThrowInShortBottomLeftFrames -5, 384, 385, -101
+team1Player1ThrowInLongTopFrames -5, 372, 371, 372, 373, -101
+team1Player1ThrowInLongBottomFrames -5, 375, 374, 375, 376, -101
+team1Player1ThrowInLongRightFrames -5, 378, 377, 378, 379, -101
+team1Player1ThrowInLongLeftFrames -5, 381, 380, 381, 382, -101
+team1Player1ThrowInLongTopRightFrames -5, 393, 392, 393, 394, -101
+team1Player1ThrowInLongTopLeftFrames -5, 390, 389, 390, 391, -101
+team1Player1ThrowInLongBottomRightFrames -5, 387, 386, 387, 388, -101
+team1Player1ThrowInLongBottomLeftFrames -5, 384, 383, 384, 385, -101
+team1InjuredPlayerTopRightTable 411, -20, 412, -20, -999
+team1InjuredPlayerTopLeftTable 413, -20, 414, -20, -999
+playerRunningTopTeam2Frames 646, 644, 645, 644, -999
+playerRunningBottomTeam2Frames 649, 647, 648, 647, -999
+playerRunningRightTeam2Frames 652, 650, 651, 650, -999
+playerRunningLeftTeam2Frames 655, 653, 654, 653, -999
+playerRunningTopRightTeam2Frames 667, 665, 666, 665, -999
+playerRunningTopLeftTeam2Frames 664, 662, 663, 662, -999
+playerRunningBottomRightTeam2Frames 661, 659, 660, 659, -999
+playerRunningBottomLeftTeam2Frames 658, 656, 657, 656, -999
+team2PlayerStandingFacingTopFrames 644, -999
+team2PlayerStandingFacingBottomFrames 647, -999
+team2PlayerStandingFacingRightFrames 650, -999
+team2PlayerStandingFacingLeftFrames 653, -999
+team2PlayerStandingFacingTopRightFrames 666, -999
+team2PlayerStandingFacingTopLeftFrames 663, -999
+team2PlayerStandingFacingBottomRightFrames 660, -999
+team2PlayerStandingFacingBottomLeftFrames 657, -999
+team2PlayerTacklingTopFrames 698, -999
+team2PlayerTacklingBottomFrames 699, -999
+team2PlayerTacklingRightFrames 701, -999
+team2PlayerTacklingLeftFrames 700, -999
+team2PlayerTacklingTopRightFrames 705, -999
+team2PlayerTacklingTopLeftFrames 704, -999
+team2PlayerTacklingBottomRightFrames 703, -999
+team2PlayerTacklingBottomLeftFrames 702, -999
+team2PlayerTackledTopFrames 706, -999
+team2PlayerTackledBottomFrames 707, -999
+team2PlayerTackledRightFrames 709, -999
+team2PlayerTackledLeftFrames 708, -999
+team2PlayerTackledTopRightFrames 713, -999
+team2PlayerTackledTopLeftFrames 712, -999
+team2PlayerTackledBottomRightFrames 711, -999
+team2PlayerTackledBottomLeftFrames 710, -999
+playerLosingReactionTeam1Frames -2, 344, -30, 415, 416, -101
+playerLosingReactionTeam2Frames -2, 647, -30, 718, 719, -101
+playerWinningReactionTeam1Frames -20, 368, -20, 344, -999
+playerWinningReactionTeam2Frames -20, 671, -20, 647, -999
+team2PlayerAboutToThrowInTopFrames -90, 675, -20, 674, -20, 675, -104
+team2PlayerAboutToThrowInBottomFrames -90, 678, -20, 677, -20, 678, -104
+team2PlayerAboutToThrowInRightFrames -90, 681, -20, 680, -20, 681, -104
+team2PlayerAboutToThrowInLeftFrames -90, 684, -20, 683, -20, 684, -104
+team2PlayerAboutToThrowInTopRightFrames -90, 696, -20, 695, -20, 696, -104
+team2PlayerAboutToThrowInTopLeftFrames -90, 693, -20, 692, -20, 693, -104
+team2PlayerAboutToThrowInBottomRightFrames -90, 690, -20, 689, -20, 690, -104
+team2PlayerAboutToThrowInBottomLeftFrames -90, 687, -20, 686, -20, 687, -104
+team2Player1ThrowInShortTopFrames -5, 675, 676, -101
+team2Player1ThrowInShortBottomFrames -5, 678, 679, -101
+team2Player1ThrowInShortRightFrames -5, 681, 682, -101
+team2Player1ThrowInShortLeftFrames -5, 684, 685, -101
+team2Player1ThrowInShortTopRightFrames -5, 696, 697, -101
+team2Player1ThrowInShortTopLeftFrames -5, 693, 694, -101
+team2Player1ThrowInShortBottomRightFrames -5, 690, 691, -101
+team2Player1ThrowInShortBottomLeftFrames -5, 687, 688, -101
+team2Player1ThrowInLongTopFrames -5, 675, 674, 675, 676, -101
+team2Player1ThrowInLongBottomFrames -5, 678, 677, 678, 679, -101
+team2Player1ThrowInLongRightFrames -5, 681, 680, 681, 682, -101
+team2Player1ThrowInLongLeftFrames -5, 684, 683, 684, 685, -101
+team2Player1ThrowInLongTopRightFrames -5, 696, 695, 696, 697, -101
+team2Player1ThrowInLongTopLeftFrames -5, 693, 692, 693, 694, -101
+team2Player1ThrowInLongBottomRightFrames -5, 690, 689, 690, 691, -101
+team2Player1ThrowInLongBottomLeftFrames -5, 687, 686, 687, 688, -101
+team2InjuredPlayerTopRightTable 714, -20, 715, -20, -999
+team2InjuredPlayerTopLeftTable 716, -20, 717, -20, -999
+goalkeeperRunningTopTeam1Frames 949, 947, 948, 947, -999
+goalkeeperRunningBottomTeam1Frames 952, 950, 951, 950, -999
+goalkeeperRunningRightTeam1Frames 955, 953, 954, 953, -999
+goalkeeperRunningLeftTeam1Frames 958, 956, 957, 956, -999
+goalkeeperRunningTopRightTeam1Frames 970, 969, 968, 969, -999
+goalkeeperRunningTopLeftTeam1Frames 967, 966, 965, 966, -999
+goalkeeperRunningBottomRightTeam1Frames 964, 963, 962, 963, -999
+goalkeeperRunningBottomLeftTeam1Frames 961, 960, 959, 960, -999
+team1GoalkeeperStandingFacingTopFrames 947, -999
+team1GoalkeeperStandingFacingBottomFrames 950, -999
+team1GoalkeeperStandingFacingRightFrames 953, -999
+team1GoalkeeperStandingFacingLeftFrames 956, -999
+team1GoalkeeperStandingFacingTopRightFrames 969, -999
+team1GoalkeeperStandingFacingTopLeftFrames 966, -999
+team1GoalkeeperStandingFacingBottomRightFrames 963, -999
+team1GoalkeeperStandingFacingBottomLeftFrames 960, -999
+team1GoalkeeperJumpsUpFacingTopFrames -5, 999, 1000, 1001, -3, 1000, -2, 999, 947, -101
+team1GoalkeeperJumpsUpFacingBottomFrames -5, 1002, 1003, 1004, -3, 1003, -2, 1002, 950, -101
+team1TopGoalkeeperDivingLowRightFrames -5, 971, -5, 975, -5, 976, 976, -2, 976, -50, 976, 947, -101
+team1TopGoalkeeperDivingLowLeftFrames -5, 983, -5, 979, -5, 978, 978, -2, 978, -50, 978, 947, -101
+team1BottomGoalkeeperDivingLowRightFrames -5, 985, -5, 989, -5, 990, 990, -2, 990, -50, 990, 950, -101
+team1BottomGoalkeeperDivingLowLeftFrames -5, 997, -5, 993, -5, 992, 992, -2, 992, -50, 992, 950, -101
+team1TopGoalkeeperDivingHighRightFrames -5, 971, -7, 972, -3, 973, 974, -2, 975, -50, 976, 947, -101
+team1TopGoalkeeperDivingHighLeftFrames -5, 983, -7, 982, -3, 981, 980, -2, 979, -50, 978, 947, -101
+team1BottomGoalkeeperDivingHighRightFrames -5, 985, -7, 986, -3, 987, 988, -2, 989, -50, 990, 950, -101
+team1BottomGoalkeeperDivingHighLeftFrames -5, 997, -7, 996, -3, 995, 994, -2, 993, -50, 992, 950, -101
+goalkeeperRunningTopTeam2Frames 1065, 1063, 1064, 1063, -999
+goalkeeperRunningBottomTeam2Frames 1068, 1066, 1067, 1066, -999
+goalkeeperRunningRightTeam2Frames 1071, 1069, 1070, 1069, -999
+goalkeeperRunningLeftTeam2Frames 1074, 1072, 1073, 1072, -999
+goalkeeperRunningTopRightTeam2Frames 1086, 1085, 1084, 1085, -999
+goalkeeperRunningTopLeftTeam2Frames 1083, 1082, 1081, 1082, -999
+goalkeeperRunningBottomRightTeam2Frames 1080, 1079, 1078, 1079, -999
+goalkeeperRunningBottomLeftTeam2Frames 1077, 1076, 1075, 1076, -999
+team2GoalkeeperStandingFacingTopFrames 1063, -999
+team2GoalkeeperStandingFacingBottomFrames 1066, -999
+team2GoalkeeperStandingFacingRightFrames 1069, -999
+team2GoalkeeperStandingFacingLeftFrames 1072, -999
+team2GoalkeeperStandingFacingTopRightFrames 1085, -999
+team2GoalkeeperStandingFacingTopLeftFrames 1082, -999
+team2GoalkeeperStandingFacingBottomRightFrames 1079, -999
+team2GoalkeeperStandingFacingBottomLeftFrames 1076, -999
+team2GoalkeeperJumpsUpFacingTopFrames -5, 1115, 1116, 1117, -3, 1116, -2, 1115, 1063, -101
+team2GoalkeeperJumpsUpFacingBottomFrames -5, 1118, 1119, 1120, -3, 1119, -2, 1118, 1066, -101
+team2TopGoalkeeperDivingLowRightFrames -5, 1087, -5, 1091, -5, 1092, 1092, -2, 1092, -50, 1092, 1063, -101
+team2TopGoalkeeperDivingLowLeftFrames -5, 1099, -5, 1095, -5, 1094, 1094, -2, 1094, -50, 1094, 1063, -101
+team2BottomGoalkeeperDivingLowRightFrames -5, 1101, -5, 1105, -5, 1106, 1106, -2, 1106, -50, 1106, 1066, -101
+team2BottomGoalkeeperDivingLowLeftFrames -5, 1113, -5, 1109, -5, 1108, 1108, -2, 1108, -50, 1108, 1066, -101
+team2TopGoalkeeperDivingHighRightFrames -5, 1087, -7, 1088, -3, 1089, 1090, -2, 1091, -50, 1092, 1063, -101
+team2TopGoalkeeperDivingHighLeftFrames -5, 1099, -7, 1098, -3, 1097, 1096, -2, 1095, -50, 1094, 1063, -101
+team2BottomGoalkeeperDivingHighRightFrames -5, 1101, -7, 1102, -3, 1103, 1104, -2, 1105, -50, 1106, 1066, -101
+team2BottomGoalkeeperDivingHighLeftFrames -5, 1113, -7, 1112, -3, 1111, 1110, -2, 1109, -50, 1108, 1066, -101
+refComingTopFrames 1275, 1273, 1274, 1273, -999
+refComingBottomFrames 1278, 1276, 1277, 1276, -999
+refWaitingFacingTopFrames 1273, -999
+refWaitingFacingBottomFrames 1276, -999
+refWaitingFacingLeftFrames 1279, -999
+refYellowCardFrames -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12,
+    1283, -12, 1282, -12, 1283, -20, 1279, -80, 1280, -50, 1279, -101
+refRedCardFrames -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12,
+    1283, -12, 1282, -12, 1283, -20, 1279, -80, 1281, -50, 1279, -101
+refSecondYellowCardFrames -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12,
+    1283, -12, 1282, -12, 1283, -20, 1279, -80, 1280, -20, 1279, -80, 1281, -50, 1279, -101
+
+staticHeaderAttemptAnimTable {
+    5
+    team 1 player {
+        staticHeaderAttemptTeam1TopFrames
+        staticHeaderAttemptTeam1TopRightFrames
+        staticHeaderAttemptTeam1RightFrames
+        staticHeaderAttemptTeam1BottomRightFrames
+        staticHeaderAttemptTeam1BottomFrames
+        staticHeaderAttemptTeam1BottomLeftFrames
+        staticHeaderAttemptTeam1LeftFrames
+        staticHeaderAttemptTeam1TopLeftFrames
+    }
+    team 2 player {
+        staticHeaderAttemptTeam2TopFrames
+        staticHeaderAttemptTeam2TopRightFrames
+        staticHeaderAttemptTeam2RightFrames
+        staticHeaderAttemptTeam2BottomRightFrames
+        staticHeaderAttemptTeam2BottomFrames
+        staticHeaderAttemptTeam2BottomLeftFrames
+        staticHeaderAttemptTeam2LeftFrames
+        staticHeaderAttemptTeam2TopLeftFrames
+    }
+}
+staticHeaderHitAnimTable {
+    5
+    team 1 player {
+        staticHeaderHitTeam1TopFrames
+        staticHeaderHitTeam1TopRightFrames
+        staticHeaderHitTeam1RightFrames
+        staticHeaderHitTeam1BottomRightFrames
+        staticHeaderHitTeam1BottomFrames
+        staticHeaderHitTeam1BottomLeftFrames
+        staticHeaderHitTeam1LeftFrames
+        staticHeaderHitTeam1TopLeftFrames
+    }
+    team 2 player {
+        staticHeaderHitTeam2TopFrames
+        staticHeaderHitTeam2TopRightFrames
+        staticHeaderHitTeam2RightFrames
+        staticHeaderHitTeam2BottomRightFrames
+        staticHeaderHitTeam2BottomFrames
+        staticHeaderHitTeam2BottomLeftFrames
+        staticHeaderHitTeam2LeftFrames
+        staticHeaderHitTeam2TopLeftFrames
+    }
+}
+jumpHeaderAttemptAnimTable {
+    5
+    team 1 player {
+        jumpHeaderAttemptTeam1TopFrames
+        jumpHeaderAttemptTeam1TopRightFrames
+        jumpHeaderAttemptTeam1RightFrames
+        jumpHeaderAttemptTeam1BottomRightFrames
+        jumpHeaderAttemptTeam1BottomFrames
+        jumpHeaderAttemptTeam1BottomLeftFrames
+        jumpHeaderAttemptTeam1LeftFrames
+        jumpHeaderAttemptTeam1TopLeftFrames
+    }
+    team 2 player {
+        jumpHeaderAttemptTeam2TopFrames
+        jumpHeaderAttemptTeam2TopRightFrames
+        jumpHeaderAttemptTeam2RightFrames
+        jumpHeaderAttemptTeam2BottomRightFrames
+        jumpHeaderAttemptTeam2BottomFrames
+        jumpHeaderAttemptTeam2BottomLeftFrames
+        jumpHeaderAttemptTeam2LeftFrames
+        jumpHeaderAttemptTeam2TopLeftFrames
+    }
+}
+jumpHeaderHitAnimTable {
+    5
+    team 1 player {
+        jumpHeaderHitTeam1TopFrames
+        jumpHeaderHitTeam1TopRightFrames
+        jumpHeaderHitTeam1RightFrames
+        jumpHeaderHitTeam1BottomRightFrames
+        jumpHeaderHitTeam1BottomFrames
+        jumpHeaderHitTeam1BottomLeftFrames
+        jumpHeaderHitTeam1LeftFrames
+        jumpHeaderHitTeam1TopLeftFrames
+    }
+    team 2 player {
+        jumpHeaderHitTeam2TopFrames
+        jumpHeaderHitTeam2TopRightFrames
+        jumpHeaderHitTeam2RightFrames
+        jumpHeaderHitTeam2BottomRightFrames
+        jumpHeaderHitTeam2BottomFrames
+        jumpHeaderHitTeam2BottomLeftFrames
+        jumpHeaderHitTeam2LeftFrames
+        jumpHeaderHitTeam2TopLeftFrames
+    }
+}
+playerLosingReactionAnimTable {
+    5
+    team 1 player {
+        all: playerLosingReactionTeam1Frames
+    }
+    team 2 player {
+        all: playerLosingReactionTeam2Frames
+    }
+}
+playerWinningReactionAnimTable {
+    5
+    team 1 player {
+        all: playerWinningReactionTeam1Frames
+    }
+    team 2 player {
+        all: playerWinningReactionTeam2Frames
+    }
+    ; goalkeeper always cool
+}
+playerRunningAnimTable {
+    5
+    team 1 player {
+        playerRunningTopTeam1Frames
+        playerRunningTopRightTeam1Frames
+        playerRunningRightTeam1Frames
+        playerRunningBottomRightTeam1Frames
+        playerRunningBottomTeam1Frames
+        playerRunningBottomLeftTeam1Frames
+        playerRunningLeftTeam1Frames
+        playerRunningTopLeftTeam1Frames
+    }
+    team 2 player {
+        playerRunningTopTeam2Frames
+        playerRunningTopRightTeam2Frames
+        playerRunningRightTeam2Frames
+        playerRunningBottomRightTeam2Frames
+        playerRunningBottomTeam2Frames
+        playerRunningBottomLeftTeam2Frames
+        playerRunningLeftTeam2Frames
+        playerRunningTopLeftTeam2Frames
+    }
+    goalkeeper 1 {
+        goalkeeperRunningTopTeam1Frames
+        goalkeeperRunningTopRightTeam1Frames
+        goalkeeperRunningRightTeam1Frames
+        goalkeeperRunningBottomRightTeam1Frames
+        goalkeeperRunningBottomTeam1Frames
+        goalkeeperRunningBottomLeftTeam1Frames
+        goalkeeperRunningLeftTeam1Frames
+        goalkeeperRunningTopLeftTeam1Frames
+    }
+    goalkeeper 2 {
+        goalkeeperRunningTopTeam2Frames
+        goalkeeperRunningTopRightTeam2Frames
+        goalkeeperRunningRightTeam2Frames
+        goalkeeperRunningBottomRightTeam2Frames
+        goalkeeperRunningBottomTeam2Frames
+        goalkeeperRunningBottomLeftTeam2Frames
+        goalkeeperRunningLeftTeam2Frames
+        goalkeeperRunningTopLeftTeam2Frames
+    }
+}
+playerNormalStandingAnimTable {
+    5
+    team 1 player {
+        team1PlayerStandingFacingTopFrames
+        team1PlayerStandingFacingTopRightFrames
+        team1PlayerStandingFacingRightFrames
+        team1PlayerStandingFacingBottomRightFrames
+        team1PlayerStandingFacingBottomFrames
+        team1PlayerStandingFacingBottomLeftFrames
+        team1PlayerStandingFacingLeftFrames
+        team1PlayerStandingFacingTopLeftFrames
+    }
+    team 2 player {
+        team2PlayerStandingFacingTopFrames
+        team2PlayerStandingFacingTopRightFrames
+        team2PlayerStandingFacingRightFrames
+        team2PlayerStandingFacingBottomRightFrames
+        team2PlayerStandingFacingBottomFrames
+        team2PlayerStandingFacingBottomLeftFrames
+        team2PlayerStandingFacingLeftFrames
+        team2PlayerStandingFacingTopLeftFrames
+    }
+    goalkeeper 1 {
+        team1GoalkeeperStandingFacingTopFrames
+        team1GoalkeeperStandingFacingTopRightFrames
+        team1GoalkeeperStandingFacingRightFrames
+        team1GoalkeeperStandingFacingBottomRightFrames
+        team1GoalkeeperStandingFacingBottomFrames
+        team1GoalkeeperStandingFacingBottomLeftFrames
+        team1GoalkeeperStandingFacingLeftFrames
+        team1GoalkeeperStandingFacingTopLeftFrames
+    }
+    goalkeeper 2 {
+        team2GoalkeeperStandingFacingTopFrames
+        team2GoalkeeperStandingFacingTopRightFrames
+        team2GoalkeeperStandingFacingRightFrames
+        team2GoalkeeperStandingFacingBottomRightFrames
+        team2GoalkeeperStandingFacingBottomFrames
+        team2GoalkeeperStandingFacingBottomLeftFrames
+        team2GoalkeeperStandingFacingLeftFrames
+        team2GoalkeeperStandingFacingTopLeftFrames
+    }
+}
+playerTacklingAnimTable {
+    5
+    team 1 player {
+        team1PlayerTacklingTopFrames
+        team1PlayerTacklingTopRightFrames
+        team1PlayerTacklingRightFrames
+        team1PlayerTacklingBottomRightFrames
+        team1PlayerTacklingBottomFrames
+        team1PlayerTacklingBottomLeftFrames
+        team1PlayerTacklingLeftFrames
+        team1PlayerTacklingTopLeftFrames
+    }
+    team 2 player {
+        team2PlayerTacklingTopFrames
+        team2PlayerTacklingTopRightFrames
+        team2PlayerTacklingRightFrames
+        team2PlayerTacklingBottomRightFrames
+        team2PlayerTacklingBottomFrames
+        team2PlayerTacklingBottomLeftFrames
+        team2PlayerTacklingLeftFrames
+        team2PlayerTacklingTopLeftFrames
+    }
+}
+playerTackledAnimTable {
+    5
+    team 1 player {
+        team1PlayerTackledTopFrames
+        team1PlayerTackledTopRightFrames
+        team1PlayerTackledRightFrames
+        team1PlayerTackledBottomRightFrames
+        team1PlayerTackledBottomFrames
+        team1PlayerTackledBottomLeftFrames
+        team1PlayerTackledLeftFrames
+        team1PlayerTackledTopLeftFrames
+    }
+    team 2 player {
+        team2PlayerTackledTopFrames
+        team2PlayerTackledTopRightFrames
+        team2PlayerTackledRightFrames
+        team2PlayerTackledBottomRightFrames
+        team2PlayerTackledBottomFrames
+        team2PlayerTackledBottomLeftFrames
+        team2PlayerTackledLeftFrames
+        team2PlayerTackledTopLeftFrames
+    }
+}
+goalkeeperJumpUpAnimTable {
+    5
+    goalkeeper 1 {
+        team1GoalkeeperJumpsUpFacingTopFrames
+        team1GoalkeeperJumpsUpFacingTopFrames
+        team1GoalkeeperJumpsUpFacingTopFrames
+        team1GoalkeeperJumpsUpFacingBottomFrames
+        team1GoalkeeperJumpsUpFacingBottomFrames
+        team1GoalkeeperJumpsUpFacingBottomFrames
+        team1GoalkeeperJumpsUpFacingBottomFrames
+        team1GoalkeeperJumpsUpFacingTopFrames
+    }
+    goalkeeper 2 {
+        team2GoalkeeperJumpsUpFacingTopFrames
+        team2GoalkeeperJumpsUpFacingTopFrames
+        team2GoalkeeperJumpsUpFacingTopFrames
+        team2GoalkeeperJumpsUpFacingBottomFrames
+        team2GoalkeeperJumpsUpFacingBottomFrames
+        team2GoalkeeperJumpsUpFacingBottomFrames
+        team2GoalkeeperJumpsUpFacingBottomFrames
+        team2GoalkeeperJumpsUpFacingTopFrames
+    }
+}
+aboutToThrowInAnimTable {
+    5
+    team 1 player {
+        team1PlayerAboutToThrowInTopFrames
+        team1PlayerAboutToThrowInTopRightFrames
+        team1PlayerAboutToThrowInRightFrames
+        team1PlayerAboutToThrowInBottomRightFrames
+        team1PlayerAboutToThrowInBottomFrames
+        team1PlayerAboutToThrowInBottomLeftFrames
+        team1PlayerAboutToThrowInLeftFrames
+        team1PlayerAboutToThrowInTopLeftFrames
+    }
+    team 2 player {
+        team2PlayerAboutToThrowInTopFrames
+        team2PlayerAboutToThrowInTopRightFrames
+        team2PlayerAboutToThrowInRightFrames
+        team2PlayerAboutToThrowInBottomRightFrames
+        team2PlayerAboutToThrowInBottomFrames
+        team2PlayerAboutToThrowInBottomLeftFrames
+        team2PlayerAboutToThrowInLeftFrames
+        team2PlayerAboutToThrowInTopLeftFrames
+    }
+}
+throwInShortAnimTable {
+    5
+    team 1 player {
+        team1Player1ThrowInShortTopFrames
+        team1Player1ThrowInShortTopRightFrames
+        team1Player1ThrowInShortRightFrames
+        team1Player1ThrowInShortBottomRightFrames
+        team1Player1ThrowInShortBottomFrames
+        team1Player1ThrowInShortBottomLeftFrames
+        team1Player1ThrowInShortLeftFrames
+        team1Player1ThrowInShortTopLeftFrames
+    }
+    team 2 player {
+        team2Player1ThrowInShortTopFrames
+        team2Player1ThrowInShortTopRightFrames
+        team2Player1ThrowInShortRightFrames
+        team2Player1ThrowInShortBottomRightFrames
+        team2Player1ThrowInShortBottomFrames
+        team2Player1ThrowInShortBottomLeftFrames
+        team2Player1ThrowInShortLeftFrames
+        team2Player1ThrowInShortTopLeftFrames
+    }
+}
+throwInLongAnimTable {
+    5
+    team 1 player {
+        team1Player1ThrowInLongTopFrames
+        team1Player1ThrowInLongTopRightFrames
+        team1Player1ThrowInLongRightFrames
+        team1Player1ThrowInLongBottomRightFrames
+        team1Player1ThrowInLongBottomFrames
+        team1Player1ThrowInLongBottomLeftFrames
+        team1Player1ThrowInLongLeftFrames
+        team1Player1ThrowInLongTopLeftFrames
+    }
+    team 2 player {
+        team2Player1ThrowInLongTopFrames
+        team2Player1ThrowInLongTopRightFrames
+        team2Player1ThrowInLongRightFrames
+        team2Player1ThrowInLongBottomRightFrames
+        team2Player1ThrowInLongBottomFrames
+        team2Player1ThrowInLongBottomLeftFrames
+        team2Player1ThrowInLongLeftFrames
+        team2Player1ThrowInLongTopLeftFrames
+    }
+}
+topGoalieDivingHighAnimTable {
+    5
+    goalkeeper 1 {
+        left: team1TopGoalkeeperDivingHighLeftFrames
+        right: team1TopGoalkeeperDivingHighRightFrames
+    }
+    goalkeeper 2 {
+        left: team2TopGoalkeeperDivingHighLeftFrames
+        right: team2TopGoalkeeperDivingHighRightFrames
+    }
+}
+bottomGoalieDivingHighAnimTable {
+    5
+    goalkeeper 1 {
+        left: team1BottomGoalkeeperDivingHighLeftFrames
+        right: team1BottomGoalkeeperDivingHighRightFrames
+    }
+    goalkeeper 2 {
+        right: team2BottomGoalkeeperDivingHighRightFrames
+        left: team2BottomGoalkeeperDivingHighLeftFrames
+    }
+}
+topGoalieDivingLowAnimTable {
+    5
+    goalkeeper 1 {
+        left: team1TopGoalkeeperDivingLowLeftFrames
+        right: team1TopGoalkeeperDivingLowRightFrames
+    }
+    goalkeeper 2 {
+        left: team2TopGoalkeeperDivingLowLeftFrames
+        right: team2TopGoalkeeperDivingLowRightFrames
+    }
+}
+bottomGoalieDivingLowAnimTable {
+    5
+    goalkeeper 1 {
+        left: team1BottomGoalkeeperDivingLowLeftFrames
+        right: team1BottomGoalkeeperDivingLowRightFrames
+    }
+    goalkeeper 2 {
+        right: team2BottomGoalkeeperDivingLowRightFrames
+        left: team2BottomGoalkeeperDivingLowLeftFrames
+    }
+}
+playerGettingYellowCardAnimTable {
+    5
+    team 1 player {
+        all: team1PlayerGettingYellowCardFrames
+    }
+    team 2 player {
+        all: team2PlayerGettingYellowCardFrames
+    }
+}
+playerGettingRedCardAnimTable {
+    5
+    team 1 player {
+        all: team1PlayerGettingRedCardFrames
+    }
+    team 2 player {
+        all: team2PlayerGettingRedCardFrames
+    }
+}
+playerGetting2ndYellowCardAnimTable {
+    5
+    team 1 player {
+        all: team1PlayerGetting2ndYellowCardFrames
+    }
+    team 2 player {
+        all: team2PlayerGetting2ndYellowCardFrames
+    }
+}
+playerInjuredAnimTable {
+    5
+    team 1 player {
+        top to bottom-right: team1InjuredPlayerTopLeftTable
+        bottom to top-left: team1InjuredPlayerTopRightTable
+    }
+    team 2 player {
+        top to bottom-right: team2InjuredPlayerTopLeftTable
+        bottom to top-left: team2InjuredPlayerTopRightTable
+    }
+}
+refComingAnimTable {
+    5
+    top-left to right: refComingTopFrames
+    bottom-right to left: refComingBottomFrames
+}
+refWaitingAnimTable {
+    5
+    all: refWaitingFacingLeftFrames
+}
+refYellowCardAnimTable {
+    5
+    all: refYellowCardFrames
+}
+refRedCardAnimTable {
+    5
+    all: refRedCardFrames
+}
+refSecondYellowAnimTable {
+    5
+    all: refSecondYellowCardFrames
+}

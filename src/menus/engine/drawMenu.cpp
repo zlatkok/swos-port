@@ -99,6 +99,12 @@ void drawMenuItem(MenuEntry *entry)
     drawMenuItemBackground(entry);
     drawMenuItemContent(entry);
 
+    // Edit Tactics draws its pitch and players from a legacy after-draw routine.
+    // The original pitch bitmap is no longer loaded, so render its procedural
+    // replacement first and let the legacy routine place players over it.
+    if (entry->afterDraw.index() == static_cast<int>(SwosVM::Procs::EditTactics2AfterDraw))
+        drawMenuSprite(kTacticsPitchSprite, 6, 0);
+
     entry->afterDraw();
 }
 

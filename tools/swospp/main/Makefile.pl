@@ -421,7 +421,7 @@ sub assignTarget
 
 sub getScriptInfo
 {
-    return 'SWOS++ build script v1.0 by Zlatko Karakas';
+    return 'SWOS++ swos-port helper build script v1.0 by Zlatko Karakas';
 }
 
 

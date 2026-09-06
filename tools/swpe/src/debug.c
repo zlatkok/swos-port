@@ -18,8 +18,7 @@ void OpenLogFile()
     extern const char prog_name[], version[];
     hlogfile = FCreate("swdbg.log", FF_WRITE | FF_SHARE_READ);
     if (hlogfile == INVALID_HANDLE_VALUE) {
-        MessageBox(NULL, "Can't open log file", "Debug system",
-                   MB_ICONERROR | MB_TASKMODAL);
+        MessageBox(NULL, "Can't open log file", "Debug system", MB_ICONERROR | MB_TASKMODAL);
         ExitProcess(1);
     }
     WriteToLog((">>> Log file started..."));

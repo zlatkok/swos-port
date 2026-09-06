@@ -119,9 +119,9 @@ static const char *discoverMenuTitle()
     }
 
     if (colorMatch) {
-        return colorMatch->string();
+        return entryText(colorMatch);
     } else if (dimensionsMatch) {
-        return dimensionsMatch->string();
+        return entryText(dimensionsMatch);
     } else if (firstText) {
         return entryText(firstText);
     } else if (firstSprite || firstNumeric) {

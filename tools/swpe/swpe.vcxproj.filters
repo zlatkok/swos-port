@@ -1,6 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="src\animation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -18,6 +21,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\h\animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClCompile Include="src\convert.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -25,9 +31,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\draw.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\dx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\hil.c">
@@ -97,9 +100,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\h\draw.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\h\dx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\h\global.h">

@@ -288,12 +288,12 @@ offset  length  description
                     3 - goalkeeper, team 2
                 - inside the category pointer is indexed based on sprite
                   direction 0..7
-                - in the table special index values exist:
-                    = 999   - reset index to zero
-                    = 100   - subtract one from the index (effectively pause the frame)
-                    <= 101  - add 100 + this to index
-                    -99..-1 - seems to be delay value
-                    otherwise - negate, add to frame delay and write to timer
+                - in the table some special values exist:
+                    = -999  - reset frame index to zero (start over the animation)
+                    = -101  - subtract one from the frame index (effectively pauses the last frame)
+                    <= -100 - add 100 + this to the frame index (skip forward this many frames)
+                    -99..-1 - negate, add to frame delay and write to timer (seems to be delay value)
+                    >= 0    - image index, just assign to sprite
   10        2   initial direction for the animation
   12        1   player state
                 - if it's non-zero, player is not marked
@@ -348,13 +348,20 @@ offset  length  description
                    5   |   3
                        4
                 for the ball -1 if out of the game
-  44        2   player speed, CalculateDeltaXAndY() divides it by 256, there are strong indications of fixed point
-                8.8 format used here, some speeds for comparison:
+  44        2   sprite speed, signed Q7.9 fixed point (seven upper bits including the sign and nine fractional
+                bits). 512 represents one pixel per game tick before platform-specific movement scaling.
+                CalculateDeltaXAndY() multiplies this value by a signed Q1.15 direction component and shifts the
+                result right by 8, producing a signed 16.16 delta. The original-compatible path shifts the
+                direction component first and therefore preserves the original loss of precision.
+
+                The PC movement path subsequently multiplies x/y deltas by 41/64 (0.640625); Amiga movement does
+                not. Thus, before PC scaling and for an exact cardinal direction, speed / 512 is the movement in
+                pixels per tick. Some speeds for comparison:
                     players: 928, 974, 1020, 1066, 1112, 1158, 1204, 1250
                              (depending on the speed skill)
                     referee = 1024
                     ball kicked = 2560
-                    ball high kicked = 2208
+                    ball high kicked = 2688
                     goalkeeper diving = 1024..2048
                     player after doing static header = 256
                     player after doing strong header = 1726

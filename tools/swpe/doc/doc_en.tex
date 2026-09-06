@@ -8,7 +8,7 @@
 \pdfpageheight=\paperheight
 
 \author{Karaka\v s Zlatko $<$\href{mailto:zlatko.karakas@gmail.com}{zlatko.karakas@gmail.com}$>$}
-\title{{\bf SWOS Picture Editor User Manual}\\v0.99.2023}
+\title{{\bf SWOS Picture Editor User Manual}\\v0.99.2026}
 
 \usepackage[pdftex,colorlinks,bookmarks=false,pdfstartview=FitH]{hyperref}
 \usepackage{graphicx}
@@ -25,7 +25,7 @@
 \section{Intro}
 Thank you for using {\bf SWOS Picture Editor}, or {\bf SWPE}. It is a tool capable of editing/replacing (almost) any graphics in the game, by reading and writing original {\bf SWOS} files.
 
-The first iteration of the program sprang to life back in 2002., and in some way could be thought of as a piece of {\bf SWOS} history. It was written primarily as a {\bf SWOS} exploration and experimentation tool, especially for data files, and codifies the stuff I've discovered over the years. Over the time it has evolved randomly in many directions, has had pieces of {\bf SWOS} code and various kludges slapped in and as a consequence user interface suffered: it's mostly keyboard based, although this version introduces mouse support for pitch editing. {\bf PITCH} mode is the epicenter of the most recent additions and this is where you will probably get the most value out of the software.
+The first iteration of the program sprang to life back in 2002., and in some way could be thought of as a piece of {\bf SWOS} history. It was written primarily as a {\bf SWOS} exploration and experimentation tool, especially for data files, and codifies the stuff I've discovered over the years. Over the time it has evolved randomly in many directions, has had pieces of {\bf SWOS} code and various kludges slapped in and as a consequence user interface suffered: it's mostly keyboard based, although recent versions have added mouse support for pitch editing. {\bf PITCH} mode is the epicenter of the most recent additions and this is where you will probably get the most value out of the software.
 
 
 This manual will list all the commands and show useful tips and ways of using the program effectively. In addition, there's also a \href{https://youtu.be/MOIL5FJbcWQ}{short demo video} demonstrating the new pitch editing features.
@@ -35,9 +35,10 @@ Be aware not to start {\bf SWOS} while using {\bf SWPE}, as it locks the graphic
 \newpage
 \section{Program modes}
 
-The program is divided into 5 different
-modes: {\bf SPRITE}, {\bf PICTURE}, {\bf PITCH}, {\bf TILE} and
-{\bf REPLAY}. Each mode has different use and commands.
+The program is divided into seven different modes: {\bf SPRITE}, {\bf PICTURE},
+{\bf PITCH}, {\bf TILE}, {\bf REPLAY}, {\bf ANIMATION} and {\bf TEST}. Each
+mode has different use and commands. Test mode is an experimental game-play
+sandbox rather than an editing mode.
 Press {\bf F1} in any mode to see which keys are valid.
 
 \vspace{\baselineskip}
@@ -53,12 +54,11 @@ Press {\bf F1} in any mode to see which keys are valid.
 {\bf F7}          &--& switch to pitch mode\\
 {\bf F8}          &--& switch to tile mode\\
 {\bf F9}          &--& switch to replay mode\\
-{\bf ALT}+{\bf ENTER} &--& toggle fullscreen mode\footnotemark[1]\\
+{\bf F10}         &--& switch to animation mode\\
+{\bf F11}         &--& switch to experimental test mode\\
 {\bf ESCAPE}      &--& end program\\
 {\bf A}           &--& about program\\
 \end{tabular}
-
-\footnotetext[1]{Fullscreen is broken, and there are no plans to fix it}
 
 \begin{verbatim}
 \end{verbatim}
@@ -170,6 +170,47 @@ dress color of teams that are playing:
 14 &--& shorts color\\
 15 &--& socks color
 \end{tabular}
+
+\newpage
+\subsection{Animation mode}
+
+Animation mode previews the player, goalkeeper and referee animation tables
+used by the game. It reads data generated from
+\verb|src/game/animation/animationTables.in| and uses the sprites loaded by
+sprite mode. Team 1 player graphics are shown when an animation supplies them;
+goalkeeper-only and referee animations use their available graphics.
+
+The upper-left display shows the formatted animation name and direction, the
+animation number, elapsed and total sequence time, and the current sprite
+index. A looping animation displays time within its current cycle. A held
+animation restarts automatically after a short delay; press {\bf SPACE} to
+restart it immediately.
+
+\vspace{\baselineskip}
+\noindent Commands:
+\vspace{\baselineskip}
+
+\begin{tabular}{lll}
+{\bf ARROWS RIGHT/LEFT} &--& next/previous animation\\
+{\bf ARROWS UP/DOWN}    &--& change direction\\
+{\bf SPACE}             &--& restart animation\\
+{\bf P}                 &--& pause/unpause\\
+{\bf CONTROL}           &--& pause while held\\
+{\bf CONTROL}+{\bf ARROWS RIGHT/LEFT} &--& next/previous animation frame\\
+{\bf SHIFT}             &--& slow motion while held\\
+{\bf 0..9}              &--& change background color\\
+{\bf +/-}               &--& zoom/unzoom
+\end{tabular}
+
+If an animation does not provide the direction selected with the up/down
+arrows, a message is displayed instead of a blank sprite. Browsing with the
+left/right arrows automatically chooses an available direction when needed.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=320px,height=200px]{images/animation-mode}
+    \caption{Animation mode showing a diving goalkeeper}
+\end{figure}
 
 \newpage
 \subsection{Picture mode}

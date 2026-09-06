@@ -1,10 +1,8 @@
 #include "updateSprite.h"
 #include "gameSprites.h"
 #include "amigaMode.h"
-
-constexpr int kLastFrameLoopMarker = -999;
-constexpr int kLastFrameHoldMarker = -101;
-constexpr int kFrameLoopbackMarker = -100;
+#include "animation.h"
+#include "sprites.h"
 
 // Values are: round(32 * y / x), which is effectively 32 * tangent of an acute angle in a right triangle
 // whose adjacent side length is x and opposite side is y
@@ -88,147 +86,10 @@ static const std::array<int16_t, 256> kSineCosineTable = {
      -6392,  -5602,  -4808,  -4011,  -3211,  -2410,  -1608,   -804,
 };
 
-struct DeltasAndAngle {
-    FixedPoint deltaX = 0;
-    FixedPoint deltaY = 0;
-    int direction = -1;
-};
-
 static void stopSpriteIfReachedDestination(Sprite& sprite);
 static void updateAnimationTableAndDestinationReached(Sprite& sprite);
-static DeltasAndAngle calculateDeltaXAndY(int speed, int x, int y, int destX, int destY);
 
-void updateSpriteDirectionAndDeltas(Sprite& sprite)
-{
-#ifdef SWOS_TEST
-    const auto& result = calculateDeltaXAndY(sprite.speed, sprite.x.whole(), sprite.y.whole(), sprite.destX, sprite.destY);
-#else
-    const auto& result = calculateDeltaXAndY(sprite.speed, sprite.x.rounded(), sprite.y.rounded(), sprite.destX, sprite.destY);
-#endif
-    sprite.deltaX = result.deltaX;
-    sprite.deltaY = result.deltaY;
-    sprite.fullDirection = result.direction;
-    sprite.direction = ((result.direction + 16) & 0xff) >> 5;
-}
-
-void updateSpriteAnimation(Sprite& sprite)
-{
-    if (sprite.onScreen && !--sprite.cycleFramesTimer) {
-        sprite.frameIndex++;
-        sprite.cycleFramesTimer = sprite.frameDelay;
-
-        int frame;
-
-        do {
-            frame = sprite.frameIndicesTable.asAligned()[sprite.frameIndex];
-            if (frame >= 0) {
-                sprite.frameSwitchCounter++;
-                sprite.setImage(frame);
-            } else if (frame == kLastFrameLoopMarker) {
-                sprite.frameIndex = 0;
-            } else if (frame == kLastFrameHoldMarker) {
-                sprite.frameIndex--;
-                break;
-            } else if (frame <= kFrameLoopbackMarker) {
-                int offset = frame - kFrameLoopbackMarker;
-                sprite.frameIndex += offset;
-            } else {
-                int newDelay = -frame;
-                sprite.frameDelay = newDelay;
-                sprite.cycleFramesTimer = newDelay;
-                sprite.frameIndex++;
-            }
-        } while (frame < 0);
-    }
-}
-
-void movePlayers()
-{
-    auto sprite = getPlayerSprites();
-    auto sentinelSprite = sprite + 2 * kNumPlayersInLineup;
-    for (; sprite < sentinelSprite; sprite++) {
-        A0 = *sprite;
-        SetNextPlayerFrame();
-        moveSprite(**sprite);
-        updateAnimationTableAndDestinationReached(**sprite);
-    }
-}
-
-void moveSprite(Sprite& sprite)
-{
-    if (sprite.deltaX) {
-        sprite.x += sprite.deltaX;
-        bool reachedDestination = sprite.deltaX > 0 ? sprite.destX <= sprite.x : sprite.destX >= sprite.x;
-        if (reachedDestination) {
-#ifdef SWOS_TEST
-            sprite.x.setWhole(sprite.destX);
-#else
-            sprite.x = sprite.destX;
-#endif
-            sprite.deltaX = 0;
-        }
-    }
-
-    if (sprite.deltaY) {
-        sprite.y += sprite.deltaY;
-        bool reachedDestination = sprite.deltaY > 0 ? sprite.destY <= sprite.y : sprite.destY >= sprite.y;
-        if (reachedDestination) {
-#ifdef SWOS_TEST
-            sprite.y.setWhole(sprite.destY);
-#else
-            sprite.y = sprite.destY;
-#endif
-            sprite.deltaY = 0;
-        }
-    }
-
-    stopSpriteIfReachedDestination(sprite);
-}
-
-static void stopSpriteIfReachedDestination(Sprite& sprite)
-{
-#ifdef SWOS_TEST
-    if (sprite.deltaX > 0 && sprite.destX <= sprite.x.whole() ||
-        sprite.deltaX < 0 && sprite.destX >= sprite.x.whole()) {
-        sprite.x.setWhole(sprite.destX);
-        sprite.deltaX = 0;
-    }
-    if (sprite.deltaY > 0 && sprite.destY <= sprite.y.whole() ||
-        sprite.deltaY < 0 && sprite.destY >= sprite.y.whole()) {
-        sprite.y.setWhole(sprite.destY);
-        sprite.deltaY = 0;
-    }
-#else
-    if (sprite.deltaX > 0 && sprite.destX <= sprite.x ||
-        sprite.deltaX < 0 && sprite.destX >= sprite.x) {
-        sprite.x = sprite.destX;
-        sprite.deltaX = 0;
-    }
-    if (sprite.deltaY > 0 && sprite.destY <= sprite.y ||
-        sprite.deltaY < 0 && sprite.destY >= sprite.y) {
-        sprite.y = sprite.destY;
-        sprite.deltaY = 0;
-    }
-#endif
-}
-
-static void updateAnimationTableAndDestinationReached(Sprite& sprite)
-{
-    if ((sprite.onScreen || swos.gameStatePl != GameState::kInProgress) &&
-        sprite.state == PlayerState::kNormal && sprite.stationary())
-    {
-        if (swos.gameStatePl != GameState::kInProgress && swos.breakCameraMode == 3 &&
-            sprite.destReachedState == DestinationState::kTraveling)
-            sprite.destReachedState = DestinationState::kReached;
-        if (sprite.animTablePtr.asAligned() != &swos.playerNormalStandingAnimTable) {
-            A0 = &swos.playerNormalStandingAnimTable;
-            A1 = &sprite;
-            SetPlayerAnimationTable();
-        }
-    }
-}
-
-static DeltasAndAngle calculateDeltaXAndY(int speed, int x, int y, int destX, int destY)
+DeltasAndAngle calculateDeltaXAndY(int speed, int x, int y, int destX, int destY)
 {
     bool xNegative = false;
     int deltaX = destX - x;
@@ -308,8 +169,11 @@ static DeltasAndAngle calculateDeltaXAndY(int speed, int x, int y, int destX, in
         int sin = kSineCosineTable[(angle + 64) & 0xff];
 
         assert(sin >= -32'768 && sin <= 32'767 && cos >= -32'768 && cos <= 32'767);
-        assert(static_cast<unsigned>(speed) < 65'538);
+        assert(speed >= 0 && speed <= INT16_MAX);
 
+        // The sine/cosine values are signed Q1.15 and sprite speed is signed Q7.9. Their product has 24
+        // fractional bits, so shifting it right by 8 produces the raw signed 16.16 coordinate delta.
+        // Consequently, speed 512 represents 1 pixel/tick along a cardinal direction in Amiga mode.
         // by doing multiplication first, and shift later we get more precision
         // for testing it's left as is, to comply with the original code
 #ifdef SWOS_TEST
@@ -321,9 +185,9 @@ static DeltasAndAngle calculateDeltaXAndY(int speed, int x, int y, int destX, in
 #endif
 
         if (!amigaModeActive()) {
-            // this is multiplying by 41/64 (0.640625), using this method gets exactly the same result as SWOS,
-            // but shifts have to be used explicitly, divisions end up with slightly different result
-            // due to some sort of sign adjustment
+            // PC movement applies another 41/64 (0.640625) scale to the 16.16 delta. Using this method gets
+            // exactly the same result as SWOS, but shifts have to be used explicitly; divisions end up with
+            // slightly different results due to some sort of sign adjustment.
             sin = sin - (sin >> 2) - (sin >> 4) - (sin >> 5) - (sin >> 6);
             cos = cos - (cos >> 2) - (cos >> 4) - (cos >> 5) - (cos >> 6);
         }
@@ -333,6 +197,169 @@ static DeltasAndAngle calculateDeltaXAndY(int speed, int x, int y, int destX, in
     }
 
     return result;
+}
+
+void updateSpriteDirectionAndDeltas(Sprite& sprite)
+{
+#ifdef SWOS_TEST
+    const auto& result = calculateDeltaXAndY(sprite.speed, sprite.x.whole(), sprite.y.whole(), sprite.destX, sprite.destY);
+#else
+    const auto& result = calculateDeltaXAndY(sprite.speed, sprite.x.rounded(), sprite.y.rounded(), sprite.destX, sprite.destY);
+#endif
+    sprite.deltaX = result.deltaX;
+    sprite.deltaY = result.deltaY;
+    sprite.fullDirection = result.direction;
+    sprite.direction = ((result.direction + 16) & 0xff) >> 5;
+}
+
+static std::optional<int> advanceSpriteAnimation(Sprite& sprite)
+{
+    if (sprite.onScreen && !--sprite.cycleFramesTimer) {
+        sprite.frameIndex++;
+        sprite.cycleFramesTimer = sprite.frameDelay;
+
+        int frame;
+
+        do {
+            frame = getFrameTableElement(sprite.frameIndicesTable, sprite.frameIndex);
+            assert(frame != kFrameLoopbackMarker && "Sprite frame index hit loopback marker");
+            if (frame >= 0) {
+                sprite.frameSwitchCounter++;
+                return frame;
+            } else if (frame == kLastFrameLoopMarker) {
+                sprite.frameIndex = 0;
+            } else if (frame == kLastFrameHoldMarker) {
+                sprite.frameIndex--;
+                break;
+            } else if (frame <= kFrameLoopbackMarker) {
+                int offset = frame - kFrameLoopbackMarker;
+                sprite.frameIndex += offset;
+                if (sprite.frameIndex < 0) {
+                    sprite.frameIndex = 0;
+                    assert(false && "Sprite frame index went negative due to too big loopback value");
+                }
+            } else {
+                int newDelay = -frame;
+                sprite.frameDelay = newDelay;
+                sprite.cycleFramesTimer = newDelay;
+                sprite.frameIndex++;
+            }
+        } while (frame < 0 && frame != kFrameLoopbackMarker);
+    }
+
+    return {};
+}
+
+void updateSpriteAnimation(Sprite& sprite)
+{
+    if (auto frame = advanceSpriteAnimation(sprite))
+        sprite.setImage(*frame);
+}
+
+static int adjustFrameForGoalCelebration(const Sprite& sprite)
+{
+    if (swos.goalScored && sprite.state == PlayerState::kNormal && (sprite.direction == 0 || sprite.direction == 4) &&
+        sprite.teamNumber == swos.lastTeamScoredNumber && sprite.playerOrdinal != 1) {
+        bool playerCheering;
+        // player that scored cheers 78.90625% of time, others 50% of time
+        if (&sprite == swos.lastPlayerScored)
+            playerCheering = (swos.currentGameTick & 0x7f) <= 100;
+        else
+            playerCheering = ((sprite.playerOrdinal * 4 + swos.currentGameTick) & 0x3f) < 32;
+        if (playerCheering)
+            return kTeam1WhitePlayerCelebratingTop1 - kTeam1WhitePlayerFacingTop;
+    }
+    return 0;
+}
+
+static void updatePlayerAnimation(Sprite& sprite)
+{
+    if (auto frame = advanceSpriteAnimation(sprite)) {
+        *frame += sprite.frameOffset + adjustFrameForGoalCelebration(sprite);
+        sprite.setImage(*frame);
+    }
+}
+
+void movePlayers()
+{
+    auto sprite = getPlayerSprites();
+    auto sentinelSprite = sprite + 2 * kNumPlayersInLineup;
+    for (; sprite < sentinelSprite; sprite++) {
+        updatePlayerAnimation(**sprite);
+        moveSprite(**sprite);
+        updateAnimationTableAndDestinationReached(**sprite);
+    }
+}
+
+void moveSprite(Sprite& sprite)
+{
+    if (sprite.deltaX) {
+        sprite.x += sprite.deltaX;
+        bool reachedDestination = sprite.deltaX > 0 ? sprite.destX <= sprite.x : sprite.destX >= sprite.x;
+        if (reachedDestination) {
+#ifdef SWOS_TEST
+            sprite.x.setWhole(sprite.destX);
+#else
+            sprite.x = sprite.destX;
+#endif
+            sprite.deltaX = 0;
+        }
+    }
+
+    if (sprite.deltaY) {
+        sprite.y += sprite.deltaY;
+        bool reachedDestination = sprite.deltaY > 0 ? sprite.destY <= sprite.y : sprite.destY >= sprite.y;
+        if (reachedDestination) {
+#ifdef SWOS_TEST
+            sprite.y.setWhole(sprite.destY);
+#else
+            sprite.y = sprite.destY;
+#endif
+            sprite.deltaY = 0;
+        }
+    }
+
+    stopSpriteIfReachedDestination(sprite);
+}
+
+static void stopSpriteIfReachedDestination(Sprite& sprite)
+{
+#ifdef SWOS_TEST
+    if (sprite.deltaX > 0 && sprite.destX <= sprite.x.whole() ||
+        sprite.deltaX < 0 && sprite.destX >= sprite.x.whole()) {
+        sprite.x.setWhole(sprite.destX);
+        sprite.deltaX = 0;
+    }
+    if (sprite.deltaY > 0 && sprite.destY <= sprite.y.whole() ||
+        sprite.deltaY < 0 && sprite.destY >= sprite.y.whole()) {
+        sprite.y.setWhole(sprite.destY);
+        sprite.deltaY = 0;
+    }
+#else
+    if (sprite.deltaX > 0 && sprite.destX <= sprite.x ||
+        sprite.deltaX < 0 && sprite.destX >= sprite.x) {
+        sprite.x = sprite.destX;
+        sprite.deltaX = 0;
+    }
+    if (sprite.deltaY > 0 && sprite.destY <= sprite.y ||
+        sprite.deltaY < 0 && sprite.destY >= sprite.y) {
+        sprite.y = sprite.destY;
+        sprite.deltaY = 0;
+    }
+#endif
+}
+
+static void updateAnimationTableAndDestinationReached(Sprite& sprite)
+{
+    if ((sprite.onScreen || swos.gameStatePl != GameState::kInProgress) &&
+        sprite.state == PlayerState::kNormal && sprite.stationary())
+    {
+        if (swos.gameStatePl != GameState::kInProgress && swos.breakCameraMode == 3 &&
+            sprite.destReachedState == DestinationState::kTraveling)
+            sprite.destReachedState = DestinationState::kReached;
+        if (sprite.animTable != getPlayerNormalStandingAnimTable())
+            setPlayerAnimationTable(sprite, getPlayerNormalStandingAnimTable());
+    }
 }
 
 // in:

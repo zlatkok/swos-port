@@ -1,14 +1,13 @@
-#include <dinput.h>
 #include "pitch.h"
 #include "pitchUndo.h"
 #include "debug.h"
 #include "pattern.h"
 #include "printstr.h"
 #include "draw.h"
-#include "dx.h"
 #include "alloc.h"
 #include "file.h"
 #include "util.h"
+#include <stdlib.h>
 #include <assert.h>
 
 static bool InitPitch();
@@ -103,7 +102,7 @@ static HCURSOR m_editCursor;
 #define MAX_CURSOR_FLASH_COLORS 8
 
 /* scrolling limits */
-/* turned to variable with DirectInput introduction */
+/* smooth-scroll state */
 static byte m_maxScrollLines;
 #define PAGE_SCROLL_LINES 100
 
@@ -462,8 +461,7 @@ static byte *PitchDraw(byte *pbits, const uint pitch)
 {
     char buf[256];
     DrawPitch(pbits, pt.x, pt.y, pitch, pt.curPitch, pt.editMode, pt.numbers);
-    wsprintf(buf, "PITCH %d - %s%s", pt.curPitch + 1,
-             g_pitchTypes[pt.pitchType], pt.editMode ? " (edit mode)" : "");
+    wsprintf(buf, "PITCH %d - %s%s", pt.curPitch + 1, g_pitchTypes[pt.pitchType], pt.editMode ? " (edit mode)" : "");
     PrintString(buf, 0, 0, pbits, pitch, TRUE, -1, NO_ALIGNMENT);
     return pbits;
 }
@@ -655,8 +653,7 @@ bool SavePitch(uint pitch_no, uint pitchType, bool export)
     BITMAPFILEHEADER bmfh;
     BITMAPINFOHEADER bmih;
 
-    WriteToLog(("SavePitch(): Saving pitch no. %d, pitch type %s",
-                pitch_no + 1, g_pitchTypes[pitchType]));
+    WriteToLog(("SavePitch(): Saving pitch no. %d, pitch type %s", pitch_no + 1, g_pitchTypes[pitchType]));
 
     if (!(data = omalloc(PITCH_W * PITCH_H)))
         return FALSE;
@@ -727,8 +724,7 @@ void SetPitchPalette(uint pitchType)
     /* indices of colors that need to be changed with pitch type */
     static uchar where[] = {0, 7, 9, 78, 79, 80, 81, 106, 107};
 
-    WriteToLog(("SetPitchPalette(): Switching to pitch type %s palette",
-               g_pitchTypes[pt.pitchType]));
+    WriteToLog(("SetPitchPalette(): Switching to pitch type %s palette", g_pitchTypes[pt.pitchType]));
 
     /* copy corresponding colors from pat_cols */
     for (i = 0; i < sizeof(where); i++) {
@@ -1024,8 +1020,7 @@ static bool insertPitch(uint pitch_no)
                 /* calculate sum for current pattern */
                 for (k = 0; k < 16; k++) {
                     for (l = 0; l < 16; l++) {
-                        cur_sum += *(pitch + PITCH_W * i * 16 + j * 16 + k *
-                                     PITCH_W + l);
+                        cur_sum += *(pitch + PITCH_W * i * 16 + j * 16 + k * PITCH_W + l);
                     }
                 }
 
@@ -1034,8 +1029,7 @@ static bool insertPitch(uint pitch_no)
                     if (sums[k] == cur_sum) {
                         for (l = 0; l < 16; l++) {
                             char *where = &data[k][l * 16];
-                            char *from = pitch + PITCH_W * i * 16 + j * 16 +
-                                         PITCH_W * l;
+                            char *from = pitch + PITCH_W * i * 16 + j * 16 + PITCH_W * l;
                             if (memcmp(where, from, 16))
                                 break;
                         }
@@ -1053,8 +1047,7 @@ static bool insertPitch(uint pitch_no)
                 } else {
                     for (k = 0; k < 16; k++) {
                         char *where = (char*)d + k * 16;
-                        memcpy(where, pitch + i * PITCH_W * 16 + j * 16 +
-                               PITCH_W * k, 16);
+                        memcpy(where, pitch + i * PITCH_W * 16 + j * 16 + PITCH_W * k, 16);
                     }
                     where[i][j] = ++curPattern;
                     sums[curPattern] = cur_sum;
@@ -1066,8 +1059,7 @@ static bool insertPitch(uint pitch_no)
                        copy of previous; this pattern won't be in index */
                     for (k = 0; k < 16; k++) {
                         char *where = (char*)d + k * 16;
-                        memcpy(where, pitch + i * PITCH_W * 16 + j * 16 +
-                               PITCH_W * k, 16);
+                        memcpy(where, pitch + i * PITCH_W * 16 + j * 16 + PITCH_W * k, 16);
                     }
                     /* don't match this pattern, match previous for indices */
                     sums[++curPattern] = cur_sum + 1;
@@ -1171,32 +1163,20 @@ static void PitchSmoothScroll()
     if (pt.editMode)
         return;
 
-    if (g.dinput) {
-        if (!DIGetKbdState(keys)) {
-            /* this is normal if we lose focus */
-            if (g.hWnd != GetActiveWindow())
-                return;
-            /* ach... some ghastly error with DirectInput; be done with it */
-            FinishDirectInput();
-            g.dinput = FALSE;
-            return;
-        }
-    } else {
-        if (!GetKeyboardState(keys)) {
-            RegisterSWOSProc(NULL);
-            m_smoothScroll = FALSE;
-            return;
-        }
+    if (!GetKeyboardState(keys)) {
+        RegisterSWOSProc(NULL);
+        m_smoothScroll = FALSE;
+        return;
     }
     redraw = 0;
     /* we're only interested in arrows; other keys can get too fast... */
-    if (keys[g.dinput ? DIK_RIGHT : VK_RIGHT] & 0x80)
+    if (keys[VK_RIGHT] & 0x80)
         redraw |= PitchKeyProc(VK_RIGHT, -1);
-    if (keys[g.dinput ? DIK_LEFT : VK_LEFT] & 0x80)
+    if (keys[VK_LEFT] & 0x80)
         redraw |= PitchKeyProc(VK_LEFT, -1);
-    if (keys[g.dinput ? DIK_UP : VK_UP] & 0x80)
+    if (keys[VK_UP] & 0x80)
         redraw |= PitchKeyProc(VK_UP, -1);
-    if (keys[g.dinput ? DIK_DOWN : VK_DOWN] & 0x80)
+    if (keys[VK_DOWN] & 0x80)
         redraw |= PitchKeyProc(VK_DOWN, -1);
     if (redraw)
         UpdateScreen();
@@ -1428,6 +1408,8 @@ static uint *getPatternAtCursorIndexPointer()
         cX = pt.x / RES_MULTIPLIER;
         cY = pt.y / RES_MULTIPLIER;
     }
+    cX = min(max(cX, 0), WIDTH - 1);
+    cY = min(max(cY, 0), HEIGHT - 1);
     uint x = (pt.x + cX) / PATTERN_LENGTH;
     uint y = (pt.y + cY) / PATTERN_LENGTH;
     uint patternIndex = START_PATTERN + PITCH_PATTERN_W * y + x;

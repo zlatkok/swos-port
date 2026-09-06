@@ -6059,3 +6059,172 @@ debug and release!
 - converted a few short functions
 04.01.2026.
 - converted updateControlledPlayerNumbers(), now there's no generated code in game sprites anymore
+05.01.2026.
+- converted initTeamsData()
+06.01.2026.
+- uploaded changes to PyTexturePacker to GitHub and made a PR
+- moved shot chance table into one memory block
+07.01.2026.
+- was converting some referee function, which led me to messing with the animation tables, realized they're
+in a contiguous memory block, so maybe they can be referenced with an offset, and completely moved to new
+executable
+08.01.2026.
+- marked all the animation tables and frames in IDA, seems there's some unused stuff there; started working
+on a small script to generate animation tables from input description
+...
+16.01.2026.
+- split the tables into structures referencing arrays, refined format a bit
+17.01.2026.
+- finalized the tables input file format
+...
+02.04.2026.
+- noticed some animation tables are "short", and overlap with the next one (e.g. player tackled animation
+table); this doesn't look safe, I think it could lead to crashes (since there's a "5" in next animation
+table, if there wasn't the array of null pointers would keep things fine); could this be some failed attempt
+to save space? but there are also some unused tables as well
+...
+31.07.2026.
+- bought Codex subscription yesterday, and it immediately paid itself: fixed my TA Demo persistent crash in
+<10 mins; I did prepare everything, but it was still pretty amazing; now applying it to some of the most
+boring SWOS stuff I've been delaying since forever: first task done was to fully translate all the
+documentation to English, and it did a good job there; had to fix some obsolete variables names and values
+but it's quite presentable now
+- expanded sprites C++ enum in preparation for animation table compiler; it might need some further
+  expansion later, these boring jobs are perfect for AI ;)
+01.08.2026.
+- updated C++ style guide and added .clang-format file
+- Codex generated a first version of animation table parser, and it already caught a bunch of errors in
+  hand written files, what a conservation of mental energy ;) it discovered a range of frame tables (for
+  headers) that are not in the common table memory range, added those to the input file now as well
+- discovered an infinite loop possibility -- -100 value in frame table throws update routine into infinite
+  loop, both original ASM and converted C++ (too faithful huh)
+- tweaked syntax a bit
+02.08.2026.
+- put all frame table elements into a single big array, implemented removing duplicate frame tables and
+  folding those that are suffixes of previous ones
+- implemented initial version of new packed animation table structures
+- allowed optional comma after frame delay in animation table
+- introduces inline frame tables in animation tables inside [ .. ] braces
+- table parser discovered some superfluous frames (situated after end animation marker), mostly in tackled
+  frame tables, so I removed them, they really make no sense -- what this some testing left-over?
+- while trying to sort out original SWOS frame/animation table mapping to new ones to keep the tests
+  running hit an ida2asm bug: same function ended up in two cpp files, the boundary landed in unnamed data
+  items before the function, and the previous chunk incorrectly picked up the function -- Codex fixed it
+  rather quickly, it can handle complex bugs too o_o
+03.08.2026.
+- extracted all original frame and animation table values from swos.asm, in preparation for introducing
+  SWOS_TEST code path
+- added --no-frame-table-folding option to generateAnimationTables.py
+- codex agrees that playerTackledAnimTable is too short ;) but only players are accessed (goalkeepers can't
+  be tackled) so the game survives
+...
+07.08.2026.
+- folded animations as well to big joint table together with frames
+- implemented original SWOS frame/animation tables, to be used for tests
+- added few more methods for external use
+- bunch of small syntax and other fixes
+- I think the animation table generation script might be perfect now ;)
+- integrated table generation into the build
+- started changing the code to only use animation and frame tables offset, but it will take some time
+08.08.2026.
+- unleashed Codex on that ida2asm bug where parsing error lines were reported incorrectly; it fixed it
+almost immediately :P seems chunk limit adjustment caused the drift; Codex solution introduced linear
+scanning of the input file until each chunk boundary start, but it seems to have not caused performance
+issues at all, so I left it at that
+- it just updated and expanded ida2asm documentation within minutes... stuff I couldn't bring myself to do
+for years... I'm shedding tears...
+- inventing some fun tasks for Codex, I've sent it to create an "ANIMATION MODE" for SWPE, let's have fun
+with that, and later I will instruct it to add edit functionality, so we could experiment with changing
+animation tables in the game
+- there's now a nice little animation mode there, and it even fixed some crashes in pitch mode (haven't
+tried since I don't use it much anymore but I'll take its word for it :P)
+- removed old obsolete Windows 9x code path, as well as DirectX (it was failing on modern machines anyway);
+full-screen mode gone too (has been broken in ages)
+- updated documentation
+- fixed that nasty build problem, of debug swos-port depending on release ida2asm but not building it
+- got it to compile with new animation table system, but it's still long way to go
+- expanded tests documentation
+- fixed a bug in tests where a test timeout value parameter was actually used as a wake-up interval
+09.08.2026.
+- small fixes to test documentation
+- bug fixed in animation table generator, it wasn't outputting correct offsets for SWOS_TEST branch
+- fixed invalid order of groups (team 1/2 players, goalkeeper 1/2) in generated animation tables
+- added ball animation to SWPE
+- finally figured out that the speed is in 9.7 fixed point format, not 8.8, added proper values as comments
+in many speed constants in the assembly
+- stuck at converting UpdateBall() since it's messing with the ball sprite frame table in a custom way, but
+it's sloooow
+...
+14.08.2026.
+- added FixedPoint user-defined literals, so the syntax is much nicer and we can now write auto half =
+  0.5_fp; auto two = 2.0_fp; etc.
+- been working a bit on UpdateBall() previous days, only got past the half
+...
+17.08.2026.
+- moving slowly with UpdateBall(), at least the high level structure is there; I'm gonna see if the
+situation is well off enough for AI to take over, and see if it does a good enough job so I can just correct
+the final output
+- [ida2asm] improved error reporting: now it's reported which range was it that removed a symbol known to
+be present in the input file (not a generic unknown symbols error anymore)
+- [ida2asm] extended @insert-hook to be able to use local labels in addition to line numbers, since they're
+  too fragile (they can even change if IDA randomly includes/does not include some comments)
+- offset fixer for temporary automatically converted C++ code improved, it will now report an error if it
+can't map a symbol to VM offset (which most likely means there were renames in swos.asm)
+- Codex was nice and fixed the entire failing build and some of the test failures, I'll check changes
+tomorrow and continue with fixing
+18.08.2026.
+- [ida2asm] added reporting of unreferenced items from swos.asm (always wanted to do this!); removed TONS
+of stuff ;)
+- added string pool checks as a test case in tests project
+19.08.2026.
+- [ida2asm] added a warning if two remove regions (or region + single symbol) could be folded, and
+immediately folded 8 regions
+- [ida2asm] fixed remove region @end syntax
+- woah, all tests are passing o_O
+- marked all of temporary generated C++ procedures and explained that they're only temporary and will be
+removed, because people are stupid
+- added a CPU vs CPU test game, passed immediately
+- set up code coverage, will try to raise a it a little bit
+- squeezed weekly token limit down all the way to 0% =P
+20.08.2026.
+- integrated assets compilation script into the build
+- converted: initPlayersBeforeEnteringPitch, playersLeavingPitch, startPenalties, nextPenalty,
+startFirstExtraTime, endFirstExtraTime and now game.cpp is fully cleansed from the filth!!
+- recorded another game with 30+ shots at goal by Codex advice and managed to increase coverage a little bit
+- converted getBallDestCoordinatesTable
+- meson build updated
+- proper project readme created
+- applyBallAfterTouch() converted, only checkIfBallOutOfPlay() left in ball.cpp
+21.08.2026.
+- converted checkIfBallOutOfPlay(), ball.cpp is free!
+22.08.2026.
+- fixed memory corruption of shot chance tables (unfortunately they were allocated right before the match
+  inside show stadium menu and tests skip this menu)
+- researched image generation a bit; unfortunately most of it will have to be done manually, still thinking
+  of the best approach; as for the game font, it might be best to find a similar looking existing TTF and
+  render glyphs into given rectangles
+- argh, tried pitches but AI keeps ruining the stitches, it's not usable
+23.08.2026.
+- found a nice game font and applied it to menus
+- moved big sprite 225 from image to procedural drawing, added drawing of 226 too (this one was removed
+  long ago for killing packed sprite atlas space)
+- some more font fixes
+- started menu walker tester, still a long way from what it should be
+24.08.2026.
+- got some decent menu/game overlay sprites out of ChatGPT, but it put some black area around them that I
+  need to cut, it's not looking so good after the intervention; maybe I should add some alpha?
+- Gemini is producing decent looking player sprites (style-wise), except it's a slop, with half the
+  positions wrong, extra legs, hands... maybe I can use it as an input to some other AI to get proper poses?
+25.08.2026.
+- made a SWOS++ fix for joypads locking up on real hardware
+...
+28.08.2026.
+- committed my old DOSBox debugger changes to a currently developing DOSBox-X project (seems they
+  implemented almost everything so it boiled down to showing symbolic constants in debugger and allowing
+  their use in expressions)
+...
+04.09.2026.
+- was chopping the sprites today, did stars, false sign, red menu arrows up/down, and small soccer ball
+05.09.2026.
+- fixed bunch of digit sprites + a few more, mostly with AI
+- fixed an overflow read in replays

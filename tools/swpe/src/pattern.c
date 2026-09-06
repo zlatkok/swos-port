@@ -140,11 +140,12 @@ void CopyPattern(char *from, char *where, uint pitch)
     }
 }
 
-void deletePattern(int pitchNo, int patternNo)
+static void deletePatternInternal(int pitchNo, int patternNo, bool logUndo)
 {
     PitchPatterns *patterns = &g_patterns[pitchNo];
 
-    logPatternDeletionForUndo(pitchNo, patternNo, patterns, g.changedFlags);
+    if (logUndo)
+        logPatternDeletionForUndo(pitchNo, patternNo, patterns, g.changedFlags);
 
     char *data = patterns->data;
     byte *currentPatternData = (byte *)data + PATTERN_BYTE_SIZE * patternNo;
@@ -176,6 +177,16 @@ void deletePattern(int pitchNo, int patternNo)
 
     if (pat.curPattern > patternNo)
         pat.curPattern--;
+}
+
+void deletePattern(int pitchNo, int patternNo)
+{
+    deletePatternInternal(pitchNo, patternNo, true);
+}
+
+void deletePatternWithoutUndo(int pitchNo, int patternNo)
+{
+    deletePatternInternal(pitchNo, patternNo, false);
 }
 
 void showPattern(int pitchNo, int patternNo)

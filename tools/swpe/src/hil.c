@@ -76,8 +76,7 @@ Mode HighlightsMode = {
    directory into aray pointed to by names. Shows too_much_files_str if too
    many files found.
 */
-static int FindFiles(const char *pattern, char **names, const uint max_files,
-                     const char *too_much_files_str)
+static int FindFiles(const char *pattern, char **names, const uint max_files, const char *too_much_files_str)
 {
     int num_files = 0;
     WIN32_FIND_DATA find_data;
@@ -131,8 +130,7 @@ static void MainMenuSelect(Menu_entry *m, uint tag)
         menu = rpl_menu;
         break;
     default:
-        WriteToLog(("MainMenuSelect(): code for entry %d not inserted",
-                    m->ordinal));
+        WriteToLog(("MainMenuSelect(): code for entry %d not inserted", m->ordinal));
         return;
     }
     if (menu) {
@@ -165,15 +163,11 @@ bool InitHighlights()
     if (!num_hils && !num_rpls)
         return TRUE;
 
-    hil_menu = (Menu*)CreateMenu("VIEW HIGHLIGHTS", num_hils, hil_names,
-                                 MODE_HIL, ReadHilRplFile, ORANGE_TO_BROWN,
-                                 flags, '.HIL');
-    rpl_menu = (Menu*)CreateMenu("VIEW REPLAYS", num_rpls, rpl_names, MODE_HIL,
-                                 ReadHilRplFile, ORANGE_TO_BROWN, flags,
-                                 '.RPL');
+    hil_menu =
+        (Menu *)CreateMenu("VIEW HIGHLIGHTS", num_hils, hil_names, MODE_HIL, ReadHilRplFile, ORANGE_TO_BROWN, flags, '.HIL');
+    rpl_menu = (Menu *)CreateMenu("VIEW REPLAYS", num_rpls, rpl_names, MODE_HIL, ReadHilRplFile, ORANGE_TO_BROWN, flags, '.RPL');
     hil_names[0] = "VIEW HIGHLIGHTS"; hil_names[1] = "VIEW REPLAYS";
-    m = (Menu*)CreateMenu("SELECT VIEW", 2, hil_names, MODE_HIL,
-                          MainMenuSelect, BLUE_TO_PURPLE, MF_BIG_FONT, 'MAIN');
+    m = (Menu *)CreateMenu("SELECT VIEW", 2, hil_names, MODE_HIL, MainMenuSelect, BLUE_TO_PURPLE, MF_BIG_FONT, 'MAIN');
     /* attach menus to parent menu */
     if (hil_menu)
         hil_menu->parent = m;
@@ -196,8 +190,7 @@ static uint old_mode;
 static void InitHighlightsMode(uint a_old_mode)
 {
     SetPalette(pal, &g.pbits, TRUE);
-    if (!SetTimer(g.hWnd, HIL_TIMER_ID, CURSOR_INTERVAL,
-                  (TIMERPROC)CursorFlashCallBack))
+    if (!SetTimer(g.hWnd, HIL_TIMER_ID, CURSOR_INTERVAL, (TIMERPROC)CursorFlashCallBack))
         WriteToLog(("InitHighlightsMode(): Failed to set cursor timer."));
     if (a_old_mode != MODE_HIL && !hil_menu && !rpl_menu) {
         SetWarning("No highlight and replay files found.");
@@ -442,7 +435,7 @@ void ReadHilRplFile(Menu_entry *m, const uint tag)
     /* adjust colors to teams that are playing */
     if (!SetSpriteTeamColors((Team_game*)h.team1, (Team_game*)h.team2)) {
         WriteToLog(("ReadHilRplFile(): Failed to convert team colors... "
-                    "Aborting."));
+            "Aborting."));
         PlayingHilKeyProc(VK_ESCAPE, 0);
         return;
     }
@@ -477,8 +470,7 @@ uint PlayingHilKeyProc(uint code, uint data)
         SetPalette(pal, &g.pbits, FALSE);
         RegisterKeyFunction(NULL);
         CleanupTeamSprites();
-        SetTimer(g.hWnd, HIL_TIMER_ID, CURSOR_INTERVAL,
-                 (TIMERPROC)CursorFlashCallBack);
+        SetTimer(g.hWnd, HIL_TIMER_ID, CURSOR_INTERVAL, (TIMERPROC)CursorFlashCallBack);
         WriteToLog(("PlayingHilKeyProc(): Playback ended."));
         UpdateScreen();
         break;

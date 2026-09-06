@@ -113,12 +113,12 @@ void updateSongState()
     if (noMusic())
         return;
 
-    if (m_state == State::kTitleSongFadeOut) {
+    if (m_state == State::kPlayingTitleSong && m_titleSongDone) {
+        startMenuSong();
+    } else if (m_state == State::kTitleSongFadeOut) {
         m_titleSongDone = !Mix_PlayingMusic();
-        if (m_titleSongDone) {
-            m_state = State::kPlayingMenuSong;
+        if (m_titleSongDone)
             startMenuSong();
-        }
     }
 }
 
@@ -143,7 +143,7 @@ void startMenuSong()
 
     initMusic();
 
-    if (m_state != State::kPlaybackError && m_titleSongDone) {
+    if (m_state != State::kPlaybackError && m_state != State::kPlayingMenuSong && m_titleSongDone) {
         Mix_FreeMusic(m_titleMusic);
         m_titleMusic = nullptr;
 
@@ -224,7 +224,10 @@ static void playMenuSong()
 {
     m_menuMusic = playMixSong("menu", true, m_menuMusic);
 
-    if (!m_menuMusic) {
+    if (m_menuMusic) {
+        m_titleSongDone = true;
+        m_state = State::kPlayingMenuSong;
+    } else {
         logInfo("Couldn't find a suitable menu music file");
         m_state = State::kPlaybackError;
     }

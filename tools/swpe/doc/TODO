@@ -1,15 +1,3 @@
-uradjeno:
-- dodat minimized flag, i SWOSProc se ne poziva dok je setovan
-- ispravio sam duplu deinicijalizaciju moda: kada se pritisne enter, i kada se
-  primi WM_DESTROY poruka (ostavio sam samo prvu)
-- postavljena negativna visina u DIB pa se ne mora obrtati slika svaki frejm
-- optimizovan algoritam za gamma correction u picture.c
-- ispravljen (redak) bag kada se crta neispravna slika - ostatak praistorijskog
-  koda, kada se CreateDIB() poziva, a ne preuzima povratna vrednost, vec cita
-  globalna, koja se sada i ne setuje!
-- godina promenjena
-
-za verziju 0.9x:
 - kada se prikazuje 100 ili vise fps broj nije lepo poravnat po desnoj ivici
 - srediti poravnanje u global.h global info-a
 - pred sam kraj, igraci se recimo pobiju/posvadjaju, i onda igrac mora da da
@@ -113,10 +101,7 @@ za verziju 0.9x:
 - srediti InsertAllSprites, u slucaju kada dodje do greske
 - team edit mode
 - interfejs misem i direktno sprite editovanje
-- problem sa listom taskova i dalje postoji, ali se bar program po zavrsetku
-  vraca na prethodni program - osim iz full screen moda
 - mnogobrojna fenomenalna i fantasticna poboljsanja
-- fix CPU usage
 
 Pitch editor additions:
 - fill whole pitch/screen with a pattern

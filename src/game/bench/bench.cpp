@@ -5,6 +5,7 @@
 #include "player.h"
 #include "team.h"
 #include "game.h"
+#include "animation.h"
 
 constexpr FixedPoint kBenchX = 27;
 
@@ -134,9 +135,7 @@ static void checkForThrowInAndKeepersBall()
     if (player && player->state == PlayerState::kThrowIn) {
         swos.hideBall = 0;
         player->state = PlayerState::kNormal;
-        A0 = &swos.playerNormalStandingAnimTable;
-        A1 = player;
-        SetPlayerAnimationTable();
+        setPlayerAnimationTable(*player, getPlayerNormalStandingAnimTable());
     }
 
     checkIfGoalkeeperClaimedTheBall();

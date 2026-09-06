@@ -63,8 +63,16 @@ void References::markImport(const String& str)
 
 void References::markExport(const String& str)
 {
-    if (auto label = m_labels.get(str))
+    if (auto label = m_labels.get(str)) {
         label->pub = 1;
+        for (auto ref : m_references.getAll(str)) {
+            if (ref->type == kNone) {
+                ref->type = label->type;
+                if (label->type == kUser)
+                    ref->structPtr = label->structNameLength();
+            }
+        }
+    }
 }
 
 bool References::hasReference(const String& str) const

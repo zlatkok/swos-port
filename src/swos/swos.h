@@ -80,9 +80,11 @@ struct MultilineText
         int len = 1;
         auto p = text;
 
-        for (unsigned i = 0; i < numLines; i++)
+        for (unsigned i = 0; i < numLines; i++) {
             while (*p++)
                 len++;
+            len++;
+        }
 
         return len;
     }
@@ -127,11 +129,9 @@ struct SpriteGraphics {
 
 static_assert(sizeof(SpriteGraphics) == 24, "SpriteGraphics is invalid");
 
-struct RefereeAnimationTable
-{
-    word numCycles;
-    SwosDataPointer<int16_t> indicesTable[8];
-};
+constexpr int kLastFrameLoopMarker = -999;
+constexpr int kLastFrameHoldMarker = -101;
+constexpr int kFrameLoopbackMarker = -100;
 
 enum Direction
 {
@@ -144,6 +144,7 @@ enum Direction
     kFacingBottomLeft = 5,
     kFacingLeft = 6,
     kFacingTopLeft = 7,
+    kNumDirections = 8,
 };
 
 enum class PlayerPosition : int8_t
@@ -366,11 +367,11 @@ struct TeamGeneralInfo
     byte ballAbove17;
     byte prevPlVeryCloseToBall;
     word ofs70;
-    SwosDataPointer<Sprite> lastHeadingPlayer;
+    SwosDataPointer<Sprite> lastHeadingTacklingPlayer;
     word goalkeeperSavedCommentTimer;
     word ofs78;
-    word goalkeeperJumpingRight;
-    word goalkeeperJumpingLeft;
+    word goalkeeperDivingRight;
+    word goalkeeperDivingLeft;
     word ballOutOfPlayOrKeeper;
     word goaliePlayingOrOut;
     word passingBall;
@@ -397,7 +398,7 @@ struct TeamGeneralInfo
     word ofs134;
     word ofs136;
     word ofs138;    // timer
-    word unkTimer;
+    word wonTheBallTimer;
     word goalkeeperPlaying;
     word resetControls;
     byte secondaryFire;
@@ -568,6 +569,8 @@ enum Tactics
 enum class GameState : word
 {
     kPlayersGoingToInitialPositions = 0,
+    kGoalOutLeft = 1,
+    kGoalOutRight = 2,
     kKeeperHoldsTheBall = 3,
     kCornerLeft = 4,
     kCornerRight = 5,
@@ -589,6 +592,7 @@ enum class GameState : word
     kFirstExtraEnded = 28,
     kFirstHalfEnded = 29,
     kGameEnded = 30,
+    kPenaltyShootout = 31,
     kInProgress = 100,
     kStopped = 101,
     kWaitingOnPlayer = 102,

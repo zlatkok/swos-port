@@ -123,6 +123,9 @@ namespace SWOS_UnitTest
     };
 
     namespace Detail {
+        static inline std::string stringify(FixedPoint value) {
+            return std::to_string(value.asFloat());
+        }
         template<typename T>
         static inline std::string stringify(const std::vector<T>& v) {
             std::string result(1, '[');

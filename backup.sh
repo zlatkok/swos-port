@@ -61,7 +61,16 @@ done
 destPath=$(cygpath -w $destPath)
 
 echo "Creating archive: $destPath"
-"$rar" a -r -m5 -s -x"*__pycache__*" -- "$destPath" \
+"$rar" a -r -m5 -s \
+    -x"*__pycache__*" \
+    -x"*.vs" \
+    -x"*.vs\\*" \
+    -x"tools\\swpe\\tmp" \
+    -x"tools\\swpe\\tmp\\*" \
+    -x"tools\\swospp\\obj" \
+    -x"tools\\swospp\\obj\\*" \
+    -x"tools\\swospp\\var\\*.lst" \
+    -- "$destPath" \
     'docs/*' \
     'ida2asm/*' \
     'mnu2h/*' \

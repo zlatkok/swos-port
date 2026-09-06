@@ -59,6 +59,10 @@ auto BaseTest::doRunTests(const TestOptions &options, const TestNamesSet& testLi
     FailureList failures;
     int numTestsRan = 0;
 
+    std::stable_partition(m_tests.begin(), m_tests.end(), [](const BaseTest *test) {
+        return !test->shouldRunLast();
+    });
+
     // wait for C++20 ;)
     auto testListContains = [&testList](const char *name) {
         return testList.find(name) != testList.end();
@@ -107,8 +111,7 @@ auto BaseTest::doRunTests(const TestOptions &options, const TestNamesSet& testLi
 
 void BaseTest::timeoutCheck(int timeout)
 {
-    constexpr int kTestTimeoutMs = 6'000;
-    constexpr int kCheckIntervalMs = 500;
+    constexpr int kCheckIntervalMs = 100;
 
     auto checkInterval = std::chrono::milliseconds(std::min(timeout, kCheckIntervalMs));
 
@@ -123,7 +126,7 @@ void BaseTest::timeoutCheck(int timeout)
         auto [testStartTime, testIndex, caseIndex, dataIndex] = unpackCurrentTest();
         auto timeSinceLastTestChanged = now - testStartTime;
 
-        if (!isDebuggerPresent() && timeSinceLastTestChanged > kTestTimeoutMs) {
+        if (!isDebuggerPresent() && timeSinceLastTestChanged >= timeout) {
             const auto test = m_tests[testIndex];
             const auto testCase = test->getCases()[caseIndex];
 

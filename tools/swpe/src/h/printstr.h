@@ -28,8 +28,7 @@ enum alignment {
 #define ALIGN_DOWNLEFT    ALIGN_BOTTOM | ALIGN_LEFT
 
 void GetStringLength(const char *str, uint *w, uint *h, uint align, uint big);
-void PrintString(const char *str, uint x, uint y, char *where, uint pitch,
-                 bool big, int color, uint align);
+void PrintString(const char *str, uint x, uint y, char *where, uint pitch, bool big, int color, uint align);
 void PrintNumber(int num, uint x, uint y, char *where, uint pitch, bool big);
 void PrintSmallNumber(int num, uint x, uint y, char *where, uint pitch);
 

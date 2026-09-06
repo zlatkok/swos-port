@@ -243,7 +243,7 @@ static void testCustomSfx()
         { playEndGameWhistleSample, "endgamew.mp3" },
         { PlayFoulWhistleSample, "foul.mp3" },
         { PlayKickSample, "kickx.mp3" },
-        { PlayBallBounceSample, "bouncex.ogg" },
+        { playBallBounceSample, "bouncex.ogg" },
     };
 
     for (const auto& testData : kSfxTestData) {

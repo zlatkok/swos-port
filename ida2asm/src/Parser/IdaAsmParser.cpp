@@ -578,11 +578,13 @@ CToken *IdaAsmParser::parseLabel(CToken *token, TokenList& comments)
 {
     assert(token && token->isId());
 
-    if (token->isLocalLabel()) {
+    if (m_currentProc) {
         auto [skipToken, replaceVariableName, initialValue] = checkProcHook(token);
         if (skipToken)
             return skipToken;
-    } else {
+    }
+
+    if (!token->isLocalLabel()) {
         m_references.addLabel(token);
     }
 
@@ -602,6 +604,11 @@ CToken *IdaAsmParser::parseLabel(CToken *token, TokenList& comments)
     }
 
     m_outputItems.addLabel(comments, comment, name);
+
+    if (m_currentProc && !m_currentProcHook.empty()) {
+        String label(name->text(), name->textLength - 1);
+        m_pendingLabelHook = ProcHookList::takeLabelHook(m_currentProcHook, label);
+    }
 
     comments.clear();
     expect(Token::T_NL, token);
@@ -669,8 +676,19 @@ CToken *IdaAsmParser::parseEndProc(CToken *token, TokenList& comments)
     auto name = token;
     advance(token);
 
+    if (!m_pendingLabelHook.empty())
+        error("label-based hook target must be followed by an instruction or label", name);
+
     verifyHookLine(name);
+    if (!m_currentProcHook.empty()) {
+        auto missingLabel = ProcHookList::firstUnconsumedLabelHook(m_currentProcHook);
+        if (!missingLabel.empty())
+            error("hook target label `" + missingLabel.string() + "' was not found in procedure `" +
+                m_currentProc->string() + "'", name);
+    }
     m_currentHookLine = -1;
+    m_currentProcHook.clear();
+    m_pendingLabelHook.clear();
 
     expect(Token::T_ENDP, token);
     advance(token);
@@ -927,15 +945,32 @@ CToken *IdaAsmParser::handleSymbolActions(SymbolAction action, const String& ran
 
 void IdaAsmParser::checkProcHookStart(CToken *token, SymbolAction action, const String& packedProcData)
 {
+    m_currentProcHook.clear();
     if (action & (kInsertCall | kConstantToVariable)) {
         verifyHookLine(token);
-        m_currentHookLine = m_lineNo + ProcHookList::getCurrentHookLine(packedProcData);
+        auto hookLine = ProcHookList::getCurrentHookLine(packedProcData);
+        m_currentHookLine = hookLine < 0 ? -1 : m_lineNo + hookLine;
         m_currentProcHook = packedProcData;
     }
 }
 
 std::tuple<CToken *, String, int> IdaAsmParser::checkProcHook(CToken *token)
 {
+    if (!m_pendingLabelHook.empty()) {
+        auto hookProc = outputCallInstruction(token, [this, token](auto nameToken) {
+            auto buffer = const_cast<char *>(nameToken->text());
+
+            if (nameToken->textLength < m_pendingLabelHook.length())
+                error("hook proc name \"" + m_pendingLabelHook.string() + "\" too long, limit is " +
+                    std::to_string(nameToken->textLength), token);
+
+            m_pendingLabelHook.copy(buffer);
+            nameToken->textLength = m_pendingLabelHook.length();
+        });
+        m_references.addReference(hookProc.first);
+        m_pendingLabelHook.clear();
+    }
+
     if (m_currentHookLine < static_cast<int>(m_lineNo))
         verifyHookLine(token);
 
@@ -1132,10 +1167,19 @@ CToken *IdaAsmParser::skipUntilNewLine(CToken *token)
 
 CToken *IdaAsmParser::skipUntilEof(CToken *token)
 {
-    while (token < m_tokenizer.end())
-        advance(token);
+    CToken *lastNewLine{};
 
-    return token;
+    while (token < m_tokenizer.end()) {
+        if (token->isNewLine()) {
+            lastNewLine = token;
+            m_lineNo++;
+        }
+        advance(token);
+    }
+
+    assert(lastNewLine && lastNewLine->next() == token);
+    m_lineNo--;
+    return lastNewLine;
 }
 
 std::pair<CToken *, bool> IdaAsmParser::skipUntilSymbol(CToken *token, const String& sym)
@@ -1154,7 +1198,7 @@ std::pair<CToken *, bool> IdaAsmParser::skipUntilSymbol(CToken *token, const Str
                 prevLineNo = m_lineNo;
             }
 
-            if (next->isId() && next == sym)
+            if (next->matchIdOrLabel(sym.data(), sym.length()))
                 break;
 
             m_lineNo++;
@@ -1222,6 +1266,8 @@ CToken *IdaAsmParser::handleSymbolRemoval(CToken *token, SymbolAction action, co
 
         if (sym == SymbolFileParser::kEndMarker) {
             token = skipUntilEof(token);
+            m_symbolTable.clearAction(sym, ~kRemoveEndRange);
+            m_missingEndRangeSymbol = sym;
         } else {
             bool found;
             std::tie(token, found) = skipUntilSymbol(token, sym);
@@ -1258,6 +1304,7 @@ void IdaAsmParser::clearCollectedOutput(CToken *token)
     m_localVars.clear();
     m_currentHookLine = -1;
     m_currentProcHook = nullptr;
+    m_pendingLabelHook = nullptr;
 }
 
 void IdaAsmParser::markExports()
@@ -1345,8 +1392,12 @@ void IdaAsmParser::moveToNextHook()
 
     if (ProcHookList::moveToNextHook(m_currentProcHook)) {
         auto nextHookLine = ProcHookList::getCurrentHookLine(m_currentProcHook);
-        assert(nextHookLine > prevHookLine);
-        m_currentHookLine = m_lineNo + nextHookLine - prevHookLine;
+        if (nextHookLine < 0) {
+            m_currentHookLine = -1;
+        } else {
+            assert(nextHookLine > prevHookLine);
+            m_currentHookLine = m_lineNo + nextHookLine - prevHookLine;
+        }
     } else {
         m_currentHookLine = -1;
     }

@@ -547,7 +547,7 @@ dword translateMultilineTable(const MultilineText *text)
     int totalLength = text->totalLenght();
 
     auto swosMem = menuAlloc(totalLength);
-    memcpy(swosMem, &text, totalLength);
+    memcpy(swosMem, text, totalLength);
 
     return SwosVM::ptrToOffset(swosMem);
 }

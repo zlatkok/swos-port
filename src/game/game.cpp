@@ -16,14 +16,18 @@
 #include "util.h"
 #include "replays.h"
 #include "pitch.h"
+#include "pitchConstants.h"
+#include "playerDirection.h"
 #include "bench.h"
 #include "updateBench.h"
 #include "team.h"
 #include "player.h"
 #include "sprites.h"
 #include "gameSprites.h"
+#include "animation.h"
 #include "gameTime.h"
 #include "ball.h"
+#include "referee.h"
 #include "playerNameDisplay.h"
 #include "spinningLogo.h"
 #include "result.h"
@@ -38,6 +42,13 @@ constexpr int kWheelZoomFrames = 6;
 
 static TeamGame m_topTeamSaved;
 static TeamGame m_bottomTeamSaved;
+
+static int16_t m_savedTeam1Goals;
+static int16_t m_savedTeam2Goals;
+static int16_t m_team1PenaltyShooterIndex;
+static int16_t m_team2PenaltyShooterIndex;
+static int16_t m_team1PenaltyAttempts;
+static int16_t m_team2PenaltyAttempts;
 
 static bool m_gamePaused;
 
@@ -61,7 +72,6 @@ void initMatch(TeamGame *topTeam, TeamGame *bottomTeam, bool saveOrRestoreTeams)
     saveOrRestoreTeams ? saveTeams() : restoreTeams();
 
     initMatchSprites(topTeam, bottomTeam);
-    initPlayerShotChanceTables();   // to be removed later
     setPitchTypeAndNumber();
     loadPitch();
     //InitAdvertisements
@@ -391,828 +401,279 @@ void togglePause()
     m_gamePaused = !m_gamePaused;
 }
 
-using namespace SwosVM;
-
 void initTeamsData()
 {
-    *(dword *)&g_memByte[522748] = 0;       // mov currentScorer, 0
-    *(dword *)&g_memByte[522756] = 0;       // mov lastPlayerBeforeGoalkeeper, 0
-    *(word *)&g_memByte[457524] = 0;        // mov goalScored, 0
-    *(word *)&g_memByte[457526] = 0;        // mov runSlower, 0
-    *(word *)&g_memByte[523638] = 0;        // mov whichCard, 0
-    *(dword *)&g_memByte[523640] = 0;       // mov bookedPlayer, 0
-    *(word *)&g_memByte[523085] = 0;        // mov playerHadBall, 0
-    *(dword *)&g_memByte[523087] = 0;       // mov lastKeeperPlayed, 0
-    *(dword *)&g_memByte[523092] = 0;       // mov lastTeamPlayed, 0
-    *(dword *)&g_memByte[523096] = 0;       // mov lastPlayerPlayed, 0
-    *(word *)&g_memByte[523100] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[455982] = 0;        // mov goalCameraMode, 0
-    *(word *)&g_memByte[523102] = 0;        // mov goalOut, 0
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523106] = 0;        // mov fireBlocked, 0
-    *(dword *)&g_memByte[523108] = 0;       // mov lastTeamPlayedBeforeBreak, 0
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
-    *(word *)&g_memByte[523122] = 0;        // mov stoppageEventTimer, 0
-    *(word *)&g_memByte[523132] = 0;        // mov inGameCounter, 0
-    *(word *)&g_memByte[523116] = 100;      // mov gameStatePl, 100
-    *(word *)&g_memByte[523118] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
-    *(word *)&g_memByte[523134] = 0;        // mov breakState, 0
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&D7 = 1;                       // mov word ptr D7, 1
-    ax = *(word *)&g_memByte[449278];       // mov ax, topTeamPlayerNo
-    *(word *)&D6 = ax;                      // mov word ptr D6, ax
-    ax = *(word *)&g_memByte[449274];       // mov ax, topTeamCoachNo
-    *(word *)&D2 = ax;                      // mov word ptr D2, ax
-    ax = *(word *)&g_memByte[449270];       // mov ax, pl1Coach
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    A0 = 522792;                            // mov A0, offset topTeamData
-    A1 = 522940;                            // mov A1, offset bottomTeamData
-    A2 = 330096;                            // mov A2, offset team1SpritesTable
-    eax = *(dword *)&g_memByte[449724];     // mov eax, topTeamPtr
-    A3 = eax;                               // mov A3, eax
-    A4 = 522760;                            // mov A4, offset team1StatsData
-    A5 = 449298;                            // mov A5, offset pl1Tactics
-    *(word *)&D5 = 1;                       // mov word ptr D5, 1
-    {
-        word src = *(word *)&g_memByte[523146];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp teamPlayingUp, 1
-    if (flags.zero)
-        goto l_init_teams;                  // jz short @@init_teams
+    swos.currentScorer.reset();
+    swos.lastPlayerBeforeGoalkeeper.reset();
+    swos.goalScored = 0;
+    swos.runSlower = 0;
+    swos.whichCard = 0;
+    swos.bookedPlayer.reset();
+    swos.playerHadBall = 0;
+    swos.lastKeeperPlayed.reset();
+    swos.lastTeamPlayed.reset();
+    swos.lastPlayerPlayed.reset();
+    swos.penalty = 0;
+    swos.goalCameraMode = 0;
+    swos.goalOut = 0;
+    swos.fireBlocked = 0;
+    swos.lastTeamPlayedBeforeBreak.reset();
+    swos.stoppageTimerTotal = 0;
+    swos.stoppageTimerActive = 0;
+    swos.stoppageEventTimer = 0;
+    swos.inGameCounter = 0;
+    swos.gameStatePl = GameState::kInProgress;
+    swos.gameState = GameState::kInProgress;
+    swos.breakState = 0;
+    swos.breakCameraMode = -1;
 
-    eax = A0;                               // mov eax, A0
-    {
-        dword tmp = A1;
-        A1 = eax;
-        eax = tmp;
-    }                                       // xchg eax, A1
-    A0 = eax;                               // mov A0, eax
+    auto team = &swos.topTeamData;
+    auto opponentTeam = &swos.bottomTeamData;
 
-l_init_teams:;
-    eax = A1;                               // mov eax, A1
-    esi = A0;                               // mov esi, A0
-    writeMemory(esi, 4, eax);               // mov [esi+TeamGeneralInfo.opponentsTeam], eax
-    eax = A3;                               // mov eax, A3
-    writeMemory(esi + 10, 4, eax);          // mov [esi+TeamGeneralInfo.inGameTeamPtr], eax
-    eax = A4;                               // mov eax, A4
-    writeMemory(esi + 14, 4, eax);          // mov [esi+TeamGeneralInfo.teamStatsPtr], eax
-    ax = D6;                                // mov ax, word ptr D6
-    writeMemory(esi + 4, 2, ax);            // mov [esi+TeamGeneralInfo.playerNumber], ax
-    ax = D2;                                // mov ax, word ptr D2
-    writeMemory(esi + 6, 2, ax);            // mov [esi+TeamGeneralInfo.playerCoachNumber], ax
-    ax = D1;                                // mov ax, word ptr D1
-    writeMemory(esi + 8, 2, ax);            // mov [esi+TeamGeneralInfo.isPlCoach], ax
-    eax = A2;                               // mov eax, A2
-    writeMemory(esi + 20, 4, eax);          // mov [esi+TeamGeneralInfo.spritesTable], eax
-    ax = D5;                                // mov ax, word ptr D5
-    writeMemory(esi + 18, 2, ax);           // mov [esi+TeamGeneralInfo.teamNumber], ax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    esi = A0;                               // mov esi, A0
-    writeMemory(esi + 28, 2, ax);           // mov [esi+TeamGeneralInfo.tactics], ax
-    writeMemory(esi + 140, 2, 0);           // mov [esi+TeamGeneralInfo.goalkeeperPlaying], 0
-    writeMemory(esi + 142, 2, 0);           // mov [esi+TeamGeneralInfo.resetControls], 0
-    writeMemory(esi + 30, 2, 10);           // mov [esi+TeamGeneralInfo.updatePlayerIndex], 10
-    writeMemory(esi + 32, 4, 0);            // mov [esi+TeamGeneralInfo.controlledPlayer], 0
-    writeMemory(esi + 36, 4, 0);            // mov [esi+TeamGeneralInfo.passToPlayerPtr], 0
-    writeMemory(esi + 104, 4, 0);           // mov [esi+TeamGeneralInfo.passingKickingPlayer], 0
-    writeMemory(esi + 40, 2, 0);            // mov [esi+TeamGeneralInfo.playerHasBall], 0
-    writeMemory(esi + 80, 2, 0);            // mov [esi+TeamGeneralInfo.goalkeeperDivingRight], 0
-    writeMemory(esi + 82, 2, 0);            // mov [esi+TeamGeneralInfo.goalkeeperDivingLeft], 0
-    writeMemory(esi + 84, 2, 0);            // mov [esi+TeamGeneralInfo.ballOutOfPlayOrKeeper], 0
-    writeMemory(esi + 86, 2, 0);            // mov [esi+TeamGeneralInfo.goaliePlayingOrOut], 0
-    writeMemory(esi + 88, 2, 0);            // mov [esi+TeamGeneralInfo.passingBall], 0
-    writeMemory(esi + 90, 2, 0);            // mov [esi+TeamGeneralInfo.passingToPlayer], 0
-    writeMemory(esi + 92, 2, 0);            // mov [esi+TeamGeneralInfo.playerSwitchTimer], 0
-    writeMemory(esi + 94, 2, 0);            // mov [esi+TeamGeneralInfo.ballInPlay], 0
-    writeMemory(esi + 96, 2, 0);            // mov [esi+TeamGeneralInfo.ballOutOfPlay], 0
-    writeMemory(esi + 102, 2, 0);           // mov [esi+TeamGeneralInfo.passKickTimer], 0
-    writeMemory(esi + 110, 2, 0);           // mov [esi+TeamGeneralInfo.ballCanBeControlled], 0
-    writeMemory(esi + 114, 2, 0);           // mov [esi+TeamGeneralInfo.field_72], 0
-    writeMemory(esi + 112, 2, -1);          // mov [esi+TeamGeneralInfo.ballControllingPlayerDirection], -1
-    writeMemory(esi + 116, 2, 0);           // mov [esi+TeamGeneralInfo.field_74], 0
-    writeMemory(esi + 138, 2, 0);           // mov [esi+TeamGeneralInfo.wonTheBallTimer], 0
-    writeMemory(esi + 118, 2, -1);          // mov [esi+TeamGeneralInfo.spinTimer], -1
-    writeMemory(esi + 60, 1, 0);            // mov [esi+TeamGeneralInfo.field_3C], 0
-    writeMemory(esi + 76, 2, 0);            // mov [esi+TeamGeneralInfo.goalkeeperSavedCommentTimer], 0
-    writeMemory(esi + 72, 4, 0);            // mov [esi+TeamGeneralInfo.lastHeadingTacklingPlayer], 0
-    writeMemory(esi + 78, 2, 0);            // mov [esi+TeamGeneralInfo.field_4E], 0
-    writeMemory(esi + 52, 2, 0);            // mov [esi+TeamGeneralInfo.headerOrTackle], 0
-    writeMemory(esi + 58, 2, 0);            // mov [esi+TeamGeneralInfo.shooting], 0
-    writeMemory(esi + 128, 2, 0);           // mov [esi+TeamGeneralInfo.passInProgress], 0
-    ax = *(word *)&g_memByte[449280];       // mov ax, bottomTeamPlayerNo
-    *(word *)&D6 = ax;                      // mov word ptr D6, ax
-    ax = *(word *)&g_memByte[449276];       // mov ax, bottomTeamCoachNo
-    *(word *)&D2 = ax;                      // mov word ptr D2, ax
-    ax = *(word *)&g_memByte[449272];       // mov ax, pl2Coach
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    A0 = 522940;                            // mov A0, offset bottomTeamData
-    A1 = 522792;                            // mov A1, offset topTeamData
-    A2 = 330140;                            // mov A2, offset team2SpritesTable
-    eax = *(dword *)&g_memByte[449728];     // mov eax, bottomTeamPtr
-    A3 = eax;                               // mov A3, eax
-    A4 = 522776;                            // mov A4, offset team2StatsData
-    A5 = 449300;                            // mov A5, offset pl2Tactics
-    *(word *)&D5 = 2;                       // mov word ptr D5, 2
-    {
-        word src = *(word *)&g_memByte[523146];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp teamPlayingUp, 1
-    if (flags.zero)
-        goto l_next_team;                   // jz short @@next_team
+    for (int i = 0; i < 2; i++) {
+        auto playerNo = i == 0 ? swos.topTeamPlayerNo : swos.bottomTeamPlayerNo;
+        auto coachNo = i == 0 ? swos.topTeamCoachNo : swos.bottomTeamCoachNo;
+        auto isPlCoach = i == 0 ? swos.pl1Coach : swos.pl2Coach;
+        auto players = i == 0 ? swos.team1SpritesTable : swos.team2SpritesTable;
+        auto tactics = i == 0 ? swos.pl1Tactics : swos.pl2Tactics;
+        auto inGameTeamPtr = i == 0 ? swos.topTeamPtr : swos.bottomTeamPtr;
+        auto teamStatsData = i == 0 ? &swos.team1StatsData : &swos.team2StatsData;
+        if (i > 0 || swos.teamPlayingUp != 1)
+            std::swap(team, opponentTeam);
 
-    eax = A0;                               // mov eax, A0
-    {
-        dword tmp = A1;
-        A1 = eax;
-        eax = tmp;
-    }                                       // xchg eax, A1
-    A0 = eax;                               // mov A0, eax
-
-l_next_team:;
-    (*(int16_t *)&D7)--;
-    flags.sign = (*(int16_t *)&D7 & 0x8000) != 0;
-    flags.zero = *(int16_t *)&D7 == 0;      // dec word ptr D7
-    if (!flags.sign)
-        goto l_init_teams;                  // jns @@init_teams
+        team->opponentTeam = opponentTeam;
+        team->inGameTeamPtr = inGameTeamPtr;
+        team->teamStatsPtr.set(teamStatsData);
+        team->playerNumber = playerNo;
+        team->playerCoachNumber = coachNo;
+        team->isPlCoach = isPlCoach;
+        team->players = players;
+        team->teamNumber = i + 1;
+        team->tactics = tactics;
+        team->goalkeeperPlaying = 0;
+        team->resetControls = 0;
+        team->updatePlayerIndex = kNumPlayersInLineup - 1;
+        team->controlledPlayer.reset();
+        team->passToPlayerPtr.reset();
+        team->passingKickingPlayer.reset();
+        team->playerHasBall = 0;
+        team->goalkeeperDivingLeft = 0;
+        team->goalkeeperDivingRight = 0;
+        team->ballOutOfPlayOrKeeper = 0;
+        team->goaliePlayingOrOut = 0;
+        team->passingBall = 0;
+        team->passingToPlayer = 0;
+        team->playerSwitchTimer = 0;
+        team->ballInPlay = 0;
+        team->ballOutOfPlay = 0;
+        team->passKickTimer = 0;
+        team->ballCanBeControlled = 0;
+        team->ofs114 = 0;
+        team->ballControllingPlayerDirection = -1;
+        team->ofs116 = 0;
+        team->wonTheBallTimer = 0;
+        team->spinTimer = -1;
+        team->ofs60 = 0;
+        team->goalkeeperSavedCommentTimer = 0;
+        team->lastHeadingTacklingPlayer.reset();
+        team->ofs78 = 0;
+        team->headerOrTackle = 0;
+        team->shooting = 0;
+        team->passInProgress = 0;
+    }
 }
 
 void initPlayersBeforeEnteringPitch()
 {
-    SWOS::RemoveReferee();                  // call RemoveReferee
-    A0 = &swos.team1SpritesTable;           // mov A0, offset team1SpritesTable
-    {
-        word src = swos.teamPlayingUp;
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp teamPlayingUp, 1
-    if (flags.zero)
-        goto l_first_team_up;               // jz short @@first_team_up
+    // x, y pairs for 11 players in both teams
+    static const std::array<int16_t, 2 * 2 * kNumPlayersInLineup> kTeamsStartingCoordinates = {
+        300, 69, 280, 46, 260, 34, 240, 24, 220, 16, 200, 9, 180, 3, 160, -2, 140, -8, 120, -9, 100, -11,
+        300, -65, 280, -42, 260, -30, 240, -20, 220, -12, 200, -5, 180, 1, 160, 6, 140, 12, 120, 13, 100, 15,
+    };
 
-    A0 = 330140;                            // mov A0, offset team2SpritesTable
+    auto players = swos.teamPlayingUp == 1 ? swos.team1SpritesTable : swos.team2SpritesTable;
+    auto coordinates = kTeamsStartingCoordinates.data();
 
-l_first_team_up:;
-    A1 = 524064;                            // mov A1, offset kTeamsStartingCoordinates
-    *(word *)&D7 = 1;                       // mov word ptr D7, 1
+    removeReferee();
 
-l_next_team:;
-    *(word *)&D1 = 10;                      // mov word ptr D1, 10
-
-l_next_player:;
-    esi = A0;                               // mov esi, A0
-    eax = readMemory(esi, 4);               // mov eax, [esi]
-    {
-        int32_t dstSigned = A0;
-        int32_t srcSigned = 4;
-        dword res = dstSigned + srcSigned;
-        A0 = res;
-    }                                       // add A0, 4
-    A2 = eax;                               // mov A2, eax
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    {
-        int32_t dstSigned = A1;
-        int32_t srcSigned = 2;
-        dword res = dstSigned + srcSigned;
-        A1 = res;
-    }                                       // add A1, 2
-    esi = A2;                               // mov esi, A2
-    writeMemory(esi + 32, 2, ax);           // mov word ptr [esi+(Sprite.x+2)], ax
-    {
-        word src = (word)readMemory(esi + 32, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = 591;
-        word res = dstSigned + srcSigned;
-        src = res;
-        writeMemory(esi + 32, 2, src);
-    }                                       // add word ptr [esi+(Sprite.x+2)], 591
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    {
-        int32_t dstSigned = A1;
-        int32_t srcSigned = 2;
-        dword res = dstSigned + srcSigned;
-        A1 = res;
-    }                                       // add A1, 2
-    esi = A2;                               // mov esi, A2
-    writeMemory(esi + 36, 2, ax);           // mov word ptr [esi+(Sprite.y+2)], ax
-    {
-        word src = (word)readMemory(esi + 36, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = 449;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        src = res;
-        writeMemory(esi + 36, 2, src);
-    }                                       // add word ptr [esi+(Sprite.y+2)], 449
-    SWOS::Rand();                           // call Rand
-    {
-        word res = *(word *)&D0 & 7;
-        *(word *)&D0 = res;
-    }                                       // and word ptr D0, 7
-    ax = D0;                                // mov ax, word ptr D0
-    esi = A2;                               // mov esi, A2
-    {
-        word src = (word)readMemory(esi + 32, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        src = res;
-        writeMemory(esi + 32, 2, src);
-    }                                       // add word ptr [esi+(Sprite.x+2)], ax
-    ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    writeMemory(esi + 40, 2, 0);            // mov word ptr [esi+(Sprite.z+2)], 0
-    writeMemory(esi + 44, 2, 0);            // mov [esi+Sprite.speed], 0
-    writeMemory(esi + 12, 1, 0);            // mov [esi+Sprite.playerState], PL_NORMAL
-    writeMemory(esi + 13, 1, 0);            // mov [esi+Sprite.playerDownTimer], 0
-    writeMemory(esi + 22, 2, -1);           // mov [esi+Sprite.frameIndex], -1
-    writeMemory(esi + 26, 2, 1);            // mov [esi+Sprite.cycleFramesTimer], 1
-    writeMemory(esi + 70, 2, -1);           // mov [esi+Sprite.imageIndex], -1
-    writeMemory(esi + 42, 2, 0);            // mov [esi+Sprite.direction], 0
-    writeMemory(esi + 84, 2, 1);            // mov [esi+Sprite.onScreen], 1
-    {
-        word src = (word)swos.gameState;
-        int16_t dstSigned = src;
-        int16_t srcSigned = 21;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp gameState, ST_STARTING_GAME
-    if (!flags.zero)
-        goto l_halftime;                    // jnz short @@halftime
-
-    writeMemory(esi + 108, 2, 0);           // mov [esi+Sprite.sentAway], 0
-    writeMemory(esi + 102, 2, 0);           // mov [esi+Sprite.cards], 0
-    writeMemory(esi + 104, 2, 0);           // mov [esi+Sprite.injuryLevel], 0
-
-l_halftime:;
-    push(A0);                               // push A0
-    push(A1);                               // push A1
-    eax = A2;                               // mov eax, A2
-    A1 = eax;                               // mov A1, eax
-    A0 = 453234;                            // mov A0, offset playerNormalStandingAnimTable
-    SetPlayerAnimationTable();              // call SetPlayerAnimationTable
-    pop(A1);                                // pop A1
-    pop(A0);                                // pop A0
-    (*(int16_t *)&D1)--;
-    flags.sign = (*(int16_t *)&D1 & 0x8000) != 0;
-    flags.zero = *(int16_t *)&D1 == 0;      // dec word ptr D1
-    if (!flags.sign)
-        goto l_next_player;                 // jns @@next_player
-
-    A0 = 330096;                            // mov A0, offset team1SpritesTable
-    {
-        word src = swos.teamPlayingUp;
-        int16_t dstSigned = src;
-        int16_t srcSigned = 2;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp teamPlayingUp, 2
-    if (flags.zero)
-        goto l_second_team_up;              // jz short @@second_team_up
-
-    A0 = 330140;                            // mov A0, offset team2SpritesTable
-
-l_second_team_up:;
-    (*(int16_t *)&D7)--;
-    flags.sign = (*(int16_t *)&D7 & 0x8000) != 0;
-    flags.zero = *(int16_t *)&D7 == 0;      // dec word ptr D7
-    if (!flags.sign)
-        goto l_next_team;                   // jns @@next_team
+    for (int teamIndex = 0; teamIndex < 2; teamIndex++) {
+        for (int playerIndex = 0; playerIndex < kNumPlayersInLineup; playerIndex++) {
+            auto player = *players++;
+            assert(player);
+            int xJitter = SWOS::rand() & 7;
+            player->x.setWhole(*coordinates++ + kRightThrowInLine + 1 + xJitter);
+            player->y.setWhole(*coordinates++ + kPitchCenterY);
+            player->z.setWhole(0);
+            player->destX = player->x.whole();
+            player->destY = player->y.whole();
+            player->speed = 0;
+            player->setToNormalState();
+            player->playerDownTimer = 0;
+            player->frameIndex = -1;
+            player->cycleFramesTimer = 1;
+            player->clearImage();
+            player->direction = 0;
+            player->onScreen = 1;
+            if (swos.gameState == GameState::kStartingGame) {
+                player->sentAway = 0;
+                player->cards = 0;
+                player->injuryLevel = 0;
+            }
+            setPlayerAnimationTable(*player, getPlayerNormalStandingAnimTable());
+        }
+        players = swos.teamPlayingUp == 2 ? swos.team1SpritesTable : swos.team2SpritesTable;
+    }
 }
 
 void playersLeavingPitch()
 {
-    *(word *)&g_memByte[449800] = 0;        // mov hideBall, 0
-    *(word *)&g_memByte[523122] = 275;      // mov stoppageEventTimer, 275
-    *(word *)&g_memByte[523118] = 24;       // mov gameState, ST_PLAYERS_GOING_TO_SHOWER
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, ST_STOPPED
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523128] = -1;       // mov cameraDirection, -1
-    *(dword *)&g_memByte[523108] = 522792;  // mov lastTeamPlayedBeforeBreak, offset topTeamData
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
-    stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
-    *(word *)&g_memByte[456262] = 0;        // mov stateGoal, 0
+    constexpr int kDelayBeforeLeavingPitch = 275;
+
+    swos.hideBall = 0;
+    swos.stoppageEventTimer = kDelayBeforeLeavingPitch;
+    swos.gameState = GameState::kPlayersGoingToShower;
+    swos.breakCameraMode = -1;
+    swos.gameStatePl = GameState::kStopped;
+    swos.cameraDirection = -1;
+    swos.lastTeamPlayedBeforeBreak = &swos.topTeamData;
+    swos.stoppageTimerTotal = 0;
+    swos.stoppageTimerActive = 0;
+    stopAllPlayers();
+    swos.cameraXVelocity = 0;
+    swos.cameraYVelocity = 0;
+    swos.stateGoal = 0;
 }
 
 void startPenalties()
 {
-    *(word *)&g_memByte[449310] = -1;       // mov penaltiesState, -1
-    ax = *(word *)&g_memByte[336636];       // mov ax, statsTeam1Goals
-    *(word *)&g_memByte[336628] = ax;       // mov savedTeam1Goals, ax
-    ax = *(word *)&g_memByte[336638];       // mov ax, statsTeam2Goals
-    *(word *)&g_memByte[336630] = ax;       // mov savedTeam2Goals, ax
-    *(word *)&g_memByte[336636] = 0;        // mov statsTeam1Goals, 0
-    *(word *)&g_memByte[336648] = 0;        // mov team1GoalsDigit1, 0
-    *(word *)&g_memByte[336644] = 0;        // mov team1GoalsDigit2, 0
-    *(word *)&g_memByte[336638] = 0;        // mov statsTeam2Goals, 0
-    *(word *)&g_memByte[336650] = 0;        // mov team2GoalsDigit1, 0
-    *(word *)&g_memByte[336646] = 0;        // mov team2GoalsDigit2, 0
-    *(word *)&g_memByte[449316] = 0;        // mov team1PenaltyGoals, 0
-    *(word *)&g_memByte[449318] = 0;        // mov team2PenaltyGoals, 0
-    SWOS::Rand();                           // call Rand
-    {
-        word res = *(word *)&D0 & 1;
-        *(word *)&D0 = res;
-    }                                       // and word ptr D0, 1
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 1;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, 1
-    ax = D0;                                // mov ax, word ptr D0
-    *(word *)&g_memByte[523146] = ax;       // mov teamPlayingUp, ax
-    SWOS::Rand();                           // call Rand
-    {
-        word res = *(word *)&D0 & 1;
-        *(word *)&D0 = res;
-    }                                       // and word ptr D0, 1
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 1;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, 1
-    ax = D0;                                // mov ax, word ptr D0
-    *(word *)&g_memByte[523144] = ax;       // mov teamStarting, ax
-    *(word *)&g_memByte[523158] = 11;       // mov team1PenaltyShooterIndex, 11
-    *(word *)&g_memByte[523160] = 11;       // mov team2PenaltyShooterIndex, 11
-    *(word *)&g_memByte[523152] = 0;        // mov team1PenaltyAttempts, 0
-    *(word *)&g_memByte[523154] = 0;        // mov team2PenaltyAttempts, 0
-    *(word *)&g_memByte[523148] = 1;        // mov playingPenalties, 1
-    *(word *)&g_memByte[523150] = 1;        // mov dontShowScorers, 1
-    A0 = 330096;                            // mov A0, offset team1SpritesTable
-    *(word *)&D0 = 10;                      // mov word ptr D0, 10
-
-l_team2_sprites_loop:;
-    esi = A0;                               // mov esi, A0
-    eax = readMemory(esi, 4);               // mov eax, [esi]
-    {
-        int32_t dstSigned = A0;
-        int32_t srcSigned = 4;
-        dword res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint32_t>(dstSigned);
-        A0 = res;
-    }                                       // add A0, 4
-    A5 = eax;                               // mov A5, eax
-    esi = A5;                               // mov esi, A5
-    writeMemory(esi + 102, 2, 0);           // mov [esi+Sprite.cards], 0
-    writeMemory(esi + 108, 2, 0);           // mov [esi+Sprite.sentAway], 0
-    (*(int16_t *)&D0)--;
-    flags.sign = (*(int16_t *)&D0 & 0x8000) != 0;
-    flags.zero = *(int16_t *)&D0 == 0;      // dec word ptr D0
-    if (!flags.sign)
-        goto l_team2_sprites_loop;          // jns short @@team2_sprites_loop
-
-    A0 = 330140;                            // mov A0, offset team2SpritesTable
-    *(word *)&D0 = 10;                      // mov word ptr D0, 10
-
-l_team1_sprites_loop:;
-    esi = A0;                               // mov esi, A0
-    eax = readMemory(esi, 4);               // mov eax, [esi]
-    {
-        int32_t dstSigned = A0;
-        int32_t srcSigned = 4;
-        dword res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint32_t>(dstSigned);
-        A0 = res;
-    }                                       // add A0, 4
-    A5 = eax;                               // mov A5, eax
-    esi = A5;                               // mov esi, A5
-    writeMemory(esi + 102, 2, 0);           // mov [esi+Sprite.cards], 0
-    writeMemory(esi + 108, 2, 0);           // mov [esi+Sprite.sentAway], 0
-    (*(int16_t *)&D0)--;
-    flags.sign = (*(int16_t *)&D0 & 0x8000) != 0;
-    flags.zero = *(int16_t *)&D0 == 0;      // dec word ptr D0
-    if (!flags.sign)
-        goto l_team1_sprites_loop;          // jns short @@team1_sprites_loop
-
-    nextPenalty();                          // call NextPenalty
+    swos.penaltiesState = -1;
+    m_savedTeam1Goals = swos.statsTeam1Goals;
+    m_savedTeam2Goals = swos.statsTeam2Goals;
+    swos.statsTeam1Goals = 0;
+    swos.team1GoalsDigit1 = 0;
+    swos.team1GoalsDigit2 = 0;
+    swos.statsTeam2Goals = 0;
+    swos.team2GoalsDigit1 = 0;
+    swos.team2GoalsDigit2 = 0;
+    swos.team1PenaltyGoals = 0;
+    swos.team2PenaltyGoals = 0;
+    swos.teamPlayingUp = (SWOS::rand() & 1) + 1;
+    swos.teamStarting = (SWOS::rand() & 1) + 1;
+    m_team1PenaltyShooterIndex = 11;
+    m_team2PenaltyShooterIndex = 11;
+    m_team1PenaltyAttempts = 0;
+    m_team2PenaltyAttempts = 0;
+    swos.playingPenalties = 1;
+    swos.dontShowScorers = 1;
+    // make all players available as penalty takers
+    for (auto players : { swos.team1SpritesTable, swos.team2SpritesTable }) {
+        for (int playerIndex = 0; playerIndex < kNumPlayersInLineup; playerIndex++) {
+            auto player = *players++;
+            assert(player);
+            player->cards = 0;
+            player->sentAway = 0;  // this why it's possible for red carded player to shoot penalties
+        }
+    }
+    nextPenalty();
 }
 
-// Next penalty is about to be shot. Check if penalties are over. If not,
-// initialize globals for penalty, set penaltyShooterSprite.
-// (penalties after the game)
+// Next penalty is about to be shot in a penalty shootout after the game. Check if penalties are over.
+// If not, initialize globals for penalty and set penaltyShooterSprite.
 //
 void nextPenalty()
 {
-    ax = *(word *)&g_memByte[523152];       // mov ax, team1PenaltyAttempts
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[523154];       // mov ax, team2PenaltyAttempts
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, ax
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 10;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, 10
-    if (flags.carry)
-        goto l_still_under_five_attempts;   // jb short @@still_under_five_attempts
+    bool penaltiesFinished = false;
+    if (m_team1PenaltyAttempts + m_team2PenaltyAttempts < 10) {
+        // still in regular penalties (first five)
+        // if they score all remaining attempts and still can't match other team's score then we're done here
+        penaltiesFinished = swos.team1PenaltyGoals + 5 - m_team1PenaltyAttempts < swos.team2PenaltyGoals ||
+            swos.team2PenaltyGoals + 5 - m_team2PenaltyAttempts < swos.team1PenaltyGoals;
+    } else {
+        // sudden death
+        penaltiesFinished = m_team1PenaltyAttempts == m_team2PenaltyAttempts &&
+            swos.team1PenaltyGoals != swos.team2PenaltyGoals;
+    }
 
-    ax = *(word *)&g_memByte[523152];       // mov ax, team1PenaltyAttempts
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[523154];       // mov ax, team2PenaltyAttempts
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, ax
-    if (!flags.zero)
-        goto l_next_penalty;                // jnz @@next_penalty
-
-    ax = *(word *)&g_memByte[449316];       // mov ax, team1PenaltyGoals
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[449318];       // mov ax, team2PenaltyGoals
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, ax
-    if (flags.zero)
-        goto l_next_penalty;                // jz @@next_penalty
-
-l_finish_penalties:;
-    *(word *)&g_memByte[523148] = 0;        // mov playingPenalties, 0
-    ax = *(word *)&g_memByte[336628];       // mov ax, savedTeam1Goals
-    *(word *)&g_memByte[336636] = ax;       // mov statsTeam1Goals, ax
-    ax = *(word *)&g_memByte[336630];       // mov ax, savedTeam2Goals
-    *(word *)&g_memByte[336638] = ax;       // mov statsTeam2Goals, ax
-    playersLeavingPitch();                  // call PlayersLeavingPitch
-    return;                                 // retn
-
-l_still_under_five_attempts:;
-    *(word *)&D0 = 5;                       // mov word ptr D0, 5
-    ax = *(word *)&g_memByte[523152];       // mov ax, team1PenaltyAttempts
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        *(word *)&D0 = res;
-    }                                       // sub word ptr D0, ax
-    ax = *(word *)&g_memByte[449316];       // mov ax, team1PenaltyGoals
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, ax
-    ax = *(word *)&g_memByte[449318];       // mov ax, team2PenaltyGoals
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, ax
-    if (flags.carry)
-        goto l_finish_penalties;            // jb short @@finish_penalties
-
-    *(word *)&D0 = 5;                       // mov word ptr D0, 5
-    ax = *(word *)&g_memByte[523154];       // mov ax, team2PenaltyAttempts
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        *(word *)&D0 = res;
-    }                                       // sub word ptr D0, ax
-    ax = *(word *)&g_memByte[449318];       // mov ax, team2PenaltyGoals
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, ax
-    ax = *(word *)&g_memByte[449316];       // mov ax, team1PenaltyGoals
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, ax
-    if (flags.carry)
-        goto l_finish_penalties;            // jb @@finish_penalties
-
-l_next_penalty:;
-    *(word *)&g_memByte[329028] = 0;        // mov word ptr ballSprite.z+2, 0
-    {
-        int16_t src = *(word *)&g_memByte[523146];
-        src = -src;
-        *(word *)&g_memByte[523146] = src;
-    }                                       // neg teamPlayingUp
-    {
-        word src = *(word *)&g_memByte[523146];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 3;
-        word res = dstSigned + srcSigned;
-        src = res;
-        *(word *)&g_memByte[523146] = src;
-    }                                       // add teamPlayingUp, 3
-    {
-        int16_t src = *(word *)&g_memByte[523144];
-        src = -src;
-        *(word *)&g_memByte[523144] = src;
-    }                                       // neg teamStarting
-    {
-        word src = *(word *)&g_memByte[523144];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 3;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        src = res;
-        *(word *)&g_memByte[523144] = src;
-    }                                       // add teamStarting, 3
-    *(word *)&g_memByte[449800] = 0;        // mov hideBall, 0
-    initTeamsData();                        // call InitTeamsData
-    *(word *)&g_memByte[523118] = 31;       // mov gameState, ST_PENALTIES
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523128] = 0;        // mov cameraDirection, 0
-    g_memByte[523130] = 131;                // mov byte ptr playerTurnFlags, 83h
-    *(word *)&g_memByte[523124] = 336;      // mov foulXCoordinate, 336
-    *(word *)&g_memByte[523126] = 187;      // mov foulYCoordinate, 187
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, 101
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    A6 = 522940;                            // mov A6, offset bottomTeamData
-    eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[523108] = eax;     // mov lastTeamPlayedBeforeBreak, eax
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
-    stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
-    *(word *)&g_memByte[523156] = 0;        // mov penaltiesTimer, 0
-    A0 = 523158;                            // mov A0, offset team1PenaltyShooterIndex
-    esi = A6;                               // mov esi, A6
-    {
-        word src = (word)readMemory(esi + 18, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+TeamGeneralInfo.teamNumber], 1
-    if (flags.zero)
-        goto l_team1;                       // jz short @@team1
-
-    A0 = 523160;                            // mov A0, offset team2PenaltyShooterIndex
-
-l_team1:;
-    esi = A0;                               // mov esi, A0
-    {
-        word src = (word)readMemory(esi, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        src = res;
-        writeMemory(esi, 2, src);
-    }                                       // sub word ptr [esi], 1
-    if (!flags.zero)
-        goto l_not_goalkeeper;              // jnz short @@not_goalkeeper
-
-    writeMemory(esi, 2, 10);                // mov word ptr [esi], 10
-
-l_not_goalkeeper:;
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    esi = A6;                               // mov esi, A6
-    eax = readMemory(esi + 20, 4);          // mov eax, [esi+TeamGeneralInfo.spritesTable]
-    A0 = eax;                               // mov A0, eax
-    {
-        word res = *(word *)&D0 << 2;
-        *(word *)&D0 = res;
-    }                                       // shl word ptr D0, 2
-    esi = A0;                               // mov esi, A0
-    ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    eax = readMemory(esi + ebx, 4);         // mov eax, [esi+ebx]
-    *(dword *)&g_memByte[523162] = eax;     // mov penaltyShooterSprite, eax
-    esi = A6;                               // mov esi, A6
-    {
-        word src = (word)readMemory(esi + 18, 2);
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+TeamGeneralInfo.teamNumber], 1
-    if (!flags.zero)
-        goto l_second_team_shoots;          // jnz short @@second_team_shoots
-
-    {
-        word src = *(word *)&g_memByte[523152];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        src = res;
-        *(word *)&g_memByte[523152] = src;
-    }                                       // add team1PenaltyAttempts, 1
-    return;                                 // retn
-
-l_second_team_shoots:;
-    {
-        word src = *(word *)&g_memByte[523154];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 1;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        src = res;
-        *(word *)&g_memByte[523154] = src;
-    }                                       // add team2PenaltyAttempts, 1
+    if (penaltiesFinished) {
+        swos.playingPenalties = 0;
+        swos.statsTeam1Goals = m_savedTeam1Goals;
+        swos.statsTeam2Goals = m_savedTeam2Goals;
+        playersLeavingPitch();
+    } else {
+        // go on with the next penalty
+        getBallSprite().z.setWhole(0);
+        swos.teamPlayingUp = 3 - swos.teamPlayingUp;
+        swos.teamStarting = 3 - swos.teamStarting;
+        swos.hideBall = 0;
+        initTeamsData();
+        swos.gameState = GameState::kPenaltyShootout;
+        swos.breakCameraMode = -1;
+        swos.cameraDirection = 0;
+        swos.playerTurnFlags = allowPlayerDirections(
+            PlayerDirection::kUpLeft, PlayerDirection::kUp, PlayerDirection::kUpRight);
+        swos.foulXCoordinate = kPitchCenterX;
+        swos.foulYCoordinate = kTopPenaltySpotY;
+        swos.gameStatePl = GameState::kStopped;
+        swos.lastTeamPlayedBeforeBreak = &swos.bottomTeamData;
+        swos.stoppageTimerTotal = 0;
+        swos.stoppageTimerActive = 0;
+        stopAllPlayers();
+        swos.cameraXVelocity = 0;
+        swos.cameraYVelocity = 0;
+        swos.penaltiesTimer = 0;
+        auto penaltyShooterIndex = swos.lastTeamPlayedBeforeBreak->teamNumber == 1 ?
+            &m_team1PenaltyShooterIndex : &m_team2PenaltyShooterIndex;
+        if (!--*penaltyShooterIndex)
+            *penaltyShooterIndex = 10;
+        assert(*penaltyShooterIndex >= 0 && *penaltyShooterIndex < 11);
+        swos.penaltyShooterSprite = swos.lastTeamPlayedBeforeBreak->players[*penaltyShooterIndex];
+        if (swos.lastTeamPlayedBeforeBreak->teamNumber == 1)
+            m_team1PenaltyAttempts++;
+        else
+            m_team2PenaltyAttempts++;
+    }
 }
 
 void startFirstExtraTime()
 {
-    *(word *)&g_memByte[523142] = 1;        // mov halfNumber, 1
-    SWOS::Rand();                           // call Rand
-    {
-        word res = *(word *)&D0 & 1;
-        *(word *)&D0 = res;
-    }                                       // and word ptr D0, 1
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 1;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, 1
-    ax = D0;                                // mov ax, word ptr D0
-    *(word *)&g_memByte[523146] = ax;       // mov teamPlayingUp, ax
-    SWOS::Rand();                           // call Rand
-    {
-        word res = *(word *)&D0 & 1;
-        *(word *)&D0 = res;
-    }                                       // and word ptr D0, 1
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 1;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, 1
-    ax = D0;                                // mov ax, word ptr D0
-    *(word *)&g_memByte[523144] = ax;       // mov teamStarting, ax
-    *(word *)&g_memByte[449800] = 0;        // mov hideBall, 0
-    initTeamsData();                        // call InitTeamsData
-    *(word *)&g_memByte[523122] = 110;      // mov stoppageEventTimer, 110
-    *(word *)&g_memByte[523118] = 27;       // mov gameState, ST_FIRST_EXTRA_STARTING
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, ST_STOPPED
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523128] = -1;       // mov cameraDirection, -1
-    A0 = 522792;                            // mov A0, offset topTeamData
-    ax = *(word *)&g_memByte[523144];       // mov ax, teamStarting
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[523146];       // mov ax, teamPlayingUp
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, ax
-    if (flags.zero)
-        goto cseg_75E77;                    // jz short cseg_75E77
-
-    A0 = 522940;                            // mov A0, offset bottomTeamData
-
-cseg_75E77:;
-    eax = A0;                               // mov eax, A0
-    *(dword *)&g_memByte[523108] = eax;     // mov lastTeamPlayedBeforeBreak, eax
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
-    stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
+    swos.halfNumber = 1;
+    swos.teamPlayingUp = (SWOS::rand() & 1) + 1;
+    swos.teamStarting = (SWOS::rand() & 1) + 1;
+    swos.hideBall = 0;
+    initTeamsData();
+    swos.stoppageEventTimer = 110;
+    swos.gameState = GameState::kFirstExtraStarting;
+    swos.breakCameraMode = -1;
+    swos.gameStatePl = GameState::kStopped;
+    swos.cameraDirection = -1;
+    swos.lastTeamPlayedBeforeBreak = swos.teamStarting == swos.teamPlayingUp ?
+        &swos.topTeamData : &swos.bottomTeamData;
+    swos.stoppageTimerTotal = 0;
+    swos.stoppageTimerActive = 0;
+    stopAllPlayers();
+    swos.cameraXVelocity = 0;
+    swos.cameraYVelocity = 0;
 }
 
 void endFirstExtraTime()
 {
-    *(word *)&g_memByte[523142] = 2;        // mov halfNumber, 2
-    {
-        int16_t src = *(word *)&g_memByte[523146];
-        src = -src;
-        *(word *)&g_memByte[523146] = src;
-    }                                       // neg teamPlayingUp
-    {
-        word src = *(word *)&g_memByte[523146];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 3;
-        word res = dstSigned + srcSigned;
-        src = res;
-        *(word *)&g_memByte[523146] = src;
-    }                                       // add teamPlayingUp, 3
-    {
-        int16_t src = *(word *)&g_memByte[523144];
-        src = -src;
-        *(word *)&g_memByte[523144] = src;
-    }                                       // neg teamStarting
-    {
-        word src = *(word *)&g_memByte[523144];
-        int16_t dstSigned = src;
-        int16_t srcSigned = 3;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        src = res;
-        *(word *)&g_memByte[523144] = src;
-    }                                       // add teamStarting, 3
-    *(word *)&g_memByte[449800] = 0;        // mov hideBall, 0
-    initTeamsData();                        // call InitTeamsData
-    *(word *)&g_memByte[523122] = 110;      // mov stoppageEventTimer, 110
-    *(word *)&g_memByte[523118] = 28;       // mov gameState, ST_FIRST_EXTRA_ENDED
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, ST_STOPPED
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523128] = -1;       // mov cameraDirection, -1
-    A0 = 522792;                            // mov A0, offset topTeamData
-    ax = *(word *)&g_memByte[523144];       // mov ax, teamStarting
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[523146];       // mov ax, teamPlayingUp
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, ax
-    if (flags.zero)
-        goto cseg_75F45;                    // jz short cseg_75F45
-
-    A0 = 522940;                            // mov A0, offset bottomTeamData
-
-cseg_75F45:;
-    eax = A0;                               // mov eax, A0
-    *(dword *)&g_memByte[523108] = eax;     // mov lastTeamPlayedBeforeBreak, eax
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
-    stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
+    swos.halfNumber = 2;
+    swos.teamPlayingUp = 3 - swos.teamPlayingUp;
+    swos.teamStarting = 3 - swos.teamStarting;
+    swos.hideBall = 0;
+    initTeamsData();
+    swos.stoppageEventTimer = 110;
+    swos.gameState = GameState::kFirstExtraEnded;
+    swos.breakCameraMode = -1;
+    swos.gameStatePl = GameState::kStopped;
+    swos.cameraDirection = -1;
+    swos.lastTeamPlayedBeforeBreak = swos.teamStarting == swos.teamPlayingUp ?
+        &swos.topTeamData : &swos.bottomTeamData;
+    swos.stoppageTimerTotal = 0;
+    swos.stoppageTimerActive = 0;
+    stopAllPlayers();
+    swos.cameraXVelocity = 0;
+    swos.cameraYVelocity = 0;
 }
 
 void checkIfGoalkeeperClaimedTheBall()
@@ -1386,18 +847,18 @@ static void determineStartingTeamAndTeamPlayingUp()
 
 static void initPitchBallFactors()
 {
-    static const int kPitchBallSpeedInfluence[] = { -3, 4, 1, 0, 0, -1, -1 };
-    static const int kPitchBallSpeedInfluenceAmiga[] = { -2, 2, 3, 0, 0, -1, -1 };
-    static const int kBallSpeedBounceFactorTable[] = { 24, 80, 80, 72, 64, 40, 32 };
-    static const int kBallBounceFactorTable[] = { 88, 112, 104, 104, 96, 88, 80 };
+    static const int8_t kPitchBallSpeedReductionAdjustments[] = {-3, 4, 1, 0, 0, -1, -1};
+    static const int8_t kPitchBallSpeedReductionAdjustmentsAmiga[] = {-2, 2, 3, 0, 0, -1, -1};
+    static const int8_t kBallSpeedBounceFactors[] = { 24, 80, 80, 72, 64, 40, 32 };
+    static const int8_t kballZAxisDampenFactors[] = { 88, 112, 104, 104, 96, 88, 80 };
 
     int pitchType = getPitchType();
     assert(static_cast<size_t>(pitchType) <= 6);
 
-    const auto& pitchBallSpeedInfluence = amigaModeActive() ? kPitchBallSpeedInfluenceAmiga : kPitchBallSpeedInfluence;
-    swos.pitchBallSpeedFactor = pitchBallSpeedInfluence[pitchType];
-    swos.ballSpeedBounceFactor = kBallSpeedBounceFactorTable[pitchType];
-    swos.ballBounceFactor = kBallBounceFactorTable[pitchType];
+    const auto& pitchBallSpeedInfluence =
+        amigaModeActive() ? kPitchBallSpeedReductionAdjustmentsAmiga : kPitchBallSpeedReductionAdjustments;
+    initPitchDependentBallPhysics(pitchBallSpeedInfluence[pitchType],
+        kBallSpeedBounceFactors[pitchType], kballZAxisDampenFactors[pitchType]);
 }
 
 static void initGameVariables()
@@ -1427,8 +888,9 @@ static void initGameVariables()
     memset(&swos.team1StatsData, 0, sizeof(TeamStatsData));
     memset(&swos.team2StatsData, 0, sizeof(TeamStatsData));
 
-    memset((char *)&swos.topTeamData + 24, 0, sizeof(swos.topTeamData) - 24);
-    memset((char *)&swos.bottomTeamData + 24, 0, sizeof(swos.bottomTeamData) - 24);
+    constexpr int kShotChanceTableOffset = offsetof(TeamGeneralInfo, shotChanceTable);
+    memset((char *)&swos.topTeamData + kShotChanceTableOffset, 0, sizeof(swos.topTeamData) - kShotChanceTableOffset);
+    memset((char *)&swos.bottomTeamData + kShotChanceTableOffset, 0, sizeof(swos.bottomTeamData) - kShotChanceTableOffset);
 
     swos.goalCounter = 0;
     swos.stateGoal = 0;
@@ -1449,7 +911,8 @@ static void initGameVariables()
 
 static void startingMatch()
 {
-    constexpr int kStartingBallX = 1672, kStartingBallY = 449;
+    constexpr int kStartingBallX = 1672;
+    constexpr int kStartingBallY = 449;
     constexpr int kInitialDelayBeforeKickOff = 100;
 
     swos.halfNumber = 1;

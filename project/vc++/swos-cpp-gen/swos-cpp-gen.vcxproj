@@ -130,4 +130,8 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="BuildReleaseIda2Asm" BeforeTargets="CustomBuild" Condition="'$(Configuration)' != 'Release'">
+    <MSBuild Projects="..\ida2asm\ida2asm.vcxproj" Targets="Build"
+      Properties="Configuration=Release;Platform=$(Platform);SolutionDir=$(MSBuildThisFileDirectory)..\" />
+  </Target>
 </Project>

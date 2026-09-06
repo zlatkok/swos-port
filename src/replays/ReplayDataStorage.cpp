@@ -253,17 +253,21 @@ void ReplayDataStorage::setupForFullReplay()
 
 void ReplayDataStorage::skipFrames(int offset)
 {
-    assert(m_replayNextFrame == m_replayOffset ||
+    const auto replayEnd = std::min<unsigned>(m_replayLimit, m_replayData.size());
+    assert(m_replayOffset <= replayEnd);
+    assert(m_replayOffset == replayEnd || m_replayNextFrame == m_replayOffset ||
         m_replayNextFrame > static_cast<unsigned>(m_replayData[m_replayOffset + kNextFrameOffset]));
 
     if (offset > 0) {
-        // decrement first, as the current frame hasn't been drawn yet, so it's effectively the next frame
-        while (--offset && m_replayData[m_replayOffset + kNextFrameOffset] < static_cast<int>(m_replayLimit))
-            m_replayOffset = m_replayData[m_replayOffset + kNextFrameOffset];
+        if (m_replayOffset != replayEnd) {
+            // decrement first, as the current frame hasn't been drawn yet, so it's effectively the next frame
+            while (--offset && m_replayData[m_replayOffset + kNextFrameOffset] < static_cast<int>(m_replayLimit))
+                m_replayOffset = m_replayData[m_replayOffset + kNextFrameOffset];
+        }
     } else {
         offset = -offset + 1;
 
-        if (m_replayOffset >= std::min<unsigned>(m_replayLimit, m_replayData.size())) {
+        if (m_replayOffset >= replayEnd) {
             m_replayOffset = m_previousFrameOffset;
             offset--;
         }

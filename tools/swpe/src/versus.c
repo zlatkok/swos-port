@@ -36,7 +36,7 @@ const Mode VersusMode = {
     PatternsGetPalette,
     versus_help,
     "TEST MODE",
-    VK_F10,
+    VK_F11,
     0
 };
 

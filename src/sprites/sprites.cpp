@@ -80,7 +80,8 @@ void initMenuSprites()
 const PackedSprite& getSprite(int index)
 {
     assert(static_cast<size_t>(index) < m_packedSprites[m_res].size());
-    assert(index == 225 || m_packedSprites[m_res][index].widthF && m_packedSprites[m_res][index].heightF);
+    assert(index == kInPlayMatchPitchSprite || index == kTacticsPitchSprite ||
+        m_packedSprites[m_res][index].widthF && m_packedSprites[m_res][index].heightF);
 
     return m_packedSprites[m_res][index];
 }

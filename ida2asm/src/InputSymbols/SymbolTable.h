@@ -25,6 +25,7 @@ public:
 
     void mergeSymbols(const SymbolTable& other);
     const std::vector<String> unusedSymbolsForRemoval() const;
+    const std::vector<std::pair<String, String>> removalRanges() const;
 
 private:
 #pragma pack(push, 1)

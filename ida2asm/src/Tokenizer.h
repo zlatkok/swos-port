@@ -63,6 +63,12 @@ struct Token
     inline bool startsWith(char c) const {
         return firstChar() == c;
     }
+    inline bool startsWith(const char *str) const {
+        for (size_t i = 0; i < textLength; i++)
+            if (*str++ != text()[i])
+                return !str[-1];
+        return !str[0];
+    }
     template <size_t N> inline bool startsWith(const char (&str)[N]) const {
         return textLength >= N - 1 && !memcmp(text(), str, N - 1);
     }
@@ -80,6 +86,10 @@ struct Token
     }
     inline bool contains(char c) const {
         return indexOf(c) >= 0;
+    }
+    inline bool matchIdOrLabel(const char *str, size_t length) const {
+        return isId() && (textLength == length || textLength == length + 1)
+            && !memcmp(text(), str, length) && (textLength == length || lastChar() == ':');
     }
     inline static bool isText(Token::Type type) {
         return type <= T_ID;

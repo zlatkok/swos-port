@@ -1,6 +1,7 @@
 ﻿; ---------------------------------------------------------------------------
 
-REGS struc ; (sizeof=0x1C, mappedto_56) ; XREF: FF0006CE/r FF0006D3/r
+REGS struc ; (sizeof=0x1C, mappedto_56)
+                    ; XREF: dseg:kBallAirSpeedReduction/o FF0006CE/r ...
 rEax dd ?
 rEbx dd ?
 rEcx dd ?
@@ -13,7 +14,8 @@ REGS ends
 ; ---------------------------------------------------------------------------
 
 FREE_MEM_BUF struc ; (sizeof=0x30, mappedto_55)
-                    ; XREF: dseg:freeMemBuffer/r
+                    ; XREF: dseg:kBallAirSpeedReduction/o
+                    ; dseg:freeMemBuffer/r
 maxFreeBlock dd ?
 maxUnlockedPageAlloc dd ?
 maxLockedPageAlloc dd ?
@@ -48,7 +50,8 @@ SpriteGraphics ends
 ; ---------------------------------------------------------------------------
 
 RM_REG_DATA struc ; (sizeof=0x32, mappedto_53)
-                    ; XREF: StopAllPlayers+39/o dseg:rmRegs/r
+                    ; XREF: StopAllPlayers+39/o
+                    ; dseg:kBallAirSpeedReduction/o ...
 rEdi dd ?
 rEsi dd ?
 rEbp dd ?
@@ -140,7 +143,8 @@ CdRomPlayAudioStruct ends
 ; ---------------------------------------------------------------------------
 
 SavedSprite struc ; (sizeof=0x10, mappedto_47)
-                    ; XREF: dseg:savedSprites/r
+                    ; XREF: dseg:kBallAirSpeedReduction/o
+                    ; dseg:savedSprites/r
 lineQuads dw ?      ; XREF: SavePixelsBehindSprite+32/w
 numLines dw ?       ; XREF: SavePixelsBehindSprite+4A/w
 backgroundPtr dd ?  ; XREF: SavePixelsBehindSprite+57/w
@@ -153,7 +157,7 @@ SavedSprite ends
 
 TeamStatisticsData struc ; (sizeof=0xE, mappedto_46)
                     ; XREF: PlayerTacklingTestFoul+1FB/r
-                    ; dseg:team1StatsData/r ...
+                    ; dseg:kBallAirSpeedReduction/o ...
 ballPossession dw ? ; XREF: UpdateAndDrawStatistics+BE/w
                     ; DrawStatistics+54A/r ...
 cornersWon dw ?     ; XREF: DrawStatistics+839/r DrawStatistics+85A/r ...
@@ -204,7 +208,7 @@ z dd ?              ; XREF: UpdateControlledPlayerNumbers+1B1/r
                     ; UpdateControlledPlayerNumbers+1E0/w ... ; base 10
 direction dw ?      ; XREF: InitPlayersBeforeEnteringPitch+13F/w
                     ; SetPlayerAnimationTable+4F/r ...
-speed dw ?          ; XREF: ActivateReferee+F6/w SetBallPosition+10/w ...
+speed dw ?          ; XREF: ActivateReferee+F6/w SetBallPosition+10/w ... ; signed Q7.9 magnitude: 512 = 1 pixel/tick before PC 41/64 scaling
 deltaX dd ?         ; XREF: UpdateControlledPlayerNumbers+113/r
                     ; UpdateGameTimersAndCameraBreakMode+3FE/r ... ; base 10
 deltaY dd ?         ; XREF: UpdateAndDrawStatistics+E5/r
@@ -485,7 +489,7 @@ shotChanceTable dd ? ; XREF: UpdatePlayerShotChanceTable+18/w
 tactics dw ?        ; XREF: ShowFormationMenu+22/r
                     ; HandleFormationMenuControls+23/w ...
 updatePlayerIndex dw ? ; XREF: InitTeamsData+219/w UpdatePlayers+1D9/w ...
-controlledPlayerSprite dd ? ; XREF: DrawAnimatedPatterns+13E/r
+controlledPlayer dd ? ; XREF: DrawAnimatedPatterns+13E/r
                     ; CheckForThrowInAndGoalkeepersBall+10/r ...
 passToPlayerPtr dd ? ; XREF: InitTeamsData+232/w StopAllPlayers+4C/w ...
 playerHasBall dw ?  ; XREF: UpdateAndDrawStatistics+18F/r
@@ -578,7 +582,7 @@ TeamGeneralInfo ends
 
 ; ---------------------------------------------------------------------------
 
-PlayerGame struc ; (sizeof=0x3D, mappedto_35)
+PlayerInfo struc ; (sizeof=0x3D, mappedto_35)
                     ; XREF: ApplyTeamTactics+4FF/o
                     ; ShowStadiumInit+3E2/o ...
 skip db ?           ; XREF: UpdatePlayerInjuries+AB/o cseg_2F3AB+81/o ...
@@ -606,11 +610,11 @@ injuriesBitfield db ?
 halfPlayed db ?
 face2 db ?
 fullName db 23 dup(?)
-PlayerGame ends
+PlayerInfo ends
 
 ; ---------------------------------------------------------------------------
 
-PlayerGameHeader struc ; (sizeof=0x67, mappedto_34)
+PlayerInfoHeader struc ; (sizeof=0x67, mappedto_34)
                     ; XREF: InitInGameTeamStructure+2D3/r
                     ; InitInGameTeamStructure+2D7/r ...
 header db 42 dup(?)
@@ -654,11 +658,12 @@ face2 db ?          ; XREF: SetPlayerNameAndFace+A2/w
                     ; StadiumPlayerSpritesBeforeDraw+129/r
 fullName db 23 dup(?) ; XREF: SetPlayerNameAndFace+6C/o
                     ; ShowStadiumInit+353/o ...
-PlayerGameHeader ends
+PlayerInfoHeader ends
 
 ; ---------------------------------------------------------------------------
 
 League struc ; (sizeof=0x11, mappedto_33)
+                    ; XREF: dseg:kBallAirSpeedReduction/o
 competitionNumber db ?
 countryNumber dw ?
 startMonth db ?
@@ -749,6 +754,7 @@ PlayerPositions ends
 ; ---------------------------------------------------------------------------
 
 AIL_Sample struc ; (sizeof=0x894, mappedto_59)
+                    ; XREF: dseg:kBallAirSpeedReduction/o
 driver dd ?         ; XREF: AIL_Sample_set_volume+49/r
                     ; AIL_Sample_set_volume:cseg_A4614/r
 status dd ?         ; XREF: AIL_sample_status_internal:@@get_status/r
@@ -782,6 +788,7 @@ AIL_Sample ends
 ; ---------------------------------------------------------------------------
 
 AIL_DigDriver struc ; (sizeof=0x8C, mappedto_61)
+                    ; XREF: dseg:kBallAirSpeedReduction/o
 driver dd ?
 DDT dd ?
 DST dd ?
@@ -815,7 +822,7 @@ AIL_DigDriver ends
 
 CharTable struc ; (sizeof=0xEE, mappedto_62)
                     ; XREF: dseg:smallCharsTable/r
-                    ; dseg:bigCharsTable/r
+                    ; dseg:bigCharsTable/r ...
 unk1 dw ?
 charHeight dw ?     ; XREF: DrawMenuItem+34F/r DrawMenuItem+784/r ...
 unk2 dd ?
@@ -843,7 +850,7 @@ PoolPlayer ends
 
 MarketPlayer struc ; (sizeof=0x2A, mappedto_65)
                     ; XREF: FillForeignMarketPlayersData+110/o
-                    ; dseg:careerForeignMarketPlayers/r
+                    ; dseg:careerForeignMarketPlayers/r ...
 teamId dw ?         ; XREF: FillForeignMarketPlayersData+42/r
                     ; FillForeignMarketPlayersData+56/r
 playerOrdinal db ?  ; XREF: FillForeignMarketPlayersData+65/r
@@ -1152,8 +1159,8 @@ SEASON_JUL  = 6
 SEASON_AUG  = 7
 SEASON_SEP  = 8
 SEASON_OCT  = 9
-SEASON_NOV  = 0Ah
-SEASON_DEC  = 0Bh
+SEASON_NOV  = 10
+SEASON_DEC  = 11
 
 ; ---------------------------------------------------------------------------
 
@@ -1377,12 +1384,12 @@ ORANGE_TO_BROWN_6  = 6
 PINK_TO_BROWN_7  = 7
 BLUE_TO_BLACK_8  = 8
 PINK_TO_BROWN_9  = 9
-RED_10  = 0Ah
-BLUE_TO_PURPLE_11  = 0Bh
-ORANGE_TO_BROWN_12  = 0Ch
-BRIGHT_BLUE_TO_BLUE_13  = 0Dh
-YELLOW_GREEN_BLACK_14  = 0Eh
-YELLOW_GREEN_BLACK_15  = 0Fh
+RED_10  = 10
+BLUE_TO_PURPLE_11  = 11
+ORANGE_TO_BROWN_12  = 12
+BRIGHT_BLUE_TO_BLUE_13  = 13
+YELLOW_GREEN_BLACK_14  = 14
+YELLOW_GREEN_BLACK_15  = 15
 
 ; ---------------------------------------------------------------------------
 
@@ -1560,6 +1567,14 @@ COLOR_PURPLISH  = 11
 COLOR_LIGHT_BLUE  = 13
 COLOR_GREEN  = 14
 COLOR_YELLOW  = 15
+
+; ---------------------------------------------------------------------------
+
+; enum AnimationMarkers, mappedto_72
+LAST_FRAME_LOOP_MARKER  = 4294966297 ; -999
+LAST_FRAME_HOLD_MARKER  = 4294967195 ; -101
+FRAME_LOOP_BACK_MARKER  = 4294967196 ; -100
+
 
 
 .586p
@@ -3499,7 +3514,7 @@ mov     ax, word ptr D6
 mov     word ptr D1, ax
 mov     eax, dseg_16F486
 mov     A0, eax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, word ptr D0
 mov     word ptr D6, ax
 mov     ax, word ptr D1
@@ -3866,7 +3881,7 @@ mov     eax, dseg_16F486
 mov     A0, eax
 mov     ax, word ptr D7
 mov     word ptr D1, ax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     eax, A0
 mov     A6, eax
 mov     ax, word ptr D1
@@ -8397,7 +8412,7 @@ movzx   ebx, word ptr D6
 add     eax, ebx
 mov     A0, eax
 mov     esi, A0
-add     [esi+PlayerGameHeader.goalsScored], 1
+add     [esi+PlayerInfoHeader.goalsScored], 1
 
 @@next_goal:        ; CODE XREF: AssignFakeGoalsToScorers+327↓j
 dec     word ptr D5
@@ -32542,7 +32557,7 @@ cseg_2B84D endp
 
 ; out:
 ;      D1 - team1 num. goals
-;      D2 - team2 num, goals
+;      D2 - team2 num. goals
 ;
 
 CalculateViewResult proc near ; CODE XREF: cseg_2B7D8:cseg_2B819↑j
@@ -35658,25 +35673,25 @@ mov     word ptr D2, 15 ; for 16 players...
 
 @@players_loop:     ; CODE XREF: UpdatePlayerInjuries+BA↓j
 mov     esi, A1
-mov     al, [esi+PlayerGameHeader.substituted]
+mov     al, [esi+PlayerInfoHeader.substituted]
 or      al, al
 jnz     @@next_player
 mov     esi, A1
-mov     al, [esi+PlayerGameHeader.isInjured]
+mov     al, [esi+PlayerInfoHeader.isInjured]
 or      al, al
 jz      short @@next_player
 mov     esi, A2     ; player that wasn't injured or substituted
 mov     ax, word ptr [esi+TeamFile.countryNumber]
 mov     word ptr D0, ax
 mov     esi, A1
-mov     al, [esi+PlayerGameHeader.playerIndex]
+mov     al, [esi+PlayerInfoHeader.playerIndex]
 mov     byte ptr D1, al
 mov     al, byte ptr D1
 cbw
 mov     word ptr D1, ax
 call    GetPlayer
 mov     esi, A1
-mov     al, [esi+PlayerGameHeader.injuriesBitfield]
+mov     al, [esi+PlayerInfoHeader.injuriesBitfield]
 mov     byte ptr D1, al
 mov     esi, A0
 mov     al, [esi+(PlayerFile.cardsInjuries+4Ch)]
@@ -35691,7 +35706,7 @@ mov     [esi+(PlayerFile.cardsInjuries+4Ch)], al ; set it to active value from m
 @@next_player:      ; CODE XREF: UpdatePlayerInjuries+24↑j
                     ; UpdatePlayerInjuries+35↑j
 mov     eax, A1
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A1, eax
 dec     word ptr D2
 jns     @@players_loop
@@ -35721,7 +35736,7 @@ mov     word ptr D2, 15 ; for 16 players
 
 @@loop:             ; CODE XREF: cseg_2F3AB+90↓j
 mov     esi, A1
-mov     al, [esi+PlayerGameHeader.goalsScored]
+mov     al, [esi+PlayerInfoHeader.goalsScored]
 mov     byte ptr D3, al
 or      al, al
 jz      short @@next_player
@@ -35729,7 +35744,7 @@ mov     esi, A2
 mov     ax, word ptr [esi+TeamFile.countryNumber]
 mov     word ptr D0, ax
 mov     esi, A1
-mov     al, [esi+PlayerGameHeader.playerIndex]
+mov     al, [esi+PlayerInfoHeader.playerIndex]
 mov     byte ptr D1, al
 mov     al, byte ptr D1
 cbw
@@ -35742,7 +35757,7 @@ add     [esi+ebx+109], al
 
 @@next_player:      ; CODE XREF: cseg_2F3AB+35↑j
 mov     eax, A1
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A1, eax
 dec     word ptr D2
 jns     short @@loop
@@ -35867,7 +35882,7 @@ mov     word ptr D1, 0
 
 @@get_player_by_ordinal: ; CODE XREF: InitInGameTeamStructure+1FA↑j
                     ; InitInGameTeamStructure+206↑j ...
-call    GetPlayerGameBreakPosition ; check each player, is it marked
+call    GetPlayerInfoBreakPosition ; check each player, is it marked
 mov     ax, team1SelectedPlayerIndex
 mov     word ptr D3, ax
 cmp     A4, offset topTeamInGame
@@ -35909,15 +35924,15 @@ push    D2
 call    SetPlayerNameAndFace
 pop     D2
 mov     esi, A6
-mov     [esi+PlayerGameHeader.passing], 0
-mov     [esi+PlayerGameHeader.shooting], 0
-mov     [esi+PlayerGameHeader.heading], 0
-mov     [esi+PlayerGameHeader.tackling], 0
-mov     [esi+PlayerGameHeader.ballControl], 0
-mov     [esi+PlayerGameHeader.speed], 0
-mov     [esi+PlayerGameHeader.finishing], 0
-mov     [esi+PlayerGameHeader.goalieSkill], 0
-add     A6, size PlayerGame
+mov     [esi+PlayerInfoHeader.passing], 0
+mov     [esi+PlayerInfoHeader.shooting], 0
+mov     [esi+PlayerInfoHeader.heading], 0
+mov     [esi+PlayerInfoHeader.tackling], 0
+mov     [esi+PlayerInfoHeader.ballControl], 0
+mov     [esi+PlayerInfoHeader.speed], 0
+mov     [esi+PlayerInfoHeader.finishing], 0
+mov     [esi+PlayerInfoHeader.goalieSkill], 0
+add     A6, size PlayerInfo
 add     word ptr D2, 1
 cmp     word ptr D2, 16
 jnz     @@players_loop
@@ -35969,7 +35984,7 @@ mov     eax, A5
 add     eax, PlayerFile.playerName+4Ch
 mov     A0, eax     ; A0 -> player name (file)
 mov     eax, A6
-add     eax, PlayerGameHeader.fullName
+add     eax, PlayerInfoHeader.fullName
 mov     A1, eax     ; A1 -> player name (game)
 call    StringCopy
 mov     esi, A5
@@ -35979,7 +35994,7 @@ and     word ptr D0, 18h
 shr     word ptr D0, 3
 mov     al, byte ptr D0
 mov     esi, A6
-mov     [esi+PlayerGameHeader.face2], al
+mov     [esi+PlayerInfoHeader.face2], al
 pop     A6
 pop     A5
 pop     A4
@@ -36012,10 +36027,10 @@ SetPlayerNameAndFace endp
 InitInGamePlayer proc near ; CODE XREF: InitInGameTeamStructure+1D0↑p
 mov     al, byte ptr D1
 mov     esi, A6
-mov     [esi+PlayerGameHeader.playerIndex], al
+mov     [esi+PlayerInfoHeader.playerIndex], al
 mov     esi, A6
-mov     [esi+PlayerGameHeader.goalsScored], 0
-mov     word ptr [esi+PlayerGameHeader.halfPlayed], 0
+mov     [esi+PlayerInfoHeader.goalsScored], 0
+mov     word ptr [esi+PlayerInfoHeader.halfPlayed], 0
 mov     eax, A5
 add     eax, PlayerFile.playerName+4Ch
 mov     A0, eax     ; A0 -> player name (file)
@@ -36034,7 +36049,7 @@ pop     A3
 pop     A2
 pop     D2
 mov     eax, A6
-add     eax, PlayerGameHeader.shortName
+add     eax, PlayerInfoHeader.shortName
 mov     A1, eax     ; A0 -> player name initial + surname
 call    StringCopy
 mov     esi, A5
@@ -36044,7 +36059,7 @@ and     word ptr D0, 18h
 shr     word ptr D0, 3 ; D0 = face index
 mov     al, byte ptr D0
 mov     esi, A6
-mov     [esi+PlayerGameHeader.face], al
+mov     [esi+PlayerInfoHeader.face], al
 mov     esi, A5
 mov     al, [esi+(PlayerFile.positionAndFace+4Ch)]
 mov     byte ptr D0, al
@@ -36052,9 +36067,9 @@ and     word ptr D0, 0E0h
 shr     word ptr D0, 5
 mov     al, byte ptr D0
 mov     esi, A6
-mov     [esi+PlayerGameHeader.position], al
+mov     [esi+PlayerInfoHeader.position], al
 mov     esi, A6
-mov     [esi+PlayerGameHeader.substituted], 0
+mov     [esi+PlayerInfoHeader.substituted], 0
 cmp     word ptr D2, 11
 jb      @@first_team_players
 mov     eax, A5
@@ -36102,14 +36117,14 @@ jb      short @@first_team_players
 
 @@player_injured:   ; CODE XREF: InitInGamePlayer+1D3↑j
 mov     esi, A6
-mov     [esi+PlayerGameHeader.position], -1
+mov     [esi+PlayerInfoHeader.position], -1
 mov     esi, A6
-mov     [esi+PlayerGameHeader.substituted], 1
+mov     [esi+PlayerInfoHeader.substituted], 1
 
 @@first_team_players: ; CODE XREF: InitInGamePlayer+FE↑j
                     ; InitInGamePlayer+1F6↑j
 mov     esi, A6
-mov     [esi+PlayerGameHeader.cards], 0
+mov     [esi+PlayerInfoHeader.cards], 0
 mov     esi, A5
 mov     al, [esi+(PlayerFile.cardsInjuries+4Ch)]
 mov     byte ptr D0, al
@@ -36120,7 +36135,7 @@ and     word ptr D0, 1Ch
 shr     word ptr D0, 2
 mov     al, byte ptr D0
 mov     esi, A6
-mov     [esi+PlayerGameHeader.cards], al
+mov     [esi+PlayerInfoHeader.cards], al
 jmp     short cseg_2FB04
 ; ---------------------------------------------------------------------------
 
@@ -36129,29 +36144,29 @@ and     word ptr D0, 3
 cmp     word ptr D0, 1
 jb      short cseg_2FB04
 mov     esi, A6
-mov     [esi+PlayerGameHeader.cards], 2
+mov     [esi+PlayerInfoHeader.cards], 2
 
 cseg_2FB04:         ; CODE XREF: InitInGamePlayer+24D↑j
                     ; InitInGamePlayer+25F↑j
 mov     esi, A6
-mov     al, [esi+PlayerGameHeader.cards]
-mov     [esi+PlayerGameHeader.previousCards], al
-mov     [esi+PlayerGameHeader.isInjured], 0
-mov     [esi+PlayerGameHeader.disallowSubs], 0
-mov     [esi+PlayerGameHeader.injuriesBitfield], 0
+mov     al, [esi+PlayerInfoHeader.cards]
+mov     [esi+PlayerInfoHeader.previousCards], al
+mov     [esi+PlayerInfoHeader.isInjured], 0
+mov     [esi+PlayerInfoHeader.disallowSubs], 0
+mov     [esi+PlayerInfoHeader.injuriesBitfield], 0
 mov     esi, A5
 mov     al, [esi+(PlayerFile.cardsInjuries+4Ch)]
 mov     byte ptr D0, al
 and     word ptr D0, 0E0h
 mov     al, byte ptr D0
 mov     esi, A6
-mov     [esi+PlayerGameHeader.injuriesBitfield], al
+mov     [esi+PlayerInfoHeader.injuriesBitfield], al
 mov     esi, A6
-mov     [esi+PlayerGameHeader.fasterTackle], 0
+mov     [esi+PlayerInfoHeader.fasterTackle], 0
 mov     esi, A5
 mov     al, [esi+(PlayerFile.shirtNumber+4Ch)]
 mov     esi, A6
-mov     [esi+PlayerGameHeader.shirtNumber], al
+mov     [esi+PlayerInfoHeader.shirtNumber], al
 retn
 InitInGamePlayer endp
 
@@ -37401,7 +37416,7 @@ mov     esi, A2
 mov     ax, word ptr [esi+TeamFile.countryNumber]
 mov     word ptr D0, ax ; D0 = team number
 mov     esi, A6     ; A6 -> current player (game) + header
-mov     al, [esi+PlayerGameHeader.playerIndex]
+mov     al, [esi+PlayerInfoHeader.playerIndex]
 mov     byte ptr D1, al
 mov     al, byte ptr D1
 cbw
@@ -37594,7 +37609,7 @@ pop     D3
 pop     D2
 pop     D1
 pop     D0
-add     A6, size PlayerGame
+add     A6, size PlayerInfo
 add     word ptr D2, 1
 cmp     word ptr D2, 11
 jnz     @@starting_players_loop
@@ -37754,7 +37769,7 @@ mov     word ptr D1, ax
 and     D1, 7777777h ; D1 = packed 7 skills, 4 bit each
 shl     D1, 4
 mov     eax, A6
-add     eax, PlayerGameHeader.passing
+add     eax, PlayerInfoHeader.passing
 mov     A0, eax     ; A0 -> player skills in player game
 mov     word ptr D3, 6
 
@@ -37779,7 +37794,7 @@ inc     A0
 dec     word ptr D3
 jns     short @@player_skills_loop
 mov     esi, A6
-mov     [esi+PlayerGameHeader.goalieSkill], 0
+mov     [esi+PlayerInfoHeader.goalieSkill], 0
 mov     esi, A5
 mov     al, [esi+(PlayerFile.positionAndFace+4Ch)]
 mov     byte ptr D0, al
@@ -37864,7 +37879,7 @@ mov     word ptr D0, 0
                     ; AdjustPlayerSkills+433↑j ...
 mov     al, byte ptr D0 ; skill = 0..7
 mov     esi, A6
-mov     [esi+PlayerGameHeader.goalieSkill], al
+mov     [esi+PlayerInfoHeader.goalieSkill], al
 
 @@out:              ; CODE XREF: AdjustPlayerSkills+33A↑j
 retn
@@ -51826,7 +51841,7 @@ mov     ax, [esi+MenuEntry.ordinal]
 sub     word ptr D1, ax ; D1 = selected player index
 mov     eax, A1
 mov     A0, eax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     esi, A0
 mov     al, [esi+(PlayerFile.positionAndFace+4Ch)]
 mov     byte ptr D0, al
@@ -51874,7 +51889,7 @@ mov     eax, playMatchTeam1Ptr
 mov     A0, eax
 mov     ax, word ptr D6
 mov     word ptr D1, ax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, word ptr D0
 mov     word ptr D6, ax ; D6 = player index in tactics
 mov     ax, word ptr D1
@@ -53832,7 +53847,7 @@ mov     A0, eax
 cseg_41C91:         ; CODE XREF: DrawPlayerEntries+4B9↑j
 mov     ax, word ptr D7
 mov     word ptr D1, ax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, word ptr D0
 mov     word ptr D4, ax ; D4 = entry background color
 mov     eax, A0
@@ -65820,7 +65835,7 @@ mov     [esi+TeamFile.tactics], al
 mov     ax, word ptr D6
 mov     word ptr D1, ax
 push    A0
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 pop     A0
 mov     al, byte ptr D7
 mov     esi, A0
@@ -66039,7 +66054,7 @@ mov     [esi+TeamFile.tactics], al ; current tactics, offset 169 to selected tea
 mov     ax, word ptr D6
 mov     word ptr D1, ax ; D1 = player index
 push    A0
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 pop     A0
 mov     al, byte ptr D7
 mov     esi, A0
@@ -66802,7 +66817,7 @@ mov     esi, A0
 mov     [esi+18h], al
 mov     ax, word ptr D7
 mov     word ptr D1, ax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, word ptr D0
 mov     word ptr D7, ax
 mov     eax, A0
@@ -67110,7 +67125,7 @@ mov     esi, A0
 mov     [esi+TeamFile.tactics], al
 mov     ax, word ptr D7
 mov     word ptr D1, ax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, word ptr D1
 mov     word ptr D5, ax
 mov     ax, word ptr D0
@@ -69962,7 +69977,7 @@ align 4
 ;
 ; Returns a player at a given position when the ball is out of play.
 
-GetPlayerGameBreakPosition proc near ; CODE XREF: SquadCommon+52↑p
+GetPlayerInfoBreakPosition proc near ; CODE XREF: SquadCommon+52↑p
                     ; SquadAfterDrawCommon+479↑p ...
 cmp     word ptr D1, 11
 jnb     @@reserves
@@ -69998,7 +70013,7 @@ mov     byte ptr D1, al
 sub     byte ptr D1, 1 ; zero based index of the player in the team
 pop     A0
 
-@@reserves:         ; CODE XREF: GetPlayerGameBreakPosition+8↑j
+@@reserves:         ; CODE XREF: GetPlayerInfoBreakPosition+8↑j
 mov     esi, A0
 mov     ax, word ptr [esi+TeamFile.countryNumber]
 mov     word ptr D0, ax
@@ -70006,7 +70021,7 @@ push    small [word ptr D1]
 call    GetPlayerAtIndex
 pop     small [word ptr D0] ; return 0-based player position in D0
 retn
-GetPlayerGameBreakPosition endp
+GetPlayerInfoBreakPosition endp
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -72455,7 +72470,7 @@ mov     ax, [esi+2]
 sub     word ptr D1, ax
 mov     eax, dseg_17A6E6
 mov     A0, eax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, teamOffering
 mov     word ptr D0, ax
 call    cseg_54C1E
@@ -72491,7 +72506,7 @@ mov     word ptr D1, ax
 add     word ptr D6, 1
 mov     eax, dseg_17A6E6
 mov     A0, eax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     eax, A0
 mov     A6, eax
 mov     word ptr D5, 0
@@ -74887,7 +74902,7 @@ mov     ax, word ptr D1
 mov     dseg_17A476, ax
 mov     eax, squadTeamPtr
 mov     A0, eax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, word ptr D1
 mov     dseg_17A474, ax
 jmp     SetExitMenuFlag
@@ -74918,7 +74933,7 @@ mov     word ptr D6, 0FFFFh
 cseg_576AB:         ; CODE XREF: ViewSquadAfterDrawCommon+58↑j
 mov     eax, squadTeamPtr
 mov     A0, eax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     eax, A0
 mov     A6, eax
 mov     word ptr D5, 0
@@ -79990,7 +80005,7 @@ jz      cseg_5CC65
 mov     A0, offset careerTeam
 mov     ax, word ptr D7
 mov     word ptr D1, ax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     esi, A0
 cmp     byte ptr [esi+4Fh], 0FFh
 jnz     short cseg_5CB32
@@ -80683,7 +80698,7 @@ mov     esi, A0
 mov     ax, [esi+2]
 sub     word ptr D1, ax
 mov     A0, offset careerTeam
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, dseg_17BA48
 or      ax, ax
 jz      short cseg_5D70B
@@ -80762,7 +80777,7 @@ mov     word ptr D6, 0FFFFh
 
 cseg_5D7FF:         ; CODE XREF: SelectNationalTeamAfterDrawCommon+AB↑j
 mov     A0, offset careerTeam
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     eax, A0
 mov     A6, eax
 mov     word ptr D5, 0
@@ -80928,7 +80943,7 @@ mov     ax, word ptr D3
 mov     word ptr D1, ax
 mov     eax, A1
 mov     A0, eax
-call    GetPlayerGameBreakPosition
+call    GetPlayerInfoBreakPosition
 mov     ax, word ptr D1
 cmp     word ptr D2, ax
 jz      short @@out
@@ -85529,7 +85544,7 @@ mov     word ptr D1, 0 ; loop counter
 mov     ax, word ptr D1 ; put player names into menu entries (team 1)
 mov     word ptr D0, ax
 mov     ax, word ptr D0
-mov     bx, size PlayerGame
+mov     bx, size PlayerInfo
 mul     bx
 mov     word ptr D0, ax
 mov     word ptr D0+2, dx ; D0 = player offset
@@ -85538,7 +85553,7 @@ movzx   ebx, word ptr D0
 add     eax, ebx
 mov     A0, eax     ; A0 -> player + header
 mov     eax, A0
-add     eax, PlayerGameHeader.fullName
+add     eax, PlayerInfoHeader.fullName
 mov     A0, eax     ; A0 -> player name
 mov     eax, A0
 mov     esi, A5
@@ -85564,7 +85579,7 @@ mov     word ptr D1, 0
 mov     ax, word ptr D1
 mov     word ptr D0, ax
 mov     ax, word ptr D0
-mov     bx, size PlayerGame
+mov     bx, size PlayerInfo
 mul     bx
 mov     word ptr D0, ax
 mov     word ptr D0+2, dx
@@ -85573,7 +85588,7 @@ movzx   ebx, word ptr D0
 add     eax, ebx
 mov     A0, eax
 mov     eax, A0
-add     eax, PlayerGameHeader.fullName
+add     eax, PlayerInfoHeader.fullName
 mov     A0, eax
 mov     eax, A0
 mov     esi, A5
@@ -85710,7 +85725,7 @@ mov     word ptr littlePlayersColorTable+1Eh, ax
 @@prepare_player_face_convert_table:
                     ; CODE XREF: StadiumPlayerSpritesBeforeDraw+46↑j
 mov     ax, word ptr D1
-mov     bx, size PlayerGame
+mov     bx, size PlayerInfo
 mul     bx
 mov     word ptr D1, ax
 mov     word ptr D1+2, dx ; D1 = player offset
@@ -85719,7 +85734,7 @@ movzx   ebx, word ptr D1
 add     eax, ebx
 mov     A0, eax
 mov     esi, A0     ; A0 -> player
-mov     al, [esi+PlayerGameHeader.face2] ; player face index
+mov     al, [esi+PlayerInfoHeader.face2] ; player face index
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -85982,7 +85997,7 @@ mov     A0, eax
 cmp     A0, 0
 jz      short @@game_not_started
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax
 cmp     A0, 0
 jz      @@game_in_progress
@@ -90530,7 +90545,7 @@ mov     lastPlayerScored, 0
 @@increase_player_game_goals_scored: ; CODE XREF: GoalScored+225↑j
 sub     word ptr D0, 1
 mov     ax, word ptr D0
-mov     bx, size PlayerGame
+mov     bx, size PlayerInfo
 mul     bx
 mov     word ptr D0, ax
 mov     word ptr D0+2, dx ; D0 = player offset in in-game team structure
@@ -90538,13 +90553,13 @@ cmp     word ptr D1, GT_OWN_GOAL
 jz      short @@update_goal_type_scored
 mov     esi, A2
 movzx   ebx, word ptr D0
-add     [esi+ebx+PlayerGameHeader.goalsScored], 1
+add     [esi+ebx+PlayerInfoHeader.goalsScored], 1
 
 @@update_goal_type_scored: ; CODE XREF: GoalScored+265↑j
 mov     goalTypeScored, GT_REGULAR
 mov     esi, A2
 movzx   ebx, word ptr D0
-mov     al, [esi+ebx+PlayerGameHeader.shirtNumber]
+mov     al, [esi+ebx+PlayerInfoHeader.shirtNumber]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -90665,7 +90680,7 @@ movzx   ebx, word ptr D0
 mov     ax, [esi+ebx]
 mov     word ptr D0, ax
 mov     eax, A2
-add     eax, PlayerGameHeader.shortName
+add     eax, PlayerInfoHeader.shortName
 movzx   ebx, word ptr D0
 add     eax, ebx
 mov     A0, eax     ; A0 -> name of the player that scored
@@ -92563,7 +92578,7 @@ mov     ax, g_benchPlayerIndex
 mov     word ptr D0, ax
 add     word ptr D0, 10
 mov     ax, word ptr D0
-mov     bx, size PlayerGame
+mov     bx, size PlayerInfo
 mul     bx
 mov     word ptr D0, ax
 mov     word ptr D0+2, dx
@@ -92572,15 +92587,15 @@ mov     A0, eax
 mov     eax, D0
 add     A0, eax
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.substituted]
+mov     al, [esi+PlayerInfoHeader.substituted]
 or      al, al
 jnz     short @@skip_this_one
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.position]
+mov     al, [esi+PlayerInfoHeader.position]
 or      al, al
 js      short @@out
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     short @@skip_this_one
 mov     word ptr D0, 0
 
@@ -92618,11 +92633,11 @@ movzx   ebx, word ptr D0
 add     eax, ebx
 mov     A0, eax     ; A0 -> in-game player ptr to player that should be entering the game
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.position]
+mov     al, [esi+PlayerInfoHeader.position]
 or      al, al
 js      nullsub_38  ; was he replaced?
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     nullsub_38  ; was he sent off?
 mov     g_subsState, 1 ; conditions fulfilled, player's going in so far
 mov     subsBlockFire, 1
@@ -92761,7 +92776,7 @@ CheckForThrowInAndGoalkeepersBall proc near
 mov     eax, lastTeamPlayedBeforeBreak
 mov     A0, eax
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A1, eax
 cmp     A1, 0
 jz      short @@check_if_goalkeeper_claimed
@@ -92837,7 +92852,7 @@ mov     eax, benchTeamGame
 mov     A0, eax
 mov     esi, A0
 movzx   ebx, word ptr D7
-mov     [esi+ebx+PlayerGameHeader.position], -1
+mov     [esi+ebx+PlayerInfoHeader.position], -1
 mov     word ptr D1, 60 ; sizeof(GamePlayer) - 1
 
 @@swap_players:     ; CODE XREF: SubstitutePlayer+169↓j
@@ -92962,7 +92977,7 @@ movzx   ebx, word ptr D0
 add     eax, ebx
 mov     A0, eax     ; A0 -> player (in-game) to be substituted (+ header)
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     short @@check_fire
 cmp     subsFireTimer, 8
 jnz     short @@check_fire
@@ -93054,23 +93069,23 @@ mov     ax, [esi+ebx]
 mov     word ptr D7, ax
 mov     eax, benchTeamGame
 mov     A0, eax
-mov     word ptr D1, 60 ; sizeof(PlayerGame) - 1
+mov     word ptr D1, 60 ; sizeof(PlayerInfo) - 1
 
 @@swap_player_game_loop: ; CODE XREF: MarkPlayersMenuHandler+258↓j
 mov     esi, A0
 movzx   ebx, word ptr D6
-mov     al, [esi+ebx+PlayerGameHeader.substituted]
+mov     al, [esi+ebx+PlayerInfoHeader.substituted]
 mov     byte ptr D0, al
 mov     esi, A0
 movzx   ebx, word ptr D7
-mov     al, [esi+ebx+PlayerGameHeader.substituted]
+mov     al, [esi+ebx+PlayerInfoHeader.substituted]
 mov     esi, A0
 movzx   ebx, word ptr D6
-mov     [esi+ebx+PlayerGameHeader.substituted], al
+mov     [esi+ebx+PlayerInfoHeader.substituted], al
 mov     al, byte ptr D0
 mov     esi, A0
 movzx   ebx, word ptr D7
-mov     [esi+ebx+PlayerGameHeader.substituted], al
+mov     [esi+ebx+PlayerInfoHeader.substituted], al
 add     A0, 1
 dec     word ptr D1
 jns     short @@swap_player_game_loop
@@ -93434,12 +93449,12 @@ movzx   ebx, word ptr D0
 add     eax, ebx
 mov     A0, eax
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     short @@substitute_failure
 cmp     g_subsState, 3
 jnz     short @@substitute_ok
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.disallowSubs]
+mov     al, [esi+PlayerInfoHeader.disallowSubs]
 or      al, al
 js      short @@substitute_failure
 
@@ -93530,7 +93545,7 @@ mov     ax, [esi+ebx]
 mov     word ptr D0, ax
 mov     esi, A0
 movzx   ebx, word ptr D0
-mov     al, [esi+ebx+PlayerGameHeader.position]
+mov     al, [esi+ebx+PlayerInfoHeader.position]
 mov     byte ptr D7, al ; D7 = player's position
 mov     word ptr D6, -1 ; D6 = first available player
 mov     word ptr D5, -1 ; D5 = exact match
@@ -93547,7 +93562,7 @@ mov     ax, [esi+ebx]
 mov     word ptr D0, ax
 mov     esi, A0
 movzx   ebx, word ptr D0
-mov     al, [esi+ebx+PlayerGameHeader.position]
+mov     al, [esi+ebx+PlayerInfoHeader.position]
 mov     byte ptr D7, al ; D7 = position (duplicated code)
 mov     word ptr D1, 0
 
@@ -93557,7 +93572,7 @@ mov     ax, word ptr D1 ; D1 - current player index
 mov     word ptr D0, ax
 call    GetBenchPlayerPointer
 mov     esi, A0     ; A0 -> current player in-game pointer
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     @@next_player
 mov     ax, word ptr D6
 or      ax, ax
@@ -93586,13 +93601,13 @@ jnz     short @@check_if_we_got_exact_match
 @@midfielder:       ; CODE XREF: FindInitialPlayerToBeSubstituted+135↑j
                     ; FindInitialPlayerToBeSubstituted+13E↑j
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_MIDFIELDER
+cmp     [esi+PlayerInfoHeader.position], POS_MIDFIELDER
 jz      short @@match
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_RIGHT_WING
+cmp     [esi+PlayerInfoHeader.position], POS_RIGHT_WING
 jz      short @@match
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_LEFT_WING
+cmp     [esi+PlayerInfoHeader.position], POS_LEFT_WING
 jz      short @@match
 jmp     short @@check_if_we_got_exact_match
 ; ---------------------------------------------------------------------------
@@ -93600,13 +93615,13 @@ jmp     short @@check_if_we_got_exact_match
 @@defender:         ; CODE XREF: FindInitialPlayerToBeSubstituted+11A↑j
                     ; FindInitialPlayerToBeSubstituted+123↑j ...
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_DEFENDER
+cmp     [esi+PlayerInfoHeader.position], POS_DEFENDER
 jz      short @@match
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_RIGHT_BACK
+cmp     [esi+PlayerInfoHeader.position], POS_RIGHT_BACK
 jz      short @@match
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_LEFT_BACK
+cmp     [esi+PlayerInfoHeader.position], POS_LEFT_BACK
 jnz     short @@check_if_we_got_exact_match
 
 @@match:            ; CODE XREF: FindInitialPlayerToBeSubstituted+153↑j
@@ -93621,7 +93636,7 @@ mov     ax, word ptr D5
 or      ax, ax
 jns     short @@next_player
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.position]
+mov     al, [esi+PlayerInfoHeader.position]
 cmp     byte ptr D7, al
 jnz     short @@next_player
 mov     ax, word ptr D1
@@ -94035,7 +94050,7 @@ sub     word ptr D2, 14
                     ; DrawBenchPlayersAndCoach+18E↑j ...
 add     word ptr D2, 7
 mov     eax, A0
-add     eax, 671    ; 11 * sizeof(PlayerGame)
+add     eax, 671    ; 11 * sizeof(PlayerInfo)
 mov     A0, eax     ; A0 -> bench players (minus the header) #12+
 mov     ax, g_trainingGame
 or      ax, ax
@@ -94045,7 +94060,7 @@ or      ax, ax
 jz      short @@init_player_index
 sub     word ptr D2, 56 ; y -= 8 * player height
 mov     eax, A0
-add     eax, 244    ; 4 * sizeof(PlayerGame)
+add     eax, 244    ; 4 * sizeof(PlayerInfo)
 mov     A0, eax     ; A0 -> player #16 (it will go backwards)
 
 @@init_player_index: ; CODE XREF: DrawBenchPlayersAndCoach+1CB↑j
@@ -94054,15 +94069,15 @@ mov     word ptr D7, 1
 
 @@draw_players_loop: ; CODE XREF: DrawBenchPlayersAndCoach+3FD↓j
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.substituted]
+mov     al, [esi+PlayerInfoHeader.substituted]
 or      al, al
 jnz     @@next_player
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.position]
+mov     al, [esi+PlayerInfoHeader.position]
 or      al, al
 js      @@next_player
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     @@next_player
 mov     ax, g_subsState
 or      ax, ax
@@ -94099,7 +94114,7 @@ jmp     short @@set_goalie_standing_sprite
 @@check_if_goalkeeper_standing:
                     ; CODE XREF: DrawBenchPlayersAndCoach+293↑j
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_GOALKEEPER
+cmp     [esi+PlayerInfoHeader.position], POS_GOALKEEPER
 jnz     short @@determine_player_face
 
 @@set_goalie_standing_sprite:
@@ -94121,7 +94136,7 @@ jmp     short @@set_goalie_sitting_sprite
 @@check_if_goalkeeper_sitting:
                     ; CODE XREF: DrawBenchPlayersAndCoach+2C9↑j
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], POS_GOALKEEPER
+cmp     [esi+PlayerInfoHeader.position], POS_GOALKEEPER
 jnz     short @@determine_player_face
 
 @@set_goalie_sitting_sprite: ; CODE XREF: DrawBenchPlayersAndCoach+2D5↑j
@@ -94146,7 +94161,7 @@ jmp     short @@draw_player
 
 @@use_real_player_face: ; CODE XREF: DrawBenchPlayersAndCoach+2F5↑j
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.face]
+mov     al, [esi+PlayerInfoHeader.face]
 mov     byte ptr D3, al
 or      al, al
 mov     al, byte ptr D3
@@ -94177,14 +94192,14 @@ pop     D1
 @@next_player:      ; CODE XREF: DrawBenchPlayersAndCoach+203↑j
                     ; DrawBenchPlayersAndCoach+214↑j ...
 add     word ptr D2, 7 ; y += 7
-add     A0, size PlayerGame
+add     A0, size PlayerInfo
 mov     ax, g_trainingGame
 or      ax, ax
 jz      short @@test_if_last_player
 mov     ax, drawTrainingTopHalfOfTheBench
 or      ax, ax
 jz      short @@test_if_last_player
-sub     A0, 122     ; - 2 * sizeof(PlayerGame)
+sub     A0, 122     ; - 2 * sizeof(PlayerInfo)
                     ; effectively go backward
 
 @@test_if_last_player: ; CODE XREF: DrawBenchPlayersAndCoach+3D9↑j
@@ -94624,7 +94639,7 @@ movzx   ebx, word ptr D0
 mov     ax, [esi+ebx]
 mov     word ptr D6, ax ; D6 = selected player offset
 mov     eax, A2     ; A2 = current team (game)
-add     eax, PlayerGameHeader.shirtNumber ; sizeof(header) (=42) + 3 (= offset to player shirt number)
+add     eax, PlayerInfoHeader.shirtNumber ; sizeof(header) (=42) + 3 (= offset to player shirt number)
 mov     A0, eax
 mov     esi, A0
 movzx   ebx, word ptr D6
@@ -94637,7 +94652,7 @@ mov     ax, useIndividualPlayerSkinColor
 or      ax, ax
 jz      @@check_injuries
 mov     eax, A2
-add     eax, PlayerGameHeader.face
+add     eax, PlayerInfoHeader.face
 mov     A0, eax     ; A0 -> player face index
 mov     esi, A0
 movzx   ebx, word ptr D6
@@ -94840,7 +94855,7 @@ add     word ptr D2, 1
 @@print_player_name_setup: ; CODE XREF: DrawSubstitutesMenuEntry+4CD↑j
                     ; DrawSubstitutesMenuEntry+5E6↑j ...
 mov     eax, A2
-add     eax, PlayerGameHeader.shortName
+add     eax, PlayerInfoHeader.shortName
 mov     A0, eax
 mov     eax, A0
 movzx   ebx, word ptr D6
@@ -94877,7 +94892,7 @@ pop     D6
 pop     D2
 pop     D0
 mov     eax, A2
-add     eax, PlayerGameHeader.position
+add     eax, PlayerInfoHeader.position
 mov     A0, eax
 mov     esi, A0
 movzx   ebx, word ptr D6
@@ -94917,7 +94932,7 @@ pop     D2
 pop     D0
 sub     word ptr D2, 1
 mov     eax, A2
-add     eax, PlayerGameHeader.injuriesBitfield
+add     eax, PlayerInfoHeader.injuriesBitfield
 mov     A0, eax
 mov     esi, A0
 movzx   ebx, word ptr D6
@@ -96571,7 +96586,7 @@ mov     A0, offset kPitchBallSpeedInfluence
 mov     esi, A0
 movzx   ebx, word ptr D1 ; pitch index
 mov     ax, [esi+ebx]
-mov     pitchBallSpeedFactor, ax
+mov     pitchBallSpeedReductionAdjustment, ax
 mov     A0, offset kBallSpeedBounceFactorTable
 mov     esi, A0
 movzx   ebx, word ptr D1
@@ -96581,7 +96596,7 @@ mov     A0, offset kBallBounceFactorTable
 mov     esi, A0
 movzx   ebx, word ptr D1
 mov     ax, [esi+ebx]
-mov     ballBounceFactor, ax
+mov     ballZAxisDampenFactor, ax
 mov     playingPenalties, 0
 mov     dontShowScorers, 0
 mov     statsTimer, 0
@@ -97292,7 +97307,7 @@ mov     word ptr D1, 15 ; for each player
 
 @@next_player:      ; CODE XREF: CountFaces+6A↓j
 mov     esi, A1
-mov     al, [esi+PlayerGameHeader.face]
+mov     al, [esi+PlayerInfoHeader.face]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -97300,7 +97315,7 @@ mov     word ptr D0, ax
 mov     esi, A0
 movzx   ebx, word ptr D0
 add     byte ptr [esi+ebx], 1
-add     A1, size PlayerGame
+add     A1, size PlayerInfo
 dec     word ptr D1
 jns     short @@next_player
 retn
@@ -97374,18 +97389,18 @@ mov     word ptr D2, 15 ; counter while >= 0, for all 16 players
 
 @@loop:             ; CODE XREF: DetermineGoalieFaces+F3↓j
 mov     esi, A0     ; A0 -> current player ptr
-mov     al, [esi+PlayerGameHeader.position]
+mov     al, [esi+PlayerInfoHeader.position]
 or      al, al
 js      @@continue
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.face]
+mov     al, [esi+PlayerInfoHeader.face]
 mov     byte ptr D0, al
 mov     esi, A2
 mov     al, [esi]
 cmp     byte ptr D0, al
 jz      @@continue  ; already got this face
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], 0
+cmp     [esi+PlayerInfoHeader.position], 0
 jz      short @@different_face
 mov     esi, A2     ; for players-only
 mov     al, [esi+1]
@@ -97407,7 +97422,7 @@ mov     [esi+ebx], al ; array2[index] = face
 cmp     word ptr D2, 15
 jz      short @@first_and_last_player
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.position], 0
+cmp     [esi+PlayerInfoHeader.position], 0
 jnz     short @@continue
 
 @@first_and_last_player: ; CODE XREF: DetermineGoalieFaces+BF↑j
@@ -97418,7 +97433,7 @@ jz      short @@out
 @@continue:         ; CODE XREF: DetermineGoalieFaces+3B↑j
                     ; DetermineGoalieFaces+5D↑j ...
 mov     eax, A0
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A0, eax
 dec     word ptr D2
 jns     @@loop
@@ -97467,7 +97482,7 @@ mov     ax, useIndividualPlayerSkinColor
 or      ax, ax
 jz      @@team2_sprite
 mov     esi, A2
-mov     al, [esi+PlayerGameHeader.face]
+mov     al, [esi+PlayerInfoHeader.face]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -97522,7 +97537,7 @@ mov     ax, useIndividualPlayerSkinColor
 or      ax, ax
 jz      @@next_sprite
 mov     esi, A3
-mov     al, [esi+PlayerGameHeader.face]
+mov     al, [esi+PlayerInfoHeader.face]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -97567,8 +97582,8 @@ mov     esi, A4
 mov     [esi+Sprite.frameOffset], ax
 
 @@next_sprite:      ; CODE XREF: InitializePlayerSpriteFrameIndices+167↑j
-add     A2, size PlayerGame
-add     A3, size PlayerGame
+add     A2, size PlayerInfo
+add     A3, size PlayerInfo
 dec     word ptr D1
 jns     @@both_teams_players_loop
 pop     A6
@@ -97599,15 +97614,15 @@ or      ax, ax
 jnz     short @@check_player
 mov     ax, g_trainingGame
 or      ax, ax
-jz      @@no_player
+jz      @@no_player_number
 
 @@check_player:     ; CODE XREF: UpdateControlledPlayerNumbers+38↑j
                     ; UpdateControlledPlayerNumbers+47↑j
 mov     esi, A1
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A1, eax
 cmp     A1, 0
-jz      @@no_player
+jz      @@no_player_number
 mov     esi, A1
 mov     ax, [esi+Sprite.playerOrdinal]
 mov     word ptr D1, ax
@@ -97615,30 +97630,29 @@ sub     word ptr D1, 1
 mov     esi, A2     ; A2 -> in-game team
 mov     ax, [esi+TeamGame.markedPlayer]
 cmp     word ptr D1, ax
-jnz     short @@this_player_not_marked
+jnz     short @@draw_player_number
 mov     ax, word ptr D7
-or      ax, ax      ; second team mark is drawn when first isn't
-jz      short @@second_team
+or      ax, ax      ; second team player number/mark is drawn when first isn't
+jz      short @@second_team_tick_test
 test    byte ptr currentGameTick, 10h
-jz      @@no_player ; don't draw number if mark is to be drawn
-jmp     short @@this_player_not_marked
+jz      @@no_player_number ; alternate between drawing each team's player number
+jmp     short @@draw_player_number
 ; ---------------------------------------------------------------------------
 
-@@second_team:      ; CODE XREF: UpdateControlledPlayerNumbers+A7↑j
+@@second_team_tick_test: ; CODE XREF: UpdateControlledPlayerNumbers+A7↑j
 test    byte ptr currentGameTick, 10h
-jnz     @@no_player
+jnz     @@no_player_number
 
-@@this_player_not_marked:
-                    ; CODE XREF: UpdateControlledPlayerNumbers+9C↑j
+@@draw_player_number: ; CODE XREF: UpdateControlledPlayerNumbers+9C↑j
                     ; UpdateControlledPlayerNumbers+B6↑j
 mov     ax, word ptr D1
-mov     bx, size PlayerGame
+mov     bx, size PlayerInfo
 mul     bx
 mov     word ptr D1, ax
 mov     word ptr D1+2, dx
 mov     esi, A2
 movzx   ebx, word ptr D1
-mov     al, [esi+ebx+PlayerGameHeader.shirtNumber]
+mov     al, [esi+ebx+PlayerInfoHeader.shirtNumber]
 mov     byte ptr D1, al
 mov     al, byte ptr D1
 cbw
@@ -97700,7 +97714,7 @@ or      ax, ax
 jmp     short @@try_second_team_player
 ; ---------------------------------------------------------------------------
 
-@@no_player:        ; CODE XREF: UpdateControlledPlayerNumbers+52↑j
+@@no_player_number: ; CODE XREF: UpdateControlledPlayerNumbers+52↑j
                     ; UpdateControlledPlayerNumbers+6D↑j ...
 mov     esi, A0
 mov     [esi+Sprite.imageIndex], -1
@@ -99063,13 +99077,13 @@ mov     word ptr D1, ax
 or      ax, ax
 sub     word ptr D1, 1
 mov     ax, word ptr D1
-mov     bx, size PlayerGame
+mov     bx, size PlayerInfo
 mul     bx
 mov     word ptr D1, ax
 mov     word ptr D1+2, dx
 mov     esi, A2
 movzx   ebx, word ptr D1
-mov     al, [esi+ebx+PlayerGameHeader.shirtNumber]
+mov     al, [esi+ebx+PlayerInfoHeader.shirtNumber]
 mov     byte ptr D1, al
 mov     al, byte ptr D1
 cbw
@@ -99525,7 +99539,7 @@ jz      short @@game_in_progress
 cmp     A2, 0
 jz      short @@player_didnt_have_ball
 mov     esi, A1
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 or      eax, eax
 jnz     short @@player_has_the_ball
 
@@ -99985,10 +99999,10 @@ mov     eax, A0
 xchg    eax, A1
 mov     A0, eax
 mov     eax, A0
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A0, eax
 mov     eax, A1
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A1, eax
 dec     word ptr D0
 jns     short @@players_loop
@@ -100005,13 +100019,13 @@ BumpPlayerLastPlayedHalfAtHalfStart proc near
                     ; CODE XREF: BumpPlayersLastPlayedHalfAtHalfStart:@@players_loop↑p
                     ; BumpPlayersLastPlayedHalfAtHalfStart+32↑p
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     short @@out
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.halfPlayed], 2
+cmp     [esi+PlayerInfoHeader.halfPlayed], 2
 jz      short @@out
 mov     esi, A0
-mov     [esi+PlayerGameHeader.halfPlayed], 1
+mov     [esi+PlayerInfoHeader.halfPlayed], 1
 
 @@out:              ; CODE XREF: BumpPlayerLastPlayedHalfAtHalfStart+A↑j
                     ; BumpPlayerLastPlayedHalfAtHalfStart+16↑j
@@ -100038,10 +100052,10 @@ mov     eax, A0
 xchg    eax, A1
 mov     A0, eax
 mov     eax, A0
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A0, eax
 mov     eax, A1
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A1, eax
 dec     word ptr D0
 jns     short @@players_loop
@@ -100058,13 +100072,13 @@ BumpPlayerLastPlayedHalfAtHalfEnd proc near
                     ; CODE XREF: BumpPlayersLastPlayedHalfAtHalfEnd:@@players_loop↑p
                     ; BumpPlayersLastPlayedHalfAtHalfEnd+32↑p
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.cards], 2
+cmp     [esi+PlayerInfoHeader.cards], 2
 jnb     short @@out
 mov     esi, A0
-cmp     [esi+PlayerGameHeader.halfPlayed], 1
+cmp     [esi+PlayerInfoHeader.halfPlayed], 1
 jnz     short @@out
 mov     esi, A0
-mov     [esi+PlayerGameHeader.halfPlayed], 2
+mov     [esi+PlayerInfoHeader.halfPlayed], 2
 
 @@out:              ; CODE XREF: BumpPlayerLastPlayedHalfAtHalfEnd+A↑j
                     ; BumpPlayerLastPlayedHalfAtHalfEnd+16↑j
@@ -100352,7 +100366,7 @@ mov     stoppageTimerTotal, 0
 mov     stoppageTimerActive, 0
 mov     stoppageEventTimer, 0
 mov     inGameCounter, 0
-mov     gameStatePl, 100
+mov     gameStatePl, ST_GAME_IN_PROGRESS
 mov     gameState, ST_GAME_IN_PROGRESS
 mov     breakState, 0
 mov     breakCameraMode, -1
@@ -100414,7 +100428,7 @@ mov     [esi+TeamGeneralInfo.resetControls], 0
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.updatePlayerIndex], 10
 mov     esi, A0
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], 0
 mov     esi, A0
@@ -100971,12 +100985,12 @@ mov     ax, [esi+TeamGeneralInfo.ballOutOfPlay]
 or      ax, ax
 jz      @@out
 mov     esi, A6     ; ball is out of play here
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A3, eax
 jz      short @@its_controlled_player
 push    A3          ; it's not controlled player, we need to update
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A3, eax     ; A3 is now old controlled player
 cmp     A3, 0
 jz      short @@no_old_controlling_player
@@ -100999,7 +101013,7 @@ pop     A3
 @@its_controlled_player: ; CODE XREF: UpdateControlledPlayer+232↑j
 mov     eax, A3     ; set new controlled player
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], eax
+mov     [esi+TeamGeneralInfo.controlledPlayer], eax
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.passToPlayerPtr]
 cmp     A3, eax
@@ -101129,7 +101143,7 @@ jz      short @@next ; skip goalkeeper if he doesn't have the ball
 
 @@ball_with_keeper: ; CODE XREF: UpdatePlayerBeingPassedTo+16A↑j
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A2, eax     ; skip currently controlled player
 jz      short @@next
 mov     esi, A6
@@ -101282,7 +101296,7 @@ jz      short @@next_player
 
 @@ball_with_keeper2: ; CODE XREF: UpdatePlayerBeingPassedTo+3B2↑j
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A2, eax
 jz      short @@next_player
 mov     esi, A6
@@ -101898,11 +101912,11 @@ jmp     @@out
 
 cseg_73E8B:         ; CODE XREF: UpdateGameTimersAndCameraBreakMode+87A↑j
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 or      eax, eax
 jz      @@out
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A1, eax
 mov     esi, A1
 cmp     [esi+Sprite.playerState], PL_THROW_IN
@@ -102389,7 +102403,7 @@ mov     A1, eax
 cmp     A1, 0
 jz      short @@use_camera_direction
 mov     esi, A1
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A1, eax
 cmp     A1, 0
 jz      short @@use_camera_direction
@@ -102860,12 +102874,12 @@ movzx   ebx, word ptr D0
 mov     ax, [esi+ebx]
 mov     word ptr D0, ax ; D0 = next frame sprite index
 or      ax, ax
-jns     @@index_positive
-cmp     word ptr D0, -999
+jns     @@bump_swith_counter
+cmp     word ptr D0, -999 ; (kLastFrameLoopMarker)
 jz      short @@reset_index ; we reached end of table, start again from the beginning
-cmp     word ptr D0, -101
+cmp     word ptr D0, -101 ; (kLastFrameHoldMarker)
 jz      short @@pause_frame ; show the current frame again (undo the increment)
-cmp     word ptr D0, -100
+cmp     word ptr D0, -100 ; (kFrameLoopbackMarker)
 jle     short @@add_negative_offset
 neg     word ptr D0 ; -99..-1 => 1..99
 mov     ax, word ptr D0 ; this represents our new frame delay
@@ -102899,7 +102913,7 @@ sub     [esi+Sprite.frameIndex], 1
 jmp     @@out
 ; ---------------------------------------------------------------------------
 
-@@index_positive:   ; CODE XREF: SetNextPlayerFrame+82↑j
+@@bump_swith_counter: ; CODE XREF: SetNextPlayerFrame+82↑j
 mov     esi, A0     ; D0 will be the next picture index
 add     [esi+Sprite.frameSwitchCounter], 1
 mov     esi, A0
@@ -103756,7 +103770,7 @@ call    InitTeamsData
 mov     stoppageEventTimer, 100
 mov     gameState, ST_STARTING_GAME
 mov     breakCameraMode, -1
-mov     gameStatePl, 101
+mov     gameStatePl, ST_STOPPED
 mov     gameNotInProgressCounterWriteOnly, 0
 mov     cameraDirection, -1
 mov     lastTeamPlayedBeforeBreak, offset topTeamData
@@ -103947,10 +103961,11 @@ mov     ax, teamStarting
 mov     word ptr D0, ax
 mov     ax, teamPlayingUp
 cmp     word ptr D0, ax
-jz      short cseg_75E77
+jz      short @@set_last_team_played_before_break
 mov     A0, offset bottomTeamData
 
-cseg_75E77:         ; CODE XREF: StartFirstExtraTime+B2↑j
+@@set_last_team_played_before_break:
+                    ; CODE XREF: StartFirstExtraTime+B2↑j
 mov     eax, A0
 mov     lastTeamPlayedBeforeBreak, eax
 mov     stoppageTimerTotal, 0
@@ -104087,7 +104102,7 @@ StopAllPlayers proc near ; CODE XREF: StartingMatch+80↑p
 push    A1
 push    A2
 mov     ax, cameraDirection
-mov     dseg_130FF9, ax
+mov     lastCameraDirection, ax
 mov     ax, playerTurnFlags
 mov     lastPlayerTurnFlags, ax
 mov     A0, offset topTeamData
@@ -104095,7 +104110,7 @@ call    StopPlayers
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.ballInPlay], 0
 mov     [esi+TeamGeneralInfo.ballOutOfPlay], 0
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], 0
 mov     [esi+TeamGeneralInfo.passingBall], 0
 mov     [esi+TeamGeneralInfo.passingToPlayer], 0
@@ -104106,13 +104121,13 @@ call    StopPlayers
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.ballInPlay], 0
 mov     [esi+TeamGeneralInfo.ballOutOfPlay], 0
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], 0
 mov     [esi+TeamGeneralInfo.passingBall], 0
 mov     [esi+TeamGeneralInfo.passingToPlayer], 0
 mov     [esi+TeamGeneralInfo.playerSwitchTimer], 0
 mov     [esi+TeamGeneralInfo.passingKickingPlayer], 0
-mov     [esi+TeamGeneralInfo.goalkeeperPlaying], 0
+mov     [esi+TeamGeneralInfo.goalkeeperPlaying], 0 ; this one isn't initialized for top team up there??
 pop     A2
 pop     A1
 retn
@@ -104267,7 +104282,7 @@ mov     [esi+Sprite.direction], 0
 mov     esi, A2
 mov     [esi+Sprite.onScreen], 1
 cmp     gameState, ST_STARTING_GAME
-jnz     short @@halftime
+jnz     short @@set_animation_table
 mov     esi, A2
 mov     [esi+Sprite.sentAway], 0
 mov     esi, A2
@@ -104275,7 +104290,7 @@ mov     [esi+Sprite.cards], 0
 mov     esi, A2
 mov     [esi+Sprite.injuryLevel], 0
 
-@@halftime:         ; CODE XREF: InitPlayersBeforeEnteringPitch+159↑j
+@@set_animation_table: ; CODE XREF: InitPlayersBeforeEnteringPitch+159↑j
 push    A0
 push    A1
 mov     eax, A2
@@ -104304,7 +104319,9 @@ InitPlayersBeforeEnteringPitch endp
 ;      A0 -> animation table
 ;      A1 -> player
 ;
-; Set player's animation table and frame indices table and sets up starting state.
+; Sets player's animation table and frame indices table and sets up starting state.
+; Frames table pointer must be present, or the game crashes. If some animation table
+; is too short, make sure it's never called with inaccessible players/goalkeepers.
 
 SetPlayerAnimationTable proc near
                     ; CODE XREF: CheckForThrowInAndGoalkeepersBall+4A↑p
@@ -104368,6 +104385,9 @@ SetPlayerAnimationTable endp
 
 ; in:
 ;      A1 -> referee animation table
+;
+; Same format like player animation table, except it has only
+; eight frame table pointers (no need for 4 separate sets).
 
 InitRefereeAnimationTable proc near ; CODE XREF: ActivateReferee+115↑p
                     ; RemoveReferee+73↓p ...
@@ -104522,17 +104542,17 @@ mov     penaltiesTimer, 0
 mov     A0, offset team1PenaltyShooterIndex
 mov     esi, A6
 cmp     [esi+TeamGeneralInfo.teamNumber], 1
-jz      short @@team1
+jz      short @@decrease_penalty_shooter_index
 mov     A0, offset team2PenaltyShooterIndex
 
-@@team1:            ; CODE XREF: NextPenalty+1C6↑j
+@@decrease_penalty_shooter_index: ; CODE XREF: NextPenalty+1C6↑j
 mov     esi, A0
 sub     word ptr [esi], 1
-jnz     short @@not_goalkeeper
+jnz     short @@select_penalty_shooter
 mov     esi, A0
 mov     word ptr [esi], 10
 
-@@not_goalkeeper:   ; CODE XREF: NextPenalty+1DC↑j
+@@select_penalty_shooter: ; CODE XREF: NextPenalty+1DC↑j
 mov     esi, A0
 mov     ax, [esi]
 mov     word ptr D0, ax ; player index to take the penalty
@@ -104622,7 +104642,7 @@ or      ax, ax
 jnz     short @@out
 mov     eax, A1
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], eax
+mov     [esi+TeamGeneralInfo.controlledPlayer], eax
 mov     esi, A6
 mov     byte ptr [esi+TeamGeneralInfo.ballOutOfPlayOrKeeper], 1
 mov     ax, cameraDirection
@@ -104952,7 +104972,7 @@ mov     esi, A0
 mov     ax, [esi+TeamGeneralInfo.goalkeeperSavedCommentTimer]
 or      ax, ax      ; if opponent's goalkeeper has saved, no more spin
 js      @@out_reset_spin_timer
-cmp     gameStatePl, 100
+cmp     gameStatePl, ST_GAME_IN_PROGRESS
 jz      short @@game_in_progress2
 cmp     gameState, ST_KEEPER_HOLDS_BALL
 jz      @@out_reset_spin_timer
@@ -105147,7 +105167,7 @@ mov     A0, offset kComputerTacklingDownTime
 
 @@ordinary_player:  ; CODE XREF: SetPlayerDowntimeAfterTackle+1A↑j
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.tackling]
+mov     al, [esi+PlayerInfoHeader.tackling]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -105181,7 +105201,7 @@ mov     esi, A1
 cmp     [esi+Sprite.playerOrdinal], 1
 jnz     short @@not_goalkeeper
 mov     esi, A6     ; game is in progress and the player is goalkeeper
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jnz     @@out       ; skip goalkeepers that are not player controlled during the game
 
@@ -105189,7 +105209,7 @@ jnz     @@out       ; skip goalkeepers that are not player controlled during the
                     ; UpdatePlayerSpeed+25↑j
 call    GetPlayerPointerFromShirtNumber
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.speed]
+mov     al, [esi+PlayerInfoHeader.speed]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -105233,7 +105253,7 @@ jz      short @@player_not_injured ; skip injuries for computer controlled playe
 
 @@player_controlling: ; CODE XREF: UpdatePlayerSpeed+F3↑j
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.injuriesBitfield]
+mov     al, [esi+PlayerInfoHeader.injuriesBitfield]
 mov     byte ptr D0, al
 or      al, al
 jz      short @@player_not_injured
@@ -105251,14 +105271,14 @@ add     [esi+Sprite.speed], ax
 @@player_not_injured: ; CODE XREF: UpdatePlayerSpeed+102↑j
                     ; UpdatePlayerSpeed+114↑j
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jnz     short @@not_this_player
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.playerHasBall]
 or      ax, ax
 jz      short @@not_this_player
-mov     esi, A1     ; speed 87.5% - this is the player that controls ball
+mov     esi, A1     ; speed down to 87.5% - this is the player that controls the ball
 mov     ax, [esi+Sprite.speed]
 mov     word ptr D0, ax
 or      ax, ax
@@ -105315,13 +105335,13 @@ jl      short @@no_pass_to_player
 mov     word ptr D1, 512 ; 512 - speed for a bit more different direction
 cmp     byte ptr D0, 5
 jg      short @@set_pass_to_player_speed
-cmp     byte ptr D0, 251
+cmp     byte ptr D0, -5
 jl      short @@set_pass_to_player_speed
 mov     word ptr D1, 256 ; 256 - speed for more similar direction
 
 @@set_pass_to_player_speed: ; CODE XREF: UpdatePlayerSpeed+255↑j
                     ; UpdatePlayerSpeed+25E↑j
-mov     ax, word ptr D1 ; 256 or 512, depending how similar direction is
+mov     ax, word ptr D1 ; 256 or 512, depending how close the ball direction is
 mov     esi, A1
 mov     [esi+Sprite.speed], ax
 
@@ -105408,7 +105428,7 @@ UpdatePlayerShotChanceTable proc near
                     ; CODE XREF: UpdatePlayers:@@update_shot_chance_table_for_goalie↓p
 call    GetPlayerPointerFromShirtNumber
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.position]
+mov     al, [esi+PlayerInfoHeader.position]
 or      al, al
 jz      short @@goalkeeper
 mov     esi, A6     ; normal player, not goalkeeper
@@ -105418,7 +105438,7 @@ retn
 
 @@goalkeeper:       ; CODE XREF: UpdatePlayerShotChanceTable+10↑j
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.goalieSkill]
+mov     al, [esi+PlayerInfoHeader.goalieSkill]
 mov     byte ptr D0, al
 and     word ptr D0, 0FFh
 shl     word ptr D0, 2
@@ -105438,7 +105458,7 @@ UpdatePlayerShotChanceTable endp
 ;      A1 -> sprite (player)
 ;      A6 -> team data
 ; out:
-;      A4 -> player + header (in-game)
+;      A4 -> player + header (in-game), requires addition of sizeof(TeamGame) to it to be a proper pointer
 
 GetPlayerPointerFromShirtNumber proc near
                     ; CODE XREF: SetPlayerDowntimeAfterTackle↑p
@@ -105495,7 +105515,7 @@ mov     D5, eax     ; D5 = delta y
 mov     esi, A2
 mov     eax, [esi+Sprite.deltaZ]
 mov     D6, eax     ; D6 = delta z
-mov     eax, kGravityConstant
+mov     eax, kBallAirFriction
 mov     D7, eax     ; D7 = air friction
 cmp     D5, -10000h ; -1.0
 jl      short @@ball_going_up
@@ -106089,7 +106109,7 @@ jmp     @@ball_standing
 mov     esi, A2
 mov     eax, [esi+Sprite.deltaZ]
 mov     D6, eax     ; D6 = ball delta z
-mov     eax, kGravityConstant
+mov     eax, kBallAirFriction
 mov     D7, eax
 mov     D0, 140000h ; D0 = 20.0 (starting ball z difference)
 
@@ -106221,14 +106241,14 @@ ja      short @@goalie_jumping_high
 mov     esi, A1
 mov     [esi+Sprite.playerState], PL_GOALIE_DIVING_LOW
 cmp     A6, offset bottomTeamData
-jz      short @@right_goalie_jumping_low
-mov     A0, offset leftGoalieJumpingLowAnimTable
+jz      short @@bottom_goalie_jumping_low
+mov     A0, offset topGoalieDivingLowAnimTable
 call    SetPlayerAnimationTable
 jmp     short @@set_down_timer
 ; ---------------------------------------------------------------------------
 
-@@right_goalie_jumping_low: ; CODE XREF: GoalkeeperJumping+10A↑j
-mov     A0, offset rightGoalieJumpingLowAnimTable
+@@bottom_goalie_jumping_low: ; CODE XREF: GoalkeeperJumping+10A↑j
+mov     A0, offset bottomGoalieDivingLowAnimTable
 call    SetPlayerAnimationTable
 jmp     short @@set_down_timer
 ; ---------------------------------------------------------------------------
@@ -106237,14 +106257,14 @@ jmp     short @@set_down_timer
 mov     esi, A1
 mov     [esi+Sprite.playerState], PL_GOALIE_DIVING_HIGH
 cmp     A6, offset bottomTeamData
-jz      short @@right_goalie_jumping_high
-mov     A0, offset leftGoalieJumpingHighAnimTable
+jz      short @@bottom_goalie_jumping_high
+mov     A0, offset topGoalieDivingHighAnimTable
 call    SetPlayerAnimationTable
 jmp     short @@set_down_timer
 ; ---------------------------------------------------------------------------
 
-@@right_goalie_jumping_high: ; CODE XREF: GoalkeeperJumping+142↑j
-mov     A0, offset rightGoalieJumpingHighAnimTable
+@@bottom_goalie_jumping_high: ; CODE XREF: GoalkeeperJumping+142↑j
+mov     A0, offset bottomGoalieDivingHighAnimTable
 call    SetPlayerAnimationTable
 
 @@set_down_timer:   ; CODE XREF: GoalkeeperJumping+11B↑j
@@ -106303,7 +106323,7 @@ mov     [esi+TeamGeneralInfo.controlledPlDirection], ax
 mov     ax, word ptr D0
 mov     esi, A1
 mov     [esi+Sprite.direction], ax
-mov     A0, offset plTacklingAnimTable
+mov     A0, offset playerTacklingAnimTable
 call    SetPlayerAnimationTable
 mov     esi, A1
 mov     [esi+Sprite.playerState], PL_TACKLING
@@ -106327,7 +106347,7 @@ movzx   ebx, word ptr D1
 add     eax, ebx
 mov     A0, eax
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.fasterTackle]
+mov     al, [esi+PlayerInfoHeader.fasterTackle]
 or      al, al
 jz      short @@no_faster_tackle
 mov     esi, A1
@@ -106505,7 +106525,7 @@ mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax
 cmp     A0, 0
 jz      @@out
@@ -106798,7 +106818,7 @@ mov     [esi+Sprite.direction], 0 ; up
 @@set_anim_table:   ; CODE XREF: GoalkeeperCaughtTheBall+18↑j
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.goalkeeperDivingLeft], 0
-mov     A0, offset goalieCatchingBallAnimTable
+mov     A0, offset goalkeeperJumpUpAnimTable
 call    SetPlayerAnimationTable
 mov     esi, A1
 mov     [esi+Sprite.playerState], PL_GOALIE_CATCHING_BALL
@@ -106955,7 +106975,7 @@ mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A2, eax     ; A2 -> opponents team
 mov     esi, A2
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A2, eax     ; A2 -> opponent's team controlled player sprite
 cmp     A2, 0
 jz      @@out
@@ -107330,38 +107350,38 @@ or      ax, ax
 jnz     short cseg_795E0
 mov     A0, offset dseg_17E3EE
 mov     esi, A5
-mov     al, [esi+PlayerGameHeader.previousCards]
+mov     al, [esi+PlayerInfoHeader.previousCards]
 or      al, al
 jz      short cseg_795B7
 mov     A0, offset dseg_17E3F3
 
 cseg_795B7:         ; CODE XREF: TryBookingThePlayer+134↑j
 mov     esi, A5
-mov     al, [esi+PlayerGameHeader.cards]
+mov     al, [esi+PlayerInfoHeader.cards]
 mov     byte ptr D1, al
 mov     esi, A0
 movzx   ebx, word ptr D0
 mov     al, [esi+ebx]
 mov     esi, A5
-mov     [esi+PlayerGameHeader.cards], al
+mov     [esi+PlayerInfoHeader.cards], al
 jmp     short @@jmp_give_yellow_card
 ; ---------------------------------------------------------------------------
 
 cseg_795E0:         ; CODE XREF: TryBookingThePlayer+11D↑j
 mov     esi, A5
-mov     al, [esi+PlayerGameHeader.cards]
+mov     al, [esi+PlayerInfoHeader.cards]
 mov     byte ptr D1, al
 mov     al, byte ptr D1
 or      al, al
 jnz     short cseg_79603
 mov     esi, A5
-mov     [esi+PlayerGameHeader.cards], 1
+mov     [esi+PlayerInfoHeader.cards], 1
 jmp     short @@give_yellow_card_to_player
 ; ---------------------------------------------------------------------------
 
 cseg_79603:         ; CODE XREF: TryBookingThePlayer+17E↑j
 mov     esi, A5
-mov     [esi+PlayerGameHeader.cards], 3
+mov     [esi+PlayerInfoHeader.cards], 3
 
 @@jmp_give_yellow_card: ; CODE XREF: TryBookingThePlayer+167↑j
 jmp     short @@give_yellow_card_to_player
@@ -107485,29 +107505,29 @@ or      ax, ax
 jnz     short cseg_79804
 mov     A0, offset dseg_17E3EE
 mov     esi, A5
-mov     al, [esi+PlayerGameHeader.previousCards]
+mov     al, [esi+PlayerInfoHeader.previousCards]
 or      al, al
 jz      short cseg_797DB
 mov     A0, offset dseg_17E3F3
 
 cseg_797DB:         ; CODE XREF: TrySendingOffThePlayer+F0↑j
 mov     esi, A5
-mov     al, [esi+PlayerGameHeader.cards]
+mov     al, [esi+PlayerInfoHeader.cards]
 mov     byte ptr D1, al
 mov     esi, A0
 movzx   ebx, word ptr D0
 mov     al, [esi+ebx]
 mov     esi, A5
-mov     [esi+PlayerGameHeader.cards], al
+mov     [esi+PlayerInfoHeader.cards], al
 jmp     short @@jmp_to_update
 ; ---------------------------------------------------------------------------
 
 cseg_79804:         ; CODE XREF: TrySendingOffThePlayer+D9↑j
 mov     esi, A5
-mov     al, [esi+PlayerGameHeader.cards]
+mov     al, [esi+PlayerInfoHeader.cards]
 mov     byte ptr D1, al
 mov     esi, A5
-mov     [esi+PlayerGameHeader.cards], 3
+mov     [esi+PlayerInfoHeader.cards], 3
 
 @@jmp_to_update:    ; CODE XREF: TrySendingOffThePlayer+123↑j
 jmp     short @@update_statistics_with_red_card
@@ -107571,7 +107591,7 @@ TrySendingOffThePlayer endp
 TestFoulForPenaltyAndFreeKick proc near
                     ; CODE XREF: PlayerTacklingTestFoul+4AA↑p
                     ; PlayerTacklingTestFoul+4D7↑p ...
-cmp     gameStatePl, 101
+cmp     gameStatePl, ST_STOPPED
 jz      @@out
 call    PlayFoulWhistleSample
 mov     esi, A2
@@ -107865,7 +107885,7 @@ mov     ax, gameLengthInGame
 mov     word ptr D1, ax
 mov     A5, offset kTackleInjuryProbability
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.injuriesBitfield]
+mov     al, [esi+PlayerInfoHeader.injuriesBitfield]
 mov     byte ptr D0, al
 and     word ptr D0, 0E0h
 cmp     word ptr D0, 20h
@@ -107881,7 +107901,7 @@ cmp     byte ptr D0, al
 jnb     @@set_tackled_anim_table
 mov     A5, offset kInjuryLevels ; uh-oh... injury...
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.injuriesBitfield]
+mov     al, [esi+PlayerInfoHeader.injuriesBitfield]
 mov     byte ptr D0, al
 and     word ptr D0, 0E0h
 cmp     word ptr D0, 20h
@@ -107959,14 +107979,14 @@ add     word ptr D1, 32
 @@set_injury_level: ; CODE XREF: PlayerTackled+16D↑j
                     ; PlayerTackled+19E↑j ...
 mov     esi, A0
-mov     [esi+PlayerGameHeader.isInjured], 1
+mov     [esi+PlayerInfoHeader.isInjured], 1
 mov     esi, A0
-mov     al, [esi+PlayerGameHeader.injuriesBitfield]
+mov     al, [esi+PlayerInfoHeader.injuriesBitfield]
 cmp     byte ptr D1, al
 jbe     short cseg_79FD7
 mov     al, byte ptr D1
 mov     esi, A0
-mov     [esi+PlayerGameHeader.injuriesBitfield], al
+mov     [esi+PlayerInfoHeader.injuriesBitfield], al
 
 cseg_79FD7:         ; CODE XREF: PlayerTackled+2BD↑j
 and     word ptr D1, 0E0h
@@ -108014,7 +108034,7 @@ mov     esi, A1
 mov     ax, [esi+Sprite.direction]
 mov     word ptr D0, ax
 shl     word ptr D0, 2
-mov     A0, offset kBallPlOffsets
+mov     A0, offset kControlledBallJiggleOffsets
 mov     esi, A1
 mov     ax, word ptr [esi+(Sprite.x+2)]
 mov     word ptr D1, ax
@@ -108094,32 +108114,32 @@ push    D1
 push    A1
 push    A6
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A1, eax
 cmp     A1, 0
 jz      @@no_opponent_controlled_player
 call    GetPlayerPointerFromShirtNumber ; A1 -> opponent's controlled player, but A6 -> this team?
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.tackling]
+mov     al, [esi+PlayerInfoHeader.tackling]
 mov     byte ptr D1, al
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.ballControl]
+mov     al, [esi+PlayerInfoHeader.ballControl]
 add     byte ptr D1, al
 shr     byte ptr D1, 1 ; D1 = our(?) controlled player tackling and ball control average
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A6, eax
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A1, eax
 cmp     A1, 0
 jz      @@no_opponent_controlled_player
 call    GetPlayerPointerFromShirtNumber ; we have opponent's controlling player
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.tackling]
+mov     al, [esi+PlayerInfoHeader.tackling]
 mov     byte ptr D0, al
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.ballControl]
+mov     al, [esi+PlayerInfoHeader.ballControl]
 add     byte ptr D0, al
 shr     byte ptr D0, 1 ; opponent player tackling and ball control average
 mov     al, byte ptr D0
@@ -108242,7 +108262,7 @@ test    byte ptr currentTick, 2
 jz      short @@update_ball_speed
 mov     A0, offset kBallSpeedDeltaWhenControlled ; increase ball speed at odd frames only
 mov     esi, A4     ; basically it "runs away" a bit every other frame
-mov     al, [esi+PlayerGameHeader.ballControl]
+mov     al, [esi+PlayerInfoHeader.ballControl]
 mov     byte ptr D1, al
 mov     al, byte ptr D1
 cbw
@@ -108292,7 +108312,7 @@ mov     esi, A6
 add     [esi+TeamGeneralInfo.unkBallTimer], 1
 mov     A0, offset dseg_17E276
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.ballControl]
+mov     al, [esi+PlayerInfoHeader.ballControl]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -108329,7 +108349,7 @@ DoPass proc near    ; CODE XREF: UpdatePlayers+2865↓p
 mov     goodPassSampleCommand, 0
 mov     stateGoal, 0
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax
 mov     esi, A1
 mov     ax, [esi+Sprite.direction]
@@ -108361,7 +108381,7 @@ mov     ax, [esi+TeamGeneralInfo.playerNumber]
 or      ax, ax
 jnz     @@calculate_pass_to_player_delta_x_y
 mov     esi, A4     ; CPU passing
-mov     al, [esi+PlayerGameHeader.passing]
+mov     al, [esi+PlayerInfoHeader.passing]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -108536,7 +108556,7 @@ mov     word ptr D1, ax
 
 @@set_ball_speed:   ; CODE XREF: DoPass+340↑j DoPass+36A↑j ...
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.passing]
+mov     al, [esi+PlayerInfoHeader.passing]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -108620,7 +108640,7 @@ PlayerKickingBall proc near ; CODE XREF: UpdatePlayers+2A54↓p
                     ; UpdatePlayers+33C9↓p
 mov     stateGoal, 0
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax     ; A0 -> controlled player
 mov     esi, A1
 mov     ax, [esi+Sprite.direction]
@@ -108636,7 +108656,7 @@ shl     word ptr D0, 2
 mov     esi, A2
 mov     ax, word ptr [esi+(Sprite.x+2)]
 mov     word ptr D1, ax ; D1 = ball x
-mov     esi, A0
+mov     esi, A0     ; A0 -> ball factor table
 movzx   ebx, word ptr D0
 mov     ax, [esi+ebx]
 add     word ptr D1, ax
@@ -108672,7 +108692,7 @@ jbe     @@out
 @@game_in_progress: ; CODE XREF: PlayerKickingBall+102↑j
                     ; PlayerKickingBall+10C↑j
 cmp     A6, offset topTeamData ; abort if game not in progress, or throw-in in progress
-jz      short @@left_team
+jz      short @@top_team
 mov     esi, A2
 cmp     word ptr [esi+(Sprite.y+2)], 342
 jg      @@not_a_shot_on_goal
@@ -108689,7 +108709,7 @@ jz      short @@possible_shot_on_goal ; and player turned approximately in goal 
 jmp     @@not_a_shot_on_goal
 ; ---------------------------------------------------------------------------
 
-@@left_team:        ; CODE XREF: PlayerKickingBall+126↑j
+@@top_team:         ; CODE XREF: PlayerKickingBall+126↑j
 mov     esi, A2
 cmp     word ptr [esi+(Sprite.y+2)], 556
 jl      @@not_a_shot_on_goal
@@ -108726,7 +108746,7 @@ jl      short @@its_a_long_shot
 call    GetPlayerPointerFromShirtNumber
 mov     A0, offset kBallSpeedFinishing
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.finishing]
+mov     al, [esi+PlayerInfoHeader.finishing]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -108747,7 +108767,7 @@ jmp     short @@not_a_shot_on_goal
 call    GetPlayerPointerFromShirtNumber
 mov     A0, offset kBallSpeedKicking
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.shooting]
+mov     al, [esi+PlayerInfoHeader.shooting]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -108832,7 +108852,7 @@ mov     eax, [esi]
 add     A2, 4
 mov     A1, eax     ; A1 -> player sprite
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jz      short @@next
 nop
@@ -109158,7 +109178,7 @@ mov     [esi+Sprite.destY], ax
 call    GetPlayerPointerFromShirtNumber
 mov     A0, offset kPlayerHeaderSpeedIncrease
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.heading]
+mov     al, [esi+PlayerInfoHeader.heading]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -109335,7 +109355,7 @@ mov     esi, A1
 mov     ax, [esi+Sprite.direction]
 mov     word ptr D0, ax
 shl     word ptr D0, 2
-mov     A0, offset kBallPlOffsets
+mov     A0, offset kControlledBallJiggleOffsets
 mov     esi, A1
 mov     ax, word ptr [esi+(Sprite.x+2)]
 mov     word ptr D1, ax ; D1 = player x
@@ -109529,7 +109549,7 @@ mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax
 cmp     A0, 0
 jz      @@out
@@ -109835,7 +109855,7 @@ or      ax, ax
 jz      short @@check_if_picture_set
 shr     word ptr D0, 8
 shr     word ptr D0, 1
-add     word ptr D0, 1 ; D0 = speed whole part / 2 + 1
+add     word ptr D0, 1 ; D0 = speed whole part + 1
 mov     ax, word ptr D0
 mov     esi, A0
 sub     [esi+Sprite.cycleFramesTimer], ax
@@ -109922,7 +109942,7 @@ shr     word ptr D0, 5 ; reduce direction to 0..7
 mov     ax, word ptr D0
 mov     esi, A0
 mov     [esi+Sprite.direction], ax
-mov     ax, kBallGroundConstant
+mov     ax, kControlledBallSpeedReduction
 mov     word ptr D0, ax
 mov     ax, topTeamData.playerHasBall
 or      ax, ax
@@ -109930,18 +109950,18 @@ jnz     short @@check_z_coordinate
 mov     ax, bottomTeamData.playerHasBall
 or      ax, ax
 jnz     short @@check_z_coordinate
-mov     ax, pitchBallSpeedFactor
+mov     ax, pitchBallSpeedReductionAdjustment
 add     word ptr D0, ax
 
 @@check_z_coordinate: ; CODE XREF: UpdateBall+253↑j UpdateBall+25E↑j
 mov     esi, A0
 mov     ax, word ptr [esi+(Sprite.z+2)] ; whole part of z
 or      ax, ax
-jz      short @@on_the_ground
-mov     ax, kBallAirConstant
+jz      short @@decrease_ball_speed
+mov     ax, kBallAirSpeedReduction
 mov     word ptr D0, ax
 
-@@on_the_ground:    ; CODE XREF: UpdateBall+27A↑j
+@@decrease_ball_speed: ; CODE XREF: UpdateBall+27A↑j
 mov     ax, word ptr D0
 mov     esi, A0
 sub     [esi+Sprite.speed], ax
@@ -109976,7 +109996,7 @@ mov     eax, lastTeamPlayedBeforeBreak
 cmp     A1, eax
 jnz     short @@keeper_is_controlled
 mov     esi, A1     ; last team that played substituted a player and keeper holds the ball
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 or      eax, eax
 jnz     short @@keeper_is_controlled
 mov     esi, A0
@@ -109989,11 +110009,11 @@ mov     esi, A0
 mov     ax, [esi+Sprite.speed]
 or      ax, ax
 jz      @@check_keeper_z
-add     writeOnlyVar04, 1
+add     ballUpdatedByGoalkeeper, 1
 mov     eax, lastTeamPlayedBeforeBreak
 mov     A1, eax
 mov     esi, A1
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A1, eax
 push    D0
 push    D1
@@ -110033,23 +110053,23 @@ cmp     word ptr [esi+(Sprite.z+2)], 5 ; 5 = hands?
 jz      @@set_delta_z_to_0
 ja      short @@height_higher_than_5
 mov     D3, 20004h  ; ~2,00006
-jmp     short @@apply_delta_z
+jmp     short @@add_delta_z_to_z
 ; ---------------------------------------------------------------------------
 
 @@height_higher_than_5: ; CODE XREF: UpdateBall+437↑j
 mov     D3, -10002h ; ~-1,00003
-jmp     short @@apply_delta_z
+jmp     short @@add_delta_z_to_z
 ; ---------------------------------------------------------------------------
 
 @@keeper_doesnt_hold_the_ball: ; CODE XREF: UpdateBall+2F4↑j
 mov     eax, D3
 or      eax, eax
 jz      @@assign_delta_z
-mov     eax, kGravityConstant
+mov     eax, kBallAirFriction
 sub     D3, eax
 or      D3, 1
 
-@@apply_delta_z:    ; CODE XREF: UpdateBall+443↑j UpdateBall+44F↑j
+@@add_delta_z_to_z: ; CODE XREF: UpdateBall+443↑j UpdateBall+44F↑j
 mov     eax, D3
 mov     esi, A0
 add     [esi+Sprite.z], eax
@@ -110073,7 +110093,7 @@ mov     eax, D3
 mov     D0, eax
 sar     D0, 8
 mov     ax, word ptr D0
-mov     bx, ballBounceFactor
+mov     bx, ballZAxisDampenFactor
 mul     bx          ; dampen the delta z, factor < 1
 mov     word ptr D0, ax
 mov     word ptr D0+2, dx
@@ -110108,7 +110128,7 @@ mov     eax, D3
 mov     esi, A0
 mov     [esi+Sprite.deltaZ], eax
 cmp     gameStatePl, ST_GAME_IN_PROGRESS
-jz      @@in_allowed_range_y
+jz      @@test_goal_frame_collision
 mov     esi, A0
 cmp     word ptr [esi+(Sprite.x+2)], 53
 jl      short @@bounce_off_invisible_barrier_x
@@ -110122,10 +110142,10 @@ mov     ax, [esi+Sprite.destX]
 mov     word ptr D0, ax ; D0 = ball dest x
 mov     esi, A0
 mov     ax, word ptr [esi+(Sprite.x+2)]
-sub     word ptr D0, ax ; D0 = dest x - x
+sub     word ptr D0, ax ; D0 = dest x - whole(x)
 mov     esi, A0
 mov     ax, word ptr [esi+(Sprite.x+2)]
-mov     word ptr D1, ax ; D1 = ball x
+mov     word ptr D1, ax ; D1 = whole(ball x)
 mov     ax, word ptr D0
 sub     word ptr D1, ax ; D1 = 2x - dest x (new dest x)
 mov     ax, word ptr D1
@@ -110149,7 +110169,7 @@ cmp     word ptr [esi+(Sprite.y+2)], 100
 jl      short @@bounce_off_invisible_barrier_y
 mov     esi, A0
 cmp     word ptr [esi+(Sprite.y+2)], 799
-jle     @@in_allowed_range_y
+jle     @@test_goal_frame_collision
 
 @@bounce_off_invisible_barrier_y: ; CODE XREF: UpdateBall+645↑j
 mov     esi, A0
@@ -110178,13 +110198,14 @@ mov     eax, D7
 mov     esi, A0
 mov     [esi+Sprite.z], eax
 
-@@in_allowed_range_y: ; CODE XREF: UpdateBall+593↑j UpdateBall+653↑j
+@@test_goal_frame_collision: ; CODE XREF: UpdateBall+593↑j
+                    ; UpdateBall+653↑j
 mov     esi, A0
 cmp     word ptr [esi+(Sprite.y+2)], 129 ; upper pitch line
 jl      short @@goal_or_gol_out
 mov     esi, A0
 cmp     word ptr [esi+(Sprite.y+2)], 769 ; lower pitch line
-jle     @@not_in_lower_goal
+jle     @@detect_post_bar_collisions
 
 @@goal_or_gol_out:  ; CODE XREF: UpdateBall+6E7↑j
 mov     esi, A0     ; y in pitch
@@ -110197,7 +110218,6 @@ mov     esi, A0
 mov     ax, word ptr [esi+(Sprite.z+2)]
 mov     word ptr D3, ax ; D3 = ball z
 sub     word ptr D1, 1 ; x--
-; start of tests
 cmp     word ptr D2, 128 ; upper goal line - 1
 jg      short @@not_in_upper_goal
 cmp     word ptr D2, 112 ; upper goal bar
@@ -110205,15 +110225,15 @@ jg      @@in_upper_goal_y
 
 @@not_in_upper_goal: ; CODE XREF: UpdateBall+73C↑j
 cmp     word ptr D2, 770 ; lower goal line + 1
-jl      @@not_in_lower_goal
+jl      @@detect_post_bar_collisions
 cmp     word ptr D2, 785 ; lower goal shadow + 1
-jge     @@not_in_lower_goal
+jge     @@detect_post_bar_collisions
 cmp     word ptr D3, 19 ; y in 770..784
-jg      @@not_in_lower_goal
+jg      @@detect_post_bar_collisions
 cmp     word ptr D1, 295 ; left goal post - 4 - 1
-jle     @@not_in_lower_goal
+jle     @@detect_post_bar_collisions
 cmp     word ptr D1, 372 ; right goal post
-jg      @@not_in_lower_goal
+jg      @@detect_post_bar_collisions
 cmp     word ptr D3, 15 ; x in 296..372
 jg      @@ball_in_top_of_lower_goal
 cmp     word ptr D1, 302 ; left goal post + 1
@@ -110222,16 +110242,16 @@ cmp     word ptr D1, 366 ; right goal post - 4 - 1
 jg      @@left_edge_of_lower_goal
 cmp     word ptr D2, 778 ; lower goal line + 1
 jg      @@ball_in_net
-jmp     @@not_in_lower_goal
+jmp     @@detect_post_bar_collisions
 ; ---------------------------------------------------------------------------
 
 @@in_upper_goal_y:  ; CODE XREF: UpdateBall+746↑j
 cmp     word ptr D3, 19 ; y in 113..128
-jg      @@not_in_lower_goal
+jg      @@detect_post_bar_collisions
 cmp     word ptr D1, 295 ; left goal post - 4 - 1
-jle     @@not_in_lower_goal
+jle     @@detect_post_bar_collisions
 cmp     word ptr D1, 372 ; right goal post + 1
-jg      @@not_in_lower_goal
+jg      @@detect_post_bar_collisions
 cmp     word ptr D2, 123 ; about half line of inner upper goal
 jg      short @@ball_just_in_upper_goal
 cmp     word ptr D3, 10 ; y in 113..123
@@ -110250,7 +110270,7 @@ cmp     word ptr D1, 366 ; right goal post - 4 - 1
 jg      @@left_edge_of_lower_goal
 cmp     word ptr D2, 119 ; upper goal lower goal base line
 jl      @@ball_in_net
-jmp     @@not_in_lower_goal
+jmp     @@detect_post_bar_collisions
 ; ---------------------------------------------------------------------------
 
 @@top_of_upper_goal: ; CODE XREF: UpdateBall+814↑j UpdateBall+820↑j
@@ -110274,7 +110294,7 @@ mov     [esi+Sprite.y], eax
 mov     eax, D7
 mov     esi, A0
 mov     [esi+Sprite.z], eax
-jmp     @@not_in_lower_goal
+jmp     @@detect_post_bar_collisions
 ; ---------------------------------------------------------------------------
 
 @@top_of_the_goal:  ; CODE XREF: UpdateBall+878↑j
@@ -110292,7 +110312,7 @@ mov     [esi+Sprite.speed], 512
 mov     eax, D7
 mov     esi, A0
 mov     [esi+Sprite.z], eax
-jmp     @@not_in_lower_goal
+jmp     @@detect_post_bar_collisions
 ; ---------------------------------------------------------------------------
 
 @@ball_in_top_of_lower_goal: ; CODE XREF: UpdateBall+79E↑j
@@ -110316,7 +110336,7 @@ mov     [esi+Sprite.y], eax
 mov     eax, D7
 mov     esi, A0
 mov     [esi+Sprite.z], eax
-jmp     @@not_in_lower_goal
+jmp     @@detect_post_bar_collisions
 ; ---------------------------------------------------------------------------
 
 cseg_7C69B:         ; CODE XREF: UpdateBall+93C↑j
@@ -110334,7 +110354,7 @@ mov     [esi+Sprite.speed], 512
 mov     eax, D7
 mov     esi, A0
 mov     [esi+Sprite.z], eax
-jmp     @@not_in_lower_goal
+jmp     @@detect_post_bar_collisions
 ; ---------------------------------------------------------------------------
 
 @@ball_in_net:      ; CODE XREF: UpdateBall+7CB↑j UpdateBall+848↑j
@@ -110370,7 +110390,8 @@ mov     eax, D6
 mov     esi, A0
 mov     [esi+Sprite.y], eax
 
-@@not_in_lower_goal: ; CODE XREF: UpdateBall+6F5↑j UpdateBall+755↑j ...
+@@detect_post_bar_collisions: ; CODE XREF: UpdateBall+6F5↑j
+                    ; UpdateBall+755↑j ...
 cmp     gameStatePl, ST_GAME_IN_PROGRESS
 jnz     cseg_7CA2C
 mov     esi, A0
@@ -110644,7 +110665,7 @@ sub     word ptr [esi+(Sprite.y+2)], 10 ; ball shadow y = ball y + ball z / 4 + 
 mov     esi, A1
 mov     word ptr [esi+(Sprite.z+2)], -10 ; ball shadow z = -10
 call    CalculateNextBallPosition
-cmp     gameStatePl, 100
+cmp     gameStatePl, ST_GAME_IN_PROGRESS
 jz      short @@game_in_progress
 mov     ax, foulXCoordinate
 mov     word ptr D1, ax
@@ -111527,7 +111548,7 @@ mov     D7, eax     ; D7 = ball z
 mov     esi, A0
 mov     ax, [esi+Sprite.speed]
 or      ax, ax
-jz      @@standing_still
+jz      @@assign_ball_next_x_and_y
 mov     esi, A0
 mov     eax, [esi+Sprite.deltaX]
 mov     D1, eax     ; D1 = ball delta x
@@ -111537,7 +111558,7 @@ mov     D2, eax     ; D2 = ball delta y
 mov     esi, A0
 mov     eax, [esi+Sprite.deltaZ]
 mov     D3, eax     ; D3 = ball delta z
-mov     eax, kGravityConstant
+mov     eax, kBallAirFriction
 mov     D4, eax     ; D4 = air friction
 mov     eax, D3
 or      eax, eax
@@ -111558,9 +111579,9 @@ jbe     short @@ball_high
 ; delta; in each loop iteration, delta z is lowered by a constant
 
 @@ball_very_high:   ; CODE XREF: CalculateNextBallPosition+82↑j
-shl     D1, 3       ; delta x /= 8
-shl     D2, 3       ; delta y /= 8
-shl     D4, 3       ; air friction /= 8
+shl     D1, 3       ; delta x *= 8
+shl     D2, 3       ; delta y *= 8
+shl     D4, 3       ; air friction *= 8
 sar     D7, 3       ; z /= 8
 
 @@ball_still_in_the_air: ; CODE XREF: CalculateNextBallPosition+102↓j
@@ -111573,13 +111594,13 @@ sub     D3, eax     ; delta z -= air friction (include air friction)
 mov     eax, D3
 add     D7, eax     ; z += delta z
 jns     short @@ball_still_in_the_air
-jmp     @@standing_still
+jmp     @@assign_ball_next_x_and_y
 ; ---------------------------------------------------------------------------
 
 @@ball_high:        ; CODE XREF: CalculateNextBallPosition+B8↑j
-shl     D1, 2       ; delta x /= 4
-shl     D2, 2       ; delta y /= 4
-shl     D4, 2       ; air friction /= 4
+shl     D1, 2       ; delta x *= 4
+shl     D2, 2       ; delta y *= 4
+shl     D4, 2       ; air friction *= 4
 sar     D7, 2       ; z /= 4
 
 @@ball_still_in_the_air_2: ; CODE XREF: CalculateNextBallPosition+151↓j
@@ -111592,13 +111613,13 @@ sub     D3, eax     ; delta z -= air friction (include air friction)
 mov     eax, D3
 add     D7, eax     ; z += delta z
 jns     short @@ball_still_in_the_air_2
-jmp     short @@standing_still
+jmp     short @@assign_ball_next_x_and_y
 ; ---------------------------------------------------------------------------
 
 @@ball_a_little_bit_high: ; CODE XREF: CalculateNextBallPosition+AA↑j
-shl     D1, 1       ; delta x /= 2
-shl     D2, 1       ; delta y /= 2
-shl     D4, 1       ; air friction /= 2
+shl     D1, 1       ; delta x *= 2
+shl     D2, 1       ; delta y *= 2
+shl     D4, 1       ; air friction *= 2
 sar     D7, 1       ; z /= 2
 
 @@ball_still_in_the_air_3: ; CODE XREF: CalculateNextBallPosition+199↓j
@@ -111611,7 +111632,7 @@ sub     D3, eax     ; delta z -= air friction (include air friction)
 mov     eax, D3
 add     D7, eax     ; z += delta z
 jns     short @@ball_still_in_the_air_3
-jmp     short @@standing_still
+jmp     short @@assign_ball_next_x_and_y
 ; ---------------------------------------------------------------------------
 
 @@ball_low:         ; CODE XREF: CalculateNextBallPosition+9C↑j
@@ -111626,7 +111647,7 @@ mov     eax, D3
 add     D7, eax     ; z += delta z
 jns     short @@ball_low
 
-@@standing_still:   ; CODE XREF: CalculateNextBallPosition+41↑j
+@@assign_ball_next_x_and_y: ; CODE XREF: CalculateNextBallPosition+41↑j
                     ; CalculateNextBallPosition+104↑j ...
 mov     ax, word ptr D5
 xchg    ax, word ptr D5+2
@@ -111635,9 +111656,9 @@ mov     ax, word ptr D6
 xchg    ax, word ptr D6+2 ; ditto for ball y
 mov     word ptr D6, ax
 mov     ax, word ptr D5
-mov     ballNextX, ax
+mov     ballNextX, ax ; ballNextX = x.whole()
 mov     ax, word ptr D6
-mov     ballNextY, ax
+mov     ballNextY, ax ; ballNextY = y.whole()
 retn
 CalculateNextBallPosition endp
 
@@ -112151,7 +112172,7 @@ ResetBothTeamsPlayerPassingKicking proc near
 push    A1
 push    A2
 mov     ax, cameraDirection
-mov     dseg_130FF9, ax
+mov     lastCameraDirection, ax
 mov     ax, playerTurnFlags
 mov     lastPlayerTurnFlags, ax
 mov     A0, offset topTeamData
@@ -112177,7 +112198,7 @@ ResetPlayerPassingKicking proc near
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.ballInPlay], 0
 mov     [esi+TeamGeneralInfo.ballOutOfPlay], 0
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], 0
 mov     [esi+TeamGeneralInfo.passingBall], 0
 mov     [esi+TeamGeneralInfo.passingToPlayer], 0
@@ -112228,7 +112249,7 @@ SetJumpHeaderHitAnimTable endp
 ; Static header was activated now we need to aim it somewhere.
 
 SetStaticHeaderDirection proc near
-                    ; CODE XREF: UpdatePlayers:cseg_822E4↓p
+                    ; CODE XREF: UpdatePlayers:@@check_for_static_header_hit↓p
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.currentAllowedDirection]
 mov     word ptr D0, ax
@@ -112382,7 +112403,7 @@ mov     [esi+Sprite.speed], ax
 call    GetPlayerPointerFromShirtNumber
 mov     A0, offset kPlayerHeaderSpeedIncrease
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.heading]
+mov     al, [esi+PlayerInfoHeader.heading]
 mov     byte ptr D0, al
 mov     al, byte ptr D0
 cbw
@@ -112649,7 +112670,7 @@ mov     esi, A1
 cmp     [esi+Sprite.playerState], PL_ROLLING_INJURED
 jz      @@player_injured
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jz      short @@update_player_ball_distance
 mov     esi, A1
@@ -112800,7 +112821,7 @@ mov     esi, A1
 cmp     [esi+Sprite.playerOrdinal], 1
 jz      short @@player_goalkeeper
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jz      @@its_controlled_player
 mov     esi, A6
@@ -112835,7 +112856,7 @@ mov     esi, A6     ; goalkeeper has the ball, and plays like an ordinary player
 mov     byte ptr [esi+TeamGeneralInfo.goaliePlayingOrOut], 1
 mov     byte ptr [esi+TeamGeneralInfo.ballOutOfPlayOrKeeper], 0
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jz      @@its_controlled_player
 mov     esi, A6     ; goalkeeper playing, but not controlled player, kludge it
@@ -112906,7 +112927,7 @@ call    SetPlayerAnimationTable
 
 @@goalie_not_catching_the_ball: ; CODE XREF: UpdatePlayers+5D7↑j
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jz      @@its_controlled_player
 mov     esi, A6
@@ -113176,7 +113197,7 @@ mov     esi, A1
 mov     eax, [esi+Sprite.ballDistance]
 mov     D0, eax
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax
 cmp     A0, 0
 jz      short cseg_7F56B
@@ -113201,7 +113222,7 @@ mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax
 cmp     A0, 0
 jz      short cseg_7F5CC
@@ -113354,7 +113375,7 @@ or      ax, ax
 jz      cseg_7FBEF
 
 @@check_shot_at_goal_speed: ; CODE XREF: UpdatePlayers+DFF↑j
-mov     ax, kShotAtGoalMinumumSpeed
+mov     ax, kShotAtGoalMinimumSpeed
 mov     word ptr D0, ax
 mov     esi, A2
 mov     ax, [esi+Sprite.speed]
@@ -113424,13 +113445,13 @@ mov     eax, A0
 xchg    eax, A1
 mov     A0, eax
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.finishing]
+mov     al, [esi+PlayerInfoHeader.finishing]
 mov     byte ptr D1, al
 
 @@get_goalie_skill: ; CODE XREF: UpdatePlayers+F2F↑j
 call    GetPlayerPointerFromShirtNumber
 mov     esi, A4
-mov     al, [esi+PlayerGameHeader.goalieSkill]
+mov     al, [esi+PlayerInfoHeader.goalieSkill]
 sub     byte ptr D1, al
 mov     al, byte ptr D1
 cbw
@@ -113648,7 +113669,7 @@ jz      @@goalie_cant_catch_ball
 @@opponent_last_played: ; CODE XREF: UpdatePlayers+12CF↑j
 mov     ax, ballInGoalkeeperArea
 or      ax, ax
-jnz     short cseg_7FD39
+jnz     short @@check_if_goalie_can_catch_the_ball
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.shotChanceTable]
 mov     A0, eax
@@ -113661,7 +113682,7 @@ mov     ax, [esi+58]
 cmp     word ptr D0, ax
 jnb     @@goalie_cant_catch_ball
 
-cseg_7FD39:         ; CODE XREF: UpdatePlayers+12E9↑j
+@@check_if_goalie_can_catch_the_ball: ; CODE XREF: UpdatePlayers+12E9↑j
 mov     ax, ballNextGroundX
 or      ax, ax
 js      @@goalie_cant_catch_ball
@@ -113734,7 +113755,7 @@ jnz     @@opponent_player_touched_the_ball
 call    UpdateBallWithControllingGoalkeeper ; goalkeeper gets ball as a player
 mov     eax, A1
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], eax
+mov     [esi+TeamGeneralInfo.controlledPlayer], eax
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], 0
 mov     esi, A6
@@ -114503,11 +114524,11 @@ mov     [esi+TeamGeneralInfo.passingToPlayer], 0
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.goalkeeperSavedCommentTimer]
 or      ax, ax
-js      short cseg_80BA0
+js      short @@play_goalkeeper_saved_comment
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.passingKickingPlayer], 0
 
-cseg_80BA0:         ; CODE XREF: UpdatePlayers+2185↑j
+@@play_goalkeeper_saved_comment: ; CODE XREF: UpdatePlayers+2185↑j
 push    A0
 call    PlayGoalkeeperSavedComment
 call    PlayMissGoalSample
@@ -114752,32 +114773,33 @@ jns     @@jmp_update_player_speed
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.plVeryCloseToBall]
 or      al, al
-jnz     short cseg_80F61
+jnz     short @@check_ball_z_for_static_header_attempt
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.plCloseToBall]
 or      al, al
-jnz     short cseg_80F61
+jnz     short @@check_ball_z_for_static_header_attempt
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.plNotFarFromBall]
 or      al, al
 jz      @@jmp_update_player_speed
 
-cseg_80F61:         ; CODE XREF: UpdatePlayers+2535↑j
+@@check_ball_z_for_static_header_attempt:
+                    ; CODE XREF: UpdatePlayers+2535↑j
                     ; UpdatePlayers+2542↑j
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.ball8To12]
 or      al, al
-jnz     short cseg_80F88
+jnz     short @@attempt_static_header
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.ball12To17]
 or      al, al
-jnz     short cseg_80F88
+jnz     short @@attempt_static_header
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.ballAbove17]
 or      al, al
 jz      short @@jmp_update_player_speed
 
-cseg_80F88:         ; CODE XREF: UpdatePlayers+2560↑j
+@@attempt_static_header: ; CODE XREF: UpdatePlayers+2560↑j
                     ; UpdatePlayers+256D↑j
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.headerOrTackle], 1
@@ -114971,7 +114993,7 @@ jnz     short @@not_penalty
 mov     penalty, 1
 
 @@not_penalty:      ; CODE XREF: UpdatePlayers+28C2↑j
-mov     gameStatePl, 100
+mov     gameStatePl, ST_GAME_IN_PROGRESS
 mov     gameState, ST_GAME_IN_PROGRESS
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.ballInPlay], 1
@@ -114987,7 +115009,7 @@ mov     [esi+TeamGeneralInfo.ballOutOfPlay], 1
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.spinTimer], -1
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     eax, A1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passingKickingPlayer], eax
@@ -115026,7 +115048,7 @@ or      al, al
 jz      @@check_if_goalkeeper
 
 cseg_813DA:         ; CODE XREF: UpdatePlayers+29BB↑j
-cmp     gameStatePl, 100
+cmp     gameStatePl, ST_GAME_IN_PROGRESS
 jz      short cseg_813FE
 mov     cl, byte ptr D0
 mov     ax, 1
@@ -115064,7 +115086,7 @@ pop     D0
 mov     eax, A1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.lastHeadingTacklingPlayer], eax
-cmp     gameStatePl, 100
+cmp     gameStatePl, ST_GAME_IN_PROGRESS
 jz      short cseg_814B5
 push    D0
 call    ThrowInDeadProc
@@ -115096,7 +115118,7 @@ mov     [esi+TeamGeneralInfo.ballOutOfPlay], 1
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.spinTimer], -1
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     eax, A1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passingKickingPlayer], eax
@@ -115525,7 +115547,7 @@ shl     ax, cl
 test    playerTurnFlags, ax
 jz      short @@throw_in_check_normal_fire
 mov     throwInPassOrKick, 1 ; do quick fire throw-in
-mov     A0, offset throwInPassAnimTable
+mov     A0, offset throwInShortAnimTable
 call    SetPlayerAnimationTable
 mov     esi, A1
 mov     [esi+Sprite.playerDownTimer], 20
@@ -115544,7 +115566,7 @@ shl     ax, cl
 test    playerTurnFlags, ax
 jz      @@update_player_speed_and_deltas
 mov     throwInPassOrKick, 0 ; do normal fire throw-in
-mov     A0, offset throwInKickAnimTable
+mov     A0, offset throwInLongAnimTable
 call    SetPlayerAnimationTable
 mov     esi, A1
 mov     [esi+Sprite.playerDownTimer], 25
@@ -115597,7 +115619,7 @@ mov     [esi+TeamGeneralInfo.ballOutOfPlay], 1
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.spinTimer], -1
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     eax, A1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passingKickingPlayer], eax
@@ -115636,7 +115658,7 @@ mov     eax, A1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.lastHeadingTacklingPlayer], eax
 or      eax, eax
-cmp     gameStatePl, 100
+cmp     gameStatePl, ST_GAME_IN_PROGRESS
 jz      short @@throw_in_ball_kicked
 push    D0
 call    ThrowInDeadProc
@@ -115660,7 +115682,7 @@ mov     [esi+TeamGeneralInfo.ballOutOfPlay], 1
 mov     esi, A0
 mov     [esi+TeamGeneralInfo.spinTimer], -1
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+mov     [esi+TeamGeneralInfo.controlledPlayer], 0
 mov     eax, A1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passingKickingPlayer], eax
@@ -115923,11 +115945,11 @@ jmp     @@stop_player
 @@player_down_with_static_header: ; CODE XREF: UpdatePlayers+389F↑j
 mov     esi, A1
 sub     [esi+Sprite.speed], 16
-jns     short cseg_822E4
+jns     short @@check_for_static_header_hit
 mov     esi, A1
 mov     [esi+Sprite.speed], 0
 
-cseg_822E4:         ; CODE XREF: UpdatePlayers+38CA↑j
+@@check_for_static_header_hit: ; CODE XREF: UpdatePlayers+38CA↑j
 call    SetStaticHeaderDirection
 cmp     gameStatePl, ST_GAME_IN_PROGRESS
 jnz     @@update_player_speed_and_deltas
@@ -116199,7 +116221,7 @@ mov     [esi+Sprite.playerState], PL_ROLLING_INJURED
 mov     al, byte ptr D0
 mov     esi, A1
 mov     [esi+Sprite.playerDownTimer], al
-mov     A0, offset plInjuredAnimTable
+mov     A0, offset playerInjuredAnimTable
 call    SetPlayerAnimationTable
 jmp     @@update_player_speed_and_deltas
 ; ---------------------------------------------------------------------------
@@ -116437,7 +116459,7 @@ mov     [esi+Sprite.direction], ax
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.passToPlayerPtr]
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], eax
+mov     [esi+TeamGeneralInfo.controlledPlayer], eax
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], 0
 mov     esi, A6
@@ -116511,7 +116533,7 @@ jz      cseg_82D59
 
 cseg_82CAB:         ; CODE XREF: UpdatePlayers+428C↑j
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A5, eax
 cmp     A5, 0
 jz      short cseg_82CE1
@@ -116570,7 +116592,7 @@ jz      cseg_82EC2
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.passToPlayerPtr]
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], eax
+mov     [esi+TeamGeneralInfo.controlledPlayer], eax
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], 0
 mov     esi, A6
@@ -116582,7 +116604,7 @@ mov     [esi+TeamGeneralInfo.passingToPlayer], 0
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.shooting], 0
 mov     esi, A1
-mov     ax, word ptr [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     ax, word ptr [esi+TeamGeneralInfo.controlledPlayer]
 mov     esi, A1
 mov     [esi+Sprite.destX], ax
 mov     esi, A1
@@ -116646,7 +116668,7 @@ mov     ax, [esi+TeamGeneralInfo.passingBall]
 or      ax, ax
 jnz     @@player_chase_ball
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A5, eax
 cmp     A5, 0
 jz      short @@its_a_pass
@@ -116857,7 +116879,7 @@ mov     [esi+Sprite.destReachedState], 2
 
 @@check_for_controlled_player: ; CODE XREF: UpdatePlayers+4859↑j
 mov     esi, A6
-cmp     [esi+TeamGeneralInfo.controlledPlayerSprite], 0
+cmp     [esi+TeamGeneralInfo.controlledPlayer], 0
 jnz     short @@check_if_this_player_getting_booked
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.playerNumber]
@@ -116900,19 +116922,19 @@ cmp     whichCard, CARD_YELLOW
 jz      short @@player_getting_yellow_card
 cmp     whichCard, CARD_RED
 jz      short @@player_getting_red_card
-mov     A0, offset plGetting2ndYellowCardAnimTable
+mov     A0, offset playerGetting2ndYellowCardAnimTable
 call    SetPlayerAnimationTable
 jmp     short @@set_player_state_booked
 ; ---------------------------------------------------------------------------
 
 @@player_getting_red_card: ; CODE XREF: UpdatePlayers+4933↑j
-mov     A0, offset plGettingRedCardAnimTable
+mov     A0, offset playerGettingRedCardAnimTable
 call    SetPlayerAnimationTable
 jmp     short @@set_player_state_booked
 ; ---------------------------------------------------------------------------
 
 @@player_getting_yellow_card: ; CODE XREF: UpdatePlayers+4929↑j
-mov     A0, offset plGettingYellowCardAnimTable
+mov     A0, offset playerGettingYellowCardAnimTable
 call    SetPlayerAnimationTable
 
 @@set_player_state_booked: ; CODE XREF: UpdatePlayers+4944↑j
@@ -117424,7 +117446,7 @@ mov     ax, word ptr D0
 or      ax, ax
 jns     short @@got_movement
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax     ; check if it's controlled player, he gets direction directly from controller
 jz      short @@skip_setting_direction
 mov     esi, A6
@@ -117586,14 +117608,14 @@ mov     word ptr D7, 15 ; 16 players
 
 @@team1_players_loop: ; CODE XREF: MakeSpritesFromPlayerNames+50↓j
 mov     eax, A5
-add     eax, PlayerGameHeader.shortName
+add     eax, PlayerInfoHeader.shortName
 mov     A0, eax     ; get pl. short name
 mov     esi, A5
-mov     al, [esi+PlayerGameHeader.shirtNumber] ; get pl. number
+mov     al, [esi+PlayerInfoHeader.shirtNumber] ; get pl. number
 mov     byte ptr D0, al
 call    MakePlayerNameSprite
 mov     eax, A5
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A5, eax
 dec     word ptr D7
 jns     short @@team1_players_loop
@@ -117601,14 +117623,14 @@ mov     word ptr D7, 15
 
 @@team2_players_loop: ; CODE XREF: MakeSpritesFromPlayerNames+8F↓j
 mov     eax, A6
-add     eax, PlayerGameHeader.shortName
+add     eax, PlayerInfoHeader.shortName
 mov     A0, eax
 mov     esi, A6
-mov     al, [esi+PlayerGameHeader.shirtNumber]
+mov     al, [esi+PlayerInfoHeader.shirtNumber]
 mov     byte ptr D0, al
 call    MakePlayerNameSprite
 mov     eax, A6
-add     eax, size PlayerGame
+add     eax, size PlayerInfo
 mov     A6, eax
 dec     word ptr D7
 jns     short @@team2_players_loop
@@ -117786,7 +117808,7 @@ or      ax, ax
 jnz     return      ; do only if we're not in subs menu
 mov     word ptr D7, -1
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A5, eax     ; A5 -> controlled player
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.passToPlayerPtr]
@@ -118369,7 +118391,7 @@ mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A2, eax
 cmp     A2, 0
 jz      short cseg_84BBE
@@ -118950,12 +118972,12 @@ mov     esi, A6     ; ball closer to the player that's receiving the pass
 mov     eax, [esi+TeamGeneralInfo.passToPlayerPtr]
 mov     D0, eax
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.passToPlayerPtr], eax
 mov     eax, D0
 mov     esi, A6
-mov     [esi+TeamGeneralInfo.controlledPlayerSprite], eax
+mov     [esi+TeamGeneralInfo.controlledPlayer], eax
 jmp     return
 ; ---------------------------------------------------------------------------
 
@@ -119352,7 +119374,7 @@ mov     eax, [esi]
 add     A2, 4
 mov     A1, eax     ; A1 -> player sprite
 mov     esi, A6
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 cmp     A1, eax
 jz      short @@next_player
 nop
@@ -119439,7 +119461,7 @@ mov     ax, [esi+TeamGeneralInfo.playerHasBall]
 or      ax, ax
 jz      @@out
 mov     esi, A0
-mov     eax, [esi+TeamGeneralInfo.controlledPlayerSprite]
+mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax
 cmp     A0, 0
 jz      short @@out
@@ -202375,20 +202397,24 @@ dw 100h
 dseg_1105EF dw 512  ; DATA XREF: UpdatePlayers:cseg_7FBEF↑r
 dw 400h
 kGoalkeeperCatchSpeed dw 768 ; DATA XREF: GoalkeeperCaughtTheBall+55↑r
-                    ; =3.0
+                    ; =1.5
 kGoalkeeperMoveToBallSpeed dw 1024 ; DATA XREF: UpdatePlayers+929↑r
-                    ; =4.0, speed when moving to the predicted place where ball hits the ground
+                    ; =2.0, speed when moving to the predicted place where ball hits the ground
 kGoalkeeperFarJumpSpeed dw 2048
                     ; DATA XREF: GoalkeeperJumping:@@ball_far_away↑r
+                    ; =4.0
 kGoalkeeperFarJumpSlowerSpeed dw 1280
                     ; DATA XREF: GoalkeeperJumping+48↑r
-                    ; =5.0
+                    ; =2.5
 kGoalkeeperStrongDeflectBallSpeed dw 1536
                     ; DATA XREF: GoalkeeperDeflectedBall:@@strong_deflect↑r
+                    ; =3.0
 kGoalkeeperMediumDeflectBallSpeed dw 1024
                     ; DATA XREF: GoalkeeperDeflectedBall:@@medium_deflect↑r
+                    ; =2.0
 kGoalkeeperWeakDeflectBallSpeed dw 512
                     ; DATA XREF: GoalkeeperDeflectedBall+126↑r
+                    ; =1.0
 kGoalkeeperDeflectDeltaZ dd 49152
                     ; DATA XREF: GoalkeeperDeflectedBall+192↑r
 db    0
@@ -202410,9 +202436,9 @@ dseg_110615 dw 128  ; DATA XREF: UpdatePlayers:cseg_8037A↑r
                     ; goalkeeper speed delta while diving for the ball
 db    0
 db    1
-kShotAtGoalMinumumSpeed dw 512
+kShotAtGoalMinimumSpeed dw 512
                     ; DATA XREF: UpdatePlayers:@@check_shot_at_goal_speed↑r
-                    ; =2.0
+                    ; =1.0
 kGoalkeeperDiveDeltas dd 28000h, 30000h, 38000h, 40000h, 48000h, 50000h, 58000h, 60000h
                     ; DATA XREF: ShouldGoalkeeperDive+217↑o
                     ; fixed point values:
@@ -203791,14 +203817,14 @@ db    0
 db    0
 kSubstitutedPlayerSpeed dw 1536 ; DATA XREF: UpdatePlayers+4A7F↑r
                     ; UpdatePlayers+4AC5↑r ...
-                    ; =6.0
+                    ; =3.0
 dw 500h
 kGoalkeeperSpeedWhenGameStopped dw 1024 ; DATA XREF: UpdatePlayers+57D↑r
-                    ; =4.0
+                    ; =2.0
 dw 180h
-kBallGroundConstant dw 13 ; DATA XREF: UpdateBall+23E↑r
+kControlledBallSpeedReduction dw 13 ; DATA XREF: UpdateBall+23E↑r
                     ; applied when some player is controlling the ball
-kBallAirConstant dw 4 ; DATA XREF: UpdateBall+27C↑r
+kBallAirSpeedReduction dw 4 ; DATA XREF: UpdateBall+27C↑r
                     ; applied when ball z > 0
 kPlayerGroundConstant dw 96 ; DATA XREF: UpdatePlayers+35A5↑r
                     ; UpdatePlayers:@@player_not_in_goalkeepers_area↑r
@@ -203813,10 +203839,11 @@ kBallJumpHeaderDeltaZ dd 0A000h
 ballSpeedBounceFactor dw 0 ; DATA XREF: InitGameRestoreTeams+611↑w
                     ; UpdateBall+49A↑r
                     ; multiply ball speed with this when it bounces
-ballBounceFactor dw 0 ; DATA XREF: InitGameRestoreTeams+632↑w
+ballZAxisDampenFactor dw 0 ; DATA XREF: InitGameRestoreTeams+632↑w
                     ; UpdateBall+4F1↑r
                     ; multiply ball delta z with this when bouncing
-pitchBallSpeedFactor dw 0 ; DATA XREF: InitGameRestoreTeams+5F0↑w
+pitchBallSpeedReductionAdjustment dw 0
+                    ; DATA XREF: InitGameRestoreTeams+5F0↑w
                     ; UpdateBall+260↑r
                     ; applied only when no player is controlling the ball
 kBallSpeedBounceFactorTable dw 24, 80, 80, 72, 64, 40, 32
@@ -203826,7 +203853,7 @@ kBallBounceFactorTable dw 88, 112, 104, 104, 96, 88, 80
 kPitchBallSpeedInfluence dw -3, 4, 1, 0, 0, -1, -1
                     ; DATA XREF: InitGameRestoreTeams+5D5↑o
                     ; this gets subtracted from the ball speed
-kGravityConstant dd 3291 ; DATA XREF: UpdateBallVariables+72↑r
+kBallAirFriction dd 3291 ; DATA XREF: UpdateBallVariables+72↑r
                     ; CalculateBallNextGroundXYPositions+A7↑r ...
                     ; = 0.0502166748046875 (~0.05)
                     ; subtract from ball delta z
@@ -203920,11 +203947,11 @@ db    0
 db    4
 kGoalkeeperGameSpeed dw 1024
                     ; DATA XREF: UpdatePlayers:@@update_goalkeeper_speed↑r
-                    ; =4.0
+                    ; =2.0
 kPlayerTacklingSpeed dw 1792 ; DATA XREF: PlayerBeginTackling+15D↑r
-                    ; =7.0, set player speed to this when they go in tackling state
+                    ; =3.5, set player speed to this when they go in tackling state
 kJumpHeaderSpeed dw 2048 ; DATA XREF: PlayerAttemptingJumpHeader+CB↑r
-                    ; =8.0, player speed when he's jumping in attempt to head the ball (flying/lob headers not static)
+                    ; =4.0, player speed when he's jumping in attempt to head the ball (flying/lob headers not static)
 db    0
 db    6
 db    0
@@ -203950,16 +203977,16 @@ db    8
 kBallKickingDeltaZ dd 14000h ; DATA XREF: PlayerKickingBall+E7↑r
                     ; =1.25, height delta of kicked ball
 kBallKickingSpeed dw 2208 ; DATA XREF: PlayerKickingBall+CB↑r
-                    ; =8.625, ball speed when kicked
+                    ; =4.3125, ball speed when kicked
 kHighKickDeltaZ dd 20000h ; DATA XREF: ApplyBallAfterTouch+295↑r
                     ; =2.0, controls ball height increment per frame during high kicks
 kHighKickBallSpeed dw 2688 ; DATA XREF: ApplyBallAfterTouch+2A3↑r
-                    ; =10.5
+                    ; =5.25
 kNormalKickDeltaZ dd 16000h
                     ; DATA XREF: ApplyBallAfterTouch:@@normal_not_high_kick↑r
                     ; =1.375
 kNormalKickBallSpeed dw 2560 ; DATA XREF: ApplyBallAfterTouch+2C3↑r
-                    ; =10.0
+                    ; =5.0
 kSpinMultiplierFactor dw 5, 4, 3, 2, 2, 2, 2, 1, 1, 1
                     ; DATA XREF: ApplyBallAfterTouch+15D↑o
                     ; ApplyBallAfterTouch+51D↑o
@@ -203989,7 +204016,7 @@ dw 0, 0, 11, -11, 0, 0, 16, 0, -16, -11, 0, 0, -11 ; applying curved trajectory 
                     ;       .
 kRefereeSpeed dw 1024 ; DATA XREF: ActivateReferee+EA↑r
                     ; UpdateReferee:@@update_deltas_and_direction↑r
-                    ; =4.0
+                    ; =2.0
 db    0
 db    5
 dseg_110D8D dw 768  ; DATA XREF: UpdatePlayers:@@injury_forever↑r
@@ -207970,7 +207997,7 @@ aError db 'ERROR',0 ; DATA XREF: CareerGameListCommon+118↑o
                     ; CareerGameListCommon+122↑o ...
 db    0
 positionsTable dd offset defaultPositions ; DATA XREF: cseg_2C47D+99↑o
-                    ; GetPlayerGameBreakPosition+7C↑o ...
+                    ; GetPlayerInfoBreakPosition+7C↑o ...
                     ; every team position ordered, for every tactic
 dd offset positions_5_4_1
 dd offset positions_4_5_1
@@ -218347,41 +218374,42 @@ hideBall dw 0       ; DATA XREF: CheckForThrowInAndGoalkeepersBall+2D↑w
                     ; 0  = show
                     ; !0 = hide
                     ; always zero during the game except when throw-in
-dseg_130FF9 dw 0    ; DATA XREF: StopAllPlayers+12↑w
+lastCameraDirection dw 0 ; DATA XREF: StopAllPlayers+12↑w
                     ; ResetBothTeamsPlayerPassingKicking+12↑w
+                    ; write-only
 lastPlayerTurnFlags dw 0 ; DATA XREF: StopAllPlayers+1E↑w
                     ; ResetBothTeamsPlayerPassingKicking+1E↑w ...
 db    0
 frameIndicesTablesStart:
-team1PlGettingYellowCardFrames dw -20, 344, -65, 415, 415, -101
+team1PlayerGettingYellowCardFrames dw -20, 344, -65, 415, 415, -101
                     ; DATA XREF: dseg:00132522↓o dseg:00132526↓o ...
-team2PlGettingYellowCardFrames dw -20, 647, -65, 718, 718, -101
+team2PlayerGettingYellowCardFrames dw -20, 647, -65, 718, 718, -101
                     ; DATA XREF: dseg:00132542↓o dseg:00132546↓o ...
 team1PlayerGettingRedCardFrames dw -20, 344, -70, 415, 415, -50, 416, -101
                     ; DATA XREF: dseg:001325A4↓o dseg:001325A8↓o ...
 team2PlayerGettingRedCardFrames dw -20, 647, -70, 718, 718, -50, 719, -101
                     ; DATA XREF: dseg:001325C4↓o dseg:001325C8↓o ...
-team1PlGetting2ndYellowCardFrames dw -20, 344, -80, 415, 415, 415, -75, 416, 416, -101
+team1PlayerGetting2ndYellowCardFrames dw -20, 344, -80, 415, 415, 415, -75, 416, 416, -101
                     ; DATA XREF: dseg:00132626↓o dseg:0013262A↓o ...
-team2PlGetting2ndYellowCardFrames dw -20, 647, -80, 718, 718, 718, -75, 719, 719, -101
+team2PlayerGetting2ndYellowCardFrames dw -20, 647, -80, 718, 718, 718, -75, 719, 719, -101
                     ; DATA XREF: dseg:00132646↓o dseg:0013264A↓o ...
-playerRunningUpTeam1 dw 343, 341, 342, 341, -999
+playerRunningTopTeam1Frames dw 343, 341, 342, 341, -999
                     ; DATA XREF: dseg:00131CE0↓o
-playerRunningDownTeam1 dw 346, 344, 345, 344, -999
+playerRunningBottomTeam1Frames dw 346, 344, 345, 344, -999
                     ; DATA XREF: dseg:00131CF0↓o
-playerRunningRightTeam1 dw 349, 347, 348, 347, -999
+playerRunningRightTeam1Frames dw 349, 347, 348, 347, -999
                     ; DATA XREF: dseg:00131CE8↓o
-playerRunningLeftTeam1 dw 352, 350, 351, 350, -999
+playerRunningLeftTeam1Frames dw 352, 350, 351, 350, -999
                     ; DATA XREF: dseg:00131CF8↓o
-playerRunningUpRightTeam1 dw 364, 363, 362, 363, -999
+playerRunningTopRightTeam1Frames dw 364, 363, 362, 363, -999
                     ; DATA XREF: dseg:00131CE4↓o
-playerRunningUpLeftTeam1 dw 361, 360, 359, 360, -999
+playerRunningTopLeftTeam1Frames dw 361, 360, 359, 360, -999
                     ; DATA XREF: dseg:00131CFC↓o
-playerRunningDownRightTeam1 dw 358, 357, 356, 357, -999
+playerRunningBottomRightTeam1Frames dw 358, 357, 356, 357, -999
                     ; DATA XREF: dseg:00131CEC↓o
-playerRunningDownLeftTeam1 dw 355, 354, 353, 354, -999
+playerRunningBottomLeftTeam1Frames dw 355, 354, 353, 354, -999
                     ; DATA XREF: dseg:00131CF4↓o
-team1PlayerStandingFacingUpFrames dw 341, -999
+team1PlayerStandingFacingTopFrames dw 341, -999
                     ; DATA XREF: dseg:00131D62↓o
 team1PlayerStandingFacingBottomFrames dw 344, -999
                     ; DATA XREF: dseg:00131D72↓o
@@ -218389,7 +218417,7 @@ team1PlayerStandingFacingRightFrames dw 347, -999
                     ; DATA XREF: dseg:00131D6A↓o
 team1PlayerStandingFacingLeftFrames dw 350, -999
                     ; DATA XREF: dseg:00131D7A↓o
-team1PlayerStandingFacingUpRightFrames dw 363, -999
+team1PlayerStandingFacingTopRightFrames dw 363, -999
                     ; DATA XREF: dseg:00131D66↓o
 team1PlayerStandingFacingTopLeftFrames dw 360, -999
                     ; DATA XREF: dseg:00131D7E↓o
@@ -218397,280 +218425,360 @@ team1PlayerStandingFacingBottomRightFrames dw 357, -999
                     ; DATA XREF: dseg:00131D6E↓o
 team1PlayerStandingFacingBottomLeftFrames dw 354, -999
                     ; DATA XREF: dseg:00131D76↓o
-dseg_1310CE dw 395, -999 ; DATA XREF: dseg:00131DE4↓o dseg:00131E66↓o
-dseg_1310D2 dw 396, -999 ; DATA XREF: dseg:00131DF4↓o dseg:00131E76↓o
-dseg_1310D6 dw 398, -999 ; DATA XREF: dseg:00131DEC↓o dseg:00131E6E↓o
-dseg_1310DA dw 397, -999 ; DATA XREF: dseg:00131DFC↓o dseg:00131E7E↓o
-dseg_1310DE dw 402, -999 ; DATA XREF: dseg:00131DE8↓o dseg:00131E6A↓o
-dseg_1310E2 dw 401, -999 ; DATA XREF: dseg:00131E00↓o dseg:00131E82↓o
-dseg_1310E6 dw 400, -999 ; DATA XREF: dseg:00131DF0↓o dseg:00131E72↓o
-dseg_1310EA dw 399, -999 ; DATA XREF: dseg:00131DF8↓o dseg:00131E7A↓o
-dseg_1310EE dw 403, -999 ; DATA XREF: dseg:00131EB8↓o
-dseg_1310F2 dw 404, -999 ; DATA XREF: dseg:00131EC8↓o
-dseg_1310F6 dw 406, -999 ; DATA XREF: dseg:00131EC0↓o
-dseg_1310FA dw 405, -999 ; DATA XREF: dseg:00131ED0↓o
-dseg_1310FE dw 410, -999 ; DATA XREF: dseg:00131EBC↓o
-dseg_131102 dw 409, -999 ; DATA XREF: dseg:00131ED4↓o
-dseg_131106 dw 408, -999 ; DATA XREF: dseg:00131EC4↓o
-dseg_13110A dw 407, -999, -50, 417, -999, -50, 418, -999, -50, 419, -999, -50, 420
+team1PlayerTacklingTopFrames dw 395, -999 ; DATA XREF: dseg:00131DE4↓o
+                    ; dseg:00131E66↓o
+team1PlayerTacklingBottomFrames dw 396, -999
+                    ; DATA XREF: dseg:00131DF4↓o dseg:00131E76↓o
+team1PlayerTacklingRightFrames dw 398, -999 ; DATA XREF: dseg:00131DEC↓o
+                    ; dseg:00131E6E↓o
+team1PlayerTacklingLeftFrames dw 397, -999 ; DATA XREF: dseg:00131DFC↓o
+                    ; dseg:00131E7E↓o
+team1PlayerTacklingTopRightFrames dw 402, -999
+                    ; DATA XREF: dseg:00131DE8↓o dseg:00131E6A↓o
+team1PlayerTacklingTopLeftFrames dw 401, -999
+                    ; DATA XREF: dseg:00131E00↓o dseg:00131E82↓o
+team1PlayerTacklingBottomRightFrames dw 400, -999
+                    ; DATA XREF: dseg:00131DF0↓o dseg:00131E72↓o
+team1PlayerTacklingBottomLeftFrames dw 399, -999
+                    ; DATA XREF: dseg:00131DF8↓o dseg:00131E7A↓o
+team1PlayerTackledTopFrames dw 403, -999 ; DATA XREF: dseg:00131EB8↓o
+team1PlayerTackledBottomFrames dw 404, -999 ; DATA XREF: dseg:00131EC8↓o
+team1PlayerTackledRightFrames dw 406, -999 ; DATA XREF: dseg:00131EC0↓o
+team1PlayerTackledLeftFrames dw 405, -999 ; DATA XREF: dseg:00131ED0↓o
+team1PlayerTackledTopRightFrames dw 410, -999
+                    ; DATA XREF: dseg:00131EBC↓o
+team1PlayerTackledTopLeftFrames dw 409, -999
+                    ; DATA XREF: dseg:00131ED4↓o
+team1PlayerTackledBottomRightFrames dw 408, -999
+                    ; DATA XREF: dseg:00131EC4↓o
+team1PlayerTackledBottomLeftFrames dw 407, -999, -50, 417, -999, -50, 418, -999, -50, 419, -999, -50, 420
                     ; DATA XREF: dseg:00131ECC↓o
 dw -999, -50, 424, -999, -50, 423, -999, -50, 422, -999, -50, 421, -999
-dseg_13113E dw -90, 372, -20, 371, -20, 372, -104
+team1PlayerAboutToThrowInTopFrames dw -90, 372, -20, 371, -20, 372, -104
                     ; DATA XREF: dseg:00131F8C↓o
-dseg_13114C dw -90, 375, -20, 374, -20, 375, -104
+team1PlayerAboutToThrowInBottomFrames dw -90, 375, -20, 374, -20, 375, -104
                     ; DATA XREF: dseg:00131F9C↓o
-dseg_13115A dw -90, 378, -20, 377, -20, 378, -104
+team1PlayerAboutToThrowInRightFrames dw -90, 378, -20, 377, -20, 378, -104
                     ; DATA XREF: dseg:00131F94↓o
-dseg_131168 dw -90, 381, -20, 380, -20, 381, -104
+team1PlayerAboutToThrowInLeftFrames dw -90, 381, -20, 380, -20, 381, -104
                     ; DATA XREF: dseg:00131FA4↓o
-dseg_131176 dw -90, 393, -20, 392, -20, 393, -104
+team1PlayerAboutToThrowInTopRightFrames dw -90, 393, -20, 392, -20, 393, -104
                     ; DATA XREF: dseg:00131F90↓o
-dseg_131184 dw -90, 390, -20, 389, -20, 390, -104
+team1PlayerAboutToThrowInTopLeftFrames dw -90, 390, -20, 389, -20, 390, -104
                     ; DATA XREF: dseg:00131FA8↓o
-dseg_131192 dw -90, 387, -20, 386, -20, 387, -104
+team1PlayerAboutToThrowInBottomRightFrames dw -90, 387, -20, 386, -20, 387, -104
                     ; DATA XREF: dseg:00131F98↓o
-dseg_1311A0 dw -90, 384, -20, 383, -20, 384, -104
+team1PlayerAboutToThrowInBottomLeftFrames dw -90, 384, -20, 383, -20, 384, -104
                     ; DATA XREF: dseg:00131FA0↓o
-dseg_1311AE dw -5, 372, 373, -101 ; DATA XREF: dseg:0013200E↓o
-dseg_1311B6 dw -5, 375, 376, -101 ; DATA XREF: dseg:0013201E↓o
-dseg_1311BE dw -5, 378, 379, -101 ; DATA XREF: dseg:00132016↓o
-dseg_1311C6 dw -5, 381, 382, -101 ; DATA XREF: dseg:00132026↓o
-dseg_1311CE dw -5, 393, 394, -101 ; DATA XREF: dseg:00132012↓o
-dseg_1311D6 dw -5, 390, 391, -101 ; DATA XREF: dseg:0013202A↓o
-dseg_1311DE dw -5, 387, 388, -101 ; DATA XREF: dseg:0013201A↓o
-dseg_1311E6 dw -5, 384, 385, -101 ; DATA XREF: dseg:00132022↓o
-dseg_1311EE dw -5, 372, 371, 372, 373, -101 ; DATA XREF: dseg:00132090↓o
-dseg_1311FA dw -5, 375, 374, 375, 376, -101 ; DATA XREF: dseg:001320A0↓o
-dseg_131206 dw -5, 378, 377, 378, 379, -101 ; DATA XREF: dseg:00132098↓o
-dseg_131212 dw -5, 381, 380, 381, 382, -101 ; DATA XREF: dseg:001320A8↓o
-dseg_13121E dw -5, 393, 392, 393, 394, -101 ; DATA XREF: dseg:00132094↓o
-dseg_13122A dw -5, 390, 389, 390, 391, -101 ; DATA XREF: dseg:001320AC↓o
-dseg_131236 dw -5, 387, 386, 387, 388, -101 ; DATA XREF: dseg:0013209C↓o
-dseg_131242 dw -5, 384, 383, 384, 385, -101 ; DATA XREF: dseg:001320A4↓o
+team1Player1ThrowInShortTopFrames dw -5, 372, 373, -101
+                    ; DATA XREF: dseg:0013200E↓o
+team1Player1ThrowInShortBottomFrames dw -5, 375, 376, -101
+                    ; DATA XREF: dseg:0013201E↓o
+team1Player1ThrowInShortRightFrames dw -5, 378, 379, -101
+                    ; DATA XREF: dseg:00132016↓o
+team1Player1ThrowInShortLeftFrames dw -5, 381, 382, -101
+                    ; DATA XREF: dseg:00132026↓o
+team1Player1ThrowInShortTopRightFrames dw -5, 393, 394, -101
+                    ; DATA XREF: dseg:00132012↓o
+team1Player1ThrowInShortTopLeftFrames dw -5, 390, 391, -101
+                    ; DATA XREF: dseg:0013202A↓o
+team1Player1ThrowInShortBottomRightFrames dw -5, 387, 388, -101
+                    ; DATA XREF: dseg:0013201A↓o
+team1Player1ThrowInShortBottomLeftFrames dw -5, 384, 385, -101
+                    ; DATA XREF: dseg:00132022↓o
+team1Player1ThrowInLongTopFrames dw -5, 372, 371, 372, 373, -101
+                    ; DATA XREF: dseg:00132090↓o
+team1Player1ThrowInLongBottomFrames dw -5, 375, 374, 375, 376, -101
+                    ; DATA XREF: dseg:001320A0↓o
+team1Player1ThrowInLongRightFrames dw -5, 378, 377, 378, 379, -101
+                    ; DATA XREF: dseg:00132098↓o
+team1Player1ThrowInLongLeftFrames dw -5, 381, 380, 381, 382, -101
+                    ; DATA XREF: dseg:001320A8↓o
+team1Player1ThrowInLongTopRightFrames dw -5, 393, 392, 393, 394, -101
+                    ; DATA XREF: dseg:00132094↓o
+team1Player1ThrowInLongTopLeftFrames dw -5, 390, 389, 390, 391, -101
+                    ; DATA XREF: dseg:001320AC↓o
+team1Player1ThrowInLongBottomRightFrames dw -5, 387, 386, 387, 388, -101
+                    ; DATA XREF: dseg:0013209C↓o
+team1Player1ThrowInLongBottomLeftFrames dw -5, 384, 383, 384, 385, -101
+                    ; DATA XREF: dseg:001320A4↓o
 team1InjuredPlayerTopRightTable dw 411, -20, 412, -20, -999
                     ; DATA XREF: dseg:001326B8↓o dseg:001326BC↓o ...
 team1InjuredPlayerTopLeftTable dw 413, -20, 414, -20, -999
                     ; DATA XREF: dseg:001326A8↓o dseg:001326AC↓o ...
-playerRunningUpTeam2 dw 646, 644, 645, 644, -999
+playerRunningTopTeam2Frames dw 646, 644, 645, 644, -999
                     ; DATA XREF: dseg:00131D00↓o
-playerRunningDownTeam2 dw 649, 647, 648, 647, -999
+playerRunningBottomTeam2Frames dw 649, 647, 648, 647, -999
                     ; DATA XREF: dseg:00131D10↓o
-playerRunningRightTeam2 dw 652, 650, 651, 650, -999
+playerRunningRightTeam2Frames dw 652, 650, 651, 650, -999
                     ; DATA XREF: dseg:00131D08↓o
-playerRunningLeftTeam2 dw 655, 653, 654, 653, -999
+playerRunningLeftTeam2Frames dw 655, 653, 654, 653, -999
                     ; DATA XREF: dseg:00131D18↓o
-playerRunningUpRightTeam2 dw 667, 665, 666, 665, -999
+playerRunningTopRightTeam2Frames dw 667, 665, 666, 665, -999
                     ; DATA XREF: dseg:00131D04↓o
-playerRunningUpLeftTeam2 dw 664, 662, 663, 662, -999
+playerRunningTopLeftTeam2Frames dw 664, 662, 663, 662, -999
                     ; DATA XREF: dseg:00131D1C↓o
-playerRunningDownRightTeam2 dw 661, 659, 660, 659, -999
+playerRunningBottomRightTeam2Frames dw 661, 659, 660, 659, -999
                     ; DATA XREF: dseg:00131D0C↓o
-playerRunningDownLeftTeam2 dw 658, 656, 657, 656, -999
+playerRunningBottomLeftTeam2Frames dw 658, 656, 657, 656, -999
                     ; DATA XREF: dseg:00131D14↓o
-dseg_1312B2 dw 644, -999 ; DATA XREF: dseg:00131D82↓o
-dseg_1312B6 dw 647, -999 ; DATA XREF: dseg:00131D92↓o
-dseg_1312BA dw 650, -999 ; DATA XREF: dseg:00131D8A↓o
-dseg_1312BE dw 653, -999 ; DATA XREF: dseg:00131D9A↓o
-dseg_1312C2 dw 666, -999 ; DATA XREF: dseg:00131D86↓o
-dseg_1312C6 dw 663, -999 ; DATA XREF: dseg:00131D9E↓o
-dseg_1312CA dw 660, -999 ; DATA XREF: dseg:00131D8E↓o
-dseg_1312CE dw 657, -999 ; DATA XREF: dseg:00131D96↓o
-dseg_1312D2 dw 698, -999 ; DATA XREF: dseg:00131E04↓o dseg:00131E86↓o
-dseg_1312D6 dw 699, -999 ; DATA XREF: dseg:00131E14↓o dseg:00131E96↓o
-dseg_1312DA dw 701, -999 ; DATA XREF: dseg:00131E0C↓o dseg:00131E8E↓o
-dseg_1312DE dw 700, -999 ; DATA XREF: dseg:00131E1C↓o dseg:00131E9E↓o
-dseg_1312E2 dw 705, -999 ; DATA XREF: dseg:00131E08↓o dseg:00131E8A↓o
-dseg_1312E6 dw 704, -999 ; DATA XREF: dseg:00131E20↓o dseg:00131EA2↓o
-dseg_1312EA dw 703, -999 ; DATA XREF: dseg:00131E10↓o dseg:00131E92↓o
-dseg_1312EE dw 702, -999 ; DATA XREF: dseg:00131E18↓o dseg:00131E9A↓o
-dseg_1312F2 dw 706, -999 ; DATA XREF: dseg:00131ED8↓o
-dseg_1312F6 dw 707, -999 ; DATA XREF: dseg:00131EE8↓o
-dseg_1312FA dw 709, -999 ; DATA XREF: dseg:00131EE0↓o
-dseg_1312FE dw 708, -999 ; DATA XREF: dseg:00131EF0↓o
-dseg_131302 dw 713, -999 ; DATA XREF: dseg:00131EDC↓o
-dseg_131306 dw 712, -999 ; DATA XREF: dseg:00131EF4↓o
-dseg_13130A dw 711, -999 ; DATA XREF: dseg:00131EE4↓o
-dseg_13130E dw 710, -999, -50, 417, -999, -50, 418, -999, -50, 419, -999, -50, 420
+team2PlayerStandingFacingTopFrames dw 644, -999
+                    ; DATA XREF: dseg:00131D82↓o
+team2PlayerStandingFacingBottomFrames dw 647, -999
+                    ; DATA XREF: dseg:00131D92↓o
+team2PlayerStandingFacingRightFrames dw 650, -999
+                    ; DATA XREF: dseg:00131D8A↓o
+team2PlayerStandingFacingLeftFrames dw 653, -999
+                    ; DATA XREF: dseg:00131D9A↓o
+team2PlayerStandingFacingTopRightFrames dw 666, -999
+                    ; DATA XREF: dseg:00131D86↓o
+team2PlayerStandingFacingTopLeftFrames dw 663, -999
+                    ; DATA XREF: dseg:00131D9E↓o
+team2PlayerStandingFacingBottomRightFrames dw 660, -999
+                    ; DATA XREF: dseg:00131D8E↓o
+team2PlayerStandingFacingBottomLeftFrames dw 657, -999
+                    ; DATA XREF: dseg:00131D96↓o
+team2PlayerTacklingTopFrames dw 698, -999 ; DATA XREF: dseg:00131E04↓o
+                    ; dseg:00131E86↓o
+team2PlayerTacklingBottomFrames dw 699, -999
+                    ; DATA XREF: dseg:00131E14↓o dseg:00131E96↓o
+team2PlayerTacklingRightFrames dw 701, -999 ; DATA XREF: dseg:00131E0C↓o
+                    ; dseg:00131E8E↓o
+team2PlayerTacklingLeftFrames dw 700, -999 ; DATA XREF: dseg:00131E1C↓o
+                    ; dseg:00131E9E↓o
+team2PlayerTacklingTopRightFrames dw 705, -999
+                    ; DATA XREF: dseg:00131E08↓o dseg:00131E8A↓o
+team2PlayerTacklingTopLeftFrames dw 704, -999
+                    ; DATA XREF: dseg:00131E20↓o dseg:00131EA2↓o
+team2PlayerTacklingBottomRightFrames dw 703, -999
+                    ; DATA XREF: dseg:00131E10↓o dseg:00131E92↓o
+team2PlayerTacklingBottomLeftFrames dw 702, -999
+                    ; DATA XREF: dseg:00131E18↓o dseg:00131E9A↓o
+team2PlayerTackledTopFrames dw 706, -999 ; DATA XREF: dseg:00131ED8↓o
+team2PlayerTackledBottomFrames dw 707, -999 ; DATA XREF: dseg:00131EE8↓o
+team2PlayerTackledRightFrames dw 709, -999 ; DATA XREF: dseg:00131EE0↓o
+team2PlayerTackledLeftFrames dw 708, -999 ; DATA XREF: dseg:00131EF0↓o
+team2PlayerTackledTopRightFrames dw 713, -999
+                    ; DATA XREF: dseg:00131EDC↓o
+team2PlayerTackledTopLeftFrames dw 712, -999
+                    ; DATA XREF: dseg:00131EF4↓o
+team2PlayerTackledBottomRightFrames dw 711, -999
+                    ; DATA XREF: dseg:00131EE4↓o
+team2PlayerTackledBottomLeftFrames dw 710, -999, -50, 417, -999, -50, 418, -999, -50, 419, -999, -50, 420
                     ; DATA XREF: dseg:00131EEC↓o
 dw -999, -50, 424, -999, -50, 423, -999, -50, 422, -999, -50, 421, -999
-dseg_131342 dw -2, 344, -30, 415, 416, -101 ; DATA XREF: dseg:00131BDC↓o
-                    ; dseg:00131BE0↓o ...
-dseg_13134E dw -2, 647, -30, 718, 719, -101 ; DATA XREF: dseg:00131BFC↓o
-                    ; dseg:00131C00↓o ...
-dseg_13135A dw -20, 368, -20, 344, -999 ; DATA XREF: dseg:00131C5E↓o
-                    ; dseg:00131C62↓o ...
-dseg_131364 dw -20, 671, -20, 647, -999 ; DATA XREF: dseg:00131C7E↓o
-                    ; dseg:00131C82↓o ...
-dseg_13136E dw -90, 675, -20, 674, -20, 675, -104
+playerLosingReactionTeam1Frames dw -2, 344, -30, 415, 416, -101
+                    ; DATA XREF: dseg:00131BDC↓o dseg:00131BE0↓o ...
+playerLosingReactionTeam2Frames dw -2, 647, -30, 718, 719, -101
+                    ; DATA XREF: dseg:00131BFC↓o dseg:00131C00↓o ...
+playerWinningReactionTeam1Frames dw -20, 368, -20, 344, -999
+                    ; DATA XREF: dseg:00131C5E↓o dseg:00131C62↓o ...
+playerWinningReactionTeam2Frames dw -20, 671, -20, 647, -999
+                    ; DATA XREF: dseg:00131C7E↓o dseg:00131C82↓o ...
+team2PlayerAboutToThrowInTopFrames dw -90, 675, -20, 674, -20, 675, -104
                     ; DATA XREF: dseg:00131FAC↓o
-dseg_13137C dw -90, 678, -20, 677, -20, 678, -104
+team2PlayerAboutToThrowInBottomFrames dw -90, 678, -20, 677, -20, 678, -104
                     ; DATA XREF: dseg:00131FBC↓o
-dseg_13138A dw -90, 681, -20, 680, -20, 681, -104
+team2PlayerAboutToThrowInRightFrames dw -90, 681, -20, 680, -20, 681, -104
                     ; DATA XREF: dseg:00131FB4↓o
-dseg_131398 dw -90, 684, -20, 683, -20, 684, -104
+team2PlayerAboutToThrowInLeftFrames dw -90, 684, -20, 683, -20, 684, -104
                     ; DATA XREF: dseg:00131FC4↓o
-dseg_1313A6 dw -90, 696, -20, 695, -20, 696, -104
+team2PlayerAboutToThrowInTopRightFrames dw -90, 696, -20, 695, -20, 696, -104
                     ; DATA XREF: dseg:00131FB0↓o
-dseg_1313B4 dw -90, 693, -20, 692, -20, 693, -104
+team2PlayerAboutToThrowInTopLeftFrames dw -90, 693, -20, 692, -20, 693, -104
                     ; DATA XREF: dseg:00131FC8↓o
-dseg_1313C2 dw -90, 690, -20, 689, -20, 690, -104
+team2PlayerAboutToThrowInBottomRightFrames dw -90, 690, -20, 689, -20, 690, -104
                     ; DATA XREF: dseg:00131FB8↓o
-dseg_1313D0 dw -90, 687, -20, 686, -20, 687, -104
+team2PlayerAboutToThrowInBottomLeftFrames dw -90, 687, -20, 686, -20, 687, -104
                     ; DATA XREF: dseg:00131FC0↓o
-dseg_1313DE dw -5, 675, 676, -101 ; DATA XREF: dseg:0013202E↓o
-dseg_1313E6 dw -5, 678, 679, -101 ; DATA XREF: dseg:0013203E↓o
-dseg_1313EE dw -5, 681, 682, -101 ; DATA XREF: dseg:00132036↓o
-dseg_1313F6 dw -5, 684, 685, -101 ; DATA XREF: dseg:00132046↓o
-dseg_1313FE dw -5, 696, 697, -101 ; DATA XREF: dseg:00132032↓o
-dseg_131406 dw -5, 693, 694, -101 ; DATA XREF: dseg:0013204A↓o
-dseg_13140E dw -5, 690, 691, -101 ; DATA XREF: dseg:0013203A↓o
-dseg_131416 dw -5, 687, 688, -101 ; DATA XREF: dseg:00132042↓o
-dseg_13141E dw -5, 675, 674, 675, 676, -101 ; DATA XREF: dseg:001320B0↓o
-dseg_13142A dw -5, 678, 677, 678, 679, -101 ; DATA XREF: dseg:001320C0↓o
-dseg_131436 dw -5, 681, 680, 681, 682, -101 ; DATA XREF: dseg:001320B8↓o
-dseg_131442 dw -5, 684, 683, 684, 685, -101 ; DATA XREF: dseg:001320C8↓o
-dseg_13144E dw -5, 696, 695, 696, 697, -101 ; DATA XREF: dseg:001320B4↓o
-dseg_13145A dw -5, 693, 692, 693, 694, -101 ; DATA XREF: dseg:001320CC↓o
-dseg_131466 dw -5, 690, 689, 690, 691, -101 ; DATA XREF: dseg:001320BC↓o
-dseg_131472 dw -5, 687, 686, 687, 688, -101 ; DATA XREF: dseg:001320C4↓o
+team2Player1ThrowInShortTopFrames dw -5, 675, 676, -101
+                    ; DATA XREF: dseg:0013202E↓o
+team2Player1ThrowInShortBottomFrames dw -5, 678, 679, -101
+                    ; DATA XREF: dseg:0013203E↓o
+team2Player1ThrowInShortRightFrames dw -5, 681, 682, -101
+                    ; DATA XREF: dseg:00132036↓o
+team2Player1ThrowInShortLeftFrames dw -5, 684, 685, -101
+                    ; DATA XREF: dseg:00132046↓o
+team2Player1ThrowInShortTopRightFrames dw -5, 696, 697, -101
+                    ; DATA XREF: dseg:00132032↓o
+team2Player1ThrowInShortTopLeftFrames dw -5, 693, 694, -101
+                    ; DATA XREF: dseg:0013204A↓o
+team2Player1ThrowInShortBottomRightFrames dw -5, 690, 691, -101
+                    ; DATA XREF: dseg:0013203A↓o
+team2Player1ThrowInShortBottomLeftFrames dw -5, 687, 688, -101
+                    ; DATA XREF: dseg:00132042↓o
+team2Player1ThrowInLongTopFrames dw -5, 675, 674, 675, 676, -101
+                    ; DATA XREF: dseg:001320B0↓o
+team2Player1ThrowInLongBottomFrames dw -5, 678, 677, 678, 679, -101
+                    ; DATA XREF: dseg:001320C0↓o
+team2Player1ThrowInLongRightFrames dw -5, 681, 680, 681, 682, -101
+                    ; DATA XREF: dseg:001320B8↓o
+team2Player1ThrowInLongLeftFrames dw -5, 684, 683, 684, 685, -101
+                    ; DATA XREF: dseg:001320C8↓o
+team2Player1ThrowInLongTopRightFrames dw -5, 696, 695, 696, 697, -101
+                    ; DATA XREF: dseg:001320B4↓o
+team2Player1ThrowInLongTopLeftFrames dw -5, 693, 692, 693, 694, -101
+                    ; DATA XREF: dseg:001320CC↓o
+team2Player1ThrowInLongBottomRightFrames dw -5, 690, 689, 690, 691, -101
+                    ; DATA XREF: dseg:001320BC↓o
+team2Player1ThrowInLongBottomLeftFrames dw -5, 687, 686, 687, 688, -101
+                    ; DATA XREF: dseg:001320C4↓o
 team2InjuredPlayerTopRightTable dw 714, -20, 715, -20, -999
                     ; DATA XREF: dseg:001326D8↓o dseg:001326DC↓o ...
 team2InjuredPlayerTopLeftTable dw 716, -20, 717, -20, -999
                     ; DATA XREF: dseg:001326C8↓o dseg:001326CC↓o ...
-goalkeeperRunningUpTeam1 dw 949, 947, 948, 947, -999
+goalkeeperRunningTopTeam1Frames dw 949, 947, 948, 947, -999
                     ; DATA XREF: dseg:00131D20↓o
-goalkeeperRunningDownTeam1 dw 952, 950, 951, 950, -999
+goalkeeperRunningBottomTeam1Frames dw 952, 950, 951, 950, -999
                     ; DATA XREF: dseg:00131D30↓o
-goalkeeperRunningRightTeam1 dw 955, 953, 954, 953, -999
+goalkeeperRunningRightTeam1Frames dw 955, 953, 954, 953, -999
                     ; DATA XREF: dseg:00131D28↓o
-goalkeeperRunningLeftTeam1 dw 958, 956, 957, 956, -999
+goalkeeperRunningLeftTeam1Frames dw 958, 956, 957, 956, -999
                     ; DATA XREF: dseg:00131D38↓o
-goalkeeperRunningUpRightTeam1 dw 970, 969, 968, 969, -999
+goalkeeperRunningTopRightTeam1Frames dw 970, 969, 968, 969, -999
                     ; DATA XREF: dseg:00131D24↓o
-goalkeeperRunningUpLeftTeam1 dw 967, 966, 965, 966, -999
+goalkeeperRunningTopLeftTeam1Frames dw 967, 966, 965, 966, -999
                     ; DATA XREF: dseg:00131D3C↓o
-goalkeeperRunningDownRightTeam1 dw 964, 963, 962, 963, -999
+goalkeeperRunningBottomRightTeam1Frames dw 964, 963, 962, 963, -999
                     ; DATA XREF: dseg:00131D2C↓o
-goalkeeperRunningDownLeftTeam1 dw 961, 960, 959, 960, -999
+goalkeeperRunningBottomLeftTeam1Frames dw 961, 960, 959, 960, -999
                     ; DATA XREF: dseg:00131D34↓o
-dseg_1314E2 dw 947, -999 ; DATA XREF: dseg:00131DA2↓o
-dseg_1314E6 dw 950, -999 ; DATA XREF: dseg:00131DB2↓o
-dseg_1314EA dw 953, -999 ; DATA XREF: dseg:00131DAA↓o
-dseg_1314EE dw 956, -999 ; DATA XREF: dseg:00131DBA↓o
-dseg_1314F2 dw 969, -999 ; DATA XREF: dseg:00131DA6↓o
-dseg_1314F6 dw 966, -999 ; DATA XREF: dseg:00131DBE↓o
-dseg_1314FA dw 963, -999 ; DATA XREF: dseg:00131DAE↓o
-dseg_1314FE dw 960, -999 ; DATA XREF: dseg:00131DB6↓o
-dseg_131502 dw -5, 999, 1000, 1001, -3, 1000, -2, 999, 947, -101
+team1GoalkeeperStandingFacingTopFrames dw 947, -999
+                    ; DATA XREF: dseg:00131DA2↓o
+team1GoalkeeperStandingFacingBottomFrames dw 950, -999
+                    ; DATA XREF: dseg:00131DB2↓o
+team1GoalkeeperStandingFacingRightFrames dw 953, -999
+                    ; DATA XREF: dseg:00131DAA↓o
+team1GoalkeeperStandingFacingLeftFrames dw 956, -999
+                    ; DATA XREF: dseg:00131DBA↓o
+team1GoalkeeperStandingFacingTopRightFrames dw 969, -999
+                    ; DATA XREF: dseg:00131DA6↓o
+team1GoalkeeperStandingFacingTopLeftFrames dw 966, -999
+                    ; DATA XREF: dseg:00131DBE↓o
+team1GoalkeeperStandingFacingBottomRightFrames dw 963, -999
+                    ; DATA XREF: dseg:00131DAE↓o
+team1GoalkeeperStandingFacingBottomLeftFrames dw 960, -999
+                    ; DATA XREF: dseg:00131DB6↓o
+team1GoalkeeperJumpsUpFacingTopFrames dw -5, 999, 1000, 1001, -3, 1000, -2, 999, 947, -101
                     ; DATA XREF: dseg:00131F4A↓o dseg:00131F4E↓o ...
-dseg_131516 dw -5, 1002, 1003, 1004, -3, 1003, -2, 1002, 950, -101
+team1GoalkeeperJumpsUpFacingBottomFrames dw -5, 1002, 1003, 1004, -3, 1003, -2, 1002, 950, -101
                     ; DATA XREF: dseg:00131F56↓o dseg:00131F5A↓o ...
-dseg_13152A dw -2, 971, -2, 975, -2, 976, 976, -2, 976, -62, 976, 947, -101
+team1TopGoalkeeperFastDivingLowRightFrames dw -2, 971, -2, 975, -2, 976, 976, -2, 976, -62, 976, 947, -101
                     ; DATA XREF: dseg:0013215A↓o
-dseg_131544 dw -2, 983, -2, 979, -2, 978, 978, -2, 978, -62, 978, 947, -101
+team1TopGoalkeeperFastDivingLowLeftFrames dw -2, 983, -2, 979, -2, 978, 978, -2, 978, -62, 978, 947, -101
                     ; DATA XREF: dseg:0013216A↓o
-dseg_13155E dw -2, 985, -2, 989, -2, 990, 990, -2, 990, -62, 990, 950, -101
+team1BottomGoalkeeperFastDivingLowRightFrames dw -2, 985, -2, 989, -2, 990, 990, -2, 990, -62, 990, 950, -101
                     ; DATA XREF: dseg:0013225E↓o
-dseg_131578 dw -2, 997, -2, 993, -2, 992, 992, -2, 992, -62, 992, 950, -101
+team1BottomGoalkeeperFastDivingLowLeftFrames dw -2, 997, -2, 993, -2, 992, 992, -2, 992, -62, 992, 950, -101
                     ; DATA XREF: dseg:0013226E↓o
-dseg_131592 dw -5, 971, -5, 975, -5, 976, 976, -2, 976, -50, 976, 947, -101
+team1TopGoalkeeperDivingLowRightFrames dw -5, 971, -5, 975, -5, 976, 976, -2, 976, -50, 976, 947, -101
                     ; DATA XREF: dseg:00132362↓o
-dseg_1315AC dw -5, 983, -5, 979, -5, 978, 978, -2, 978, -50, 978, 947, -101
+team1TopGoalkeeperDivingLowLeftFrames dw -5, 983, -5, 979, -5, 978, 978, -2, 978, -50, 978, 947, -101
                     ; DATA XREF: dseg:00132372↓o
-dseg_1315C6 dw -5, 985, -5, 989, -5, 990, 990, -2, 990, -50, 990, 950, -101
+team1BottomGoalkeeperDivingLowRightFrames dw -5, 985, -5, 989, -5, 990, 990, -2, 990, -50, 990, 950, -101
                     ; DATA XREF: dseg:001323E4↓o
-dseg_1315E0 dw -5, 997, -5, 993, -5, 992, 992, -2, 992, -50, 992, 950, -101
+team1BottomGoalkeeperDivingLowLeftFrames dw -5, 997, -5, 993, -5, 992, 992, -2, 992, -50, 992, 950, -101
                     ; DATA XREF: dseg:001323F4↓o
-dseg_1315FA dw -5, 971, -7, 972, -3, 973, 974, -2, 975, -50, 976, 947, -101
+team1TopGoalkeeperDivingHighRightFrames dw -5, 971, -7, 972, -3, 973, 974, -2, 975, -50, 976, 947, -101
                     ; DATA XREF: dseg:001321DC↓o
-dseg_131614 dw -5, 983, -7, 982, -3, 981, 980, -2, 979, -50, 978, 947, -101
+team1TopGoalkeeperDivingHighLeftFrames dw -5, 983, -7, 982, -3, 981, 980, -2, 979, -50, 978, 947, -101
                     ; DATA XREF: dseg:001321EC↓o
-dseg_13162E dw -5, 985, -7, 986, -3, 987, 988, -2, 989, -50, 990, 950, -101
+team1BottomGoalkeeperDivingHighRightFrames dw -5, 985, -7, 986, -3, 987, 988, -2, 989, -50, 990, 950, -101
                     ; DATA XREF: dseg:001322E0↓o
-dseg_131648 dw -5, 997, -7, 996, -3, 995, 994, -2, 993, -50, 992, 950, -101
+team1BottomGoalkeeperDivingHighLeftFrames dw -5, 997, -7, 996, -3, 995, 994, -2, 993, -50, 992, 950, -101
                     ; DATA XREF: dseg:001322F0↓o
-dseg_131662 dw -4, 1000, -2, 999, 947, -101 ; DATA XREF: dseg:0013245E↓o
-                    ; dseg:00132462↓o ...
-dseg_13166E dw -4, 1003, -2, 1002, 950, -101
+team1GoalkeeperFastDeflectingTopFrames dw -4, 1000, -2, 999, 947, -101
+                    ; DATA XREF: dseg:0013245E↓o dseg:00132462↓o ...
+team1GoalkeeperFastDeflectingBottomFrames dw -4, 1003, -2, 1002, 950, -101
                     ; DATA XREF: dseg:0013246A↓o dseg:0013246E↓o ...
-dseg_13167A dw -4, 1000, -2, 999, 947, -101 ; DATA XREF: dseg:001324E0↓o
-                    ; dseg:001324E4↓o ...
-dseg_131686 dw -8, 1003, -4, 1002, 950, -101
+team1GoalkeeperVeryFastDeflectingTopFrames dw -4, 1000, -2, 999, 947, -101
+                    ; DATA XREF: dseg:001324E0↓o dseg:001324E4↓o ...
+team1GoalkeeperVeryFastDeflectingBottomFrames dw -8, 1003, -4, 1002, 950, -101
                     ; DATA XREF: dseg:001324EC↓o dseg:001324F0↓o ...
-goalkeeperRunningUpTeam2 dw 1065, 1063, 1064, 1063, -999
+goalkeeperRunningTopTeam2Frames dw 1065, 1063, 1064, 1063, -999
                     ; DATA XREF: dseg:00131D40↓o
-goalkeeperRunningDownTeam2 dw 1068, 1066, 1067, 1066, -999
+goalkeeperRunningBottomTeam2Frames dw 1068, 1066, 1067, 1066, -999
                     ; DATA XREF: dseg:00131D50↓o
-goalkeeperRunningRightTeam2 dw 1071, 1069, 1070, 1069, -999
+goalkeeperRunningRightTeam2Frames dw 1071, 1069, 1070, 1069, -999
                     ; DATA XREF: dseg:00131D48↓o
-goalkeeperRunningLeftTeam2 dw 1074, 1072, 1073, 1072, -999
+goalkeeperRunningLeftTeam2Frames dw 1074, 1072, 1073, 1072, -999
                     ; DATA XREF: dseg:00131D58↓o
-goalkeeperRunningUpRightTeam2 dw 1086, 1085, 1084, 1085, -999
+goalkeeperRunningTopRightTeam2Frames dw 1086, 1085, 1084, 1085, -999
                     ; DATA XREF: dseg:00131D44↓o
-goalkeeperRunningUpLeftTeam2 dw 1083, 1082, 1081, 1082, -999
+goalkeeperRunningTopLeftTeam2Frames dw 1083, 1082, 1081, 1082, -999
                     ; DATA XREF: dseg:00131D5C↓o
-goalkeeperRunningDownRightTeam2 dw 1080, 1079, 1078, 1079, -999
+goalkeeperRunningBottomRightTeam2Frames dw 1080, 1079, 1078, 1079, -999
                     ; DATA XREF: dseg:00131D4C↓o
-goalkeeperRunningDownLeftTeam2 dw 1077, 1076, 1075, 1076, -999
+goalkeeperRunningBottomLeftTeam2Frames dw 1077, 1076, 1075, 1076, -999
                     ; DATA XREF: dseg:00131D54↓o
-dseg_1316E2 dw 1063, -999 ; DATA XREF: dseg:00131DC2↓o
-dseg_1316E6 dw 1066, -999 ; DATA XREF: dseg:00131DD2↓o
-dseg_1316EA dw 1069, -999 ; DATA XREF: dseg:00131DCA↓o
-dseg_1316EE dw 1072, -999 ; DATA XREF: dseg:00131DDA↓o
-dseg_1316F2 dw 1085, -999 ; DATA XREF: dseg:00131DC6↓o
-dseg_1316F6 dw 1082, -999 ; DATA XREF: dseg:00131DDE↓o
-dseg_1316FA dw 1079, -999 ; DATA XREF: dseg:00131DCE↓o
-dseg_1316FE dw 1076, -999 ; DATA XREF: dseg:00131DD6↓o
-dseg_131702 dw -5, 1115, 1116, 1117, -3, 1116, -2, 1115, 1063, -101
+team2GoalkeeperStandingFacingTopFrames dw 1063, -999
+                    ; DATA XREF: dseg:00131DC2↓o
+team2GoalkeeperStandingFacingBottomFrames dw 1066, -999
+                    ; DATA XREF: dseg:00131DD2↓o
+team2GoalkeeperStandingFacingRightFrames dw 1069, -999
+                    ; DATA XREF: dseg:00131DCA↓o
+team2GoalkeeperStandingFacingLeftFrames dw 1072, -999
+                    ; DATA XREF: dseg:00131DDA↓o
+team2GoalkeeperStandingFacingTopRightFrames dw 1085, -999
+                    ; DATA XREF: dseg:00131DC6↓o
+team2GoalkeeperStandingFacingTopLeftFrames dw 1082, -999
+                    ; DATA XREF: dseg:00131DDE↓o
+team2GoalkeeperStandingFacingBottomRightFrames dw 1079, -999
+                    ; DATA XREF: dseg:00131DCE↓o
+team2GoalkeeperStandingFacingBottomLeftFrames dw 1076, -999
+                    ; DATA XREF: dseg:00131DD6↓o
+team2GoalkeeperJumpsUpFacingTopFrames dw -5, 1115, 1116, 1117, -3, 1116, -2, 1115, 1063, -101
                     ; DATA XREF: dseg:00131F6A↓o dseg:00131F6E↓o ...
-dseg_131716 dw -5, 1118, 1119, 1120, -3, 1119, -2, 1118, 1066, -101
+team2GoalkeeperJumpsUpFacingBottomFrames dw -5, 1118, 1119, 1120, -3, 1119, -2, 1118, 1066, -101
                     ; DATA XREF: dseg:00131F76↓o dseg:00131F7A↓o ...
-dseg_13172A dw -2, 1087, -2, 1091, -2, 1092, 1092, -2, 1092, -62, 1092, 1063, -101
+team2TopGoalkeeperFastDivingLowRightFrames dw -2, 1087, -2, 1091, -2, 1092, 1092, -2, 1092, -62, 1092, 1063, -101
                     ; DATA XREF: dseg:0013217A↓o
-dseg_131744 dw -2, 1099, -2, 1095, -2, 1094, 1094, -2, 1094, -62, 1094, 1063, -101
+team2TopGoalkeeperFastDivingLowLeftFrames dw -2, 1099, -2, 1095, -2, 1094, 1094, -2, 1094, -62, 1094, 1063, -101
                     ; DATA XREF: dseg:0013218A↓o
-dseg_13175E dw -2, 1101, -2, 1105, -2, 1106, 1106, -2, 1106, -62, 1106, 1066, -101
+team2BottomGoalkeeperFastDivingLowRightFrames dw -2, 1101, -2, 1105, -2, 1106, 1106, -2, 1106, -62, 1106, 1066, -101
                     ; DATA XREF: dseg:0013227E↓o
-dseg_131778 dw -2, 1113, -2, 1109, -2, 1108, 1108, -2, 1108, -62, 1108, 1066, -101
+team2BottomGoalkeeperFastDivingLowLeftFrames dw -2, 1113, -2, 1109, -2, 1108, 1108, -2, 1108, -62, 1108, 1066, -101
                     ; DATA XREF: dseg:0013228E↓o
-dseg_131792 dw -5, 1087, -5, 1091, -5, 1092, 1092, -2, 1092, -50, 1092, 1063, -101
+team2TopGoalkeeperDivingLowRightFrames dw -5, 1087, -5, 1091, -5, 1092, 1092, -2, 1092, -50, 1092, 1063, -101
                     ; DATA XREF: dseg:00132382↓o
-dseg_1317AC dw -5, 1099, -5, 1095, -5, 1094, 1094, -2, 1094, -50, 1094, 1063, -101
+team2TopGoalkeeperDivingLowLeftFrames dw -5, 1099, -5, 1095, -5, 1094, 1094, -2, 1094, -50, 1094, 1063, -101
                     ; DATA XREF: dseg:00132392↓o
-dseg_1317C6 dw -5, 1101, -5, 1105, -5, 1106, 1106, -2, 1106, -50, 1106, 1066, -101
+team2BottomGoalkeeperDivingLowRightFrames dw -5, 1101, -5, 1105, -5, 1106, 1106, -2, 1106, -50, 1106, 1066, -101
                     ; DATA XREF: dseg:00132404↓o
-dseg_1317E0 dw -5, 1113, -5, 1109, -5, 1108, 1108, -2, 1108, -50, 1108, 1066, -101
+team2BottomGoalkeeperDivingLowLeftFrames dw -5, 1113, -5, 1109, -5, 1108, 1108, -2, 1108, -50, 1108, 1066, -101
                     ; DATA XREF: dseg:00132414↓o
-dseg_1317FA dw -5, 1087, -7, 1088, -3, 1089, 1090, -2, 1091, -50, 1092, 1063, -101
+team2TopGoalkeeperDivingHighRightFrames dw -5, 1087, -7, 1088, -3, 1089, 1090, -2, 1091, -50, 1092, 1063, -101
                     ; DATA XREF: dseg:001321FC↓o
-dseg_131814 dw -5, 1099, -7, 1098, -3, 1097, 1096, -2, 1095, -50, 1094, 1063, -101
+team2TopGoalkeeperDivingHighLeftFrames dw -5, 1099, -7, 1098, -3, 1097, 1096, -2, 1095, -50, 1094, 1063, -101
                     ; DATA XREF: dseg:0013220C↓o
-dseg_13182E dw -5, 1101, -7, 1102, -3, 1103, 1104, -2, 1105, -50, 1106, 1066, -101
+team2BottomGoalkeeperDivingHighRightFrames dw -5, 1101, -7, 1102, -3, 1103, 1104, -2, 1105, -50, 1106, 1066, -101
                     ; DATA XREF: dseg:00132300↓o
-dseg_131848 dw -5, 1113, -7, 1112, -3, 1111, 1110, -2, 1109, -50, 1108, 1066, -101
+team2BottomGoalkeeperDivingHighLeftFrames dw -5, 1113, -7, 1112, -3, 1111, 1110, -2, 1109, -50, 1108, 1066, -101
                     ; DATA XREF: dseg:00132310↓o
-dseg_131862 dw -4, 1116, -2, 1115, 1063, -101
+team2BottomGoalkeeperFastDeflectingBottomFrames dw -4, 1116, -2, 1115, 1063, -101
                     ; DATA XREF: dseg:0013247E↓o dseg:00132482↓o ...
-dseg_13186E dw -4, 1119, -2, 1118, 1066, -101
+team2GoalkeeperFastDeflectingTopFrames dw -4, 1119, -2, 1118, 1066, -101
                     ; DATA XREF: dseg:0013248A↓o dseg:0013248E↓o ...
-dseg_13187A dw -4, 1116, -2, 1115, 1063, -101
+team2GoalkeeperVeryFastDeflectingtopFrames dw -4, 1116, -2, 1115, 1063, -101
                     ; DATA XREF: dseg:00132500↓o dseg:00132504↓o ...
-dseg_131886 dw -4, 1119, -2, 1118, 1066, -101
+team2GoalkeeperVeryFastDeflectingBottomFrames dw -4, 1119, -2, 1118, 1066, -101
                     ; DATA XREF: dseg:0013250C↓o dseg:00132510↓o ...
-dseg_131892 dw 1275, 1273, 1274, 1273, -999 ; DATA XREF: dseg:0013272A↓o
-                    ; dseg:0013272E↓o ...
-dseg_13189C dw 1278, 1276, 1277, 1276, -999 ; DATA XREF: dseg:00132736↓o
-                    ; dseg:0013273A↓o ...
-dseg_1318A6 dw 1273, -999 ; DATA XREF: dseg:00132778↓o
-dseg_1318AA dw 1276, -999 ; DATA XREF: dseg:0013276C↓o dseg:00132770↓o
-dseg_1318AE dw 1279, -999 ; DATA XREF: dseg:0013274C↓o dseg:00132750↓o ...
-dseg_1318B2 dw -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12
+refComingTopFrames dw 1275, 1273, 1274, 1273, -999
+                    ; DATA XREF: dseg:0013272A↓o dseg:0013272E↓o ...
+refComingBottomFrames dw 1278, 1276, 1277, 1276, -999
+                    ; DATA XREF: dseg:00132736↓o dseg:0013273A↓o ...
+refWaitingFacingTopFrames dw 1273, -999 ; DATA XREF: dseg:00132778↓o
+refWaitingFacingBottomFrames dw 1276, -999 ; DATA XREF: dseg:0013276C↓o
+                    ; dseg:00132770↓o
+refWaitingFacingLeftFrames dw 1279, -999 ; DATA XREF: dseg:0013274C↓o
+                    ; dseg:00132750↓o ...
+refYellowCardFrames dw -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12
                     ; DATA XREF: dseg:0013277E↓o dseg:00132782↓o ...
 dw 1283, -12, 1282, -12, 1283, -20, 1279, -80, 1280, -50, 1279, -101
-dseg_1318E4 dw -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12
+refRedCardFrames dw -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12
                     ; DATA XREF: dseg:001327A0↓o dseg:001327A4↓o ...
 dw 1283, -12, 1282, -12, 1283, -20, 1279, -80, 1281, -50, 1279, -101
-refSecondYellowFrames dw -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12
+refSecondYellowCardFrames dw -10, 1279, -12, 1282, -12, 1283, -12, 1282, -12, 1283, -12, 1282, -12
                     ; DATA XREF: dseg:001327C2↓o dseg:001327C6↓o ...
 dw 1283, -12, 1282, -12, 1283, -20, 1279, -80, 1280, -20, 1279, -80, 1281
 dw -50, 1279, -101
@@ -218678,22 +218786,22 @@ animTablesStart:
 staticHeaderAttemptAnimTable dw 5
                     ; DATA XREF: SetStaticHeaderDirection+2B↑o
                     ; AttemptStaticHeader+B8↑o
-dd offset dseg_16B160
-dd offset dseg_16B1A8
-dd offset dseg_16B184
-dd offset dseg_16B1CC
-dd offset dseg_16B172
-dd offset dseg_16B1DE
-dd offset dseg_16B196
-dd offset dseg_16B1BA
-dd offset dseg_16B1F0
-dd offset dseg_16B238
-dd offset dseg_16B214
-dd offset dseg_16B25C
-dd offset dseg_16B202
-dd offset dseg_16B26E
-dd offset dseg_16B226
-dd offset dseg_16B24A
+dd offset staticHeaderAttemptTeam1TopFrames
+dd offset staticHeaderAttemptTeam1TopRightFrames
+dd offset staticHeaderAttemptTeam1RightFrames
+dd offset staticHeaderAttemptTeam1BottomRightFrames
+dd offset staticHeaderAttemptTeam1BottomFrames
+dd offset staticHeaderAttemptTeam1BottomLeftFrames
+dd offset staticHeaderAttemptTeam1LeftFrames
+dd offset staticHeaderAttemptTeam1TopLeftFrames
+dd offset staticHeaderAttemptTeam2TopFrames
+dd offset staticHeaderAttemptTeam2TopRightFrames
+dd offset staticHeaderAttemptTeam2RightFrames
+dd offset staticHeaderAttemptTeam2BottomRightFrames
+dd offset staticHeaderAttemptTeam2BottomFrames
+dd offset staticHeaderAttemptTeam2BottomLeftFrames
+dd offset staticHeaderAttemptTeam2LeftFrames
+dd offset staticHeaderAttemptTeam2TopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -218711,22 +218819,22 @@ dd 0
 dd 0
 dd 0
 dw 5
-dd offset dseg_16B280
-dd offset dseg_16B2C8
-dd offset dseg_16B2A4
-dd offset dseg_16B2EC
-dd offset dseg_16B292
-dd offset dseg_16B2FE
-dd offset dseg_16B2B6
-dd offset dseg_16B2DA
-dd offset dseg_16B310
-dd offset dseg_16B358
-dd offset dseg_16B334
-dd offset dseg_16B37C
-dd offset dseg_16B322
-dd offset dseg_16B38E
-dd offset dseg_16B346
-dd offset dseg_16B36A
+dd offset staticHeaderHitTeam1TopFrames
+dd offset staticHeaderHitTeam1TopRightFrames
+dd offset staticHeaderHitTeam1RightFrames
+dd offset staticHeaderHitTeam1BottomRightFrames
+dd offset staticHeaderHitTeam1BottomFrames
+dd offset staticHeaderHitTeam1BottomLeftFrames
+dd offset staticHeaderHitTeam1LeftFrames
+dd offset staticHeaderHitTeam1TopLeftFrames
+dd offset staticHeaderHitTeam2TopFrames
+dd offset staticHeaderHitTeam2TopRightFrames
+dd offset staticHeaderHitTeam2RightFrames
+dd offset staticHeaderHitTeam2BottomRightFrames
+dd offset staticHeaderHitTeam2BottomFrames
+dd offset staticHeaderHitTeam2BottomLeftFrames
+dd offset staticHeaderHitTeam2LeftFrames
+dd offset staticHeaderHitTeam2TopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -218746,22 +218854,22 @@ dd 0
 staticHeaderHitAnimTable dw 5
                     ; DATA XREF: PlayerHittingStaticHeader+15↑o
                     ; PlayerHittingStaticHeader:@@set_static_header_anim_table↑o
-dd offset dseg_16B280
-dd offset dseg_16B2C8
-dd offset dseg_16B2A4
-dd offset dseg_16B2EC
-dd offset dseg_16B292
-dd offset dseg_16B2FE
-dd offset dseg_16B2B6
-dd offset dseg_16B2DA
-dd offset dseg_16B310
-dd offset dseg_16B358
-dd offset dseg_16B334
-dd offset dseg_16B37C
-dd offset dseg_16B322
-dd offset dseg_16B38E
-dd offset dseg_16B346
-dd offset dseg_16B36A
+dd offset staticHeaderHitTeam1TopFrames
+dd offset staticHeaderHitTeam1TopRightFrames
+dd offset staticHeaderHitTeam1RightFrames
+dd offset staticHeaderHitTeam1BottomRightFrames
+dd offset staticHeaderHitTeam1BottomFrames
+dd offset staticHeaderHitTeam1BottomLeftFrames
+dd offset staticHeaderHitTeam1LeftFrames
+dd offset staticHeaderHitTeam1TopLeftFrames
+dd offset staticHeaderHitTeam2TopFrames
+dd offset staticHeaderHitTeam2TopRightFrames
+dd offset staticHeaderHitTeam2RightFrames
+dd offset staticHeaderHitTeam2BottomRightFrames
+dd offset staticHeaderHitTeam2BottomFrames
+dd offset staticHeaderHitTeam2BottomLeftFrames
+dd offset staticHeaderHitTeam2LeftFrames
+dd offset staticHeaderHitTeam2TopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -218782,22 +218890,22 @@ jumpHeaderAttemptAnimTable dw 5
                     ; DATA XREF: PlayerAttemptingJumpHeader+1C↑o
                     ; UpdatePlayers+3A2D↑o
                     ; player jumping in attempt to head the ball (flying/lob headers)
-dd offset dseg_16B060
-dd offset dseg_16B0A0
-dd offset dseg_16B080
-dd offset dseg_16B0C0
-dd offset dseg_16B060+10h
-dd offset dseg_16B0D0
-dd offset dseg_16B090
-dd offset dseg_16B0B0
-dd offset dseg_16B0E0
-dd offset dseg_16B120
-dd offset dseg_16B100
-dd offset dseg_16B140
-dd offset dseg_16B0F0
-dd offset dseg_16B150
-dd offset dseg_16B110
-dd offset dseg_16B130
+dd offset jumpHeaderAttemptTeam1TopFrames
+dd offset jumpHeaderAttemptTeam1TopRightFrames
+dd offset jumpHeaderAttemptTeam1RightFrames
+dd offset jumpHeaderAttemptTeam1BottomRightFrames
+dd offset jumpHeaderAttemptTeam1BottomFrames
+dd offset jumpHeaderAttemptTeam1BottomLeftFrames
+dd offset jumpHeaderAttemptTeam1LeftFrames
+dd offset jumpHeaderAttemptTeam1TopLeftFrames
+dd offset jumpHeaderAttemptTeam2TopFrames
+dd offset jumpHeaderAttemptTeam2TopRightFrames
+dd offset jumpHeaderAttemptTeam2RightFrames
+dd offset jumpHeaderAttemptTeam2BottomRightFrames
+dd offset jumpHeaderAttemptTeam2BottomFrames
+dd offset jumpHeaderAttemptTeam2BottomLeftFrames
+dd offset jumpHeaderAttemptTeam2LeftFrames
+dd offset jumpHeaderAttemptTeam2TopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -218818,22 +218926,22 @@ jumpHeaderHitAnimTable dw 5
                     ; DATA XREF: SetPlayerJumpHeaderHitAnimationTable+D↑o
                     ; SetJumpHeaderHitAnimTable+6↑o ...
                     ; player hitting flying or lob headers (on ball contact)
-dd offset jumpHeaderTeam1UpFrames
-dd offset dseg_16AF40
-dd offset dseg_16AF10
-dd offset dseg_16AF70
-dd offset dseg_16AEF8
-dd offset dseg_16AF88
-dd offset dseg_16AF28
-dd offset dseg_16AF58
-dd offset dseg_16AFA0
-dd offset dseg_16B000
-dd offset dseg_16AFD0
-dd offset dseg_16B030
-dd offset dseg_16AFB8
-dd offset dseg_16B048
-dd offset dseg_16AFE8
-dd offset dseg_16B018
+dd offset jumpHeaderHitTeam1TopFrames
+dd offset jumpHeaderHitTeam1TopRightFrames
+dd offset jumpHeaderHitTeam1RightFrames
+dd offset jumpHeaderHitTeam1BottomRightFrames
+dd offset jumpHeaderHitTeam1BottomFrames
+dd offset jumpHeaderHitTeam1BottomLeftFrames
+dd offset jumpHeaderHitTeam1LeftFrames
+dd offset jumpHeaderHitTeam1TopLeftFrames
+dd offset jumpHeaderHitTeam2TopFrames
+dd offset jumpHeaderHitTeam2TopRightFrames
+dd offset jumpHeaderHitTeam2RightFrames
+dd offset jumpHeaderHitTeam2BottomRightFrames
+dd offset jumpHeaderHitTeam2BottomFrames
+dd offset jumpHeaderHitTeam2BottomLeftFrames
+dd offset jumpHeaderHitTeam2LeftFrames
+dd offset jumpHeaderHitTeam2TopLeftFrames
 dd 0                ; goalkeepers can't use head :(
 dd 0
 dd 0
@@ -218851,22 +218959,22 @@ dd 0
 dd 0
 dd 0
 playerLosingReactionAnimTable dw 5 ; DATA XREF: UpdatePlayers+47D2↑o
-dd offset dseg_131342
-dd offset dseg_131342
-dd offset dseg_131342
-dd offset dseg_131342
-dd offset dseg_131342
-dd offset dseg_131342
-dd offset dseg_131342
-dd offset dseg_131342
-dd offset dseg_13134E
-dd offset dseg_13134E
-dd offset dseg_13134E
-dd offset dseg_13134E
-dd offset dseg_13134E
-dd offset dseg_13134E
-dd offset dseg_13134E
-dd offset dseg_13134E
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam1Frames
+dd offset playerLosingReactionTeam2Frames
+dd offset playerLosingReactionTeam2Frames
+dd offset playerLosingReactionTeam2Frames
+dd offset playerLosingReactionTeam2Frames
+dd offset playerLosingReactionTeam2Frames
+dd offset playerLosingReactionTeam2Frames
+dd offset playerLosingReactionTeam2Frames
+dd offset playerLosingReactionTeam2Frames
 dd 0
 dd 0
 dd 0
@@ -218885,23 +218993,23 @@ dd 0
 dd 0
 playerWinningReactionAnimTable dw 5
                     ; DATA XREF: UpdatePlayers:@@player_in_winning_team↑o
-dd offset dseg_13135A
-dd offset dseg_13135A
-dd offset dseg_13135A
-dd offset dseg_13135A
-dd offset dseg_13135A
-dd offset dseg_13135A
-dd offset dseg_13135A
-dd offset dseg_13135A
-dd offset dseg_131364
-dd offset dseg_131364
-dd offset dseg_131364
-dd offset dseg_131364
-dd offset dseg_131364
-dd offset dseg_131364
-dd offset dseg_131364
-dd offset dseg_131364
-dd 0
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam1Frames
+dd offset playerWinningReactionTeam2Frames
+dd offset playerWinningReactionTeam2Frames
+dd offset playerWinningReactionTeam2Frames
+dd offset playerWinningReactionTeam2Frames
+dd offset playerWinningReactionTeam2Frames
+dd offset playerWinningReactionTeam2Frames
+dd offset playerWinningReactionTeam2Frames
+dd offset playerWinningReactionTeam2Frames
+dd 0                ; goalkeepers always cool
 dd 0
 dd 0
 dd 0
@@ -218919,90 +219027,90 @@ dd 0
 dd 0
 playerRunningAnimTable dw 5
                     ; DATA XREF: UpdatePlayers:@@player_is_running↑o
-dd offset playerRunningUpTeam1
-dd offset playerRunningUpRightTeam1
-dd offset playerRunningRightTeam1
-dd offset playerRunningDownRightTeam1
-dd offset playerRunningDownTeam1
-dd offset playerRunningDownLeftTeam1
-dd offset playerRunningLeftTeam1
-dd offset playerRunningUpLeftTeam1
-dd offset playerRunningUpTeam2
-dd offset playerRunningUpRightTeam2
-dd offset playerRunningRightTeam2
-dd offset playerRunningDownRightTeam2
-dd offset playerRunningDownTeam2
-dd offset playerRunningDownLeftTeam2
-dd offset playerRunningLeftTeam2
-dd offset playerRunningUpLeftTeam2
-dd offset goalkeeperRunningUpTeam1
-dd offset goalkeeperRunningUpRightTeam1
-dd offset goalkeeperRunningRightTeam1
-dd offset goalkeeperRunningDownRightTeam1
-dd offset goalkeeperRunningDownTeam1
-dd offset goalkeeperRunningDownLeftTeam1
-dd offset goalkeeperRunningLeftTeam1
-dd offset goalkeeperRunningUpLeftTeam1
-dd offset goalkeeperRunningUpTeam2
-dd offset goalkeeperRunningUpRightTeam2
-dd offset goalkeeperRunningRightTeam2
-dd offset goalkeeperRunningDownRightTeam2
-dd offset goalkeeperRunningDownTeam2
-dd offset goalkeeperRunningDownLeftTeam2
-dd offset goalkeeperRunningLeftTeam2
-dd offset goalkeeperRunningUpLeftTeam2
+dd offset playerRunningTopTeam1Frames
+dd offset playerRunningTopRightTeam1Frames
+dd offset playerRunningRightTeam1Frames
+dd offset playerRunningBottomRightTeam1Frames
+dd offset playerRunningBottomTeam1Frames
+dd offset playerRunningBottomLeftTeam1Frames
+dd offset playerRunningLeftTeam1Frames
+dd offset playerRunningTopLeftTeam1Frames
+dd offset playerRunningTopTeam2Frames
+dd offset playerRunningTopRightTeam2Frames
+dd offset playerRunningRightTeam2Frames
+dd offset playerRunningBottomRightTeam2Frames
+dd offset playerRunningBottomTeam2Frames
+dd offset playerRunningBottomLeftTeam2Frames
+dd offset playerRunningLeftTeam2Frames
+dd offset playerRunningTopLeftTeam2Frames
+dd offset goalkeeperRunningTopTeam1Frames
+dd offset goalkeeperRunningTopRightTeam1Frames
+dd offset goalkeeperRunningRightTeam1Frames
+dd offset goalkeeperRunningBottomRightTeam1Frames
+dd offset goalkeeperRunningBottomTeam1Frames
+dd offset goalkeeperRunningBottomLeftTeam1Frames
+dd offset goalkeeperRunningLeftTeam1Frames
+dd offset goalkeeperRunningTopLeftTeam1Frames
+dd offset goalkeeperRunningTopTeam2Frames
+dd offset goalkeeperRunningTopRightTeam2Frames
+dd offset goalkeeperRunningRightTeam2Frames
+dd offset goalkeeperRunningBottomRightTeam2Frames
+dd offset goalkeeperRunningBottomTeam2Frames
+dd offset goalkeeperRunningBottomLeftTeam2Frames
+dd offset goalkeeperRunningLeftTeam2Frames
+dd offset goalkeeperRunningTopLeftTeam2Frames
 playerNormalStandingAnimTable dw 5
                     ; DATA XREF: CheckForThrowInAndGoalkeepersBall+40↑o
                     ; UpdateGameTimersAndCameraBreakMode+8D9↑o ...
-dd offset team1PlayerStandingFacingUpFrames
-dd offset team1PlayerStandingFacingUpRightFrames
+dd offset team1PlayerStandingFacingTopFrames
+dd offset team1PlayerStandingFacingTopRightFrames
 dd offset team1PlayerStandingFacingRightFrames
 dd offset team1PlayerStandingFacingBottomRightFrames
 dd offset team1PlayerStandingFacingBottomFrames
 dd offset team1PlayerStandingFacingBottomLeftFrames
 dd offset team1PlayerStandingFacingLeftFrames
 dd offset team1PlayerStandingFacingTopLeftFrames
-dd offset dseg_1312B2
-dd offset dseg_1312C2
-dd offset dseg_1312BA
-dd offset dseg_1312CA
-dd offset dseg_1312B6
-dd offset dseg_1312CE
-dd offset dseg_1312BE
-dd offset dseg_1312C6
-dd offset dseg_1314E2
-dd offset dseg_1314F2
-dd offset dseg_1314EA
-dd offset dseg_1314FA
-dd offset dseg_1314E6
-dd offset dseg_1314FE
-dd offset dseg_1314EE
-dd offset dseg_1314F6
-dd offset dseg_1316E2
-dd offset dseg_1316F2
-dd offset dseg_1316EA
-dd offset dseg_1316FA
-dd offset dseg_1316E6
-dd offset dseg_1316FE
-dd offset dseg_1316EE
-dd offset dseg_1316F6
-plTacklingAnimTable dw 5 ; DATA XREF: PlayerBeginTackling+2C↑o
-dd offset dseg_1310CE
-dd offset dseg_1310DE
-dd offset dseg_1310D6
-dd offset dseg_1310E6
-dd offset dseg_1310D2
-dd offset dseg_1310EA
-dd offset dseg_1310DA
-dd offset dseg_1310E2
-dd offset dseg_1312D2
-dd offset dseg_1312E2
-dd offset dseg_1312DA
-dd offset dseg_1312EA
-dd offset dseg_1312D6
-dd offset dseg_1312EE
-dd offset dseg_1312DE
-dd offset dseg_1312E6
+dd offset team2PlayerStandingFacingTopFrames
+dd offset team2PlayerStandingFacingTopRightFrames
+dd offset team2PlayerStandingFacingRightFrames
+dd offset team2PlayerStandingFacingBottomRightFrames
+dd offset team2PlayerStandingFacingBottomFrames
+dd offset team2PlayerStandingFacingBottomLeftFrames
+dd offset team2PlayerStandingFacingLeftFrames
+dd offset team2PlayerStandingFacingTopLeftFrames
+dd offset team1GoalkeeperStandingFacingTopFrames
+dd offset team1GoalkeeperStandingFacingTopRightFrames
+dd offset team1GoalkeeperStandingFacingRightFrames
+dd offset team1GoalkeeperStandingFacingBottomRightFrames
+dd offset team1GoalkeeperStandingFacingBottomFrames
+dd offset team1GoalkeeperStandingFacingBottomLeftFrames
+dd offset team1GoalkeeperStandingFacingLeftFrames
+dd offset team1GoalkeeperStandingFacingTopLeftFrames
+dd offset team2GoalkeeperStandingFacingTopFrames
+dd offset team2GoalkeeperStandingFacingTopRightFrames
+dd offset team2GoalkeeperStandingFacingRightFrames
+dd offset team2GoalkeeperStandingFacingBottomRightFrames
+dd offset team2GoalkeeperStandingFacingBottomFrames
+dd offset team2GoalkeeperStandingFacingBottomLeftFrames
+dd offset team2GoalkeeperStandingFacingLeftFrames
+dd offset team2GoalkeeperStandingFacingTopLeftFrames
+playerTacklingAnimTable dw 5 ; DATA XREF: PlayerBeginTackling+2C↑o
+dd offset team1PlayerTacklingTopFrames
+dd offset team1PlayerTacklingTopRightFrames
+dd offset team1PlayerTacklingRightFrames
+dd offset team1PlayerTacklingBottomRightFrames
+dd offset team1PlayerTacklingBottomFrames
+dd offset team1PlayerTacklingBottomLeftFrames
+dd offset team1PlayerTacklingLeftFrames
+dd offset team1PlayerTacklingTopLeftFrames
+dd offset team2PlayerTacklingTopFrames
+dd offset team2PlayerTacklingTopRightFrames
+dd offset team2PlayerTacklingRightFrames
+dd offset team2PlayerTacklingBottomRightFrames
+dd offset team2PlayerTacklingBottomFrames
+dd offset team2PlayerTacklingBottomLeftFrames
+dd offset team2PlayerTacklingLeftFrames
+dd offset team2PlayerTacklingTopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -219020,53 +219128,48 @@ dd 0
 dd 0
 dd 0
 dw 5
-dd offset dseg_1310CE
-dd offset dseg_1310DE
-dd offset dseg_1310D6
-dd offset dseg_1310E6
-dd offset dseg_1310D2
-dd offset dseg_1310EA
-dd offset dseg_1310DA
-dd offset dseg_1310E2
-dd offset dseg_1312D2
-dd offset dseg_1312E2
-dd offset dseg_1312DA
-dd offset dseg_1312EA
-dd offset dseg_1312D6
-dd offset dseg_1312EE
-dd offset dseg_1312DE
-dd offset dseg_1312E6
+dd offset team1PlayerTacklingTopFrames
+dd offset team1PlayerTacklingTopRightFrames
+dd offset team1PlayerTacklingRightFrames
+dd offset team1PlayerTacklingBottomRightFrames
+dd offset team1PlayerTacklingBottomFrames
+dd offset team1PlayerTacklingBottomLeftFrames
+dd offset team1PlayerTacklingLeftFrames
+dd offset team1PlayerTacklingTopLeftFrames
+dd offset team2PlayerTacklingTopFrames
+dd offset team2PlayerTacklingTopRightFrames
+dd offset team2PlayerTacklingRightFrames
+dd offset team2PlayerTacklingBottomRightFrames
+dd offset team2PlayerTacklingBottomFrames
+dd offset team2PlayerTacklingBottomLeftFrames
+dd offset team2PlayerTacklingLeftFrames
+dd offset team2PlayerTacklingTopLeftFrames
 dd 0
 dd 0
 dd 0
 dd 0
 playerTackledAnimTable dw 5 ; DATA XREF: PlayerTackled+337↑o
-dd offset dseg_1310EE
-dd offset dseg_1310FE
-dd offset dseg_1310F6
-dd offset dseg_131106
-dd offset dseg_1310F2
-dd offset dseg_13110A
-dd offset dseg_1310FA
-dd offset dseg_131102
-dd offset dseg_1312F2
-dd offset dseg_131302
-dd offset dseg_1312FA
-dd offset dseg_13130A
-dd offset dseg_1312F6
-dd offset dseg_13130E
-dd offset dseg_1312FE
-dd offset dseg_131306
+dd offset team1PlayerTackledTopFrames
+dd offset team1PlayerTackledTopRightFrames
+dd offset team1PlayerTackledRightFrames
+dd offset team1PlayerTackledBottomRightFrames
+dd offset team1PlayerTackledBottomFrames
+dd offset team1PlayerTackledBottomLeftFrames
+dd offset team1PlayerTackledLeftFrames
+dd offset team1PlayerTackledTopLeftFrames
+dd offset team2PlayerTackledTopFrames
+dd offset team2PlayerTackledTopRightFrames
+dd offset team2PlayerTackledRightFrames
+dd offset team2PlayerTackledBottomRightFrames
+dd offset team2PlayerTackledBottomFrames
+dd offset team2PlayerTackledBottomLeftFrames
+dd offset team2PlayerTackledLeftFrames
+dd offset team2PlayerTackledTopLeftFrames
 dd 0
 dd 0
 dd 0
 dd 0
-goalieCatchingBallAnimTable dw 5
-                    ; DATA XREF: GoalkeeperCaughtTheBall+32↑o
-dd 0
-dd 0
-dd 0
-dd 0
+goalkeeperJumpUpAnimTable dw 5 ; DATA XREF: GoalkeeperCaughtTheBall+32↑o
 dd 0
 dd 0
 dd 0
@@ -219079,41 +219182,45 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_131502
-dd offset dseg_131502
-dd offset dseg_131502
-dd offset dseg_131516
-dd offset dseg_131516
-dd offset dseg_131516
-dd offset dseg_131516
-dd offset dseg_131502
-dd offset dseg_131702
-dd offset dseg_131702
-dd offset dseg_131702
-dd offset dseg_131716
-dd offset dseg_131716
-dd offset dseg_131716
-dd offset dseg_131716
-dd offset dseg_131702
+dd 0
+dd 0
+dd 0
+dd 0
+dd offset team1GoalkeeperJumpsUpFacingTopFrames
+dd offset team1GoalkeeperJumpsUpFacingTopFrames
+dd offset team1GoalkeeperJumpsUpFacingTopFrames
+dd offset team1GoalkeeperJumpsUpFacingBottomFrames
+dd offset team1GoalkeeperJumpsUpFacingBottomFrames
+dd offset team1GoalkeeperJumpsUpFacingBottomFrames
+dd offset team1GoalkeeperJumpsUpFacingBottomFrames
+dd offset team1GoalkeeperJumpsUpFacingTopFrames
+dd offset team2GoalkeeperJumpsUpFacingTopFrames
+dd offset team2GoalkeeperJumpsUpFacingTopFrames
+dd offset team2GoalkeeperJumpsUpFacingTopFrames
+dd offset team2GoalkeeperJumpsUpFacingBottomFrames
+dd offset team2GoalkeeperJumpsUpFacingBottomFrames
+dd offset team2GoalkeeperJumpsUpFacingBottomFrames
+dd offset team2GoalkeeperJumpsUpFacingBottomFrames
+dd offset team2GoalkeeperJumpsUpFacingTopFrames
 aboutToThrowInAnimTable dw 5
                     ; DATA XREF: UpdateGameTimersAndCameraBreakMode:@@set_throw_in_anim_table↑o
                     ; UpdatePlayers+3024↑o ...
-dd offset dseg_13113E
-dd offset dseg_131176
-dd offset dseg_13115A
-dd offset dseg_131192
-dd offset dseg_13114C
-dd offset dseg_1311A0
-dd offset dseg_131168
-dd offset dseg_131184
-dd offset dseg_13136E
-dd offset dseg_1313A6
-dd offset dseg_13138A
-dd offset dseg_1313C2
-dd offset dseg_13137C
-dd offset dseg_1313D0
-dd offset dseg_131398
-dd offset dseg_1313B4
+dd offset team1PlayerAboutToThrowInTopFrames
+dd offset team1PlayerAboutToThrowInTopRightFrames
+dd offset team1PlayerAboutToThrowInRightFrames
+dd offset team1PlayerAboutToThrowInBottomRightFrames
+dd offset team1PlayerAboutToThrowInBottomFrames
+dd offset team1PlayerAboutToThrowInBottomLeftFrames
+dd offset team1PlayerAboutToThrowInLeftFrames
+dd offset team1PlayerAboutToThrowInTopLeftFrames
+dd offset team2PlayerAboutToThrowInTopFrames
+dd offset team2PlayerAboutToThrowInTopRightFrames
+dd offset team2PlayerAboutToThrowInRightFrames
+dd offset team2PlayerAboutToThrowInBottomRightFrames
+dd offset team2PlayerAboutToThrowInBottomFrames
+dd offset team2PlayerAboutToThrowInBottomLeftFrames
+dd offset team2PlayerAboutToThrowInLeftFrames
+dd offset team2PlayerAboutToThrowInTopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -219130,23 +219237,23 @@ dd 0
 dd 0
 dd 0
 dd 0
-throwInPassAnimTable dw 5 ; DATA XREF: UpdatePlayers+31C8↑o
-dd offset dseg_1311AE
-dd offset dseg_1311CE
-dd offset dseg_1311BE
-dd offset dseg_1311DE
-dd offset dseg_1311B6
-dd offset dseg_1311E6
-dd offset dseg_1311C6
-dd offset dseg_1311D6
-dd offset dseg_1313DE
-dd offset dseg_1313FE
-dd offset dseg_1313EE
-dd offset dseg_13140E
-dd offset dseg_1313E6
-dd offset dseg_131416
-dd offset dseg_1313F6
-dd offset dseg_131406
+throwInShortAnimTable dw 5 ; DATA XREF: UpdatePlayers+31C8↑o
+dd offset team1Player1ThrowInShortTopFrames
+dd offset team1Player1ThrowInShortTopRightFrames
+dd offset team1Player1ThrowInShortRightFrames
+dd offset team1Player1ThrowInShortBottomRightFrames
+dd offset team1Player1ThrowInShortBottomFrames
+dd offset team1Player1ThrowInShortBottomLeftFrames
+dd offset team1Player1ThrowInShortLeftFrames
+dd offset team1Player1ThrowInShortTopLeftFrames
+dd offset team2Player1ThrowInShortTopFrames
+dd offset team2Player1ThrowInShortTopRightFrames
+dd offset team2Player1ThrowInShortRightFrames
+dd offset team2Player1ThrowInShortBottomRightFrames
+dd offset team2Player1ThrowInShortBottomFrames
+dd offset team2Player1ThrowInShortBottomLeftFrames
+dd offset team2Player1ThrowInShortLeftFrames
+dd offset team2Player1ThrowInShortTopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -219163,23 +219270,23 @@ dd 0
 dd 0
 dd 0
 dd 0
-throwInKickAnimTable dw 5 ; DATA XREF: UpdatePlayers+321A↑o
-dd offset dseg_1311EE
-dd offset dseg_13121E
-dd offset dseg_131206
-dd offset dseg_131236
-dd offset dseg_1311FA
-dd offset dseg_131242
-dd offset dseg_131212
-dd offset dseg_13122A
-dd offset dseg_13141E
-dd offset dseg_13144E
-dd offset dseg_131436
-dd offset dseg_131466
-dd offset dseg_13142A
-dd offset dseg_131472
-dd offset dseg_131442
-dd offset dseg_13145A
+throwInLongAnimTable dw 5 ; DATA XREF: UpdatePlayers+321A↑o
+dd offset team1Player1ThrowInLongTopFrames
+dd offset team1Player1ThrowInLongTopRightFrames
+dd offset team1Player1ThrowInLongRightFrames
+dd offset team1Player1ThrowInLongBottomRightFrames
+dd offset team1Player1ThrowInLongBottomFrames
+dd offset team1Player1ThrowInLongBottomLeftFrames
+dd offset team1Player1ThrowInLongLeftFrames
+dd offset team1Player1ThrowInLongTopLeftFrames
+dd offset team2Player1ThrowInLongTopFrames
+dd offset team2Player1ThrowInLongTopRightFrames
+dd offset team2Player1ThrowInLongRightFrames
+dd offset team2Player1ThrowInLongBottomRightFrames
+dd offset team2Player1ThrowInLongBottomFrames
+dd offset team2Player1ThrowInLongBottomLeftFrames
+dd offset team2Player1ThrowInLongLeftFrames
+dd offset team2Player1ThrowInLongTopLeftFrames
 dd 0
 dd 0
 dd 0
@@ -219215,25 +219322,21 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_13152A
+dd offset team1TopGoalkeeperFastDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131544
+dd offset team1TopGoalkeeperFastDivingLowLeftFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_13172A
+dd offset team2TopGoalkeeperFastDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131744
+dd offset team2TopGoalkeeperFastDivingLowLeftFrames
 dd 0
-leftGoalieJumpingHighAnimTable dw 5 ; DATA XREF: GoalkeeperJumping+144↑o
-dd 0
-dd 0
-dd 0
-dd 0
+topGoalieDivingHighAnimTable dw 5 ; DATA XREF: GoalkeeperJumping+144↑o
 dd 0
 dd 0
 dd 0
@@ -219248,19 +219351,23 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_1315FA
 dd 0
 dd 0
 dd 0
-dd offset dseg_131614
+dd 0
+dd offset team1TopGoalkeeperDivingHighRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_1317FA
+dd offset team1TopGoalkeeperDivingHighLeftFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131814
+dd offset team2TopGoalkeeperDivingHighRightFrames
+dd 0
+dd 0
+dd 0
+dd offset team2TopGoalkeeperDivingHighLeftFrames
 dd 0
 dw 5
 dd 0
@@ -219281,22 +219388,22 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_13155E
+dd offset team1BottomGoalkeeperFastDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131578
+dd offset team1BottomGoalkeeperFastDivingLowLeftFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_13175E
+dd offset team2BottomGoalkeeperFastDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131778
+dd offset team2BottomGoalkeeperFastDivingLowLeftFrames
 dd 0
-rightGoalieJumpingHighAnimTable dw 5
-                    ; DATA XREF: GoalkeeperJumping:@@right_goalie_jumping_high↑o
+bottomGoalieDivingHighAnimTable dw 5
+                    ; DATA XREF: GoalkeeperJumping:@@bottom_goalie_jumping_high↑o
 dd 0
 dd 0
 dd 0
@@ -219315,21 +219422,21 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_13162E
+dd offset team1BottomGoalkeeperDivingHighRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131648
+dd offset team1BottomGoalkeeperDivingHighLeftFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_13182E
+dd offset team2BottomGoalkeeperDivingHighRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131848
+dd offset team2BottomGoalkeeperDivingHighLeftFrames
 dd 0
-leftGoalieJumpingLowAnimTable dw 5 ; DATA XREF: GoalkeeperJumping+10C↑o
+topGoalieDivingLowAnimTable dw 5 ; DATA XREF: GoalkeeperJumping+10C↑o
 dd 0
 dd 0
 dd 0
@@ -219348,22 +219455,22 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_131592
+dd offset team1TopGoalkeeperDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_1315AC
+dd offset team1TopGoalkeeperDivingLowLeftFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_131792
+dd offset team2TopGoalkeeperDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_1317AC
+dd offset team2TopGoalkeeperDivingLowLeftFrames
 dd 0
-rightGoalieJumpingLowAnimTable dw 5
-                    ; DATA XREF: GoalkeeperJumping:@@right_goalie_jumping_low↑o
+bottomGoalieDivingLowAnimTable dw 5
+                    ; DATA XREF: GoalkeeperJumping:@@bottom_goalie_jumping_low↑o
 dd 0
 dd 0
 dd 0
@@ -219382,19 +219489,19 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_1315C6
+dd offset team1BottomGoalkeeperDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_1315E0
+dd offset team1BottomGoalkeeperDivingLowLeftFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_1317C6
+dd offset team2BottomGoalkeeperDivingLowRightFrames
 dd 0
 dd 0
 dd 0
-dd offset dseg_1317E0
+dd offset team2BottomGoalkeeperDivingLowLeftFrames
 dd 0
 dw 5
 dd 0
@@ -219413,22 +219520,22 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_131662
-dd offset dseg_131662
-dd offset dseg_131662
-dd offset dseg_13166E
-dd offset dseg_13166E
-dd offset dseg_13166E
-dd offset dseg_13166E
-dd offset dseg_131662
-dd offset dseg_131862
-dd offset dseg_131862
-dd offset dseg_131862
-dd offset dseg_13186E
-dd offset dseg_13186E
-dd offset dseg_13186E
-dd offset dseg_13186E
-dd offset dseg_131862
+dd offset team1GoalkeeperFastDeflectingTopFrames
+dd offset team1GoalkeeperFastDeflectingTopFrames
+dd offset team1GoalkeeperFastDeflectingTopFrames
+dd offset team1GoalkeeperFastDeflectingBottomFrames
+dd offset team1GoalkeeperFastDeflectingBottomFrames
+dd offset team1GoalkeeperFastDeflectingBottomFrames
+dd offset team1GoalkeeperFastDeflectingBottomFrames
+dd offset team1GoalkeeperFastDeflectingTopFrames
+dd offset team2BottomGoalkeeperFastDeflectingBottomFrames
+dd offset team2BottomGoalkeeperFastDeflectingBottomFrames
+dd offset team2BottomGoalkeeperFastDeflectingBottomFrames
+dd offset team2GoalkeeperFastDeflectingTopFrames
+dd offset team2GoalkeeperFastDeflectingTopFrames
+dd offset team2GoalkeeperFastDeflectingTopFrames
+dd offset team2GoalkeeperFastDeflectingTopFrames
+dd offset team2BottomGoalkeeperFastDeflectingBottomFrames
 dw 5
 dd 0
 dd 0
@@ -219446,40 +219553,40 @@ dd 0
 dd 0
 dd 0
 dd 0
-dd offset dseg_13167A
-dd offset dseg_13167A
-dd offset dseg_13167A
-dd offset dseg_131686
-dd offset dseg_131686
-dd offset dseg_131686
-dd offset dseg_131686
-dd offset dseg_13167A
-dd offset dseg_13187A
-dd offset dseg_13187A
-dd offset dseg_13187A
-dd offset dseg_131886
-dd offset dseg_131886
-dd offset dseg_131886
-dd offset dseg_131886
-dd offset dseg_13187A
-plGettingYellowCardAnimTable dw 5
+dd offset team1GoalkeeperVeryFastDeflectingTopFrames
+dd offset team1GoalkeeperVeryFastDeflectingTopFrames
+dd offset team1GoalkeeperVeryFastDeflectingTopFrames
+dd offset team1GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team1GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team1GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team1GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team1GoalkeeperVeryFastDeflectingTopFrames
+dd offset team2GoalkeeperVeryFastDeflectingtopFrames
+dd offset team2GoalkeeperVeryFastDeflectingtopFrames
+dd offset team2GoalkeeperVeryFastDeflectingtopFrames
+dd offset team2GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team2GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team2GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team2GoalkeeperVeryFastDeflectingBottomFrames
+dd offset team2GoalkeeperVeryFastDeflectingtopFrames
+playerGettingYellowCardAnimTable dw 5
                     ; DATA XREF: UpdatePlayers:@@player_getting_yellow_card↑o
-dd offset team1PlGettingYellowCardFrames
-dd offset team1PlGettingYellowCardFrames
-dd offset team1PlGettingYellowCardFrames
-dd offset team1PlGettingYellowCardFrames
-dd offset team1PlGettingYellowCardFrames
-dd offset team1PlGettingYellowCardFrames
-dd offset team1PlGettingYellowCardFrames
-dd offset team1PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
-dd offset team2PlGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team1PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
+dd offset team2PlayerGettingYellowCardFrames
 dd 0
 dd 0
 dd 0
@@ -219496,7 +219603,7 @@ dd 0
 dd 0
 dd 0
 dd 0
-plGettingRedCardAnimTable dw 5
+playerGettingRedCardAnimTable dw 5
                     ; DATA XREF: UpdatePlayers:@@player_getting_red_card↑o
 dd offset team1PlayerGettingRedCardFrames
 dd offset team1PlayerGettingRedCardFrames
@@ -219530,23 +219637,24 @@ dd 0
 dd 0
 dd 0
 dd 0
-plGetting2ndYellowCardAnimTable dw 5 ; DATA XREF: UpdatePlayers+4935↑o
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team1PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
-dd offset team2PlGetting2ndYellowCardFrames
+playerGetting2ndYellowCardAnimTable dw 5
+                    ; DATA XREF: UpdatePlayers+4935↑o
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team1PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
+dd offset team2PlayerGetting2ndYellowCardFrames
 dd 0
 dd 0
 dd 0
@@ -219563,7 +219671,7 @@ dd 0
 dd 0
 dd 0
 dd 0
-plInjuredAnimTable dw 5 ; DATA XREF: UpdatePlayers+3D53↑o
+playerInjuredAnimTable dw 5 ; DATA XREF: UpdatePlayers+3D53↑o
 dd offset team1InjuredPlayerTopLeftTable
 dd offset team1InjuredPlayerTopLeftTable
 dd offset team1InjuredPlayerTopLeftTable
@@ -219598,56 +219706,56 @@ dd 0
 dd 0
 refComingAnimTable dw 5 ; DATA XREF: ActivateReferee+10B↑o
                     ; UpdateReferee+250↑o ...
-dd offset dseg_131892
-dd offset dseg_131892
-dd offset dseg_131892
-dd offset dseg_13189C
-dd offset dseg_13189C
-dd offset dseg_13189C
-dd offset dseg_13189C
-dd offset dseg_131892
+dd offset refComingTopFrames
+dd offset refComingTopFrames
+dd offset refComingTopFrames
+dd offset refComingBottomFrames
+dd offset refComingBottomFrames
+dd offset refComingBottomFrames
+dd offset refComingBottomFrames
+dd offset refComingTopFrames
 refWaitingAnimTable dw 5 ; DATA XREF: RemoveReferee+69↑o
                     ; UpdateReferee+3A4↑o
-dd offset dseg_1318AE
-dd offset dseg_1318AE
-dd offset dseg_1318AE
-dd offset dseg_1318AE
-dd offset dseg_1318AE
-dd offset dseg_1318AE
-dd offset dseg_1318AE
-dd offset dseg_1318AE
-dd offset dseg_1318AA
-dd offset dseg_1318AA
-dd offset dseg_1318AE
-dd offset dseg_1318A6
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingBottomFrames
+dd offset refWaitingFacingBottomFrames
+dd offset refWaitingFacingLeftFrames
+dd offset refWaitingFacingTopFrames
 refYellowCardAnimTable dw 5 ; DATA XREF: UpdateReferee+3D2↑o
-dd offset dseg_1318B2
-dd offset dseg_1318B2
-dd offset dseg_1318B2
-dd offset dseg_1318B2
-dd offset dseg_1318B2
-dd offset dseg_1318B2
-dd offset dseg_1318B2
-dd offset dseg_1318B2
+dd offset refYellowCardFrames
+dd offset refYellowCardFrames
+dd offset refYellowCardFrames
+dd offset refYellowCardFrames
+dd offset refYellowCardFrames
+dd offset refYellowCardFrames
+dd offset refYellowCardFrames
+dd offset refYellowCardFrames
 refRedCardAnimTable dw 5 ; DATA XREF: UpdateReferee:@@red_card↑o
-dd offset dseg_1318E4
-dd offset dseg_1318E4
-dd offset dseg_1318E4
-dd offset dseg_1318E4
-dd offset dseg_1318E4
-dd offset dseg_1318E4
-dd offset dseg_1318E4
-dd offset dseg_1318E4
+dd offset refRedCardFrames
+dd offset refRedCardFrames
+dd offset refRedCardFrames
+dd offset refRedCardFrames
+dd offset refRedCardFrames
+dd offset refRedCardFrames
+dd offset refRedCardFrames
+dd offset refRedCardFrames
 refSecondYellowAnimTable dw 5
                     ; DATA XREF: UpdateReferee:@@red_card_second_yellow↑o
-dd offset refSecondYellowFrames
-dd offset refSecondYellowFrames
-dd offset refSecondYellowFrames
-dd offset refSecondYellowFrames
-dd offset refSecondYellowFrames
-dd offset refSecondYellowFrames
-dd offset refSecondYellowFrames
-dd offset refSecondYellowFrames
+dd offset refSecondYellowCardFrames
+dd offset refSecondYellowCardFrames
+dd offset refSecondYellowCardFrames
+dd offset refSecondYellowCardFrames
+dd offset refSecondYellowCardFrames
+dd offset refSecondYellowCardFrames
+dd offset refSecondYellowCardFrames
+dd offset refSecondYellowCardFrames
 animTablesEnd:
 goalBasePtr dd 0    ; DATA XREF: SWOS+CD↑w PlayHighlightsLoop+110↑w ...
                     ; pointer to current goal in highlight file
@@ -219704,7 +219812,7 @@ db    0
 db    0
 db    0
 db    0
-writeOnlyVar04 dw 0 ; DATA XREF: UpdateBall+34D↑w
+ballUpdatedByGoalkeeper dw 0 ; DATA XREF: UpdateBall+34D↑w
 db    0
 db    0
 deadCameraBreakVar01 dw 0
@@ -221067,133 +221175,137 @@ g_allowShorterMenuItemsWithFrames dw 0
                     ; PlayMatchMenuInit() and reset in ExitPlayMatch())
 dseg_16AED3 dw 1, 515, 258, 768, 769, 512 ; DATA XREF: cseg_89758+59↑o
 db    0
-jumpHeaderTeam1UpFrames dw -5, 417, -5, 425, -5, 433, -5, 425, -5, 417, 341, -101
+headerFrameTablesStart:
+jumpHeaderHitTeam1TopFrames dw -5, 417, -5, 425, -5, 433, -5, 425, -5, 417, 341, -101
                     ; DATA XREF: dseg:00131B5A↑o
-dseg_16AEF8 dw -5, 418, -5, 426, -5, 434, -5, 426, -5, 418, 344, -101
+jumpHeaderHitTeam1BottomFrames dw -5, 418, -5, 426, -5, 434, -5, 426, -5, 418, 344, -101
                     ; DATA XREF: dseg:00131B6A↑o
-dseg_16AF10 dw -5, 419, -5, 427, -5, 435, -5, 427, -5, 419, 347, -101
+jumpHeaderHitTeam1RightFrames dw -5, 419, -5, 427, -5, 435, -5, 427, -5, 419, 347, -101
                     ; DATA XREF: dseg:00131B62↑o
-dseg_16AF28 dw -5, 420, -5, 428, -5, 436, -5, 428, -5, 420, 350, -101
+jumpHeaderHitTeam1LeftFrames dw -5, 420, -5, 428, -5, 436, -5, 428, -5, 420, 350, -101
                     ; DATA XREF: dseg:00131B72↑o
-dseg_16AF40 dw -5, 424, -5, 432, -5, 440, -5, 432, -5, 424, 362, -101
+jumpHeaderHitTeam1TopRightFrames dw -5, 424, -5, 432, -5, 440, -5, 432, -5, 424, 362, -101
                     ; DATA XREF: dseg:00131B5E↑o
-dseg_16AF58 dw -5, 423, -5, 431, -5, 439, -5, 431, -5, 423, 359, -101
+jumpHeaderHitTeam1TopLeftFrames dw -5, 423, -5, 431, -5, 439, -5, 431, -5, 423, 359, -101
                     ; DATA XREF: dseg:00131B76↑o
-dseg_16AF70 dw -5, 422, -5, 430, -5, 438, -5, 430, -5, 422, 356, -101
+jumpHeaderHitTeam1BottomRightFrames dw -5, 422, -5, 430, -5, 438, -5, 430, -5, 422, 356, -101
                     ; DATA XREF: dseg:00131B66↑o
-dseg_16AF88 dw -5, 421, -5, 429, -5, 437, -5, 429, -5, 421, 353, -101
+jumpHeaderHitTeam1BottomLeftFrames dw -5, 421, -5, 429, -5, 437, -5, 429, -5, 421, 353, -101
                     ; DATA XREF: dseg:00131B6E↑o
-dseg_16AFA0 dw -5, 720, -5, 728, -5, 736, -5, 728, -5, 720, 644, -101
+jumpHeaderHitTeam2TopFrames dw -5, 720, -5, 728, -5, 736, -5, 728, -5, 720, 644, -101
                     ; DATA XREF: dseg:00131B7A↑o
-dseg_16AFB8 dw -5, 721, -5, 729, -5, 737, -5, 729, -5, 721, 647, -101
+jumpHeaderHitTeam2BottomFrames dw -5, 721, -5, 729, -5, 737, -5, 729, -5, 721, 647, -101
                     ; DATA XREF: dseg:00131B8A↑o
-dseg_16AFD0 dw -5, 722, -5, 730, -5, 738, -5, 730, -5, 722, 650, -101
+jumpHeaderHitTeam2RightFrames dw -5, 722, -5, 730, -5, 738, -5, 730, -5, 722, 650, -101
                     ; DATA XREF: dseg:00131B82↑o
-dseg_16AFE8 dw -5, 723, -5, 731, -5, 739, -5, 731, -5, 723, 653, -101
+jumpHeaderHitTeam2LeftFrames dw -5, 723, -5, 731, -5, 739, -5, 731, -5, 723, 653, -101
                     ; DATA XREF: dseg:00131B92↑o
-dseg_16B000 dw -5, 727, -5, 735, -5, 743, -5, 735, -5, 727, 665, -101
+jumpHeaderHitTeam2TopRightFrames dw -5, 727, -5, 735, -5, 743, -5, 735, -5, 727, 665, -101
                     ; DATA XREF: dseg:00131B7E↑o
-dseg_16B018 dw -5, 726, -5, 734, -5, 742, -5, 734, -5, 726, 662, -101
+jumpHeaderHitTeam2TopLeftFrames dw -5, 726, -5, 734, -5, 742, -5, 734, -5, 726, 662, -101
                     ; DATA XREF: dseg:00131B96↑o
-dseg_16B030 dw -5, 725, -5, 733, -5, 741, -5, 733, -5, 725, 659, -101
+jumpHeaderHitTeam2BottomRightFrames dw -5, 725, -5, 733, -5, 741, -5, 733, -5, 725, 659, -101
                     ; DATA XREF: dseg:00131B86↑o
-dseg_16B048 dw -5, 724, -5, 732, -5, 740, -5, 732, -5, 724, 656, -101
+jumpHeaderHitTeam2BottomLeftFrames dw -5, 724, -5, 732, -5, 740, -5, 732, -5, 724, 656, -101
                     ; DATA XREF: dseg:00131B8E↑o
-dseg_16B060 dw -5, 417, -5, 425, -10, 433, 403, -101, -5, 418, -5, 426, -10, 434, 404
+jumpHeaderAttemptTeam1TopFrames dw -5, 417, -5, 425, -10, 433, 403, -101
                     ; DATA XREF: dseg:00131AD8↑o
-dw -101
-dseg_16B080 dw -5, 419, -5, 427, -10, 435, 406, -101
+jumpHeaderAttemptTeam1BottomFrames dw -5, 418, -5, 426, -10, 434, 404, -101
+                    ; DATA XREF: dseg:00131AE8↑o
+jumpHeaderAttemptTeam1RightFrames dw -5, 419, -5, 427, -10, 435, 406, -101
                     ; DATA XREF: dseg:00131AE0↑o
-dseg_16B090 dw -5, 420, -5, 428, -10, 436, 405, -101
+jumpHeaderAttemptTeam1LeftFrames dw -5, 420, -5, 428, -10, 436, 405, -101
                     ; DATA XREF: dseg:00131AF0↑o
-dseg_16B0A0 dw -5, 424, -5, 432, -10, 440, 410, -101
+jumpHeaderAttemptTeam1TopRightFrames dw -5, 424, -5, 432, -10, 440, 410, -101
                     ; DATA XREF: dseg:00131ADC↑o
-dseg_16B0B0 dw -5, 423, -5, 431, -10, 439, 409, -101
+jumpHeaderAttemptTeam1TopLeftFrames dw -5, 423, -5, 431, -10, 439, 409, -101
                     ; DATA XREF: dseg:00131AF4↑o
-dseg_16B0C0 dw -5, 422, -5, 430, -10, 438, 408, -101
+jumpHeaderAttemptTeam1BottomRightFrames dw -5, 422, -5, 430, -10, 438, 408, -101
                     ; DATA XREF: dseg:00131AE4↑o
-dseg_16B0D0 dw -5, 421, -5, 429, -10, 437, 407, -101
+jumpHeaderAttemptTeam1BottomLeftFrames dw -5, 421, -5, 429, -10, 437, 407, -101
                     ; DATA XREF: dseg:00131AEC↑o
-dseg_16B0E0 dw -5, 720, -5, 728, -10, 736, 706, -101
+jumpHeaderAttemptTeam2TopFrames dw -5, 720, -5, 728, -10, 736, 706, -101
                     ; DATA XREF: dseg:00131AF8↑o
-dseg_16B0F0 dw -5, 721, -5, 729, -10, 737, 707, -101
+jumpHeaderAttemptTeam2BottomFrames dw -5, 721, -5, 729, -10, 737, 707, -101
                     ; DATA XREF: dseg:00131B08↑o
-dseg_16B100 dw -5, 722, -5, 730, -10, 738, 709, -101
+jumpHeaderAttemptTeam2RightFrames dw -5, 722, -5, 730, -10, 738, 709, -101
                     ; DATA XREF: dseg:00131B00↑o
-dseg_16B110 dw -5, 723, -5, 731, -10, 739, 708, -101
+jumpHeaderAttemptTeam2LeftFrames dw -5, 723, -5, 731, -10, 739, 708, -101
                     ; DATA XREF: dseg:00131B10↑o
-dseg_16B120 dw -5, 727, -5, 735, -10, 743, 713, -101
+jumpHeaderAttemptTeam2TopRightFrames dw -5, 727, -5, 735, -10, 743, 713, -101
                     ; DATA XREF: dseg:00131AFC↑o
-dseg_16B130 dw -5, 726, -5, 734, -10, 742, 712, -101
+jumpHeaderAttemptTeam2TopLeftFrames dw -5, 726, -5, 734, -10, 742, 712, -101
                     ; DATA XREF: dseg:00131B14↑o
-dseg_16B140 dw -5, 725, -5, 733, -10, 741, 711, -101
+jumpHeaderAttemptTeam2BottomRightFrames dw -5, 725, -5, 733, -10, 741, 711, -101
                     ; DATA XREF: dseg:00131B04↑o
-dseg_16B150 dw -5, 724, -5, 732, -10, 740, 710, -101
+jumpHeaderAttemptTeam2BottomLeftFrames dw -5, 724, -5, 732, -10, 740, 710, -101
                     ; DATA XREF: dseg:00131B0C↑o
-dseg_16B160 dw -10, 417, -15, 425, -5, 417, -10, 341, -101
+staticHeaderAttemptTeam1TopFrames dw -10, 417, -15, 425, -5, 417, -10, 341, -101
                     ; DATA XREF: dseg:00131952↑o
-dseg_16B172 dw -10, 418, -15, 426, -5, 418, -10, 344, -101
+staticHeaderAttemptTeam1BottomFrames dw -10, 418, -15, 426, -5, 418, -10, 344, -101
                     ; DATA XREF: dseg:00131962↑o
-dseg_16B184 dw -10, 419, -15, 427, -5, 419, -10, 347, -101
+staticHeaderAttemptTeam1RightFrames dw -10, 419, -15, 427, -5, 419, -10, 347, -101
                     ; DATA XREF: dseg:0013195A↑o
-dseg_16B196 dw -10, 420, -15, 428, -5, 420, -10, 350, -101
+staticHeaderAttemptTeam1LeftFrames dw -10, 420, -15, 428, -5, 420, -10, 350, -101
                     ; DATA XREF: dseg:0013196A↑o
-dseg_16B1A8 dw -10, 424, -15, 432, -5, 424, -10, 362, -101
+staticHeaderAttemptTeam1TopRightFrames dw -10, 424, -15, 432, -5, 424, -10, 362, -101
                     ; DATA XREF: dseg:00131956↑o
-dseg_16B1BA dw -10, 423, -15, 431, -5, 423, -10, 359, -101
+staticHeaderAttemptTeam1TopLeftFrames dw -10, 423, -15, 431, -5, 423, -10, 359, -101
                     ; DATA XREF: dseg:0013196E↑o
-dseg_16B1CC dw -10, 422, -15, 430, -5, 422, -10, 356, -101
+staticHeaderAttemptTeam1BottomRightFrames dw -10, 422, -15, 430, -5, 422, -10, 356, -101
                     ; DATA XREF: dseg:0013195E↑o
-dseg_16B1DE dw -10, 421, -15, 429, -5, 421, -10, 353, -101
+staticHeaderAttemptTeam1BottomLeftFrames dw -10, 421, -15, 429, -5, 421, -10, 353, -101
                     ; DATA XREF: dseg:00131966↑o
-dseg_16B1F0 dw -10, 720, -15, 728, -5, 720, -10, 644, -101
+staticHeaderAttemptTeam2TopFrames dw -10, 720, -15, 728, -5, 720, -10, 644, -101
                     ; DATA XREF: dseg:00131972↑o
-dseg_16B202 dw -10, 721, -15, 729, -5, 721, -10, 647, -101
+staticHeaderAttemptTeam2BottomFrames dw -10, 721, -15, 729, -5, 721, -10, 647, -101
                     ; DATA XREF: dseg:00131982↑o
-dseg_16B214 dw -10, 722, -15, 730, -5, 722, -10, 650, -101
+staticHeaderAttemptTeam2RightFrames dw -10, 722, -15, 730, -5, 722, -10, 650, -101
                     ; DATA XREF: dseg:0013197A↑o
-dseg_16B226 dw -10, 723, -15, 731, -5, 723, -10, 653, -101
+staticHeaderAttemptTeam2LeftFrames dw -10, 723, -15, 731, -5, 723, -10, 653, -101
                     ; DATA XREF: dseg:0013198A↑o
-dseg_16B238 dw -10, 727, -15, 735, -5, 727, -10, 665, -101
+staticHeaderAttemptTeam2TopRightFrames dw -10, 727, -15, 735, -5, 727, -10, 665, -101
                     ; DATA XREF: dseg:00131976↑o
-dseg_16B24A dw -10, 726, -15, 734, -5, 726, -10, 662, -101
+staticHeaderAttemptTeam2TopLeftFrames dw -10, 726, -15, 734, -5, 726, -10, 662, -101
                     ; DATA XREF: dseg:0013198E↑o
-dseg_16B25C dw -10, 725, -15, 733, -5, 725, -10, 659, -101
+staticHeaderAttemptTeam2BottomRightFrames dw -10, 725, -15, 733, -5, 725, -10, 659, -101
                     ; DATA XREF: dseg:0013197E↑o
-dseg_16B26E dw -10, 724, -15, 732, -5, 724, -10, 656, -101
+staticHeaderAttemptTeam2BottomLeftFrames dw -10, 724, -15, 732, -5, 724, -10, 656, -101
                     ; DATA XREF: dseg:00131986↑o
-dseg_16B280 dw -10, 417, -15, 433, -5, 417, -10, 341, -101
+staticHeaderHitTeam1TopFrames dw -10, 417, -15, 433, -5, 417, -10, 341, -101
                     ; DATA XREF: dseg:001319D4↑o dseg:00131A56↑o
-dseg_16B292 dw -10, 418, -15, 434, -5, 418, -10, 344, -101
+staticHeaderHitTeam1BottomFrames dw -10, 418, -15, 434, -5, 418, -10, 344, -101
                     ; DATA XREF: dseg:001319E4↑o dseg:00131A66↑o
-dseg_16B2A4 dw -10, 419, -15, 435, -5, 419, -10, 347, -101
+staticHeaderHitTeam1RightFrames dw -10, 419, -15, 435, -5, 419, -10, 347, -101
                     ; DATA XREF: dseg:001319DC↑o dseg:00131A5E↑o
-dseg_16B2B6 dw -10, 420, -15, 436, -5, 420, -10, 350, -101
+staticHeaderHitTeam1LeftFrames dw -10, 420, -15, 436, -5, 420, -10, 350, -101
                     ; DATA XREF: dseg:001319EC↑o dseg:00131A6E↑o
-dseg_16B2C8 dw -10, 424, -15, 440, -5, 424, -10, 362, -101
+staticHeaderHitTeam1TopRightFrames dw -10, 424, -15, 440, -5, 424, -10, 362, -101
                     ; DATA XREF: dseg:001319D8↑o dseg:00131A5A↑o
-dseg_16B2DA dw -10, 423, -15, 439, -5, 423, -10, 359, -101
+staticHeaderHitTeam1TopLeftFrames dw -10, 423, -15, 439, -5, 423, -10, 359, -101
                     ; DATA XREF: dseg:001319F0↑o dseg:00131A72↑o
-dseg_16B2EC dw -10, 422, -15, 438, -5, 422, -10, 356, -101
+staticHeaderHitTeam1BottomRightFrames dw -10, 422, -15, 438, -5, 422, -10, 356, -101
                     ; DATA XREF: dseg:001319E0↑o dseg:00131A62↑o
-dseg_16B2FE dw -10, 421, -15, 437, -5, 421, -10, 353, -101
+staticHeaderHitTeam1BottomLeftFrames dw -10, 421, -15, 437, -5, 421, -10, 353, -101
                     ; DATA XREF: dseg:001319E8↑o dseg:00131A6A↑o
-dseg_16B310 dw -10, 720, -15, 736, -5, 720, -10, 644, -101
+staticHeaderHitTeam2TopFrames dw -10, 720, -15, 736, -5, 720, -10, 644, -101
                     ; DATA XREF: dseg:001319F4↑o dseg:00131A76↑o
-dseg_16B322 dw -10, 721, -15, 737, -5, 721, -10, 647, -101
+staticHeaderHitTeam2BottomFrames dw -10, 721, -15, 737, -5, 721, -10, 647, -101
                     ; DATA XREF: dseg:00131A04↑o dseg:00131A86↑o
-dseg_16B334 dw -10, 722, -15, 738, -5, 722, -10, 650, -101
+staticHeaderHitTeam2RightFrames dw -10, 722, -15, 738, -5, 722, -10, 650, -101
                     ; DATA XREF: dseg:001319FC↑o dseg:00131A7E↑o
-dseg_16B346 dw -10, 723, -15, 739, -5, 723, -10, 653, -101
+staticHeaderHitTeam2LeftFrames dw -10, 723, -15, 739, -5, 723, -10, 653, -101
                     ; DATA XREF: dseg:00131A0C↑o dseg:00131A8E↑o
-dseg_16B358 dw -10, 727, -15, 743, -5, 727, -10, 665, -101
+staticHeaderHitTeam2TopRightFrames dw -10, 727, -15, 743, -5, 727, -10, 665, -101
                     ; DATA XREF: dseg:001319F8↑o dseg:00131A7A↑o
-dseg_16B36A dw -10, 726, -15, 742, -5, 726, -10, 662, -101
+staticHeaderHitTeam2TopLeftFrames dw -10, 726, -15, 742, -5, 726, -10, 662, -101
                     ; DATA XREF: dseg:00131A10↑o dseg:00131A92↑o
-dseg_16B37C dw -10, 725, -15, 741, -5, 725, -10, 659, -101
+staticHeaderHitTeam2BottomRightFrames dw -10, 725, -15, 741, -5, 725, -10, 659, -101
                     ; DATA XREF: dseg:00131A00↑o dseg:00131A82↑o
-dseg_16B38E dw -10, 724, -15, 740, -5, 724, -10, 656, -101, 0
+staticHeaderHitTeam2BottomLeftFrames dw -10, 724, -15, 740, -5, 724, -10, 656, -101
                     ; DATA XREF: dseg:00131A08↑o dseg:00131A8A↑o
+headerFrameTablesEnd:
+dw 0
 choosingPreset dw 0 ; DATA XREF: ChooseTeamsFriendlyInit+3B2↑r
                     ; SelectTeamsForPresetCompetition+5D↑w ...
                     ; set to true when select teams menu is used for selecting
@@ -227430,7 +227542,7 @@ dw 8                ; type 8 - entry text ptr
 dw 1                ; string flags: color = gray, font = small, alignment = center
 dd -1               ; STDMENUTEXT - gets filled later
 dw 0                ; -= end of entry 47 =-
-dw -999             ; end of contest_menu menu
+dw -999             ; end of contestMenu menu
 careerMenu dd offset CareerMenuInit ; DATA XREF: CareerMenu+26↑o
                     ; on init function
 dd offset CareerMenuFinish ; after draw function
@@ -245595,9 +245707,9 @@ dw -1000, 150, -1000, -1000
 kLowerLeftCornerBallDestDelta dw 250, -1000, 1000, -350, 1000, -150, 1000, 1000, 0, 1000, -1000, 1000
                     ; DATA XREF: GetBallDestCoordinatesTable+9F↑o
 dw -1000, 0, -1000, -1000
-kLowerRightCornerBallDestDelta db 6, -1, 24, -4, -24, 3, 24, -4, -24, 3, 0, 0, -24, 3, -24, 3, 0, 0, -24
+kLowerRightCornerBallDestDelta dw -250, -1000, 1000, -1000, 1000, 0, 1000, 1000, 0, 1000, -1000, 1000
                     ; DATA XREF: GetBallDestCoordinatesTable:@@lower_right_corner↑o
-db 3, 24, -4, -24, 3, 24, -4, 106, -1, 24, -4, -94, -2
+dw -1000, -150, -1000, -350
 dseg_17DEF4 dw 7, 13, 11, 8, 5, 2, 20, 2, 5, 8, 11, 13, 7, 20, 5, 11, 9, 6, 3, 0, 20
                     ; DATA XREF: DoGoalkeeperSprites+15F↑o
 dw 0, 3, 6, 9, 11, 5, 20
@@ -245769,6 +245881,8 @@ kPlayerHeaderSpeedIncrease dw -336, -288, -240, -192, -144, -96, -48, 0, 513, 10
                     ; DATA XREF: PlayerHittingJumpHeader+214↑o
                     ; PlayerHittingStaticHeader+1E5↑o
 dw 3083, 3597, 15   ; indexed by player's heading skill, add to his speed
+                    ; -0.65625, -0.5625, -0.46875, -0.375, -0.28125, -0.1875, -0.09375,
+                    ; 0.0, 1.001953125, 2.005859375, 3.009765625, 4.013671875, 5.017578125
 kHeaderLowJumpHeight dd 20000h ; DATA XREF: DoFlyingHeader↑r
                     ; =2.0, for flying headers
 kHeaderHighJumpHeight dd 24000h ; DATA XREF: DoLobHeader↑r
@@ -245776,46 +245890,51 @@ kHeaderHighJumpHeight dd 24000h ; DATA XREF: DoLobHeader↑r
 kBallSpeedPassingIncrease dw 0, 48, 96, 144, 192, 256, 320, 384
                     ; DATA XREF: DoPass+464↑o
                     ; player's passing skill is index in this table, result is ball speed increase after the pass
+                    ; 0, 0.09375, 0.1875, 0.28125,  0.375, 0.5, 0.625, 0.75
 kPassingSpeedCloserThan2500 dw 1536
                     ; DATA XREF: DoPass:@@determine_ball_speed↑r
-                    ; =6.0, if distance from the ball to player getting passed to is less than 2500, use this speed for player passing the ball
+                    ; =3.0, if distance from the ball to player getting passed to is less than 2500, use this speed for player passing the ball
 kPassingSpeed_2500_10000 dw 1664 ; DATA XREF: DoPass+346↑r
-                    ; =6.5
+                    ; =3.25
 kPassingSpeed_10000_22500 dw 1792 ; DATA XREF: DoPass+370↑r
-                    ; =7.0
+                    ; =3.5
 kPassingSpeed_22500_40000 dw 1877 ; DATA XREF: DoPass+39A↑r
-                    ; =7.33~
+                    ; =3.666015625
 kPassingSpeed_40000_62500 dw 1962 ; DATA XREF: DoPass+3C4↑r
-                    ; =7.66~
+                    ; =3.83203125
 kPassingSpeed_62500_90000 dw 2048 ; DATA XREF: DoPass+3EA↑r
-                    ; =8.0
+                    ; =4.0
 kPassingSpeed_90000_122500 dw 2133 ; DATA XREF: DoPass+410↑r
-                    ; =8.33~
+                    ; =4.166015625
 kPassingSpeedFurtherThan122500 dw 2218 ; DATA XREF: DoPass+436↑r
-                    ; =8.66~
+                    ; =4.33203125
 kFreePassReleasingBallSpeed dw 1792 ; DATA XREF: DoPass+52C↑r
-                    ; =7.0, this will be the speed of the player that just did free pass
-kBallSpeedKicking dw 65152, 65266, 65374, 65482, 54, 162, 270, 384
+                    ; =3.5, this will be the speed of the player that just did free pass
+kBallSpeedKicking dw -384, -270, -162, -54, 54, 162, 270, 384
                     ; DATA XREF: PlayerKickingBall+244↑o
+                    ; add this to ball speed when player is kicking, based on the shooting skill
+                    ; -0.75, -0.52734375, -0.31640625, -0.10546875, 0.10546875, 0.31640625, 0.52734375, 0.75
 dseg_17E276 dw 4, 5, 6, 8, 11, 14, 17, 21
                     ; DATA XREF: CalculateIfPlayerWinsBall+407↑o
 kAIFailedPassChance dw 6, 4, 3, 2, 1, 0, 0, 0 ; DATA XREF: DoPass+E4↑o
                     ; indexed by player's passing, lower is better
                     ; compared to random timer value 0..15, if greater or equal, the pass is botched
-kBallSpeedFinishing dw 65248, 65376, 65504, 96, 224, 352, 480, 608
+kBallSpeedFinishing dw -288, -160, -32, 96, 224, 352, 480, 608
                     ; DATA XREF: PlayerKickingBall+1EA↑o
-                    ; ball speed offsets
+                    ; add this to ball speed when player is kicking, based on finishing skill
+                    ; -0.5625, -0.3125, -0.0625, 0.1875, 0.4375,  0.6875,  0.9375,  1.1875
 kBallSpeedDeltaWhenControlled dw 130, 116, 102, 88, 74, 60, 46, 32
                     ; DATA XREF: CalculateIfPlayerWinsBall+314↑o
                     ; ball speed = player speed + this offset (added only every odd frame)
                     ; index is player ball control (ball "runs away" less from better players)
                     ; this is what makes ball "jump" away a bit from the player controlling it
+                    ; 0.25390625, 0.2265625, 0.19921875, 0.171875, 0.14453125, 0.1171875, 0.08984375, 0.0625
 kPlAvgTacklingBallControlDiffChance db 16, 17, 18, 19, 20, 21, 22, 23
                     ; DATA XREF: CalculateIfPlayerWinsBall+130↑o
                     ; index is difference between two player's average of tackling and ball control
                     ; then a random number 0..31 is generated
                     ; if a random number is greater than this value, ball is won
-kBallPlOffsets dw 0, -1, 1, -1, 1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1
+kControlledBallJiggleOffsets dw 0, -1, 1, -1, 1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1
                     ; DATA XREF: UpdateBallWithControllingGoalkeeper+18↑o
                     ; UpdateControllingPlayer+18↑o
                     ; player direction is index
@@ -245840,6 +245959,7 @@ kTackleInjuryProbabilityAlreadyInjured db 96, 57, 41, 28
                     ; indexed by game length
 kGoalkeeperNearJumpSpeed dw 1024 ; DATA XREF: GoalkeeperJumping+F↑r
                     ; GoalkeeperJumping+77↑r
+                    ; =2.0
 kPlayerTacklingDownTime dw 30, 27, 24, 21, 18, 15, 12, 9
                     ; DATA XREF: SetPlayerDowntimeAfterTackle+5↑o
 kComputerTacklingDownTime dw 3, 3, 3, 3, 3, 3, 3, 3
@@ -245848,8 +245968,10 @@ kComputerTacklingDownTime dw 3, 3, 3, 3, 3, 3, 3, 3
 kPlayerSpeedsGameInProgress dw 928, 974, 1020, 1066, 1112, 1158, 1204, 1250
                     ; DATA XREF: UpdatePlayerSpeed+63↑o
                     ; indexed by player speed (0..7) from file structure
+                    ; 1.8125, 1.90234375, 1.9921875, 2.08203125, 2.171875, 2.26171875, 2.3515625, 2.44140625
 kPlayerSpeedsGameStopped dw 1136, 1152, 1168, 1184, 1200, 1216, 1232, 1248
                     ; DATA XREF: UpdatePlayerSpeed+77↑o
+                    ; 2.21875, 2.25, 2.28125, 2.3125, 2.34375, 2.375, 2.40625, 2.4375
 kTeamsStartingCoordinates dw 300, 69, 280, 46, 260, 34, 240, 24, 220, 16, 200, 9, 180, 3, 160, -2
                     ; DATA XREF: InitPlayersBeforeEnteringPitch:@@first_team_up↑o
 dw 140, -8, 120, -9, 100, -11, 300, -65, 280, -42, 260, -30, 240, -20 ; {x, y} pairs

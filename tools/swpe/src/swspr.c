@@ -9,7 +9,6 @@
 #include "printstr.h"
 #include "draw.h"
 #include "debug.h"
-#include "dx.h"
 #include "alloc.h"
 #include "file.h"
 #include "util.h"
@@ -100,8 +99,7 @@ bool InitSprites()
     sprites = (Sprite *)xmalloc(NUM_SPRITES * sizeof(Sprite));
 
     /* open sprites index file so no one messes with it while we are running */
-    s.spritef.handle = FOpen(s.spritef.fname, FF_READ | FF_WRITE |
-                             FF_SHARE_READ | FF_SEQ_SCAN);
+    s.spritef.handle = FOpen(s.spritef.fname, FF_READ | FF_WRITE | FF_SHARE_READ | FF_SEQ_SCAN);
 
     if (s.spritef.handle == ERR_HANDLE) {
         wsprintf(buf, "Can't open sprites index file, %s", s.spritef.fname);
@@ -114,16 +112,17 @@ bool InitSprites()
 
     /* check sprite.dat for size */
     if (s.spritef.size != SPRITE_DAT_SIZE) {
-        wsprintf(buf, "%s has invalid size.\nExpected size: %d, current size "
-                      ":%d", s.spritef.fname, SPRITE_DAT_SIZE, s.spritef.size);
+        wsprintf(buf,
+            "%s has invalid size.\nExpected size: %d, current size "
+            ":%d",
+            s.spritef.fname, SPRITE_DAT_SIZE, s.spritef.size);
         SetErrorMsg(buf);
         return FALSE;
     }
 
     /* bail out if no more memory */
     if (!(s.spritef.buffer = (char *)omalloc(s.spritef.size))) {
-        wsprintf(buf, "Not enough memory to load file %s",
-                 s.spritef.fname);
+        wsprintf(buf, "Not enough memory to load file %s", s.spritef.fname);
         SetErrorMsg(buf);
         return FALSE;
     }
@@ -131,9 +130,7 @@ bool InitSprites()
     /* open all files containing sprites */
     for (i = 0; i < files_num; i++) {
         /* first try to open the file */
-        dat_files[i].handle = FOpen(dat_files[i].fname, FF_READ | FF_WRITE |
-                                    FF_SHARE_READ | FF_SHARE_WRITE |
-                                    FF_SEQ_SCAN);
+        dat_files[i].handle = FOpen(dat_files[i].fname, FF_READ | FF_WRITE | FF_SHARE_READ | FF_SHARE_WRITE | FF_SEQ_SCAN);
 
         /* check if file opened successfully */
         if (dat_files[i].handle == ERR_HANDLE) {
@@ -148,15 +145,13 @@ bool InitSprites()
 
         /* bail out if no more memory */
         if (!(dat_files[i].buffer = (char *)omalloc(dat_files[i].size))) {
-            wsprintf(buf, "Not enough memory to load file %s",
-                     dat_files[i].fname);
+            wsprintf(buf, "Not enough memory to load file %s", dat_files[i].fname);
             SetErrorMsg(buf);
             break;
         }
 
         /* try to read file contents; we'll need this buffer for restoring */
-        j = ReadFile(dat_files[i].handle, dat_files[i].buffer,
-                     dat_files[i].size, &tmp, NULL);
+        j = ReadFile(dat_files[i].handle, dat_files[i].buffer, dat_files[i].size, &tmp, NULL);
 
         /* check for read error */
         if (!j || tmp != dat_files[i].size) {
@@ -298,18 +293,17 @@ static byte *SpritesDraw(byte *pbits, const uint pitch)
     /* prints info about sprite if requested */
     if (s.show_info) {
         spr = &s.sprites[s.sprite_no];
-        wsprintf(buf, "Sprite information:\n"
-                      "-----------------\n"
-                      "Dat file: %s\n"
-                      "Ordinal: %d\n"
-                      "Width: %d\n"
-                      "Height: %d\n"
-                      "Center x: %d\n"
-                      "Center y: %d\n"
-                      "Field 20: 0x%02x",
-                      dat_files[spr->dat_file].fname, spr->ordinal,
-                      spr->width, spr->nlines, spr->center_x, spr->center_y,
-                      spr->unk4);
+        wsprintf(buf,
+            "Sprite information:\n"
+            "-----------------\n"
+            "Dat file: %s\n"
+            "Ordinal: %d\n"
+            "Width: %d\n"
+            "Height: %d\n"
+            "Center x: %d\n"
+            "Center y: %d\n"
+            "Field 20: 0x%02x",
+            dat_files[spr->dat_file].fname, spr->ordinal, spr->width, spr->nlines, spr->center_x, spr->center_y, spr->unk4);
         PrintString(buf, 0, 0, pbits, pitch, TRUE, -1, ALIGN_UPRIGHT);
     }
     return pbits;
@@ -491,7 +485,7 @@ bool SpritesKeyProc(uint code, uint data)
     case '3': s.bk_col = LIGHT_BROWN; break;
     case '4': s.bk_col = BROWN;       break;
     case '5': s.bk_col = YELLOW;      break;
-    case '6': s.bk_col = RED;         break;
+    case '6': s.bk_col = PITCH_GREEN; break;
     case '7': s.bk_col = BRIGHT_BLUE; break;
     case '8': s.bk_col = BLUE;        break;
     case '9': s.bk_col = DARK_BLUE;   break;
@@ -579,7 +573,7 @@ void SaveAllSprites()
     uint i;
     WriteToLog(("SaveAllSprites(): Entry"));
     /* this must be done in order to show "please wait..." message */
-    g.fscreen ? DoDraw(0) : SendMessage(g.hWnd, WM_PAINT, 0, 0);
+    SendMessage(g.hWnd, WM_PAINT, 0, 0);
     for (i = 0; i < NUM_SPRITES; i++)
         if (!SaveSprite(i, s.bk_col, &s.sprites[i], TRUE))
             break;
@@ -623,8 +617,7 @@ static uint BuildDatFile(uint dat_no, uint data_ofs)
         /* copy sprite struct */
         *(Sprite*)p = s.sprites[cnt];
         /* fix offset to data */
-        (uint)((Sprite*)p)->spr_data = p - dat_files[dat_no].buffer + data_ofs
-                                       + sizeof(Sprite);
+        (uint)((Sprite *)p)->spr_data = p - dat_files[dat_no].buffer + data_ofs + sizeof(Sprite);
         /* these fields are originally always zero - keep them that way */
         ((Sprite*)p)->size = 0;
         ((Sprite*)p)->dat_file = 0;
@@ -716,8 +709,7 @@ bool SaveChangesToSprites()
         if ((int)SetFilePointer(dat_files[i].handle, 0, 0, FILE_BEGIN) < 0 ||
             !WriteFile(dat_files[i].handle, dat_files[i].buffer,
             dat_files[i].size, &size, 0) || size != dat_files[i].size) {
-            WriteToLog(("SaveChangesToSprites(): Failed to save %s",
-                        dat_files[i].fname));
+            WriteToLog(("SaveChangesToSprites(): Failed to save %s", dat_files[i].fname));
             /* will there be enough time before quit for user to see this? */
             wsprintf(buf, "Failed to save %s", dat_files[i].fname);
             PrintWarning(buf, WARNING_INTERVAL, ALIGN_CENTER);
@@ -819,8 +811,7 @@ bool InsertSprite(uint sprite_no, uint quiet)
             if (!p) {
                 FClose(hfile);
                 if (!quiet)
-                    PrintWarning("Out of memory", WARNING_INTERVAL,
-                                 ALIGN_CENTER);
+                    PrintWarning("Out of memory", WARNING_INTERVAL, ALIGN_CENTER);
                 return FALSE;
             }
             xfree(spr->spr_data);
@@ -862,8 +853,7 @@ bool InsertSprite(uint sprite_no, uint quiet)
                      c2 = line[j + 1] == 16 ? 0 : line[j + 1];
                 line[j / 2] = c2 & 0x0f | c1 << 4;
             }
-            memcpy(spr->spr_data + (spr->nlines - i - 1) * spr_line_width,
-                   line, bmih.biWidth / 2);
+            memcpy(spr->spr_data + (spr->nlines - i - 1) * spr_line_width, line, bmih.biWidth / 2);
         }
         if (i != (uint)bmih.biHeight)
             break;
@@ -904,7 +894,7 @@ void InsertAllSprites()
 
     WriteToLog(("InsertAllSprites(): Entry"));
     /* this must be done in order to show "please wait..." message */
-    g.fscreen ? DoDraw(0) : SendMessage(g.hWnd, WM_PAINT, 0, 0);
+    SendMessage(g.hWnd, WM_PAINT, 0, 0);
 
     /* should take care of all illformed filenames (e.g. "spr21RR.bmp") */
     hsearch = FindFirstFile("spr????.bmp", &find_data);
@@ -967,8 +957,7 @@ void SwapTeam2And3()
     fsize = GetFileSize(hfile, NULL);
     // do not misinterpret this as a memory leak - it's replacing memory allocated at program init time
     if (!(file_buffer = omalloc(fsize))) {
-        wsprintf(buf, "Not enough memory to load file %s",
-                 dat_files[3].fname);
+        wsprintf(buf, "Not enough memory to load file %s", dat_files[3].fname);
         PrintWarning(buf, WARNING_INTERVAL, ALIGN_CENTER);
         FClose(hfile);
         dat_files[3].fname[4] ^= 1;
@@ -1038,9 +1027,7 @@ static bool GotoSprite(int spr_no)
 }
 
 /* in drawspr.asm */
-extern void _stdcall _DrawSprite(byte *from, byte *where, uint delta,
-                                 uint spr_delta, uint width, uint height,
-                                 int col, int odd);
+extern void _stdcall _DrawSprite(byte *from, byte *where, uint delta, uint spr_delta, uint width, uint height, int col, int odd);
 
 /* DrawSprite
 

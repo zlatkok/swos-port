@@ -6,7 +6,6 @@
    (c) Karakas Zlatko 2002, 2003, 2004, 2005.
 */
 
-#include "dx.h"
 #include "debug.h"
 #include "util.h"
 #include "file.h"
@@ -14,7 +13,7 @@
 
 const char class_name[] = "SWOS";                /* name of the window class */
 const char prog_name[]  = "SWOS Picture Editor"; /* name of the program      */
-const char version[]    = "v0.99.2023";          /* version of the program   */
+const char version[]    = "v0.99.2026";          /* version of the program   */
 
 /* copyright string - "(C) Zlatko Karakas 2002-2022." */
 uchar acopyright[] = {
@@ -24,7 +23,7 @@ uchar acopyright[] = {
 };
 
 /* global informations used throughout the program */
-Global_info g = {0, 1, 0, 0, 0, 0, 0, 0, MODE_SPRITES, 0, 0, {0}};
+Global_info g = {1, 0, 0, 0, 0, MODE_SPRITES, 0, 0, {0}};
 
 static uchar hp_timer;      /* is high performance timer available?          */
 static void (*SWOS_proc)(); /* pointer to function to call at SWOS main loop */
@@ -96,9 +95,6 @@ void (*RegisterSWOSProc(void (*p)()))()
     SWOS_proc = p;
     e = 0;
     frame_rate = FRAME_RATE;
-    /* important - if we're in fullscreen, synchronize timer interval with
-       raster */
-    WaitRetrace();
     /* reset timer */
     if (hp_timer)
         QueryPerformanceCounter((LARGE_INTEGER*)&ref_time);
@@ -139,8 +135,7 @@ void ResetFrameRate()
 }
 
 /* swspr main(), debug and release versions */
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                   LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     WNDCLASSEX wc;
     MSG msg;
@@ -155,25 +150,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         GetLastError() == ERROR_ALREADY_EXISTS)
         ExitProcess(0);
 
-    SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)
-                                GlobalExceptionHandler);
-
-    /* check is this 9x or NT class Windows */
-    g.is_NT = !(GetVersion() & 1 << 31);
-    WriteToLog(("main(): Running on %s class Windows", g.is_NT ? "NT" : "9x"));
+    SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)GlobalExceptionHandler);
 
     /* see if high performance timer is present on system */
     if (QueryPerformanceFrequency((LARGE_INTEGER*)&hpt_freq)) {
-        WriteToLog(("main(): Using high performance timer, frequency = %u",
-                    hpt_freq));
+        WriteToLog(("main(): Using high performance timer, frequency = %u", hpt_freq));
         hp_timer = TRUE;
     } else {
-        /* GetTickCount on NT is catastrophic: 10ms resolution. On 9x it has
-           1ms resolution, which is quite OK. */
-        if (g.is_NT)
-            MessageBox(NULL, "High precision timer is unavailable. Highlights"
-                       " mode will not function optimally.", "Warning",
-                       MB_ICONWARNING | MB_APPLMODAL);
+        MessageBox(NULL,
+            "High precision timer is unavailable. Highlights"
+            " mode will not function optimally.",
+            "Warning", MB_ICONWARNING | MB_APPLMODAL);
     }
 
     wc.cbClsExtra = 0;
@@ -211,8 +198,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     g.r.right += abs(g.r.left);
 
     if (!RegisterClassEx(&wc) ||
-        !CreateWindow(class_name, prog_name, WS_POPUP, g.r.left,
-                      g.r.top, g.r.right, g.r.bottom, 0, 0, 0, 0)) {
+        !CreateWindow(class_name, prog_name, WS_POPUP, g.r.left, g.r.top, g.r.right, g.r.bottom, 0, 0, 0, 0)) {
         WriteToLog(("main(): Failed to register class or create window."));
         ExitProcess(-1);
     }
@@ -264,18 +250,16 @@ long _stdcall GlobalExceptionHandler(struct _EXCEPTION_POINTERS *ei)
 
     g.crashed = TRUE;
     GetLocalTime(&st);
-    wsprintf(buf, "%s, %02d.%02d.%04d., %02d:%02d:%02d\n", days[st.wDayOfWeek],
-             st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute, st.wSecond);
-    wsprintf(buf2,"Program terminating.\nVersion: %s\nWindows: %s\n"
-             "Exception code: %X\nException address: %08lX\nBase address: "
-             "%08lX\nAddress of main(): %08lX\nRegisters:\nEAX: %08lX EBX: "
-             "%08lX ECX: %08lX\nEDX: %08lX ESI: %08lX EDI: %08lX\nEBP: %08lX "
-             "ESP: %08lX EIP: %08lX\n\n", version, g.is_NT ? "NT" : "9x",
-             ei->ExceptionRecord->ExceptionCode,
-             ei->ExceptionRecord->ExceptionAddress,
-             GetModuleHandle(0), WinMain,
-             ctx->Eax, ctx->Ebx, ctx->Ecx, ctx->Edx, ctx->Esi, ctx->Edi,
-             ctx->Ebp, ctx->Esp, ctx->Eip);
+    wsprintf(buf, "%s, %02d.%02d.%04d., %02d:%02d:%02d\n", days[st.wDayOfWeek], st.wDay, st.wMonth, st.wYear, st.wHour,
+        st.wMinute, st.wSecond);
+    wsprintf(buf2,
+        "Program terminating.\nVersion: %s\nWindows: NT\n"
+        "Exception code: %X\nException address: %08lX\nBase address: "
+        "%08lX\nAddress of main(): %08lX\nRegisters:\nEAX: %08lX EBX: "
+        "%08lX ECX: %08lX\nEDX: %08lX ESI: %08lX EDI: %08lX\nEBP: %08lX "
+        "ESP: %08lX EIP: %08lX\n\n",
+        version, ei->ExceptionRecord->ExceptionCode, ei->ExceptionRecord->ExceptionAddress, GetModuleHandle(0), WinMain, ctx->Eax,
+        ctx->Ebx, ctx->Ecx, ctx->Edx, ctx->Esi, ctx->Edi, ctx->Ebp, ctx->Esp, ctx->Eip);
 
 #ifdef DEBUG
     WriteToLog((buf));
@@ -290,8 +274,6 @@ long _stdcall GlobalExceptionHandler(struct _EXCEPTION_POINTERS *ei)
     }
     FClose(herrfile);
     ShowWindow(g.hWnd, SW_HIDE);
-    if (g.fscreen)
-        FinishDirectDraw(g.hWnd);
     MessageBox(g.hWnd, buf2, "Fatal error", MB_ICONERROR | MB_TASKMODAL);
     ExitProcess(-1);
     /* to keep the compiler happy */

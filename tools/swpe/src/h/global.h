@@ -50,6 +50,7 @@ typedef enum ProgramMode {
     MODE_PITCH,
     MODE_PATTERNS,
     MODE_HIL,
+    MODE_ANIMATION,
     MODE_VERSUS,
     NUM_MODES
 } ProgramMode;
@@ -65,13 +66,10 @@ typedef enum ProgramModeFlags {
 
 /* when changing, update instance in main.c */
 typedef struct _Global_info {
-    uint               fscreen:1;    /* fullscreen flag                      */
     uint               active:1;     /* do we have focus?                    */
     uint               crashed:1;    /* program crashed?                     */
     uint               minimized:1;  /* is program minimized?                */
     uint               show_help:1;  /* show help for current mode           */
-    uint               is_NT:1;      /* are we running on NT?                */
-    uint               dinput:1;     /* using direct input?                  */
     byte               changedFlags; // any data has changed (each mode sets its flag)
     ProgramMode        mode;         /* current program mode                 */
     HWND               hWnd;         /* hwnd of main (and only) window       */
@@ -151,6 +149,7 @@ extern Global_info g;
 #define BLACK         3
 #define RED          10
 #define BRIGHT_BLUE  11
+#define PITCH_GREEN  14
 #define YELLOW       15
 #define DARK_BLUE    46
 #define BLUE         50

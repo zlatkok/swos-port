@@ -19,7 +19,7 @@
 \def\D{D\kern-0.8em\raise0.2ex\hbox{--}\kern0.3em}
 
 \author{Karaka\v s Zlatko $<$\href{mailto:zlatko.karakas@gmail.com}{zlatko.karakas@gmail.com}$>$}
-\title{{\bf Uputstvo za SWOS Picture Editor}\\v0.99.2023}
+\title{{\bf Uputstvo za SWOS Picture Editor}\\v0.99.2026}
 
 \usepackage[pdftex,colorlinks,bookmarks=false,pdfstartview=FitH]{hyperref}
 \usepackage{graphicx}
@@ -46,8 +46,8 @@ Prva verzija programa nastala je davne 2002., i na neki na\v cin predstavlja deo
 je prvenstveno kao alatka za istra\v zivanje i eksperimentisanje, naro\v cito fajlova sa podacima, i
 sadr\v zi u sebi mnoga {\bf SWOS} otkri\'ca do kojih sam do\v sao godinama. Tokom vremena aplikacija je
 nadogra\dj ivana stihijski, bez jasnog pravca, kojekakvim zakrpama pa \v cak i delovima koda samog {\bf SWOS}-a,
-te ne \v cudi \v sto je grafi\v cki interfejs trpeo: uglavnom je zasnovan na kori\v s\'cenju tastature, iako ova
-verzija uvodi upotrebu mi\v sa za izmenu terena.
+te ne \v cudi \v sto je grafi\v cki interfejs trpeo: uglavnom je zasnovan na kori\v s\'cenju tastature, mada su
+novije verzije uvele upotrebu mi\v sa za izmenu terena.
 
 Ovo uputstvo navodi sve komande i prikazuje razne korisne na\v cine za upotrebu aplikacije. Kao dodatak, postoji i
 \href{https://youtu.be/MOIL5FJbcWQ}{kratak video demo} koji prikazuje komande za ure\dj ivanje terena.
@@ -58,9 +58,11 @@ i spre\v cava {\bf SWOS} da im pristupi.
 \newpage
 \section{Re\v zimi rada programa}
 
-Radi bolje organizacije, program je podeljen u pet delova:
-{\bf SPRITE}, {\bf PICTURE}, {\bf PITCH}, {\bf PATTERN} i {\bf REPLAY}
-({\bf SPRAJTOVI}, {\bf SLIKE}, {\bf TERENI}, {\bf PLO\v CICE} i {\bf REPRIZE}).
+Radi bolje organizacije, program je podeljen u sedam delova:
+{\bf SPRITE}, {\bf PICTURE}, {\bf PITCH}, {\bf PATTERN}, {\bf REPLAY},
+{\bf ANIMATION} i {\bf TEST} ({\bf SPRAJTOVI}, {\bf SLIKE}, {\bf TERENI},
+{\bf PLO\v CICE}, {\bf REPRIZE}, {\bf ANIMACIJE} i {\bf TEST}). Test re\v zim
+je eksperimentalni prikaz igre, a ne re\v zim za ure\dj ivanje.
 Svaki deo ima druga\v ciju namenu i sopstvene komande. Pritisnite
 {\bf F1} u bilo kom modu da vidite koji se tasteri koriste.
 
@@ -77,12 +79,11 @@ Svaki deo ima druga\v ciju namenu i sopstvene komande. Pritisnite
 {\bf F7}          &--& re\v zim terena\\
 {\bf F8}          &--& re\v zim plo\v cica\\
 {\bf F9}          &--& re\v zim repriza\\
-{\bf ALT + ENTER} &--& zauzmi ceo ekran/radi u prozoru\footnotemark[1]\\
+{\bf F10}         &--& re\v zim animacija\\
+{\bf F11}         &--& eksperimentalni test re\v zim\\
 {\bf ESCAPE}      &--& izlazak iz programa\\
 {\bf A}           &--& informacije o programu
 \end{tabular}
-
-\footnotetext[1]{Prikaz preko \v citavog ekrana ne radi, i popravka nije u planu}
 
 \begin{verbatim}
 \end{verbatim}
@@ -195,6 +196,47 @@ dresova timova koji igraju:
 14 &--& boja \v sorca\\
 15 &--& boja \v carapa
 \end{tabular}
+
+\newpage
+\subsection{Re\v zim animacija}
+
+Re\v zim animacija prikazuje animacione tabele igra\v ca, golmana i sudije koje
+koristi igra. Podaci se generi\v su iz
+\verb|src/game/animation/animationTables.in|, a koriste se sprajtovi koje je
+u\v citao re\v zim sprajtova. Kada postoje, prikazuju se sprajtovi igra\v ca prvog
+tima; animacije samo za golmane i sudije koriste svoje raspolo\v zive sprajtove.
+
+U gornjem levom uglu prikazani su ime i smer animacije, redni broj animacije,
+proteklo i ukupno vreme, kao i broj trenutnog sprajta. Kod animacija koje se
+ponavljaju vreme prikazuje trenutni ciklus. Zaustavljena animacija se automatski
+ponovo pokre\'ce posle kratke pauze; taster {\bf SPACE} je odmah pokre\'ce iz
+po\v cetka.
+
+\vspace{\baselineskip}
+\noindent Komande:
+\vspace{\baselineskip}
+
+\begin{tabular}{lll}
+{\bf STRELICE DESNO/LEVO} &--& naredna/prethodna animacija\\
+{\bf STRELICE GORE/DOLE}  &--& promena smera\\
+{\bf SPACE}               &--& ponovo pokreni animaciju\\
+{\bf P}                   &--& pauza/nastavak\\
+{\bf CONTROL}             &--& pauza dok je taster pritisnut\\
+{\bf CONTROL}+{\bf STRELICE DESNO/LEVO} &--& naredni/prethodni kadar\\
+{\bf SHIFT}               &--& usporeno dok je taster pritisnut\\
+{\bf 0..9}                &--& promena boje pozadine\\
+{\bf +/-}                 &--& uve\'canje/umanjenje
+\end{tabular}
+
+Ako animacija nema smer izabran strelicama gore/dole, umesto praznog ekrana
+prikazuje se poruka. Pregled naredne ili prethodne animacije automatski bira
+raspolo\v ziv smer kada je to potrebno.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=320px,height=200px]{images/animation-mode}
+    \caption{Re\v zim animacija sa golmanom u odbrani}
+\end{figure}
 
 \newpage
 \subsection{Re\v zim slika}
@@ -565,10 +607,10 @@ Za vreme snimka, mo\v zete koristiti slede\'ce naredbe:
 
 \begin{tabular}{lll}
 {\bf ESCAPE} &--& prekid snimka\\
-{\bf F}      &--& uklju\v ci/isklju\v ci ispis broja frejmova u sekundi\\
+{\bf F}      &--& uklju\v ci/isklju\v ci ispis broja kadrova u sekundi\\
 {\bf +/-}    &--& ubrzaj/uspori\\
 {\bf P}      &--& pauza\\
-{\bf N}      &--& (za vreme pauze) prika\v zi slede\'ci frejm
+{\bf N}      &--& (za vreme pauze) prika\v zi slede\'ci kadar
 \end{tabular}
 
 \begin{verbatim}

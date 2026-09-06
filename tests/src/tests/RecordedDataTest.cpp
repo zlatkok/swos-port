@@ -2,10 +2,12 @@
 #include "unitTest.h"
 #include "sdlProcs.h"
 #include "gameLoop.h"
+#include "animation.h"
 #include "sprites.h"
 #include "gameSprites.h"
 #include "updateSprite.h"
 #include "updateBench.h"
+#include "referee.h"
 #include "camera.h"
 #include "pitch.h"
 #include "gameTime.h"
@@ -21,10 +23,6 @@
 
 #define MAKE_FULL_VERSION(major, minor) (((major) << 8) | (minor))
 #define IS_VERSION(vMajor, vMinor) (MAKE_FULL_VERSION(m_header.major, m_header.minor) >= MAKE_FULL_VERSION(vMajor, vMinor))
-
-// ensure animation and frame tables are contiguous
-static_assert(SwosVM::refSecondYellowFrames - SwosVM::frameIndicesTablesStart == 2'328);
-static_assert(SwosVM::refSecondYellowAnimTable - SwosVM::animTablesStart == 3'696);
 
 constexpr int kVersionMajor = 1;
 constexpr int kVersionMinor = 1;
@@ -144,7 +142,7 @@ void RecordedDataTest::setupRecordedDataVerification()
     setDefaultKeyPackForKeyboard(Keyboard::kSet2, kPlayer2Keys);
 
     // make initial referee sprite fields the same as in SWOS
-    SWOS::RemoveReferee();
+    removeReferee();
 
     m_lastGameTick = 0;
     m_firstFrame = true;
@@ -359,7 +357,7 @@ void RecordedDataTest::verifyTeam(const TeamGeneralInfo& recTeam, const TeamGene
 
     verifySpritePointer(recTeam.controlledPlayer, team.controlledPlayer);
     verifySpritePointer(recTeam.passToPlayerPtr, team.passToPlayerPtr);
-    verifySpritePointer(recTeam.lastHeadingPlayer, team.lastHeadingPlayer);
+    verifySpritePointer(recTeam.lastHeadingTacklingPlayer, team.lastHeadingTacklingPlayer);
     verifySpritePointer(recTeam.passingKickingPlayer, team.passingKickingPlayer);
 
     assertEqual(recTeam.playerNumber, team.playerNumber);
@@ -393,8 +391,8 @@ void RecordedDataTest::verifyTeam(const TeamGeneralInfo& recTeam, const TeamGene
     assertEqual(recTeam.ofs70, team.ofs70);
     assertEqual(recTeam.goalkeeperSavedCommentTimer, team.goalkeeperSavedCommentTimer);
     assertEqual(recTeam.ofs78, team.ofs78);
-    assertEqual(recTeam.goalkeeperJumpingRight, team.goalkeeperJumpingRight);
-    assertEqual(recTeam.goalkeeperJumpingLeft, team.goalkeeperJumpingLeft);
+    assertEqual(recTeam.goalkeeperDivingRight, team.goalkeeperDivingRight);
+    assertEqual(recTeam.goalkeeperDivingLeft, team.goalkeeperDivingLeft);
     assertEqual(recTeam.ballOutOfPlayOrKeeper, team.ballOutOfPlayOrKeeper);
     assertEqual(recTeam.goaliePlayingOrOut, team.goaliePlayingOrOut);
     assertEqual(recTeam.passingBall, team.passingBall);
@@ -420,7 +418,7 @@ void RecordedDataTest::verifyTeam(const TeamGeneralInfo& recTeam, const TeamGene
     assertEqual(recTeam.ofs134, team.ofs134);
     assertEqual(recTeam.ofs136, team.ofs136);
     assertEqual(recTeam.ofs138, team.ofs138);
-    assertEqual(recTeam.unkTimer, team.unkTimer);
+    assertEqual(recTeam.wonTheBallTimer, team.wonTheBallTimer);
     assertEqual(recTeam.goalkeeperPlaying, team.goalkeeperPlaying);
     assertEqual(recTeam.resetControls, team.resetControls);
     assertEqual(!!recTeam.secondaryFire, !!team.secondaryFire);
@@ -516,7 +514,7 @@ void RecordedDataTest::verifySprites(const Sprite *sprites)
         assertEqual(sprite1.playerOrdinal, sprite2.playerOrdinal);
         assertEqual(sprite1.frameOffset, sprite2.frameOffset);
         assertEqual(sprite1.startingDirection, sprite2.startingDirection);
-        assert(sprite1.state == sprite2.state);
+        assertEqualAsInt(sprite1.state, sprite2.state);
         assertEqual(sprite1.playerDownTimer, sprite2.playerDownTimer);
         assertEqual(sprite1.unk001, sprite2.unk001);
         assertEqual(sprite1.unk002, sprite2.unk002);
@@ -537,11 +535,13 @@ void RecordedDataTest::verifySprites(const Sprite *sprites)
         assertEqual(sprite1.unk004, sprite2.unk004);
         assertEqual(sprite1.unk005, sprite2.unk005);
         assertEqual(sprite1.fullDirection, sprite2.fullDirection);
-        auto animTable2 = sprite2.animTablePtr.asAligned();
-        if (!animTable2)
-            animTable2 = reinterpret_cast<PlayerAnimationTable *>(-1);
-        assertEqual(convertAnimationTable(sprite1.animTablePtr.getRaw()), animTable2);
-        assertEqual(convertFrameIndicesTable(sprite1.frameIndicesTable.getRaw()), sprite2.frameIndicesTable.asAligned());
+        const auto animTable2 = sprite2.animTable ? sprite2.animTable : kInvalidAnimationTableOffset;
+        const auto originalAnimTable = static_cast<int32_t>(static_cast<uint16_t>(sprite1.animTable) |
+            static_cast<uint32_t>(static_cast<uint16_t>(sprite1.tag01)) << 16);
+        const auto originalFrameTable = static_cast<int32_t>(static_cast<uint16_t>(sprite1.frameIndicesTable) |
+            static_cast<uint32_t>(static_cast<uint16_t>(sprite1.tag02)) << 16);
+        assertEqual(getOriginalSwosAnimationTable(originalAnimTable), animTable2);
+        assertEqual(getOriginalSwosFrameTable(originalFrameTable), sprite2.frameIndicesTable);
         // in order for these sprite frame related tests to be successful game resolution must be set
         // to 320x200, and zoom to 1; otherwise sprites randomly appear on and off screen and animation
         // frames state diverges beyond reconciliation
@@ -551,14 +551,14 @@ void RecordedDataTest::verifySprites(const Sprite *sprites)
         assertEqual(sprite1.cycleFramesTimer, sprite2.cycleFramesTimer);
         assertEqual(sprite1.frameSwitchCounter, sprite2.frameSwitchCounter);
         if (sprite1.onScreen || i != kCornerFlagSprite)
-            assertEqual(sprite1.imageIndex, sprite2.imageIndex);
+        assertEqual(sprite1.imageIndex, sprite2.imageIndex);
         assertEqual(sprite1.unk006, sprite2.unk006);
         assertEqual(sprite1.unk007, sprite2.unk007);
         assertEqual(sprite1.unk008, sprite2.unk008);
         assertEqual(sprite1.playerDirection, sprite2.playerDirection);
         assertEqual(sprite1.isMoving, sprite2.isMoving);
         assertEqual(sprite1.tackleState, sprite2.tackleState);
-        assertEqual(sprite1.unk009, sprite2.unk009);
+        assertEqual(sprite1.isHeadingBall, sprite2.isHeadingBall);
         assertEqual(static_cast<int>(sprite1.destReachedState), static_cast<int>(sprite2.destReachedState));
         assertEqual(sprite1.cards, sprite2.cards);
         assertEqual(sprite1.injuryLevel, sprite2.injuryLevel);
@@ -606,31 +606,6 @@ void RecordedDataTest::verifyBench()
     if (IS_VERSION(1, 5)) {
         assertEqual(data.pl1TapTimeoutCounter, m_frame.pl1TapTimeoutCounter);
         assertEqual(data.pl2TapTimeoutCounter, m_frame.pl2TapTimeoutCounter);
-    }
-}
-
-PlayerAnimationTable *RecordedDataTest::convertAnimationTable(int offset)
-{
-    constexpr int kAnimTablesAreaLength = SwosVM::animTablesEnd - SwosVM::animTablesStart;
-    assert(offset == -1 || offset < kAnimTablesAreaLength);
-    return reinterpret_cast<PlayerAnimationTable *>(offset + (offset == -1 ? 0 : swos.animTablesStart));
-}
-
-int16_t *RecordedDataTest::convertFrameIndicesTable(int offset)
-{
-    constexpr int kHeaderFramesAreaLength = SwosVM::jumpHeaderTeam1UpFrames - SwosVM::choosingPreset;
-    if (offset == -1) {
-        return nullptr;
-    } else if (offset == -2) {
-        return swos.ballMovingFrameIndices;
-    } else if (offset == -3) {
-        return swos.ballStaticFrameIndices;
-    } else if (offset & 0x80000000) {
-        return reinterpret_cast<int16_t *>(swos.jumpHeaderTeam1UpFrames + (offset & 0x7fffffff));
-    } else {
-        constexpr int kFrameIndicesTablesAreaLength = SwosVM::animTablesStart - SwosVM::frameIndicesTablesStart;
-        assert(static_cast<unsigned>(offset) < kFrameIndicesTablesAreaLength);
-        return reinterpret_cast<int16_t *>(swos.frameIndicesTablesStart + offset);
     }
 }
 

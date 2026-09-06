@@ -3,6 +3,7 @@
 #include "ball.h"
 #include "team.h"
 #include "render.h"
+#include "animation.h"
 #include "windowManager.h"
 #include "timer.h"
 #include "gameControls.h"
@@ -423,11 +424,13 @@ static bool gameEnded(TeamGame *topTeam, TeamGame *bottomTeam)
     return false;
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void updateGameTimersAndCameraBreakMode()
 {
     using namespace SwosVM;
 
-    ax = *(word *)&g_memByte[523148];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -435,7 +438,7 @@ static void updateGameTimersAndCameraBreakMode()
         goto l_no_penalties;                // jz short @@no_penalties
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 31;
         word res = dstSigned - srcSigned;
@@ -447,15 +450,15 @@ static void updateGameTimersAndCameraBreakMode()
         goto l_no_penalties;                // jz short @@no_penalties
 
     {
-        word src = *(word *)&g_memByte[523156];
+        word src = *(word *)&g_memByte[515632];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[523156] = src;
+        *(word *)&g_memByte[515632] = src;
     }                                       // add penaltiesTimer, 1
     {
-        word src = *(word *)&g_memByte[523156];
+        word src = *(word *)&g_memByte[515632];
         int16_t dstSigned = src;
         int16_t srcSigned = *(word *)&m_penaltiesInterval;
         word res = dstSigned - srcSigned;
@@ -470,7 +473,7 @@ static void updateGameTimersAndCameraBreakMode()
 
 l_no_penalties:;
     {
-        word src = *(word *)&g_memByte[523116];
+        word src = *(word *)&g_memByte[515596];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -481,10 +484,10 @@ l_no_penalties:;
     if (!flags.zero)
         goto l_game_not_in_progress;        // jnz short @@game_not_in_progress
 
-    ax = *(word *)&g_memByte[323900];       // mov ax, lastFrameTicks
+    ax = *(word *)&g_memByte[323622];       // mov ax, lastFrameTicks
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
-        word src = *(word *)&g_memByte[523132];
+        word src = *(word *)&g_memByte[515612];
         int16_t dstSigned = src;
         int16_t srcSigned = ax;
         word res = dstSigned + srcSigned;
@@ -492,31 +495,31 @@ l_no_penalties:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[523132] = src;
+        *(word *)&g_memByte[515612] = src;
     }                                       // add inGameCounter, ax
     return;                                 // jmp @@out
 
 l_game_not_in_progress:;
     {
-        word src = *(word *)&g_memByte[523104];
+        word src = *(word *)&g_memByte[515584];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[523104] = src;
+        *(word *)&g_memByte[515584] = src;
     }                                       // add gameNotInProgressCounterWriteOnly, 1
-    ax = *(word *)&g_memByte[323900];       // mov ax, lastFrameTicks
+    ax = *(word *)&g_memByte[323622];       // mov ax, lastFrameTicks
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
-        word src = *(word *)&g_memByte[523112];
+        word src = *(word *)&g_memByte[515592];
         int16_t dstSigned = src;
         int16_t srcSigned = ax;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[523112] = src;
+        *(word *)&g_memByte[515592] = src;
     }                                       // add stoppageTimerTotal, ax
     {
-        word src = *(word *)&g_memByte[523116];
+        word src = *(word *)&g_memByte[515596];
         int16_t dstSigned = src;
         int16_t srcSigned = 102;
         word res = dstSigned - srcSigned;
@@ -528,14 +531,14 @@ l_game_not_in_progress:;
         goto l_not_waiting_on_player;       // jnz short @@not_waiting_on_player
 
     {
-        word src = *(word *)&g_memByte[523114];
+        word src = *(word *)&g_memByte[515594];
         int16_t dstSigned = src;
         int16_t srcSigned = ax;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[523114] = src;
+        *(word *)&g_memByte[515594] = src;
     }                                       // add stoppageTimerActive, ax
-    eax = *(dword *)&g_memByte[523108];     // mov eax, lastTeamPlayedBeforeBreak
+    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
     A6 = eax;                               // mov A6, eax
     esi = A6;                               // mov esi, A6
     ax = (word)readMemory(esi + 4, 2);      // mov ax, [esi+TeamGeneralInfo.playerNumber]
@@ -546,7 +549,7 @@ l_game_not_in_progress:;
         goto l_jmp_out;                     // jnz short @@jmp_out
 
     {
-        word src = *(word *)&g_memByte[523114];
+        word src = *(word *)&g_memByte[515594];
         int16_t dstSigned = src;
         int16_t srcSigned = *(word *)&m_initalKickInterval;
         word res = dstSigned - srcSigned;
@@ -559,7 +562,7 @@ l_game_not_in_progress:;
 
     prepareForInitialKick();                // call PrepareForInitialKick
     {
-        word src = *(word *)&g_memByte[455938];
+        word src = *(word *)&g_memByte[449214];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
@@ -567,7 +570,7 @@ l_game_not_in_progress:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[455938] = src;
+        *(word *)&g_memByte[449214] = src;
     }                                       // add initialKickWriteOnlyTicks, 1
     return;                                 // jmp @@out
 
@@ -576,7 +579,7 @@ l_jmp_out:;
 
 l_not_waiting_on_player:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 21;
         word res = dstSigned - srcSigned;
@@ -588,7 +591,7 @@ l_not_waiting_on_player:;
         goto l_game_started;                // jb @@game_started
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 30;
         word res = dstSigned - srcSigned;
@@ -599,14 +602,14 @@ l_not_waiting_on_player:;
     if (!flags.carry && !flags.zero)
         goto l_game_started;                // ja @@game_started
 
-    al = g_memByte[522842];                 // mov al, topTeamData.firePressed
+    al = g_memByte[515322];                 // mov al, topTeamData.firePressed
     flags.carry = false;
     flags.sign = (al & 0x80) != 0;
     flags.zero = al == 0;                   // or al, al
     if (!flags.zero)
         goto l_end_game_transmission;       // jnz @@end_game_transmission
 
-    al = g_memByte[522990];                 // mov al, bottomTeamData.firePressed
+    al = g_memByte[515470];                 // mov al, bottomTeamData.firePressed
     flags.carry = false;
     flags.sign = (al & 0x80) != 0;
     flags.zero = al == 0;                   // or al, al
@@ -614,7 +617,7 @@ l_not_waiting_on_player:;
         goto l_end_game_transmission;       // jnz short @@end_game_transmission
 
     {
-        word src = *(word *)&g_memByte[522798];
+        word src = *(word *)&g_memByte[515278];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -626,7 +629,7 @@ l_not_waiting_on_player:;
         goto l_check_pl1_fire;              // jz short @@check_pl1_fire
 
     {
-        word src = *(word *)&g_memByte[522946];
+        word src = *(word *)&g_memByte[515426];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -639,7 +642,7 @@ l_not_waiting_on_player:;
 
 l_check_pl1_fire:;
     SWOS::Player1StatusProc();              // call Player1StatusProc
-    al = g_memByte[323920];                 // mov al, pl1Fire
+    al = g_memByte[323640];                 // mov al, pl1Fire
     flags.carry = false;
     flags.sign = (al & 0x80) != 0;
     flags.zero = al == 0;                   // or al, al
@@ -648,7 +651,7 @@ l_check_pl1_fire:;
 
 l_check_for_pl2_coach:;
     {
-        word src = *(word *)&g_memByte[522798];
+        word src = *(word *)&g_memByte[515278];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -660,7 +663,7 @@ l_check_for_pl2_coach:;
         goto l_check_pl2_fire;              // jz short @@check_pl2_fire
 
     {
-        word src = *(word *)&g_memByte[522946];
+        word src = *(word *)&g_memByte[515426];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -673,7 +676,7 @@ l_check_for_pl2_coach:;
 
 l_check_pl2_fire:;
     SWOS::Player2StatusProc();              // call Player2StatusProc
-    al = g_memByte[323921];                 // mov al, pl2Fire
+    al = g_memByte[323641];                 // mov al, pl2Fire
     flags.carry = false;
     flags.sign = (al & 0x80) != 0;
     flags.zero = al == 0;                   // or al, al
@@ -682,7 +685,7 @@ l_check_pl2_fire:;
 
 l_check_control_states_again:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 26;
         word res = dstSigned - srcSigned;
@@ -694,7 +697,7 @@ l_check_control_states_again:;
         goto l_game_started;                // jnz @@game_started
 
     SWOS::Player1StatusProc();              // call Player1StatusProc
-    al = g_memByte[323920];                 // mov al, pl1Fire
+    al = g_memByte[323640];                 // mov al, pl1Fire
     flags.carry = false;
     flags.sign = (al & 0x80) != 0;
     flags.zero = al == 0;                   // or al, al
@@ -702,7 +705,7 @@ l_check_control_states_again:;
         goto l_end_game_transmission;       // jnz short @@end_game_transmission
 
     SWOS::Player2StatusProc();              // call Player2StatusProc
-    al = g_memByte[323921];                 // mov al, pl2Fire
+    al = g_memByte[323641];                 // mov al, pl2Fire
     flags.carry = false;
     flags.sign = (al & 0x80) != 0;
     flags.zero = al == 0;                   // or al, al
@@ -711,7 +714,7 @@ l_check_control_states_again:;
 
 l_end_game_transmission:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 25;
         word res = dstSigned - srcSigned;
@@ -723,31 +726,31 @@ l_end_game_transmission:;
         goto l_not_half_time_result;        // jnz short @@not_half_time_result
 
     {
-        int16_t src = *(word *)&g_memByte[449742];
+        int16_t src = *(word *)&g_memByte[449122];
         src = -src;
-        *(word *)&g_memByte[449742] = src;
+        *(word *)&g_memByte[449122] = src;
     }                                       // neg resultTimer
     {
-        int16_t src = *(word *)&g_memByte[449744];
+        int16_t src = *(word *)&g_memByte[449124];
         src = -src;
-        *(word *)&g_memByte[449744] = src;
+        *(word *)&g_memByte[449124] = src;
     }                                       // neg timeVar
     {
-        int16_t src = *(word *)&g_memByte[449740];
+        int16_t src = *(word *)&g_memByte[449120];
         flags.carry = src != 0;
         src = -src;
         flags.sign = (src & 0x8000) != 0;
         flags.zero = src == 0;
-        *(word *)&g_memByte[449740] = src;
+        *(word *)&g_memByte[449120] = src;
     }                                       // neg statsTimer
     setCameraMovingToShowerState();         // call SetCameraMovingToShowerState
     prepareForInitialKick();                // call PrepareForInitialKick
-    *(word *)&g_memByte[523122] = 0;        // mov stoppageEventTimer, 0
+    *(word *)&g_memByte[515602] = 0;        // mov stoppageEventTimer, 0
     return;                                 // jmp @@out
 
 l_not_half_time_result:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 26;
         word res = dstSigned - srcSigned;
@@ -759,30 +762,30 @@ l_not_half_time_result:;
         goto l_not_result_after_the_game;   // jnz short @@not_result_after_the_game
 
     {
-        int16_t src = *(word *)&g_memByte[449742];
+        int16_t src = *(word *)&g_memByte[449122];
         src = -src;
-        *(word *)&g_memByte[449742] = src;
+        *(word *)&g_memByte[449122] = src;
     }                                       // neg resultTimer
     {
-        int16_t src = *(word *)&g_memByte[449744];
+        int16_t src = *(word *)&g_memByte[449124];
         src = -src;
-        *(word *)&g_memByte[449744] = src;
+        *(word *)&g_memByte[449124] = src;
     }                                       // neg timeVar
     {
-        int16_t src = *(word *)&g_memByte[449740];
+        int16_t src = *(word *)&g_memByte[449120];
         flags.carry = src != 0;
         src = -src;
         flags.sign = (src & 0x8000) != 0;
         flags.zero = src == 0;
-        *(word *)&g_memByte[449740] = src;
+        *(word *)&g_memByte[449120] = src;
     }                                       // neg statsTimer
-    *(word *)&g_memByte[252376] = 0;        // mov playGame, 0
-    *(word *)&g_memByte[523122] = 0;        // mov stoppageEventTimer, 0
+    *(word *)&g_memByte[252300] = 0;        // mov playGame, 0
+    *(word *)&g_memByte[515602] = 0;        // mov stoppageEventTimer, 0
     return;                                 // jmp @@out
 
 l_not_result_after_the_game:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 21;
         word res = dstSigned - srcSigned;
@@ -793,14 +796,14 @@ l_not_result_after_the_game:;
     if (!flags.zero)
         goto l_game_not_starting;           // jnz short @@game_not_starting
 
-    *(word *)&g_memByte[521018] = 0;        // mov showFansCounter, 0
+    *(word *)&g_memByte[513498] = 0;        // mov showFansCounter, 0
     prepareForInitialKick();                // call PrepareForInitialKick
-    *(word *)&g_memByte[523122] = 0;        // mov stoppageEventTimer, 0
+    *(word *)&g_memByte[515602] = 0;        // mov stoppageEventTimer, 0
     return;                                 // jmp @@out
 
 l_game_not_starting:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 22;
         word res = dstSigned - srcSigned;
@@ -812,21 +815,21 @@ l_game_not_starting:;
         goto l_game_started;                // jnz short @@game_started
 
     prepareForInitialKick();                // call PrepareForInitialKick
-    *(word *)&g_memByte[523122] = 0;        // mov stoppageEventTimer, 0
+    *(word *)&g_memByte[515602] = 0;        // mov stoppageEventTimer, 0
     return;                                 // jmp @@out
 
 l_game_started:;
-    ax = *(word *)&g_memByte[523122];       // mov ax, stoppageEventTimer
+    ax = *(word *)&g_memByte[515602];       // mov ax, stoppageEventTimer
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         goto l_stoppage_event_triggered;    // jz short @@stoppage_event_triggered
 
-    ax = *(word *)&g_memByte[323900];       // mov ax, lastFrameTicks
+    ax = *(word *)&g_memByte[323622];       // mov ax, lastFrameTicks
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
-        word src = *(word *)&g_memByte[523122];
+        word src = *(word *)&g_memByte[515602];
         int16_t dstSigned = src;
         int16_t srcSigned = ax;
         word res = dstSigned - srcSigned;
@@ -834,7 +837,7 @@ l_game_started:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[523122] = src;
+        *(word *)&g_memByte[515602] = src;
     }                                       // sub stoppageEventTimer, ax
     if (flags.sign)
         goto l_stoppage_event_triggered;    // js short @@stoppage_event_triggered
@@ -843,12 +846,12 @@ l_game_started:;
         return;                             // jnz @@out
 
 l_stoppage_event_triggered:;
-    *(word *)&g_memByte[523122] = 0;        // mov stoppageEventTimer, 0
-    eax = *(dword *)&g_memByte[523108];     // mov eax, lastTeamPlayedBeforeBreak
+    *(word *)&g_memByte[515602] = 0;        // mov stoppageEventTimer, 0
+    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
     A6 = eax;                               // mov A6, eax
-    A5 = 328988;                            // mov A5, offset ballSprite
+    A5 = 328492;                            // mov A5, offset ballSprite
     {
-        word src = *(word *)&g_memByte[523116];
+        word src = *(word *)&g_memByte[515596];
         int16_t dstSigned = src;
         int16_t srcSigned = 101;
         word res = dstSigned - srcSigned;
@@ -860,7 +863,7 @@ l_stoppage_event_triggered:;
         goto l_game_running;                // jnz @@game_running
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 25;
         word res = dstSigned - srcSigned;
@@ -872,29 +875,29 @@ l_stoppage_event_triggered:;
         goto l_not_result_on_halftime;      // jnz short @@not_result_on_halftime
 
     {
-        int16_t src = *(word *)&g_memByte[449742];
+        int16_t src = *(word *)&g_memByte[449122];
         src = -src;
-        *(word *)&g_memByte[449742] = src;
+        *(word *)&g_memByte[449122] = src;
     }                                       // neg resultTimer
     {
-        int16_t src = *(word *)&g_memByte[449744];
+        int16_t src = *(word *)&g_memByte[449124];
         src = -src;
-        *(word *)&g_memByte[449744] = src;
+        *(word *)&g_memByte[449124] = src;
     }                                       // neg timeVar
     {
-        int16_t src = *(word *)&g_memByte[449740];
+        int16_t src = *(word *)&g_memByte[449120];
         flags.carry = src != 0;
         src = -src;
         flags.sign = (src & 0x8000) != 0;
         flags.zero = src == 0;
-        *(word *)&g_memByte[449740] = src;
+        *(word *)&g_memByte[449120] = src;
     }                                       // neg statsTimer
     setCameraMovingToShowerState();         // call SetCameraMovingToShowerState
     return;                                 // jmp @@out
 
 l_not_result_on_halftime:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 26;
         word res = dstSigned - srcSigned;
@@ -906,29 +909,29 @@ l_not_result_on_halftime:;
         goto l_not_showing_end_game_result; // jnz short @@not_showing_end_game_result
 
     {
-        int16_t src = *(word *)&g_memByte[449742];
+        int16_t src = *(word *)&g_memByte[449122];
         src = -src;
-        *(word *)&g_memByte[449742] = src;
+        *(word *)&g_memByte[449122] = src;
     }                                       // neg resultTimer
     {
-        int16_t src = *(word *)&g_memByte[449744];
+        int16_t src = *(word *)&g_memByte[449124];
         src = -src;
-        *(word *)&g_memByte[449744] = src;
+        *(word *)&g_memByte[449124] = src;
     }                                       // neg timeVar
     {
-        int16_t src = *(word *)&g_memByte[449740];
+        int16_t src = *(word *)&g_memByte[449120];
         flags.carry = src != 0;
         src = -src;
         flags.sign = (src & 0x8000) != 0;
         flags.zero = src == 0;
-        *(word *)&g_memByte[449740] = src;
+        *(word *)&g_memByte[449120] = src;
     }                                       // neg statsTimer
-    *(word *)&g_memByte[252376] = 0;        // mov playGame, 0
+    *(word *)&g_memByte[252300] = 0;        // mov playGame, 0
     return;                                 // jmp @@out
 
 l_not_showing_end_game_result:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 21;
         word res = dstSigned - srcSigned;
@@ -944,7 +947,7 @@ l_not_showing_end_game_result:;
 
 l_not_starting_the_game:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 22;
         word res = dstSigned - srcSigned;
@@ -960,7 +963,7 @@ l_not_starting_the_game:;
 
 l_not_going_to_showers:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 29;
         word res = dstSigned - srcSigned;
@@ -976,7 +979,7 @@ l_not_going_to_showers:;
 
 l_not_1st_half_ended:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 23;
         word res = dstSigned - srcSigned;
@@ -988,29 +991,29 @@ l_not_1st_half_ended:;
         goto l_not_going_to_halftime;       // jnz short @@not_going_to_halftime
 
     {
-        int16_t src = *(word *)&g_memByte[449742];
+        int16_t src = *(word *)&g_memByte[449122];
         src = -src;
-        *(word *)&g_memByte[449742] = src;
+        *(word *)&g_memByte[449122] = src;
     }                                       // neg resultTimer
     {
-        int16_t src = *(word *)&g_memByte[449744];
+        int16_t src = *(word *)&g_memByte[449124];
         src = -src;
-        *(word *)&g_memByte[449744] = src;
+        *(word *)&g_memByte[449124] = src;
     }                                       // neg timeVar
     {
-        int16_t src = *(word *)&g_memByte[449740];
+        int16_t src = *(word *)&g_memByte[449120];
         flags.carry = src != 0;
         src = -src;
         flags.sign = (src & 0x8000) != 0;
         flags.zero = src == 0;
-        *(word *)&g_memByte[449740] = src;
+        *(word *)&g_memByte[449120] = src;
     }                                       // neg statsTimer
     goToHalftime();                         // call GoToHalftime
     return;                                 // jmp @@out
 
 l_not_going_to_halftime:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 30;
         word res = dstSigned - srcSigned;
@@ -1026,7 +1029,7 @@ l_not_going_to_halftime:;
 
 l_game_not_ended:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 24;
         word res = dstSigned - srcSigned;
@@ -1042,7 +1045,7 @@ l_game_not_ended:;
 
 l_players_not_going_to_showers:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 27;
         word res = dstSigned - srcSigned;
@@ -1058,7 +1061,7 @@ l_players_not_going_to_showers:;
 
 l_first_extra_not_starting:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 28;
         word res = dstSigned - srcSigned;
@@ -1073,10 +1076,10 @@ l_first_extra_not_starting:;
     return;                                 // jmp @@out
 
 l_first_extra_not_ended:;
-    ax = *(word *)&g_memByte[523118];       // mov ax, gameState
-    *(word *)&g_memByte[523116] = ax;       // mov gameStatePl, ax
+    ax = *(word *)&g_memByte[515598];       // mov ax, gameState
+    *(word *)&g_memByte[515596] = ax;       // mov gameStatePl, ax
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1087,37 +1090,37 @@ l_first_extra_not_ended:;
     if (!flags.zero)
         goto cseg_73993;                    // jnz short cseg_73993
 
-    ax = *(word *)&g_memByte[486142];       // mov ax, g_inSubstitutesMenu
+    ax = *(word *)&g_memByte[478658];       // mov ax, g_inSubstitutesMenu
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto cseg_73993;                    // jnz short cseg_73993
 
-    ax = *(word *)&g_memByte[486144];       // mov ax, g_cameraLeavingSubsTimer
+    ax = *(word *)&g_memByte[478660];       // mov ax, g_cameraLeavingSubsTimer
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto cseg_73993;                    // jnz short cseg_73993
 
-    *(word *)&g_memByte[449744] = 31000;    // mov timeVar, 31000
+    *(word *)&g_memByte[449124] = 31000;    // mov timeVar, 31000
 
 cseg_73993:;
-    *(word *)&g_memByte[523120] = 0;        // mov breakCameraMode, 0
+    *(word *)&g_memByte[515600] = 0;        // mov breakCameraMode, 0
     return;                                 // jmp @@out
 
 l_game_running:;
-    ax = *(word *)&g_memByte[523120];       // mov ax, breakCameraMode
+    ax = *(word *)&g_memByte[515600];       // mov ax, breakCameraMode
     *(word *)&D7 = ax;                      // mov word ptr D7, ax
-    ax = *(word *)&g_memByte[486142];       // mov ax, g_inSubstitutesMenu
+    ax = *(word *)&g_memByte[478658];       // mov ax, g_inSubstitutesMenu
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         return;                             // jnz @@out
 
-    ax = *(word *)&g_memByte[486146];       // mov ax, g_waitForPlayerToGoInTimer
+    ax = *(word *)&g_memByte[478662];       // mov ax, g_waitForPlayerToGoInTimer
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -1150,9 +1153,9 @@ l_game_running:;
     if (!flags.zero)
         return;                             // jnz @@out
 
-    *(word *)&g_memByte[523120] = 1;        // mov breakCameraMode, 1
+    *(word *)&g_memByte[515600] = 1;        // mov breakCameraMode, 1
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1163,15 +1166,15 @@ l_game_running:;
     if (flags.zero)
         return;                             // jz @@out
 
-    *(word *)&g_memByte[523122] = *(word *)&m_goalCameraInterval; // mov stoppageEventTimer, goalCameraInterval
-    ax = *(word *)&g_memByte[455982];       // mov ax, goalCameraMode
+    *(word *)&g_memByte[515602] = *(word *)&m_goalCameraInterval; // mov stoppageEventTimer, ...
+    ax = *(word *)&g_memByte[449240];       // mov ax, goalCameraMode
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         return;                             // jz @@out
 
-    *(word *)&g_memByte[523122] = 75;       // mov stoppageEventTimer, 75
+    *(word *)&g_memByte[515602] = 75;       // mov stoppageEventTimer, 75
     return;                                 // retn
 
 cseg_73A30:;
@@ -1187,7 +1190,7 @@ cseg_73A30:;
         goto cseg_73B28;                    // jnz cseg_73B28
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -1199,7 +1202,7 @@ cseg_73A30:;
         goto l_game_stopped;                // jz short @@game_stopped
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 31;
         word res = dstSigned - srcSigned;
@@ -1211,7 +1214,7 @@ cseg_73A30:;
         goto l_game_stopped;                // jz short @@game_stopped
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1223,7 +1226,7 @@ cseg_73A30:;
         goto l_game_stopped;                // jz short @@game_stopped
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 13;
         word res = dstSigned - srcSigned;
@@ -1235,7 +1238,7 @@ cseg_73A30:;
         goto l_game_stopped;                // jz short @@game_stopped
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 6;
         word res = dstSigned - srcSigned;
@@ -1247,59 +1250,59 @@ cseg_73A30:;
         goto l_game_stopped;                // jb short @@game_stopped
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
     }                                       // cmp gameState, ST_FREE_KICK_RIGHT3
 
 l_game_stopped:;
-    ax = *(word *)&g_memByte[523148];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto l_no_auto_replay;              // jnz short @@no_auto_replay
 
-    ax = *(word *)&g_memByte[486142];       // mov ax, g_inSubstitutesMenu
+    ax = *(word *)&g_memByte[478658];       // mov ax, g_inSubstitutesMenu
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto l_no_auto_replay;              // jnz short @@no_auto_replay
 
-    ax = *(word *)&g_memByte[455982];       // mov ax, goalCameraMode
+    ax = *(word *)&g_memByte[449240];       // mov ax, goalCameraMode
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         goto l_no_auto_replay;              // jz short @@no_auto_replay
 
-    ax = *(word *)&g_memByte[131704];       // mov ax, g_autoSaveHighlights
+    ax = *(word *)&g_memByte[131628];       // mov ax, g_autoSaveHighlights
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         goto l_no_auto_save_highlights;     // jz short @@no_auto_save_highlights
 
-    *(word *)&g_memByte[486134] = 1;        // mov saveHighlightScene, 1
+    *(word *)&g_memByte[478650] = 1;        // mov saveHighlightScene, 1
 
 l_no_auto_save_highlights:;
     enqueueCrowdChantsReload();       // call EnqueueCrowdChantsReload
-    ax = *(word *)&g_memByte[131700];       // mov ax, g_autoReplays
+    ax = *(word *)&g_memByte[131624];       // mov ax, g_autoReplays
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         goto l_no_auto_replay;              // jz short @@no_auto_replay
 
-    *(word *)&g_memByte[455924] = 0;        // mov userRequestedReplay, 0
-    *(word *)&g_memByte[486132] = 1;        // mov instantReplayFlag, 1
-    *(word *)&g_memByte[456256] = 1;        // mov loadCrowdChantSampleFlag, 1
+    *(word *)&g_memByte[449200] = 0;        // mov userRequestedReplay, 0
+    *(word *)&g_memByte[478648] = 1;        // mov instantReplayFlag, 1
+    *(word *)&g_memByte[449508] = 1;        // mov loadCrowdChantSampleFlag, 1
 
 l_no_auto_replay:;
-    *(dword *)&g_memByte[522748] = 0;       // mov currentScorer, 0
-    ax = *(word *)&g_memByte[523148];       // mov ax, playingPenalties
+    *(dword *)&g_memByte[515228] = 0;       // mov currentScorer, 0
+    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -1307,7 +1310,7 @@ l_no_auto_replay:;
         goto cseg_73AF7;                    // jz short cseg_73AF7
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 31;
         word res = dstSigned - srcSigned;
@@ -1322,7 +1325,7 @@ l_no_auto_replay:;
 
 cseg_73AF7:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1333,14 +1336,14 @@ cseg_73AF7:;
     if (flags.zero)
         goto l_keeper_holds_the_ball;       // jz short @@keeper_holds_the_ball
 
-    ax = *(word *)&g_memByte[523124];       // mov ax, foulXCoordinate
+    ax = *(word *)&g_memByte[515604];       // mov ax, foulXCoordinate
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    ax = *(word *)&g_memByte[523126];       // mov ax, foulYCoordinate
+    ax = *(word *)&g_memByte[515606];       // mov ax, foulYCoordinate
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     setBallPosition(D1.asWord(), D2.asWord()); // call SetBallPosition
 
 l_keeper_holds_the_ball:;
-    *(word *)&g_memByte[523120] = 2;        // mov breakCameraMode, 2
+    *(word *)&g_memByte[515600] = 2;        // mov breakCameraMode, 2
     return;                                 // retn
 
 cseg_73B28:;
@@ -1355,23 +1358,23 @@ cseg_73B28:;
     if (!flags.zero)
         goto cseg_73C3D;                    // jnz cseg_73C3D
 
-    ax = *(word *)&g_memByte[523638];       // mov ax, whichCard
+    ax = *(word *)&g_memByte[515888];       // mov ax, whichCard
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         return;                             // jnz @@out
 
-    ax = *(word *)&g_memByte[455926];       // mov ax, cameraCoordinatesValid
+    ax = *(word *)&g_memByte[449202];       // mov ax, cameraCoordinatesValid
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         return;                             // jz @@out
 
-    *(word *)&g_memByte[457524] = 0;        // mov goalScored, 0
+    *(word *)&g_memByte[450772] = 0;        // mov goalScored, 0
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1382,20 +1385,20 @@ cseg_73B28:;
     if (!flags.zero)
         goto cseg_73B85;                    // jnz short cseg_73B85
 
-    *(word *)&g_memByte[523116] = 102;      // mov gameStatePl, ST_WAITING_ON_PLAYER
-    *(word *)&g_memByte[523132] = 0;        // mov inGameCounter, 0
-    ax = *(word *)&g_memByte[523118];       // mov ax, gameState
-    *(word *)&g_memByte[523134] = ax;       // mov breakState, ax
+    *(word *)&g_memByte[515596] = 102;      // mov gameStatePl, ST_WAITING_ON_PLAYER
+    *(word *)&g_memByte[515612] = 0;        // mov inGameCounter, 0
+    ax = *(word *)&g_memByte[515598];       // mov ax, gameState
+    *(word *)&g_memByte[515614] = ax;       // mov breakState, ax
 
 cseg_73B85:;
-    ax = *(word *)&g_memByte[522934];       // mov ax, topTeamData.resetControls
+    ax = *(word *)&g_memByte[515414];       // mov ax, topTeamData.resetControls
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto cseg_73BCE;                    // jnz short cseg_73BCE
 
-    eax = *(dword *)&g_memByte[522812];     // mov eax, topTeamData.spritesTable
+    eax = *(dword *)&g_memByte[515292];     // mov eax, topTeamData.spritesTable
     A0 = eax;                               // mov A0, eax
     *(word *)&D0 = 10;                      // mov word ptr D0, 10
 
@@ -1419,14 +1422,14 @@ l_next_player_sprite:;
         goto l_next_player_sprite;          // jns short @@next_player_sprite
 
 cseg_73BCE:;
-    ax = *(word *)&g_memByte[523082];       // mov ax, bottomTeamData.resetControls
+    ax = *(word *)&g_memByte[515562];       // mov ax, bottomTeamData.resetControls
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto cseg_73C17;                    // jnz short cseg_73C17
 
-    eax = *(dword *)&g_memByte[522960];     // mov eax, bottomTeamData.spritesTable
+    eax = *(dword *)&g_memByte[515440];     // mov eax, bottomTeamData.spritesTable
     A0 = eax;                               // mov A0, eax
     *(word *)&D0 = 10;                      // mov word ptr D0, 10
 
@@ -1451,7 +1454,7 @@ l_players_loop:;
 
 cseg_73C17:;
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1462,11 +1465,11 @@ cseg_73C17:;
     if (!flags.zero)
         goto cseg_73C33;                    // jnz short cseg_73C33
 
-    *(word *)&g_memByte[326624] = 3;        // mov goalie1Sprite.destReachedState, 3
-    *(word *)&g_memByte[327856] = 3;        // mov goalie2Sprite.destReachedState, 3
+    *(word *)&g_memByte[326128] = 3;        // mov goalie1Sprite.destReachedState, 3
+    *(word *)&g_memByte[327360] = 3;        // mov goalie2Sprite.destReachedState, 3
 
 cseg_73C33:;
-    *(word *)&g_memByte[523120] = 4;        // mov breakCameraMode, 4
+    *(word *)&g_memByte[515600] = 4;        // mov breakCameraMode, 4
     return;                                 // retn
 
 cseg_73C3D:;
@@ -1481,14 +1484,14 @@ cseg_73C3D:;
     if (!flags.zero)
         goto cseg_73C60;                    // jnz short cseg_73C60
 
-    ax = *(word *)&g_memByte[486142];       // mov ax, g_inSubstitutesMenu
+    ax = *(word *)&g_memByte[478658];       // mov ax, g_inSubstitutesMenu
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         return;                             // jnz @@out
 
-    *(word *)&g_memByte[523120] = 3;        // mov breakCameraMode, 3
+    *(word *)&g_memByte[515600] = 3;        // mov breakCameraMode, 3
     return;                                 // retn
 
 cseg_73C60:;
@@ -1503,21 +1506,21 @@ cseg_73C60:;
     if (!flags.zero)
         goto cseg_73DD5;                    // jnz cseg_73DD5
 
-    ax = *(word *)&g_memByte[523620];       // mov ax, refState
+    ax = *(word *)&g_memByte[515870];       // mov ax, refState
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         return;                             // jnz @@out
 
-    ax = *(word *)&g_memByte[523622];       // mov ax, injuriesForever
+    ax = *(word *)&g_memByte[515872];       // mov ax, injuriesForever
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         return;                             // jnz @@out
 
-    A0 = 330096;                            // mov A0, offset team1SpritesTable
+    A0 = 329488;                            // mov A0, offset team1SpritesTable
     *(word *)&D0 = 21;                      // mov word ptr D0, 21
 
 l_check_if_players_arrived_loop:;
@@ -1531,7 +1534,7 @@ l_check_if_players_arrived_loop:;
     }                                       // add A0, 4
     A1 = eax;                               // mov A1, eax
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 0;
         word res = dstSigned - srcSigned;
@@ -1543,7 +1546,7 @@ l_check_if_players_arrived_loop:;
         goto l_check_if_player_arrived;     // jz short @@check_if_player_arrived
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -1555,7 +1558,7 @@ l_check_if_players_arrived_loop:;
         goto l_check_if_player_arrived;     // jz short @@check_if_player_arrived
 
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 31;
         word res = dstSigned - srcSigned;
@@ -1595,8 +1598,8 @@ l_check_if_next_player_arrived:;
     if (!flags.sign)
         goto l_check_if_players_arrived_loop; // jns short @@check_if_players_arrived_loop
 
-    *(word *)&g_memByte[457526] = 0;        // mov runSlower, 0
-    ax = *(word *)&g_memByte[455982];       // mov ax, goalCameraMode
+    *(word *)&g_memByte[450774] = 0;        // mov runSlower, 0
+    ax = *(word *)&g_memByte[449240];       // mov ax, goalCameraMode
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -1636,7 +1639,7 @@ l_check_if_next_player_arrived:;
     pop(D0);                                // pop D0
 
 cseg_73DCB:;
-    *(word *)&g_memByte[523120] = 5;        // mov breakCameraMode, 5
+    *(word *)&g_memByte[515600] = 5;        // mov breakCameraMode, 5
     return;                                 // retn
 
 cseg_73DD5:;
@@ -1651,9 +1654,9 @@ cseg_73DD5:;
     if (!flags.zero)
         goto cseg_73DFC;                    // jnz short cseg_73DFC
 
-    *(word *)&g_memByte[523638] = 0;        // mov whichCard, 0
-    *(dword *)&g_memByte[523640] = 0;       // mov bookedPlayer, 0
-    *(word *)&g_memByte[523120] = 6;        // mov breakCameraMode, 6
+    *(word *)&g_memByte[515888] = 0;        // mov whichCard, 0
+    *(dword *)&g_memByte[515892] = 0;       // mov bookedPlayer, 0
+    *(word *)&g_memByte[515600] = 6;        // mov breakCameraMode, 6
     return;                                 // retn
 
 cseg_73DFC:;
@@ -1668,9 +1671,9 @@ cseg_73DFC:;
     if (!flags.zero)
         goto cseg_73E2C;                    // jnz short cseg_73E2C
 
-    *(word *)&g_memByte[523652] = 0;        // mov ballOutOfGameTimer, 0
+    *(word *)&g_memByte[515904] = 0;        // mov ballOutOfGameTimer, 0
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1681,10 +1684,10 @@ cseg_73DFC:;
     if (flags.zero)
         goto cseg_73E22;                    // jz short cseg_73E22
 
-    *(word *)&g_memByte[449744] = 31000;    // mov timeVar, 31000
+    *(word *)&g_memByte[449124] = 31000;    // mov timeVar, 31000
 
 cseg_73E22:;
-    *(word *)&g_memByte[523120] = 7;        // mov breakCameraMode, 7
+    *(word *)&g_memByte[515600] = 7;        // mov breakCameraMode, 7
     return;                                 // retn
 
 cseg_73E2C:;
@@ -1702,15 +1705,15 @@ cseg_73E2C:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 94, 2, 1);            // mov [esi+TeamGeneralInfo.ballInPlay], 1
     {
-        word src = *(word *)&g_memByte[523652];
+        word src = *(word *)&g_memByte[515904];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[523652] = src;
+        *(word *)&g_memByte[515904] = src;
     }                                       // add ballOutOfGameTimer, 1
     {
-        word src = *(word *)&g_memByte[523652];
+        word src = *(word *)&g_memByte[515904];
         int16_t dstSigned = src;
         int16_t srcSigned = *(word *)&m_allowPlayerControlCameraInterval;
         word res = dstSigned - srcSigned;
@@ -1722,7 +1725,7 @@ cseg_73E2C:;
         goto cseg_73E8B;                    // jb short cseg_73E8B
 
     {
-        word src = *(word *)&g_memByte[455952];
+        word src = *(word *)&g_memByte[449226];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
@@ -1730,15 +1733,15 @@ cseg_73E2C:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[455952] = src;
+        *(word *)&g_memByte[449226] = src;
     }                                       // add deadCameraBreakVar01, 1
-    ax = *(word *)&g_memByte[523116];       // mov ax, gameStatePl
-    *(word *)&g_memByte[455954] = ax;       // mov deadCameraBreakVar02, ax
-    ax = *(word *)&g_memByte[523118];       // mov ax, gameState
-    *(word *)&g_memByte[455956] = ax;       // mov deadCameraBreakVar03, ax
+    ax = *(word *)&g_memByte[515596];       // mov ax, gameStatePl
+    *(word *)&g_memByte[449228] = ax;       // mov deadCameraBreakVar02, ax
+    ax = *(word *)&g_memByte[515598];       // mov ax, gameState
+    *(word *)&g_memByte[449230] = ax;       // mov deadCameraBreakVar03, ax
     checkIfGoalkeeperClaimedTheBall();      // call CheckIfGoalkeeperClaimedTheBall
     {
-        word src = *(word *)&g_memByte[455932];
+        word src = *(word *)&g_memByte[449208];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
@@ -1746,7 +1749,7 @@ cseg_73E2C:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[455932] = src;
+        *(word *)&g_memByte[449208] = src;
     }                                       // add deadCameraBreakVar04, 1
     return;                                 // jmp @@out
 
@@ -1774,20 +1777,18 @@ cseg_73E8B:;
     if (flags.zero)
         goto l_set_throw_in_anim_table;     // jz short @@set_throw_in_anim_table
 
-    A0 = 453234;                            // mov A0, offset playerNormalStandingAnimTable
-    SetPlayerAnimationTable();              // call SetPlayerAnimationTable
+    setPlayerAnimationTable(A1.as<Sprite&>(), getPlayerNormalStandingAnimTable());
     goto cseg_73ED6;                        // jmp short cseg_73ED6
 
 l_set_throw_in_anim_table:;
-    A0 = 453788;                            // mov A0, offset aboutToThrowInAnimTable
-    SetPlayerAnimationTable();              // call SetPlayerAnimationTable
+    setPlayerAnimationTable(A1.as<Sprite&>(), getAboutToThrowInAnimTable());
 
 cseg_73ED6:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 96, 2, 1);            // mov [esi+TeamGeneralInfo.ballOutOfPlay], 1
-    *(word *)&g_memByte[523120] = 8;        // mov breakCameraMode, 8
+    *(word *)&g_memByte[515600] = 8;        // mov breakCameraMode, 8
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1798,14 +1799,14 @@ cseg_73ED6:;
     if (flags.zero)
         return;                             // jz short @@out
 
-    ax = *(word *)&g_memByte[486142];       // mov ax, g_inSubstitutesMenu
+    ax = *(word *)&g_memByte[478658];       // mov ax, g_inSubstitutesMenu
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         return;                             // jnz short @@out
 
-    *(word *)&g_memByte[449742] = 31000;    // mov resultTimer, 31000
+    *(word *)&g_memByte[449122] = 31000;    // mov resultTimer, 31000
     return;                                 // retn
 
 cseg_73F0A:;
@@ -1820,9 +1821,9 @@ cseg_73F0A:;
     if (!flags.zero)
         goto l_assert_failed;               // jnz short @@assert_failed
 
-    *(word *)&g_memByte[523654] = 0;        // mov writeOnlyVar03, 0
+    *(word *)&g_memByte[515906] = 0;        // mov writeOnlyVar03, 0
     {
-        word src = *(word *)&g_memByte[523118];
+        word src = *(word *)&g_memByte[515598];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -1836,11 +1837,11 @@ cseg_73F0A:;
     SWOS::PlayRefereeWhistleSample();       // call PlayRefereeWhistleSample
 
 cseg_73F2C:;
-    *(word *)&g_memByte[455982] = 0;        // mov goalCameraMode, 0
-    *(word *)&g_memByte[523116] = 102;      // mov gameStatePl, 102
-    *(word *)&g_memByte[523132] = 0;        // mov inGameCounter, 0
-    ax = *(word *)&g_memByte[523118];       // mov ax, gameState
-    *(word *)&g_memByte[523134] = ax;       // mov breakState, ax
+    *(word *)&g_memByte[449240] = 0;        // mov goalCameraMode, 0
+    *(word *)&g_memByte[515596] = 102;      // mov gameStatePl, 102
+    *(word *)&g_memByte[515612] = 0;        // mov inGameCounter, 0
+    ax = *(word *)&g_memByte[515598];       // mov ax, gameState
+    *(word *)&g_memByte[515614] = ax;       // mov breakState, ax
 
 l_out:;
     return;                                 // retn
@@ -1916,11 +1917,13 @@ static void initGoalSprites()
 
 using namespace SwosVM;
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void markPlayer()
 {
-    A1 = 522792;                            // mov A1, offset topTeamData
+    A1 = 515272;                            // mov A1, offset topTeamData
     {
-        byte src = g_memByte[323904];
+        byte src = g_memByte[323626];
         byte res = src & 16;
         flags.carry = false;
         flags.sign = (res & 0x80) != 0;
@@ -1929,13 +1932,13 @@ static void markPlayer()
     if (flags.zero)
         goto l_do_mark;                     // jz short @@do_mark
 
-    A1 = 522940;                            // mov A1, offset bottomTeamData
+    A1 = 515420;                            // mov A1, offset bottomTeamData
 
 l_do_mark:;
     esi = A1;                               // mov esi, A1
     eax = readMemory(esi + 10, 4);          // mov eax, [esi+TeamGeneralInfo.inGameTeamPtr]
     A2 = eax;                               // mov A2, eax
-    A0 = 325968;                            // mov A0, offset playerMarkSprite
+    A0 = 325472;                            // mov A0, offset playerMarkSprite
     esi = A0;                               // mov esi, A0
     writeMemory(esi + 70, 2, -1);           // mov [esi+Sprite.imageIndex], -1
     esi = A2;                               // mov esi, A2
@@ -2009,29 +2012,31 @@ l_do_mark:;
     writeMemory(esi + 36, 2, ax);           // mov word ptr [esi+(Sprite.y+2)], ax
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void setCameraMovingToShowerState()
 {
-    *(word *)&g_memByte[523142] = 2;        // mov halfNumber, 2
+    *(word *)&g_memByte[515622] = 2;        // mov halfNumber, 2
     {
-        int16_t src = *(word *)&g_memByte[523146];
+        int16_t src = *(word *)&g_memByte[515626];
         src = -src;
-        *(word *)&g_memByte[523146] = src;
+        *(word *)&g_memByte[515626] = src;
     }                                       // neg teamPlayingUp
     {
-        word src = *(word *)&g_memByte[523146];
+        word src = *(word *)&g_memByte[515626];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[523146] = src;
+        *(word *)&g_memByte[515626] = src;
     }                                       // add teamPlayingUp, 3
     {
-        int16_t src = *(word *)&g_memByte[523144];
+        int16_t src = *(word *)&g_memByte[515624];
         src = -src;
-        *(word *)&g_memByte[523144] = src;
+        *(word *)&g_memByte[515624] = src;
     }                                       // neg teamStarting
     {
-        word src = *(word *)&g_memByte[523144];
+        word src = *(word *)&g_memByte[515624];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned + srcSigned;
@@ -2039,88 +2044,94 @@ static void setCameraMovingToShowerState()
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[523144] = src;
+        *(word *)&g_memByte[515624] = src;
     }                                       // add teamStarting, 3
     *(word *)&D1 = 1672;                    // mov word ptr D1, 1672
     *(word *)&D2 = 449;                     // mov word ptr D2, 449
     setBallPosition(D1.asWord(), D2.asWord()); // call SetBallPosition
-    *(word *)&g_memByte[449800] = 0;        // mov hideBall, 0
+    *(word *)&g_memByte[449180] = 0;        // mov hideBall, 0
     initTeamsData();                        // call InitTeamsData
-    *(word *)&g_memByte[523122] = 110;      // mov stoppageEventTimer, 110
-    *(word *)&g_memByte[523118] = 22;       // mov gameState, ST_CAMERA_GOING_TO_SHOWERS
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, 101
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523128] = -1;       // mov cameraDirection, -1
-    *(dword *)&g_memByte[523108] = 522792;  // mov lastTeamPlayedBeforeBreak, offset topTeamData
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
+    *(word *)&g_memByte[515602] = 110;      // mov stoppageEventTimer, 110
+    *(word *)&g_memByte[515598] = 22;       // mov gameState, ST_CAMERA_GOING_TO_SHOWERS
+    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
+    *(word *)&g_memByte[515596] = 101;      // mov gameStatePl, 101
+    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515608] = -1;       // mov cameraDirection, -1
+    *(dword *)&g_memByte[515588] = 515272;  // mov lastTeamPlayedBeforeBreak, offset topTeamData
+    *(word *)&g_memByte[515592] = 0;        // mov stoppageTimerTotal, 0
+    *(word *)&g_memByte[515594] = 0;        // mov stoppageTimerActive, 0
     stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
-    ax = *(word *)&g_memByte[252376];       // mov ax, playGame
+    *(word *)&g_memByte[449176] = 0;        // mov cameraXVelocity, 0
+    *(word *)&g_memByte[449178] = 0;        // mov cameraYVelocity, 0
+    ax = *(word *)&g_memByte[252300];       // mov ax, playGame
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         goto cseg_75B53;                    // jz short cseg_75B53
 
-    *(word *)&g_memByte[449746] = 385;      // mov nullSampleTimer, 385
+    *(word *)&g_memByte[449126] = 385;      // mov nullSampleTimer, 385
 
 cseg_75B53:;
     initPlayersBeforeEnteringPitch();       // jmp InitPlayersBeforeEnteringPitch
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void firstHalfJustEnded()
 {
-    *(word *)&g_memByte[449800] = 0;        // mov hideBall, 0
-    *(word *)&g_memByte[523122] = 275;      // mov stoppageEventTimer, 275
-    *(word *)&g_memByte[523118] = 23;       // mov gameState, ST_GOING_TO_HALFTIME
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, ST_STOPPED
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523128] = -1;       // mov cameraDirection, -1
-    *(dword *)&g_memByte[523108] = 522792;  // mov lastTeamPlayedBeforeBreak, offset topTeamData
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
+    *(word *)&g_memByte[449180] = 0;        // mov hideBall, 0
+    *(word *)&g_memByte[515602] = 275;      // mov stoppageEventTimer, 275
+    *(word *)&g_memByte[515598] = 23;       // mov gameState, ST_GOING_TO_HALFTIME
+    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
+    *(word *)&g_memByte[515596] = 101;      // mov gameStatePl, ST_STOPPED
+    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515608] = -1;       // mov cameraDirection, -1
+    *(dword *)&g_memByte[515588] = 515272;  // mov lastTeamPlayedBeforeBreak, offset topTeamData
+    *(word *)&g_memByte[515592] = 0;        // mov stoppageTimerTotal, 0
+    *(word *)&g_memByte[515594] = 0;        // mov stoppageTimerActive, 0
     stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
-    *(word *)&g_memByte[456262] = 0;        // mov stateGoal, 0
+    *(word *)&g_memByte[449176] = 0;        // mov cameraXVelocity, 0
+    *(word *)&g_memByte[449178] = 0;        // mov cameraYVelocity, 0
+    *(word *)&g_memByte[449514] = 0;        // mov stateGoal, 0
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void goToHalftime()
 {
     *(word *)&D1 = 1672;                    // mov word ptr D1, 1672
     *(word *)&D2 = 449;                     // mov word ptr D2, 449
     setBallPosition(D1.asWord(), D2.asWord()); // call SetBallPosition
-    *(word *)&g_memByte[449742] = 30000;    // mov resultTimer, 30000
-    *(word *)&g_memByte[449744] = 32000;    // mov timeVar, 32000
-    *(word *)&g_memByte[523122] = 770;      // mov stoppageEventTimer, 770
-    *(word *)&g_memByte[523118] = 25;       // mov gameState, ST_RESULT_ON_HALFTIME
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, 101
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523128] = -1;       // mov cameraDirection, -1
-    *(dword *)&g_memByte[523108] = 522792;  // mov lastTeamPlayedBeforeBreak, offset topTeamData
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
+    *(word *)&g_memByte[449122] = 30000;    // mov resultTimer, 30000
+    *(word *)&g_memByte[449124] = 32000;    // mov timeVar, 32000
+    *(word *)&g_memByte[515602] = 770;      // mov stoppageEventTimer, 770
+    *(word *)&g_memByte[515598] = 25;       // mov gameState, ST_RESULT_ON_HALFTIME
+    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
+    *(word *)&g_memByte[515596] = 101;      // mov gameStatePl, 101
+    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515608] = -1;       // mov cameraDirection, -1
+    *(dword *)&g_memByte[515588] = 515272;  // mov lastTeamPlayedBeforeBreak, offset topTeamData
+    *(word *)&g_memByte[515592] = 0;        // mov stoppageTimerTotal, 0
+    *(word *)&g_memByte[515594] = 0;        // mov stoppageTimerActive, 0
     stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
+    *(word *)&g_memByte[449176] = 0;        // mov cameraXVelocity, 0
+    *(word *)&g_memByte[449178] = 0;        // mov cameraYVelocity, 0
 }
 
+// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
+// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void prepareForInitialKick()
 {
     *(word *)&D1 = 336;                     // mov word ptr D1, 336
     *(word *)&D2 = 449;                     // mov word ptr D2, 449
     setBallPosition(D1.asWord(), D2.asWord()); // call SetBallPosition
-    A0 = 522792;                            // mov A0, offset topTeamData
+    A0 = 515272;                            // mov A0, offset topTeamData
     *(word *)&D1 = 4;                       // mov word ptr D1, 4
     *(byte *)&D2 = 124;                     // mov byte ptr D2, 7Ch
-    ax = *(word *)&g_memByte[523144];       // mov ax, teamStarting
+    ax = *(word *)&g_memByte[515624];       // mov ax, teamStarting
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[523146];       // mov ax, teamPlayingUp
+    ax = *(word *)&g_memByte[515626];       // mov ax, teamPlayingUp
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -2132,26 +2143,26 @@ static void prepareForInitialKick()
     if (flags.zero)
         goto l_upper_team_starting;         // jz short @@upper_team_starting
 
-    A0 = 522940;                            // mov A0, offset bottomTeamData
+    A0 = 515420;                            // mov A0, offset bottomTeamData
     *(word *)&D1 = 0;                       // mov word ptr D1, 0
     *(byte *)&D2 = 199;                     // mov byte ptr D2, 0C7h
 
 l_upper_team_starting:;
-    *(word *)&g_memByte[523118] = 0;        // mov gameState, ST_PLAYERS_TO_INITIAL_POSITIONS
-    *(word *)&g_memByte[523120] = -1;       // mov breakCameraMode, -1
-    *(word *)&g_memByte[523116] = 101;      // mov gameStatePl, ST_STOPPED
-    *(word *)&g_memByte[523104] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
-    *(word *)&g_memByte[523124] = 336;      // mov foulXCoordinate, 336
-    *(word *)&g_memByte[523126] = 449;      // mov foulYCoordinate, 449
+    *(word *)&g_memByte[515598] = 0;        // mov gameState, ST_PLAYERS_TO_INITIAL_POSITIONS
+    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
+    *(word *)&g_memByte[515596] = 101;      // mov gameStatePl, ST_STOPPED
+    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515604] = 336;      // mov foulXCoordinate, 336
+    *(word *)&g_memByte[515606] = 449;      // mov foulYCoordinate, 449
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[523128] = ax;       // mov cameraDirection, ax
+    *(word *)&g_memByte[515608] = ax;       // mov cameraDirection, ax
     al = D2;                                // mov al, byte ptr D2
-    g_memByte[523130] = al;                 // mov byte ptr playerTurnFlags, al
+    g_memByte[515610] = al;                 // mov byte ptr playerTurnFlags, al
     eax = A0;                               // mov eax, A0
-    *(dword *)&g_memByte[523108] = eax;     // mov lastTeamPlayedBeforeBreak, eax
-    *(word *)&g_memByte[523112] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[523114] = 0;        // mov stoppageTimerActive, 0
+    *(dword *)&g_memByte[515588] = eax;     // mov lastTeamPlayedBeforeBreak, eax
+    *(word *)&g_memByte[515592] = 0;        // mov stoppageTimerTotal, 0
+    *(word *)&g_memByte[515594] = 0;        // mov stoppageTimerActive, 0
     stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449796] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449798] = 0;        // mov cameraYVelocity, 0
+    *(word *)&g_memByte[449176] = 0;        // mov cameraXVelocity, 0
+    *(word *)&g_memByte[449178] = 0;        // mov cameraYVelocity, 0
 }

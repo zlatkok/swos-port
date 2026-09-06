@@ -1,0 +1,123 @@
+v0.99.2026 - 06.09.2026.
+       + added animation mode for previewing player and goalkeeper animation sequences
+       + added playback controls, direction selection, zoom, pause and slow motion
+       + animation data is generated from the shared SWOS animation tables
+       * updated English and Serbian documentation for animation mode
+       * removed the obsolete DirectDraw/fullscreen implementation
+       * modernized the Visual Studio project and cleaned up legacy Windows-specific code
+
+v0.99 - 15.12.2022.
+       + added "tile painting", right click on a tile and drag, it will paint the initial tile over the dragged ones
+           | it's available from keyboard too, shift+arrows can be also used
+           | "master" tile can be selected with ctrl+left click, or ctrl+enter on keyboard
+       + tiles can be mass inserted with shift+insert, it will look for files with pattern "pt<pitchNo>-<tileNo>.bmp
+       + left double-click on a tile (or g key) enters pattern number directly (to the selected tile if pressing g)
+       + holding middle mouse button (or tab on keyboard) shows tile number even if tile number display is off
+       + ctrl+o optimizes pitch, removes unused tiles and renumbers existing ones in order of appearance
+       + ctrl+r discards changes and reverts to last saved pitch
+       + ctrl+s saves pitch changes, ctrl+shift+s force saves even if no changes
+       + c for mass tile replace: enter number which will replace all instances of selected tile on the pitch
+       + undo/redo added for operations that change pitch or patterns
+       + patterns can be also changed by holding ctrl and mouse wheel scrolling (same as ctrl+up/down)
+       + ctrl+insert adds new empty tile to the end in the tile mode
+       + tiles can be highlighted: ctrl-shift left click (or press 'H' in tile mode)
+       + alt-left click on a tile in pitch mode switches to tile mode and displays the clicked tile
+       + tiles can now be deleted from the pitch view too
+       + usage count display for tiles in tile modes (specially marked if unused)
+       + usage count display for tiles in pitch mode (toggles number display)
+       + pitch scrolling on mouse wheel
+       + panning the pitch with left click drag
+       * fixed excessive CPU usage in pitch mode
+       * changed pattern mode to be consistent with pitch mode: up increases pattern number, down decreases
+       * fixed a bug with pattern insertion when searching for wrong filename
+       * moved pattern number by a pixel right & down on the pitch, so it's easier to read now
+       * fixed window positioning and screen edge snapping
+       * lot of small fixes (e.g. window centering and moving fixed, custom cursor behaves properly now)
+       - removed some obsolete or unfit features
+
+v0.9 - 02.11.2004.
+       + replay mode on 'F9' - watching replays and highlights
+       + pitch smooth scroll
+       + program can be minimized/restored by pressing windows + s
+       + ctrl + doubleclick = minimize
+       + snap to desktop edges
+       + ctrl + t toggles mapping of sprites 644-946 between team2.dat and
+         team3.dat
+       * fixed occasional non-refreshing pitch after pattern swap
+       * fixed transparent lines in sprites 1209-1272, also optmized their
+         drawing routine
+       * optimized memory usage when reverting sprites to saved and switching
+         between team2.dat and team3.dat
+       * minimized flickering during palette switch in full screen
+       * documentation updated (added pictures)
+       * fixed crash when reverting sprites to last saved state (failed to save
+         ebx between calls)
+       * completely eliminated flickering during window move (though it was
+         minimal)
+       * pictures list sorted by name
+       * fixed palette corruption when returning to window from fullscreen, and
+         when returning focus to program in fullscreen
+       * ddraw.dll dynamically linked, so program can now work with no DirectX
+         installed
+       * fixed bug: if window was moved during numeric input, it wasn't redrawn
+         when escape was pressed and input string remained
+       * fixed indexing palette with negative index when showing corrupted
+         picture
+       * fixed leaving picture file open if an error occurs
+
+v0.8 - 30.05.2004.
+       * fixed not showing patterns with number greater than 127 bug
+       + pattern number can be changed to any valid number directly ('c')
+       + main window can be moved by ctrl + dragging, and centered with
+         ctrl + right click
+       + jump directly to any sprite ('g')
+       * insert pitch now handles animated patterns properly
+       + when inserting pitch, program now issues a warning if number of unique
+         patterns is too big for SWOS to handle
+       * fixed not showing warning if some sprite isn't saved properly when
+         saving all sprites
+       * fixed potential memory leak when saving pitch
+       + patterns can now be deleted by pressing 'delete'
+       + jump to pattern by pressing 'g'
+       + running two or more instances of program disabled
+       * sprite info is now more precise
+
+v0.7.9 - 06.09.2003
+       * changed name to SWOS Picture Editor
+       * fixed return to window bug when accessing non existent picture palette
+       * fixed memory overwrite bug in pitch edit mode
+
+v0.7.1 - 27.03.2003.
+       * fixed save sprites bug under win2000
+       * fixed picture brightness bug
+
+v0.7 - 24.03.2003.
+       + display of sprites information
+       + more user friendly (every screen has help on F1)
+       + now can replace sprites with bitmaps of different size
+       + brightness control for pictures
+
+v0.6 - 12.10.2002.
+       + pitch mode
+       + replacing original sprites
+       + replacing pitch tiles
+
+v0.5 - 22.05.2002.
+       * some bugfixes
+
+v0.4 - 28.04.2002.
+       + patterns mode
+
+v0.3 - 23.04.2002.
+       + pictures mode
+
+v0.2 - 18.04.2002.
+       + excellent zoom up to 10x
+       + save sprites to bmp ability
+
+v0.1 - 26.03.2002
+       + fullscreen mode
+       + zoom (but pretty useless)
+
+v0.0 - 11.03.2002
+       * born code
