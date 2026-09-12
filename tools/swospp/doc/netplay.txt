@@ -1,3 +1,9 @@
+SWOS++ netplay notes (historical)
+================================
+
+This document accompanied SWOS++ 1.9.2.1 and is retained as protocol and
+behavioral reference. It does not describe supported swos-port networking.
+
 Accompanying SWOS++ version: 1.9.2.1
 
 DISCLAIMER:

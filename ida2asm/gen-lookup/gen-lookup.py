@@ -1,3 +1,4 @@
+import io
 import os
 import sys
 import string
@@ -9,6 +10,7 @@ import subprocess
 kTabSize = 4
 kTokenLookupFilename = 'TokenLookup.h'
 kTokenTypeEnumFilename = 'TokenTypeEnum.h'
+kTokenLookupStampFilename = 'TokenLookup.stamp'
 kLineBreakLimit = 120
 kNumTestLoops = 1500
 
@@ -496,12 +498,17 @@ def outputTokensCppFile(outputDir, tokens):
     header = f'// automatically generated from {os.path.basename(__file__)}, do not edit'
     global out
 
-    with open(makePath(outputDir, kTokenTypeEnumFilename), 'w') as f:
+    f = io.StringIO()
+    try:
         out = lambda *args, **kwargs: print(*args, **kwargs, file=f)
         out(header)
         outputEnum(tokens)
+        writeFileIfChanged(makePath(outputDir, kTokenTypeEnumFilename), f.getvalue())
+    finally:
+        f.close()
 
-    with open(makePath(outputDir, kTokenLookupFilename), 'w') as f:
+    f = io.StringIO()
+    try:
         out = lambda *args, **kwargs: print(*args, **kwargs, file=f)
 
         out(header + '\n\n#pragma once\n')
@@ -513,6 +520,24 @@ def outputTokensCppFile(outputDir, tokens):
         outputFilterComment()
         outputParsingRoutines()
         outputLookupToken(tokens, False)
+        writeFileIfChanged(makePath(outputDir, kTokenLookupFilename), f.getvalue())
+    finally:
+        f.close()
+
+    stampPath = makePath(outputDir, kTokenLookupStampFilename)
+    with open(stampPath, 'a'):
+        os.utime(stampPath, None)
+
+def writeFileIfChanged(path, contents):
+    try:
+        with open(path, 'r') as f:
+            if f.read() == contents:
+                return
+    except FileNotFoundError:
+        pass
+
+    with open(path, 'w') as f:
+        f.write(contents)
 
 def processInputFile(file):
     tokens = []

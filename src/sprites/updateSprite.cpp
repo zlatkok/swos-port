@@ -209,7 +209,7 @@ void updateSpriteDirectionAndDeltas(Sprite& sprite)
     sprite.deltaX = result.deltaX;
     sprite.deltaY = result.deltaY;
     sprite.fullDirection = result.direction;
-    sprite.direction = ((result.direction + 16) & 0xff) >> 5;
+    sprite.direction = static_cast<Direction>(((result.direction + 16) & 0xff) >> 5);
 }
 
 static std::optional<int> advanceSpriteAnimation(Sprite& sprite)
@@ -258,7 +258,8 @@ void updateSpriteAnimation(Sprite& sprite)
 
 static int adjustFrameForGoalCelebration(const Sprite& sprite)
 {
-    if (swos.goalScored && sprite.state == PlayerState::kNormal && (sprite.direction == 0 || sprite.direction == 4) &&
+    if (swos.goalScored && sprite.state == PlayerState::kNormal &&
+        (sprite.direction == Direction::kTop || sprite.direction == Direction::kBottom) &&
         sprite.teamNumber == swos.lastTeamScoredNumber && sprite.playerOrdinal != 1) {
         bool playerCheering;
         // player that scored cheers 78.90625% of time, others 50% of time
@@ -354,7 +355,8 @@ static void updateAnimationTableAndDestinationReached(Sprite& sprite)
     if ((sprite.onScreen || swos.gameStatePl != GameState::kInProgress) &&
         sprite.state == PlayerState::kNormal && sprite.stationary())
     {
-        if (swos.gameStatePl != GameState::kInProgress && swos.breakCameraMode == 3 &&
+        if (swos.gameStatePl != GameState::kInProgress &&
+            swos.breakCameraMode == CameraBreakMode::kWaitingForPlayers &&
             sprite.destReachedState == DestinationState::kTraveling)
             sprite.destReachedState = DestinationState::kReached;
         if (sprite.animTable != getPlayerNormalStandingAnimTable())

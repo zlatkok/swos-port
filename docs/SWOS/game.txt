@@ -149,6 +149,80 @@ inertia). Bounds of the playable area:
 79 <= x <= 592
 11 <= y <= 111
 
+CalculateIfPlayerWinsBall() is called once these proximity and height checks
+allow a running player to control the ball. It cancels any pass in progress
+and then either resolves competing possession or updates the controlled ball.
+
+=== Contested possession
+
+A possession contest is performed only when all of the following are true:
+
+- the opposing team's won-the-ball timer (TeamGeneralInfo offset 138) is zero;
+- the opposing team currently has the ball;
+- the opposing controlled player is moving in a valid direction; and
+- the opposing team has a controlled-player pointer.
+
+The assembly checks that same opposing controlled-player pointer twice while
+switching its team context; it never checks the current team's pointer. The
+redundant check has no additional effect.
+
+For each side, the routine averages the player's tackling and ball-control
+skills:
+
+    rating = (tackling + ballControl) / 2
+
+There is an odd roster lookup inherited from the original code: the opposing
+controlled player's ordinal is used to select a player from both team rosters.
+Thus the first rating is not necessarily that of the current team's controlled
+player. This may be an original-game bug, but it is preserved by the port.
+
+The absolute rating difference indexes this table:
+
+    db 16, 17, 18, 19, 20, 21, 22, 23
+
+A random value from 0 through 31 is generated. Surprisingly, the team with the
+lower rating wins if the random value is below the table entry. Otherwise the
+higher-rated team wins. Consequently the lower-rated side's chance is:
+
+    (16 + ratingDifference) / 32
+
+This is 50% for equal ratings and rises to 71.875% at the maximum difference
+of 7. The probability therefore appears inverted: a larger skill disadvantage
+improves the weaker side's chance. This behavior is present in swos.asm and is
+preserved for deterministic compatibility.
+
+The selected team receives a won-the-ball timer of 12. The ball is stopped and
+its destination is set to its current position. No further controlled-ball
+processing is done during that invocation.
+
+=== Movement with the ball
+
+Outside a possession contest, CalculateIfPlayerWinsBall() stores the requested
+control direction and moves the ball toward a point 1000 coordinate units ahead
+of the player, using kDefaultDestinations. If the ball is rising, its delta z is
+set to -1, making it start descending very gently. When the player is moving
+straight upward and the ball is fewer than 4 pixels away horizontally, the ball
+is nudged one pixel away from the player to prevent exact overlap.
+
+Ball speed normally starts at player speed. On ticks where bit 1 of currentTick
+is set, the following ball-control-dependent value is added:
+
+    dw 130, 116, 102, 88, 74, 60, 46, 32
+
+These are Q7.9 speed values, approximately 0.254 down to 0.063 pixels per tick.
+Poor control therefore makes the ball run farther ahead. Another 256 (0.5 in
+Q7.9) is added when the player's continuous movement angle lies within 90
+degrees of the sprite's eight-way facing direction.
+
+When the requested control direction differs from the sprite's facing
+direction, offset 108 is incremented. Its limit depends on ball-control skill:
+
+    dw 4, 5, 6, 8, 11, 14, 17, 21
+
+Reaching the limit sets the team's won-the-ball timer to 8. Better ball control
+therefore tolerates a direction mismatch for longer. Finally, both teams' ball
+spin timers are reset.
+
 
 === Injuries
 

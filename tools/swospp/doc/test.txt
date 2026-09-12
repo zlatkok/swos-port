@@ -1,3 +1,9 @@
+Legacy SWOS++ manual test checklist
+===================================
+
+This checklist predates the swos-port helper edition. It remains useful when
+validating affected DOS behavior, but it is not the swos-port test plan.
+
 Basic:
 - create multiplayer game
 - join multiplayer game

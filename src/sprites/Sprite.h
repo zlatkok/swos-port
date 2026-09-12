@@ -1,6 +1,7 @@
 #pragma once
 
 #include "animation.h"
+#include "direction.h"
 
 enum class PlayerState : uint8_t
 {
@@ -30,6 +31,12 @@ enum class DestinationState : uint16_t
     kReached = 3,
 };
 
+enum class TackleState : uint16_t {
+    kStarted = 0,
+    kTackling = 1,
+    kGoodTackle = 2,
+};
+
 #pragma pack(push, 1)
 struct Sprite
 {
@@ -38,7 +45,7 @@ struct Sprite
     uint16_t frameOffset;
     int16_t animTable;
     int16_t tag01;
-    int16_t startingDirection;
+    Direction startingDirection;
     PlayerState state;
     int8_t playerDownTimer;
     uint16_t unk001;
@@ -52,7 +59,7 @@ struct Sprite
     FixedPoint x;
     FixedPoint y;
     FixedPoint z;
-    int16_t direction;
+    Direction direction;
     int16_t speed;          // signed Q7.9 magnitude; 512 represents 1 pixel/tick before PC scaling
     FixedPoint deltaX;
     FixedPoint deltaY;
@@ -73,7 +80,7 @@ struct Sprite
     uint16_t unk008;
     int16_t playerDirection;
     uint16_t isMoving;
-    uint16_t tackleState;
+    TackleState tackleState;
     uint16_t isHeadingBall;
     DestinationState destReachedState;
     int16_t cards;
@@ -128,5 +135,14 @@ struct Sprite
     void setToNormalState() {
         state = PlayerState::kNormal;
     }
+    bool isGoalkeeper() const {
+        return playerOrdinal == 1;
+    }
 };
 #pragma pack(pop)
+
+// Sprite planar speed is signed Q7.9, where 1.0 represents one pixel per tick.
+constexpr int16_t operator""_speed(long double value)
+{
+    return static_cast<int16_t>(value * 512.0L);
+}

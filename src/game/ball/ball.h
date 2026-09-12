@@ -18,6 +18,7 @@ void resetBothTeamSpinTimers();
 Sprite& getBallSprite();
 Sprite& getBallShadowSprite();
 const BallDestinationTable& getBallDestCoordinatesTable();
+const BallDestinationTable& getDefaultBallDestinations();
 void setBallPosition(int x, int y);
 int32_t getBallAirFriction();
 void setBallAirFriction(int32_t friction);

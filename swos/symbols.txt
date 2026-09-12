@@ -24,7 +24,8 @@ ShowRestOfPics - GameOver
 copySpriteAllowAND - stateGoal
 StartFirstExtraTime - DoGoalkeeperSprites
 SetJumpHeaderHitAnimTable
-EnqueueDeletedSample - PlayGoodTackleComment
+PlayKickSample
+EnqueueDeletedSample - PlayPostHitComment
 SetStaticHeaderDirection
 PlayerHittingStaticHeader - GetFilenameAndExtension
 kPlayerShotChanceTable - AI_turnDirection
@@ -60,7 +61,12 @@ playerCardChances3min - ballOutOfGameTimer
 team1GoalkeeperReplaced - statsTimer
 whiteGuyConvertTable - topTeamPtr
 kBallSpeedBounceFactorTable - kBallAirFriction
-kTeamsStartingCoordinates - kGoalieSkillTables
+kDefaultDestinations - dseg_17DEF4
+# player constants; keep the surrounding values still used in updatePlayers.cpp
+kBallJumpHeaderDeltaZ
+kPlayerHeaderSpeedIncrease - kInjuryLevels
+kStrongTackleDownTime - dseg_17E3EE
+kGoalieSkill7Table - kStaticHeaderPlayerSpeed
 
 # pitches
 DrawPatternFromIndex
@@ -69,7 +75,7 @@ aChris_0 - aDataPoolplyr_d
 # + convertKeysTable + outerFrameColorsTable + nextEntryDirectionOffsets
 aGrafsLoader00_ - g_pitchDatBuffer
 # remove intro image reel data too
-aSfxFlcWincup_r - goodPassSampleCommand
+aSfxFlcWincup_r - ballXQuadrantLimits
 fansSidesSwapped
 animPatternsIndex - animPatternsState
 
@@ -131,7 +137,7 @@ g_joy1Fire2 - dosMemOfs60c00h
 PlayHitFrameComment
 SetVolumeOrStopChants - PlayPenaltyComment
 PlayBallBounceSample - PlayFansChant10lSample
-PlayEndGameWhistleSample
+PlayRefereeWhistleSample - PlayFoulWhistleSample
 PlayNearMissComment
 #g_commentary   # career file buffer
 # + intro stuff
@@ -153,7 +159,7 @@ g_gotExtraMemoryForSamples - playingGoodPassTimer
 
 # referee + frame tables + ball spin tables
 CheckIfBallOutOfPlay - EndFirstHalf
-kHighKickDeltaZ - dseg_110D8D
+kBallKickingDeltaZ - dseg_110D8D
 staticHeaderAttemptAnimTable - animTablesEnd
 team2PlayerGettingYellowCardFrames - animTablesStart
 jumpHeaderHitTeam1BottomFrames - staticHeaderAttemptTeam1TopFrames
@@ -241,10 +247,8 @@ ballMovingFrameIndices - goalCounter
 # must keep ballSprite for now, too many references
 ballShadowSprite - gridUpperRowLeftSprite
 kControlledBallSpeedReduction - kPlayerGroundConstant
-kLeftThrowInBallDestDelta - dseg_17DEF4
 # from CheckIfBallOutOfPlay
 teamNumThatScored
-playRefereeWhistle
 
 # startPenalties/nextPenalty
 statsTeam1GoalsCopy2 - statsTeam1GoalsCopy
@@ -257,6 +261,11 @@ hilStarted
 deadHilVar
 writeOnlyVar02 - dseg_132804
 ballUpdatedByGoalkeeper
+timeVar
+deadCameraBreakVar04
+initialKickWriteOnlyTicks
+deadCameraBreakVar01 - forceLeftTeam
+writeOnlyVar03
 
 
 #
@@ -328,8 +337,8 @@ EndOfGame
 @export
 
 # controls
-menuControlsDirection, int16_t
-menuControlsDirection2, int16_t
+menuControlsDirection, Direction
+menuControlsDirection2, Direction
 fire, word
 shortFire, word
 longFireTime, word
@@ -494,10 +503,10 @@ aNotAHighlights, array const char
 
 # camera
 cameraCoordinatesValid, word
-cameraDirection, int16_t
+cameraDirection, Direction
 cameraXVelocity, int16_t
 cameraYVelocity, int16_t
-breakCameraMode, word
+breakCameraMode, CameraBreakMode
 
 # comments
 playingGoodPassTimer, int16_t
@@ -576,6 +585,8 @@ plg_D3_param, word
 team1Computer, word
 team2Computer, word
 whichCard, word
+injuriesForever, word
+ballOutOfGameTimer, word
 refState, word
 lastTeamBooked, TeamGeneralInfo *
 currentScorer, Sprite *
@@ -747,7 +758,6 @@ goalTypeScored, word
 playerXQuadrantOffset, word
 playerYQuadrantOffset, word
 ballQuadrantIndex, word
-kDefaultDestinations, array int16_t
 
 # keep these so the competition buffer integrity static assert could work
 competitionFileBuffer, word
@@ -864,7 +874,6 @@ PlayMatchSelected
 PlayPenaltyComment
 PlayFoulComment
 PlayDangerousPlayComment
-PlayGoodTackleComment
 PlayPostHitComment
 PlayBarHitComment
 PlayKeeperClaimedComment
@@ -874,9 +883,7 @@ PlayGoalComment
 PlayMissGoalSample
 PlayHomeGoalSample
 PlayAwayGoalSample
-PlayRefereeWhistleSample
 PlayFoulWhistleSample
-PlayKickSample
 PlayFansChant8lSample
 PlayFansChant10lSample
 PlayIntroChantSample
@@ -907,3 +914,5 @@ PositionsTable, 72
 TeamTactics, 370
 TeamFile, 684
 TeamGame, 1704
+Direction, 2
+CameraBreakMode, 2

@@ -1,12 +1,13 @@
 #include "animation.h"
 #include "animationTables.cpp"
 
-int16_t AnimationTable::getFrameTableOffset(int direction, int group /* = 0 */) const
+int16_t AnimationTable::getFrameTableOffset(Direction direction, int group /* = 0 */) const
 {
-    assert(direction >= 0 && direction < 8);
+    assert(direction >= Direction::kLowestDirection && direction < Direction::kNumDirections);
     assert(group >= 0 && group < 4);
 
-    if (direction < 0 || direction >= 8 || group < 0 || group >= 4)
+    if (group < 0 || group >= 4 ||
+        direction < Direction::kNoDirection || direction >= Direction::kNumDirections)
         return kInvalidFrameTableOffset;
 
     int packedGroup = 0;
@@ -26,7 +27,7 @@ int16_t AnimationTable::getFrameTableOffset(int direction, int group /* = 0 */) 
                 packedGroup++;
     }
 
-    const auto offset = getFrameTableOffsets()[direction + packedGroup * 8];
+    const auto offset = getFrameTableOffsets()[static_cast<int>(direction) + packedGroup * 8];
     assert(isValidFrameTableOffset(offset));
     return offset;
 }
@@ -39,7 +40,7 @@ static void setPlayerAnimationTable(Sprite& player, int16_t animationTableOffset
         return;
 
     // frame tables: goalkeeper 1, goalkeeper 2, player team 1, player team 2
-    int group = 2 * (player.playerOrdinal == 1) + (player.teamNumber - 1);
+    int group = 2 * player.isGoalkeeper() + (player.teamNumber - 1);
     auto frameTableOffset = animation->getFrameTableOffset(player.direction, group);
     assert(frameTableOffset != kInvalidFrameTableOffset);
     if (frameTableOffset == kInvalidFrameTableOffset)

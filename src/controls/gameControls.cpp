@@ -79,7 +79,7 @@ void updateTeamControls(TeamGeneralInfo *team)
 
     if (!team->resetControls) {
         if (inBench()) {
-            team->currentAllowedDirection = kNoDirection;
+            team->currentAllowedDirection = Direction::kNoDirection;
             team->quickFire = 0;
             team->normalFire = 0;
             team->firePressed = 0;
@@ -160,9 +160,9 @@ bool getFireStartedAndBumpFireCounter(bool currentFire, PlayerNumber player /* =
     return fireStartedThisFrame;
 }
 
-int16_t eventsToDirection(GameControlEvents events)
+Direction eventsToDirection(GameControlEvents events)
 {
-    int16_t direction = kNoDirection;
+    auto direction = Direction::kNoDirection;
 
     bool left = (events & kGameEventLeft) != 0;
     bool right = (events & kGameEventRight) != 0;
@@ -170,47 +170,46 @@ int16_t eventsToDirection(GameControlEvents events)
     bool down = (events & kGameEventDown) != 0;
 
     if (up && right)
-        direction = kFacingTopRight;
+        direction = Direction::kTopRight;
     else if (down && right)
-        direction = kFacingBottomRight;
+        direction = Direction::kBottomRight;
     else if (down && left)
-        direction = kFacingBottomLeft;
+        direction = Direction::kBottomLeft;
     else if (up && left)
-        direction = kFacingTopLeft;
+        direction = Direction::kTopLeft;
     else if (up)
-        direction = kFacingTop;
+        direction = Direction::kTop;
     else if (right)
-        direction = kFacingRight;
+        direction = Direction::kRight;
     else if (down)
-        direction = kFacingBottom;
+        direction = Direction::kBottom;
     else if (left)
-        direction = kFacingLeft;
-
+        direction = Direction::kLeft;
     return direction;
 }
 
-GameControlEvents directionToEvents(int16_t direction)
+GameControlEvents directionToEvents(Direction direction)
 {
     switch (direction) {
-    case kFacingTop:
+    case Direction::kTop:
         return kGameEventUp;
-    case kFacingTopRight:
+    case Direction::kTopRight:
         return kGameEventUp | kGameEventRight;
-    case kFacingRight:
+    case Direction::kRight:
         return kGameEventRight;
-    case kFacingBottomRight:
+    case Direction::kBottomRight:
         return kGameEventDown | kGameEventRight;
-    case kFacingBottom:
+    case Direction::kBottom:
         return kGameEventDown;
-    case kFacingBottomLeft:
+    case Direction::kBottomLeft:
         return kGameEventDown | kGameEventLeft;
-    case kFacingLeft:
+    case Direction::kLeft:
         return kGameEventLeft;
-    case kFacingTopLeft:
+    case Direction::kTopLeft:
         return kGameEventUp | kGameEventLeft;
     default:
         assert(false);
-    case kNoDirection:
+    case Direction::kNoDirection:
         return kNoGameEvents;
     }
 }

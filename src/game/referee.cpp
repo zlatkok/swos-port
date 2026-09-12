@@ -8,7 +8,7 @@
 #include "comments.h"
 #include "pitchConstants.h"
 
-constexpr int kRefereeSpeed = 1'024;
+constexpr auto kRefereeSpeed = 2.0_speed;
 
 constexpr int kRefereeHidingPlaceX = 276;
 constexpr int kRefereeHidingPlaceY = 439;
@@ -99,7 +99,7 @@ void removeReferee()
     m_refereeSprite.frameIndex = -1;
     m_refereeSprite.cycleFramesTimer = 1;
     m_refereeSprite.clearImage();
-    m_refereeSprite.direction = kFacingTop;
+    m_refereeSprite.direction = Direction::kTop;
     m_refereeSprite.onScreen = 1;
     initRefereeAnimationTable(getRefWaitingAnimTable());
 }
@@ -233,7 +233,7 @@ static void updateRefereeState()
 
         if (m_refereeSprite.stationary()) {
             swos.refState = kRefWaitingPlayer;
-            m_refereeSprite.direction = kFacingLeft;
+            m_refereeSprite.direction = Direction::kLeft;
             initRefereeAnimationTable(getRefWaitingAnimTable());
         }
         break;

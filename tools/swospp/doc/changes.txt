@@ -1,3 +1,9 @@
+Historical standalone SWOS++ release notes
+==========================================
+
+These notes predate the swos-port helper edition. Current helper changes are
+tracked in the swos-port Git history.
+
 1.9.2.1
 - joystick handling vastly improved when playing in DOSBox (go ahead, try it :))
 - watchers should work again

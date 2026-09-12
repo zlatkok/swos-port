@@ -29,13 +29,13 @@ void menuProc()
 
     // we deviate a bit from SWOS behavior here, as it seems like a bug to me: originally only the field in
     // the current menu is assigned but not the activeEntry variable, leading to a potential nullptr access
-    if (!activeEntry && swos.menuControlsDirection >= 0 && swos.previousMenuItem)
+    if (!activeEntry && swos.menuControlsDirection >= Direction::kLowestDirection && swos.previousMenuItem)
         activeEntry = currentMenu->selectedEntry = swos.previousMenuItem;
 
     if (activeEntry) {
         selectEntryWithControlMask(activeEntry);
         nextEntry = handleSwitchingToNextEntry(activeEntry, nextEntry);
-    } else if (swos.menuControlsDirection < 0) {
+    } else if (swos.menuControlsDirection < Direction::kLowestDirection) {
         return;
     } else if (swos.previousMenuItem) {
         currentMenu->selectedEntry = swos.previousMenuItem;
@@ -60,12 +60,12 @@ static void selectEntryWithControlMask(MenuEntry *entry)
 static MenuEntry *handleSwitchingToNextEntry(const MenuEntry *activeEntry, MenuEntry *nextEntry)
 {
     // if no fire but there's a movement, try moving to the next entry
-    if (!swos.fire && swos.menuControlsDirection >= 0) {
+    if (!swos.fire && swos.menuControlsDirection >= Direction::kLowestDirection) {
         // map direction values (down, right, left, up) to order in MenuEntry structure
         static const size_t nextDirectionOffsets[MenuEntry::kNumDirections] = { 2, 1, 3, 0, };
 
         // this will hold the offset of the next entry to move to (direction)
-        int nextEntryDirection = nextDirectionOffsets[(swos.menuControlsDirection >> 1) & 3];
+        int nextEntryDirection = nextDirectionOffsets[(static_cast<int>(swos.menuControlsDirection) >> 1) & 3];
         auto nextEntryIndex = (&activeEntry->leftEntry)[nextEntryDirection];
 
         nextEntry = findNextEntry(nextEntryIndex, nextEntryDirection);
@@ -109,8 +109,8 @@ static int getControlMask(int entryControlMask)
     if (swos.down)
         controlMask |= kDownMask;
 
-    if (swos.menuControlsDirection >= 0) {
-        switch (swos.menuControlsDirection >> 1) {
+    if (swos.menuControlsDirection >= Direction::kLowestDirection) {
+        switch (static_cast<int>(swos.menuControlsDirection) >> 1) {
         case 0:
             controlMask |= kUpRightMask;
             break;

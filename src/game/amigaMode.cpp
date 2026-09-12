@@ -75,7 +75,7 @@ void checkForAmigaModeDirectionFlipBan(const Sprite *sprite)
 void writeAmigaModeDirectionFlip(TeamGeneralInfo *team)
 {
     if (m_preventDirectionFlip) {
-        team->currentAllowedDirection = -1;
+        team->currentAllowedDirection = Direction::kNoDirection;
         D0.lo16 = -1;
         SwosVM::ax = -1;
     }

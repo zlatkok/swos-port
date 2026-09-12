@@ -762,7 +762,7 @@
     <ClInclude Include="..\..\src\game\pitch\pitchConstants.h">
       <Filter>Source Files\project-files\game\pitch</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\playerDirection.h">
+    <ClInclude Include="..\..\src\game\direction.h">
       <Filter>Source Files\project-files\game</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\referee.h">

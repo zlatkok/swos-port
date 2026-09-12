@@ -239,10 +239,10 @@ static void testCustomSfx()
         int offset = 0;
     } static const kSfxTestData[] = {
         { playCrowdNoise, "bgcrd3l.mp3" },
-        { PlayRefereeWhistleSample, "whistle.raw", kSizeofWaveHeader },
+        { playRefereeWhistleSample, "whistle.raw", kSizeofWaveHeader },
         { playEndGameWhistleSample, "endgamew.mp3" },
         { PlayFoulWhistleSample, "foul.mp3" },
-        { PlayKickSample, "kickx.mp3" },
+        { playKickSample, "kickx.mp3" },
         { playBallBounceSample, "bouncex.ogg" },
     };
 
@@ -345,7 +345,7 @@ static void testEmptyCategories()
         { "end_game_so_close", triggerDrawComment },
         { "goal", PlayGoalComment, disablePenalties },
         { "good_play", triggerGoodPassComment },
-        { "good_tackle", PlayGoodTackleComment },
+        { "good_tackle", playGoodTackleComment },
         { "hit_bar", PlayBarHitComment },
         { "hit_post", PlayPostHitComment },
         { "injury", [] { playInjuryComment(*team); } },
@@ -470,7 +470,7 @@ void CommentaryTest::testHandlingBadFile()
         for (int j = 0; j < 3; j++) {
             resetMockSdlMixer();
 
-            PlayGoodTackleComment();
+            playGoodTackleComment();
 
             auto chunk = getAndCheckLastPlayedChunk();
             char expectedData[2] = { static_cast<char>('A' + j), '\0' };
@@ -490,7 +490,7 @@ void CommentaryTest::testCommentInterruption()
     PlayFoulComment();
     auto chunk = getAndCheckLastPlayedChunk();
 
-    PlayGoodTackleComment();
+    playGoodTackleComment();
     auto chunk2 = getAndCheckLastPlayedChunk();
     assertEqual(chunk, chunk2);
 
@@ -680,7 +680,7 @@ void CommentaryTest::testZipFileComments()
         { 6, 6, PlayFoulComment, "free_kick", 9 },
         { 3, 3, PlayGoalComment, "goal", 4, 3 },
         { 4, 1, triggerGoodPassComment, "good_pay", 8 },
-        { 4, 1, PlayGoodTackleComment, "tackled.mp3", 12 },
+        { 4, 1, playGoodTackleComment, "tackled.mp3", 12 },
         { 4, 1, [] { playHeaderComment(*team); }, "header", 7, 1},
         { 3, 0, PlayBarHitComment, nullptr, 0, 0 },
         { 4, 4, triggerRedCardSample, "red_card", 8 },

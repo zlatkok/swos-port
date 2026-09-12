@@ -1,5 +1,7 @@
 #pragma once
 
+constexpr int kEndOfHalfResultTimer = 30'000;
+
 enum class GoalType {
     kRegular,
     kPenalty,

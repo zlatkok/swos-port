@@ -1,5 +1,14 @@
-                                      SWOS++
-                                      ======
+                     SWOS++ - swos-port helper edition
+                     =================================
+
+This source tree is an internal compatibility tool for swos-port. It is used
+to run the original DOS game as a behavioral reference and to record data for
+comparison tests. It is not the normal standalone SWOS++ distribution. See
+../README.md for its current purpose and relationship to the separately
+maintained SWOS++ project.
+
+The installation instructions below apply only when a developer intentionally
+builds this helper and installs it into a backed-up SWOS 96/97 directory.
 
 === Installation and uninstallation
 
@@ -16,8 +25,8 @@ To install SWOS++, you must do the following:
 
 to directory where SWOS is installed.
 
-2) run patchit.com, and select '1' (install) from menu - if everything went
-allright, you should get a reply: "Patched OK."
+2) run patchit.com, and select '1' (install) from the menu. If everything went
+all right, you should get the reply "Patched OK."
 
 Now SWOS++ is installed and ready to use.
 
@@ -54,7 +63,7 @@ but I do welcome comments and suggestions.
 
 === Copyright
 
-The contents of this archive are copyright (c) 2002-2019. Zlatko Karakas.
+The original SWOS++ material is copyright (c) 2002-2026 Zlatko Karakas.
 The games SWOS, SWOS '95/'96, SWOS Euro Edition, SWOS '96/'97 and their data
 files are (c) 1995, 1996, 1997. Sensible Software Ltd.
 

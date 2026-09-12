@@ -3,6 +3,11 @@
 constexpr int kPitchCenterX = 336;
 constexpr int kPitchCenterY = 449;
 
+constexpr int kPitchUpperThirdYLimit = 342;
+constexpr int kPitchMiddleThirdYLimit = 556;
+
+constexpr int kBallOffCourtX = 1672;
+
 constexpr int kLeftThrowInLine = 81;
 constexpr int kRightThrowInLine = 590;
 constexpr int kTopPitchLine = 129;

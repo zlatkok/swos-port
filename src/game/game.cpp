@@ -17,7 +17,7 @@
 #include "replays.h"
 #include "pitch.h"
 #include "pitchConstants.h"
-#include "playerDirection.h"
+#include "direction.h"
 #include "bench.h"
 #include "updateBench.h"
 #include "team.h"
@@ -425,7 +425,7 @@ void initTeamsData()
     swos.gameStatePl = GameState::kInProgress;
     swos.gameState = GameState::kInProgress;
     swos.breakState = 0;
-    swos.breakCameraMode = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
 
     auto team = &swos.topTeamData;
     auto opponentTeam = &swos.bottomTeamData;
@@ -469,7 +469,7 @@ void initTeamsData()
         team->passKickTimer = 0;
         team->ballCanBeControlled = 0;
         team->ofs114 = 0;
-        team->ballControllingPlayerDirection = -1;
+        team->ballControllingDirection = Direction::kNoDirection;
         team->ofs116 = 0;
         team->wonTheBallTimer = 0;
         team->spinTimer = -1;
@@ -512,7 +512,7 @@ void initPlayersBeforeEnteringPitch()
             player->frameIndex = -1;
             player->cycleFramesTimer = 1;
             player->clearImage();
-            player->direction = 0;
+            player->direction = Direction::kTop;
             player->onScreen = 1;
             if (swos.gameState == GameState::kStartingGame) {
                 player->sentAway = 0;
@@ -532,9 +532,9 @@ void playersLeavingPitch()
     swos.hideBall = 0;
     swos.stoppageEventTimer = kDelayBeforeLeavingPitch;
     swos.gameState = GameState::kPlayersGoingToShower;
-    swos.breakCameraMode = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
     swos.gameStatePl = GameState::kStopped;
-    swos.cameraDirection = -1;
+    swos.cameraDirection = Direction::kNoDirection;
     swos.lastTeamPlayedBeforeBreak = &swos.topTeamData;
     swos.stoppageTimerTotal = 0;
     swos.stoppageTimerActive = 0;
@@ -607,10 +607,10 @@ void nextPenalty()
         swos.hideBall = 0;
         initTeamsData();
         swos.gameState = GameState::kPenaltyShootout;
-        swos.breakCameraMode = -1;
-        swos.cameraDirection = 0;
-        swos.playerTurnFlags = allowPlayerDirections(
-            PlayerDirection::kUpLeft, PlayerDirection::kUp, PlayerDirection::kUpRight);
+        swos.breakCameraMode = CameraBreakMode::kInactive;
+        swos.cameraDirection = Direction::kTop;
+        swos.playerTurnFlags = makeDirectionMask(
+            Direction::kTopLeft, Direction::kTop, Direction::kTopRight);
         swos.foulXCoordinate = kPitchCenterX;
         swos.foulYCoordinate = kTopPenaltySpotY;
         swos.gameStatePl = GameState::kStopped;
@@ -643,9 +643,9 @@ void startFirstExtraTime()
     initTeamsData();
     swos.stoppageEventTimer = 110;
     swos.gameState = GameState::kFirstExtraStarting;
-    swos.breakCameraMode = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
     swos.gameStatePl = GameState::kStopped;
-    swos.cameraDirection = -1;
+    swos.cameraDirection = Direction::kNoDirection;
     swos.lastTeamPlayedBeforeBreak = swos.teamStarting == swos.teamPlayingUp ?
         &swos.topTeamData : &swos.bottomTeamData;
     swos.stoppageTimerTotal = 0;
@@ -664,9 +664,9 @@ void endFirstExtraTime()
     initTeamsData();
     swos.stoppageEventTimer = 110;
     swos.gameState = GameState::kFirstExtraEnded;
-    swos.breakCameraMode = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
     swos.gameStatePl = GameState::kStopped;
-    swos.cameraDirection = -1;
+    swos.cameraDirection = Direction::kNoDirection;
     swos.lastTeamPlayedBeforeBreak = swos.teamStarting == swos.teamPlayingUp ?
         &swos.topTeamData : &swos.bottomTeamData;
     swos.stoppageTimerTotal = 0;
@@ -679,13 +679,12 @@ void endFirstExtraTime()
 void checkIfGoalkeeperClaimedTheBall()
 {
     if (swos.gameState == GameState::kKeeperHoldsTheBall) {
+        assert(swos.lastTeamPlayedBeforeBreak);
         auto team = swos.lastTeamPlayedBeforeBreak;
-        A6 = team;
-        A1 = team->players[0];
-        A2 = &swos.ballSprite;  // the original game fails to set this
-        goalkeeperClaimedTheBall();
+        // the original game fails to set A2 to ball sprite
+        goalkeeperClaimedTheBall(*team, *team->players[0], swos.ballSprite);
     } else {
-        swos.breakCameraMode = -1;
+        swos.breakCameraMode = CameraBreakMode::kInactive;
         swos.gameStatePl = GameState::kStopped;
         swos.stoppageTimerTotal = 0;
         swos.stoppageTimerActive = 0;
@@ -911,13 +910,12 @@ static void initGameVariables()
 
 static void startingMatch()
 {
-    constexpr int kStartingBallX = 1672;
     constexpr int kStartingBallY = 449;
     constexpr int kInitialDelayBeforeKickOff = 100;
 
     swos.halfNumber = 1;
     swos.hideBall = 0;
-    setBallPosition(kStartingBallX, kStartingBallY);
+    setBallPosition(kBallOffCourtX, kStartingBallY);
 
     initTeamsData();    // careful, this function resets some stuff, so keep it up here for now
 
@@ -928,8 +926,8 @@ static void startingMatch()
     swos.stoppageTimerTotal = 0;
     swos.stoppageTimerActive = 0;
 
-    swos.breakCameraMode = -1;
-    swos.cameraDirection = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
+    swos.cameraDirection = Direction::kNoDirection;
     swos.cameraXVelocity = 0;
     swos.cameraYVelocity = 0;
 

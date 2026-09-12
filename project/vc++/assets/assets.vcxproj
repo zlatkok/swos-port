@@ -62,4 +62,7 @@
     <Message Importance="High" Text="Compiling sprite and pitch assets..." />
     <Exec Command="python &quot;$(SolutionDir)..\..\assets\compileAssets.py&quot;" WorkingDirectory="$(SolutionDir)..\..\assets" />
   </Target>
+  <Target Name="CleanCompiledAssets" BeforeTargets="Clean">
+    <Delete Files="$(SolutionDir)..\..\tmp\assets\spriteDatabase.h;$(SolutionDir)..\..\tmp\assets\variableSprites.h;$(SolutionDir)..\..\tmp\assets\pitchDatabase.h;$(SolutionDir)..\..\tmp\assets\stadiumSprites.h;$(SolutionDir)..\..\tmp\assets\assets.stamp" />
+  </Target>
 </Project>

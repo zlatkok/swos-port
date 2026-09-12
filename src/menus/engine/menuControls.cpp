@@ -87,8 +87,8 @@ void resetControls()
     swos.right = 0;
     swos.up = 0;
     swos.down = 0;
-    swos.menuControlsDirection = -1;
-    swos.menuControlsDirection2 = -1;
+    swos.menuControlsDirection = Direction::kNoDirection;
+    swos.menuControlsDirection2 = Direction::kNoDirection;
 }
 
 // Only in a single frame.
@@ -127,7 +127,7 @@ static void updateLongFireTimer()
 static void handleControlDelay()
 {
     static Uint32 s_noRepeatedInputUntil;
-    static int s_lastControls;
+    static Direction s_lastControls;
 
     auto now = SDL_GetTicks();
     if (swos.menuControlsDirection != s_lastControls) {
@@ -139,7 +139,7 @@ static void handleControlDelay()
             int repeatDelay = swos.fire ? kFireRepeatRate : kMovementRepeatRate;
             s_noRepeatedInputUntil = now + repeatDelay;
         } else {
-            swos.menuControlsDirection = -1;
+            swos.menuControlsDirection = Direction::kNoDirection;
         }
     }
 }

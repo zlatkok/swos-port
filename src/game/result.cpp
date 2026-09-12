@@ -41,7 +41,6 @@ constexpr int kResultDigit1Offset = 4;
 constexpr int kResultAtHalfTimeLength = 275;
 constexpr int kResultAtGameBreakLength = 165;
 
-constexpr int kEndOfHalfResult = 30'000;
 constexpr int kGameBreakResult = 31'000;
 constexpr int kMaxResultTicks = 32'000;
 constexpr int kResultTickClamped = 29'000;
@@ -123,7 +122,7 @@ void updateResult()
     if (swos.resultTimer < 0) {
         hideResult();
     } else if (swos.resultTimer > 0) {
-        if (swos.resultTimer == kEndOfHalfResult || swos.resultTimer == kGameBreakResult || swos.resultTimer == kMaxResultTicks) {
+        if (swos.resultTimer == kEndOfHalfResultTimer || swos.resultTimer == kGameBreakResult || swos.resultTimer == kMaxResultTicks) {
             resetResultTimer();
             m_showResult = true;
         }
@@ -249,10 +248,10 @@ void goalScored(int teamNum, Sprite& scorer)
 
 static void resetResultTimer()
 {
-    assert(swos.resultTimer == kEndOfHalfResult || swos.resultTimer == kGameBreakResult || swos.resultTimer == kMaxResultTicks);
+    assert(swos.resultTimer == kEndOfHalfResultTimer || swos.resultTimer == kGameBreakResult || swos.resultTimer == kMaxResultTicks);
 
     switch (swos.resultTimer) {
-    case kEndOfHalfResult:
+    case kEndOfHalfResultTimer:
         swos.resultTimer = kResultAtHalfTimeLength;
         break;
     case kGameBreakResult:

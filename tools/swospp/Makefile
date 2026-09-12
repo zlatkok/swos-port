@@ -16,7 +16,6 @@ ZIP = "c:\Program Files\Winzip\winzip32.exe"
 OBJ_DIR  := obj
 BIN_DIR  := bin
 DIST_DIR := dist
-DOC_DIR  := doc
 VAR_DIR  := var
 DBG_DIR  := $(OBJ_DIR)/dbg
 REL_DIR  := $(OBJ_DIR)/rel
@@ -56,7 +55,7 @@ $(BIN_DIR)/patchit.com :
 
 dist : rel $(DIST_DIR)/swospp.zip
 
-$(DIST_DIR)/swospp.zip : $(DOC_DIR)\\file_id.diz $(DOC_DIR)\\readme.txt \
+$(DIST_DIR)/swospp.zip : README.md LICENSE.txt \
                          $(BIN_DIR)\\patchit.com $(BIN_DIR)\\loader.bin \
                          $(BIN_DIR)\\swospp.bin
 	@echo Creating distributable archive...

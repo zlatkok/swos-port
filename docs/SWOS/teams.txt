@@ -484,7 +484,12 @@ offset:  size:  desc.
                 AI compares it to 13
  104       4    pointer to some sprite (which one I don't know yet)
                 changes during passes and kicks
- 108       2    ???
+ 108       2    ball direction-change timer; incremented while the requested
+                control direction differs from the controlled player's facing
+                direction; compared against a ball-control-dependent limit:
+                4, 5, 6, 8, 11, 14, 17, 21
+                reaching the limit sets offset 138 to 8; reset to zero when
+                the nearby player has no allowed movement directions
  110       2    true when the ball can be controlled, when it is "at rest";
                 false during kicks and passes (sticky)
  112       2    direction of the player controlling the ball; changes only
@@ -534,8 +539,11 @@ offset:  size:  desc.
                 != 0:  1, 2, 3                      ; right spin
                 == 0 && offset 134 != 1: 0, -999, 4 ; normal, standard or
                                                     ; strong kick
- 138       2    possibly timer, while active ball can't be won over from the player that controls it
-                gets set to 12 when a player in the opposing team tackles the ball
+ 138       2    won-the-ball/possession lock timer; while nonzero, the normal
+                takeover path is skipped; decremented once per player update
+                set to 12 for the team selected by a contested-possession
+                calculation, and to 8 after offset 108 reaches its
+                ball-control-dependent limit
  140       2    true if goalkeeper controls the ball like a regular player;
                 from what I have seen, zero during a match
  142       2    if != 0, skip AI; do not update the ball if true

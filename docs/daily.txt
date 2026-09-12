@@ -6228,3 +6228,55 @@ startFirstExtraTime, endFirstExtraTime and now game.cpp is fully cleansed from t
 05.09.2026.
 - fixed bunch of digit sprites + a few more, mostly with AI
 - fixed an overflow read in replays
+06.09.2026.
+- continued cleaning up the new game sprites: fixed transparent star interiors, invalid dimensions, clipped
+  digits and incorrect sprite center-coordinate files
+- extracted and replaced all three number sets from the generated sprite sheet: shirt numbers, match-time
+  digits and score digits
+- fixed the "mins." sprite and painstakingly aligned all minute combinations from 1 to 120; also corrected
+  the oversized result zero and reduced the heavy black outlines
+- investigated sprite usage and removed unnecessary center-coordinate files where the default image center
+  is already used
+- added Windows demo packaging scripts and documentation; the package now includes the executable, runtime
+  DLLs, assets and a clearly marked placeholder/demo data archive containing audio, data and swos.ini
+- added an on-demand GitHub Actions packaging workflow and made local packaging detect missing or stale
+  Release builds instead of silently producing broken archives
+- fixed the black ball frame in packaged builds by ensuring the executable and compiled sprite atlas belong
+  to the same build
+- fixed title/menu music transitions: missing title music now behaves like leaving the title screen, menu
+  music resumes after a match and the intermittent startup restart was removed
+- made both left and right Ctrl work as the default menu fire control, including configurations generated
+  when swos.ini is missing
+- finally committed the huge animation tables, sprite refresh, game code conversion and Windows demo,
+  published swos-port and SWPE release archives
+07.09.2026.
+- cleaned up, translated and updated the bundled SWOS++ documentation, and applied the relevant changes to
+  the standalone SWOS++ tree as well
+- fixed several Visual Studio incremental-build problems: parallel compiler PDB access, ida2asm rebuilding
+  unnecessarily, misleading token lookup generation messages and stale/garbled sprite atlases; asset
+  compilation now gets SWOS_DIR from the environment
+- investigated and fixed the Wine crash report without introducing a meaningful performance penalty
+- consolidated PlayerDirection/Direction handling and fixed the recorded-data regressions caused by the
+  refactoring
+- removed obsolete updateGoals.cpp, restored the goalScored() name and cleaned up related references
+- converted markPlayer() and updateGameTimersAndCameraBreakMode() to proper C++, now updateGame.cpp is free
+  from generated code; only player.cpp and updatePlayers remaining!
+- shared match timing/pitch constants instead of repeating magic values
+08.09.2026.
+- replaced all cameraBreakMode magic numbers with a proper CameraBreakMode enum, including the inactive
+  state and every stage of the restart sequence
+- continued converting player.cpp, including header handling, pass target selection, tackle downtime and
+  good-pass sample state
+09.09.2026.
+- converted doPass() and some small routines
+10.09.2026.
+- continued converting player.cpp: updateBallWithControllingPlayer(),
+  updateBallWithControllingGoalkeeper(), goalkeeperDeflectedBall(), goalkeeperClaimedTheBall(),
+  playerTackledTheBallWeak(), playerTackledTheBallStrong()
+11.09.2026.
+- playerHittingJumpHeader() and playerHittingStaticHeader() converted
+- added Ko-fi project funding information
+12.09.2026.
+- finished the remaining two functions from players.cpp: playerKickingBall() and calculateIfPlayerWinsBall()
+- players.cpp status clean! removed orphaned SWOS data items as well, and now we're in the summit of
+  updatePlayers.cpp mountain ;)

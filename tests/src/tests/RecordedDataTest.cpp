@@ -367,16 +367,16 @@ void RecordedDataTest::verifyTeam(const TeamGeneralInfo& recTeam, const TeamGene
     assertEqual(recTeam.tactics, team.tactics);
     assertEqual(recTeam.updatePlayerIndex, team.updatePlayerIndex);
     assertEqual(recTeam.playerHasBall, team.playerHasBall);
-    assertEqual(recTeam.allowedDirections, team.allowedDirections);
-    assertEqual(recTeam.currentAllowedDirection, team.currentAllowedDirection);
-    assertEqual(recTeam.direction, team.direction);
+    assertEqualAsInt(recTeam.allowedDirections, team.allowedDirections);
+    assertEqualAsInt(recTeam.currentAllowedDirection, team.currentAllowedDirection);
+    assertEqualAsInt(recTeam.direction, team.direction);
     assertEqual(recTeam.quickFire, team.quickFire);
     assertEqual(recTeam.normalFire, team.normalFire);
     assertEqual(recTeam.firePressed, team.firePressed);
     assertEqual(!!recTeam.fireThisFrame, !!team.fireThisFrame);
     assertEqual(recTeam.headerOrTackle, team.headerOrTackle);
     assertEqual(recTeam.fireCounter, team.fireCounter);
-    assertEqual(recTeam.allowedPlDirection, team.allowedPlDirection);
+    assertEqualAsInt(recTeam.controlledPlDirection, team.controlledPlDirection);
     assertEqual(recTeam.shooting, team.shooting);
     assertEqual(recTeam.ofs60, team.ofs60);
     assertEqual(recTeam.plVeryCloseToBall, team.plVeryCloseToBall);
@@ -403,9 +403,9 @@ void RecordedDataTest::verifyTeam(const TeamGeneralInfo& recTeam, const TeamGene
     assertEqual(recTeam.ballX, team.ballX);
     assertEqual(recTeam.ballY, team.ballY);
     assertEqual(recTeam.passKickTimer, team.passKickTimer);
-    assertEqual(recTeam.ofs108, team.ofs108);
+    assertEqual(recTeam.ballDirectionChangeTimer, team.ballDirectionChangeTimer);
     assertEqual(recTeam.ballCanBeControlled, team.ballCanBeControlled);
-    assertEqual(recTeam.ballControllingPlayerDirection, team.ballControllingPlayerDirection);
+    assertEqualAsInt(recTeam.ballControllingDirection, team.ballControllingDirection);
     assertEqual(recTeam.ofs114, team.ofs114);
     assertEqual(recTeam.ofs116, team.ofs116);
     assertEqual(recTeam.spinTimer, team.spinTimer);
@@ -513,7 +513,7 @@ void RecordedDataTest::verifySprites(const Sprite *sprites)
         assertEqual(sprite1.teamNumber, sprite2.teamNumber);
         assertEqual(sprite1.playerOrdinal, sprite2.playerOrdinal);
         assertEqual(sprite1.frameOffset, sprite2.frameOffset);
-        assertEqual(sprite1.startingDirection, sprite2.startingDirection);
+        assertEqualAsInt(sprite1.startingDirection, sprite2.startingDirection);
         assertEqualAsInt(sprite1.state, sprite2.state);
         assertEqual(sprite1.playerDownTimer, sprite2.playerDownTimer);
         assertEqual(sprite1.unk001, sprite2.unk001);
@@ -521,7 +521,7 @@ void RecordedDataTest::verifySprites(const Sprite *sprites)
         assertEqual(sprite1.x, sprite2.x);
         assertEqual(sprite1.y, sprite2.y);
         assertEqual(sprite1.z, sprite2.z);
-        assertEqual(sprite1.direction, sprite2.direction);
+        assertEqualAsInt(sprite1.direction, sprite2.direction);
         assertEqual(sprite1.speed, sprite2.speed);
         assertEqual(sprite1.deltaX, sprite2.deltaX);
         assertEqual(sprite1.deltaY, sprite2.deltaY);
@@ -557,9 +557,9 @@ void RecordedDataTest::verifySprites(const Sprite *sprites)
         assertEqual(sprite1.unk008, sprite2.unk008);
         assertEqual(sprite1.playerDirection, sprite2.playerDirection);
         assertEqual(sprite1.isMoving, sprite2.isMoving);
-        assertEqual(sprite1.tackleState, sprite2.tackleState);
+        assertEqualAsInt(sprite1.tackleState, sprite2.tackleState);
         assertEqual(sprite1.isHeadingBall, sprite2.isHeadingBall);
-        assertEqual(static_cast<int>(sprite1.destReachedState), static_cast<int>(sprite2.destReachedState));
+        assertEqualAsInt(sprite1.destReachedState, sprite2.destReachedState);
         assertEqual(sprite1.cards, sprite2.cards);
         assertEqual(sprite1.injuryLevel, sprite2.injuryLevel);
         assertEqual(sprite1.tacklingTimer, sprite2.tacklingTimer);
@@ -619,7 +619,7 @@ void RecordedDataTest::verifyPlayerSpriteOrder(char *players, const TeamGeneralI
     }
 }
 
-void RecordedDataTest::verifyShotChanceTable(int recOffset, SwosDataPointer<const int16_t> table)
+void RecordedDataTest::verifyShotChanceTable(int recOffset, SwosDataPointer<const ShotChanceTable> table)
 {
     if (recOffset == -1)
         assert(table.getRaw() == 0 || table.getRaw() == -1);

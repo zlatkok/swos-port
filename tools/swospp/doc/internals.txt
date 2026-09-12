@@ -1,3 +1,10 @@
+SWOS++ internals and original SWOS integration notes
+===================================================
+
+This document describes the legacy DOS helper under tools/swospp. Paths,
+compiler details and implementation advice are historical unless verified
+against the current source.
+
 This is collection of random useful bits of knowledge, of which some are
 crucial for understanding and modifying the SWOS++ source code.
 

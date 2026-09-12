@@ -1,41 +1,45 @@
-Format za dump varijabli.
+SWOS++ variable dump format
+===========================
 
-Osnovni tipovi:
+This document is an early design specification for the variable-dump facility.
+
+Basic types:
     - byte
     - word
     - dword
 
-Modifikatori osnovnih tipova:
+Basic-type modifiers:
     - signed
     - unsigned
 
-Slozeni tipovi:
-    - nizovi osnovnih tipova
-    - strukture osnovnih tipova
+Compound types:
+    - arrays of basic types
+    - structures composed of basic types
 
-Dodatno:
-    - hex dump
+Additional output:
+    - hexadecimal dump
 
-Najbolje bi bilo sve promenljive koje treba ispisivati drzati u statickom nizu
-terminisanom sa -1 ili nekim posebnim kodom. Taj niz bi najbolje bilo drzati
-u asm fajlu jer je odatle najpotpuniji pristup SWOS promenljivama. Napraviti
-format slican printf-u.
+Variables to be printed should ideally be kept in a static array terminated by
+-1 or another special code. The array is best defined in an assembly file,
+where all SWOS variables are directly accessible. The format should resemble
+printf.
 
-Opcije ispisa (flegovi):
-    - decimalno
-    - hex
-    - oktalno
-    - binarno
+Output options (flags):
+    - decimal
+    - hexadecimal
+    - octal
+    - binary
     - signed
-    - unsigned (ignorisu se kod ne-decimalnih ispisa, idu u jedan bit,
-                unsigned je default)
-    - left align
-    - right align (ova dva idu na jedan bit, left align je default)
+    - unsigned (ignored for non-decimal output; signed and unsigned share one
+                bit, and unsigned is the default)
+    - left-aligned
+    - right-aligned (these share one bit; left-aligned is the default)
     - sign prefix
-    - pad with zeros
-    - prefix value with space if it is signed and positive
-    - prefix hex value with 0x
-    Alignment flagovi od PrintString()-a:
+    - pad with zeroes
+    - prefix a positive signed value with a space
+    - prefix a hexadecimal value with 0x
+
+PrintString() alignment flags:
     #define NO_ALIGNMENT      0
     #define ALIGN_LEFT        1 << ALIGN_LEFT_BIT
     #define ALIGN_RIGHT       1 << ALIGN_RIGHT_BIT
@@ -50,50 +54,50 @@ Opcije ispisa (flegovi):
     #define ALIGN_DOWNRIGHT   ALIGN_DOWN | ALIGN_RIGHT
     #define ALIGN_DOWNLEFT    ALIGN_DOWN | ALIGN_LEFT
 
-Prvo ide tip podatka. Zatim bi isao format ispisa. Sledeca je opciona sirina
-ispisa, pa onda opciona preciznost. Na kraju dolazi pointer na podatak koji se
-ispisuje. Takodje bi opciono mogao da dodje i pointer na ime podatka.
+The data type comes first, followed by the output format, optional width,
+optional precision, and finally a pointer to the value. A pointer to the
+value's name may optionally follow.
 
-{type flags ptr to data [.ptr to name]} '\0'
+    {type flags ptr-to-data [.ptr-to-name]} '\0'
 
-Prvi bajt (type) moze biti:
+The first byte (type) may be:
 
-c - karakter
-b - byte
-w - word
-d - dword
-s - string karaktera, null terminated
-f - broj u fiksnom zarezu, signed word. signed word
-m - mantisa broja u fiksnom zarezu
-p - pointer, bice ispisan kao dword (bez dereferenciranja)
-a - niz, zatim ide broj elemenata koji se ispisuju
-t - struktura, zatim sledi broj elemenata, pa niz tipova elemenata
-n - nop, ukoliko bude potrebe za alignment-om
-u - hex dump: odmah sledi dword - duzina dumpa, zatim idu dva worda, broj
-    bajtova po redovima i kolonama, zatim flags itd; u ovom slucaju pointer na
-    podatke oznacava pocetnu adresu
-i - ispis narednog polja je disable-ovan; ostavljeno za lako ukljucivanje i
-    iskljucivanje promenljivih bez brisanja
+    c - character
+    b - byte
+    w - word
+    d - dword
+    s - null-terminated character string
+    f - signed-word fixed-point number
+    m - mantissa of a fixed-point number
+    p - pointer, printed as a dword without dereferencing it
+    a - array, followed by the number of elements to print
+    t - structure, followed by the element count and an array of element types
+    n - no operation, for alignment if required
+    u - hexadecimal dump; immediately followed by a dword dump length, then
+        two words specifying the number of bytes per row and column, followed
+        by flags; in this case the data pointer is the starting address
+    i - output for the following field is disabled; this allows variables to
+        be enabled and disabled without deleting their descriptions
 
-Prefix width-u moze biti i zvezdica, u tom slucaju nakon nje sledi pointer na
-short koji ce sadrzati sirinu. Ukoliko je ; prefix precision-u, onda se
-precision uzima po istom pravilu kao i width. Koordinate su dva worda, i
-ukoliko postoje, ispis ce se vrsiti na toj lokaciji.
+Width may be prefixed with an asterisk. In that case it is followed by a
+pointer to a short containing the width. If precision is prefixed with a
+semicolon, its value is obtained using the same rule. Coordinates are two
+words; when present, output is drawn at that location.
 
-ispis oznacenog bajta:
+Example: print a signed byte
 
-db 'b'          ; type - byte
-dw SIGNED       ; flags - signed byte
-db '%'          ; width - present
-dw 6            ; print in 6 positions
-dd my_byte      ; ptr to data, note - no precision
-db '.'          ; ptr to name of data follows
-dd my_byte_str  ; ptr to name of data
+    db 'b'          ; type - byte
+    dw SIGNED       ; flags - signed byte
+    db '%'          ; width is present
+    dw 6            ; print in six positions
+    dd my_byte      ; pointer to data; no precision
+    db '.'          ; pointer to the data name follows
+    dd my_byte_str  ; pointer to the data name
 
-ispis stringa:
+Example: print a string
 
-db 's'          ; type - string
-dw 0            ; no flags
-db '.'          ; precision - present, note - no width
-dw 255          ; max. 255 chars
-dd my_string    ; ptr to data
+    db 's'          ; type - string
+    dw 0            ; no flags
+    db '.'          ; precision is present; no width
+    dw 255          ; maximum of 255 characters
+    dd my_string    ; pointer to data

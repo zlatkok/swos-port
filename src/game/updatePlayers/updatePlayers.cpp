@@ -1,4 +1,5 @@
 #include "updatePlayers.h"
+#include "sfx.h"
 #include "ball.h"
 #include "player.h"
 #include "referee.h"
@@ -7,11 +8,11 @@
 #include "comments.h"
 #include "animation.h"
 
-static constexpr int kGoalkeeperCatchSpeed = 768;
-static constexpr int kGoalkeeperMoveToBallSpeed = 1024;
-static constexpr int kGoalkeeperFarJumpSpeed = 2048;
-static constexpr int kGoalkeeperFarJumpSlowerSpeed = 1280;
-static constexpr int kShotAtGoalMinimumSpeed = 512;
+static constexpr auto kGoalkeeperCatchSpeed = 1.5_speed;
+static constexpr auto kGoalkeeperMoveToBallSpeed = 2.0_speed;
+static constexpr auto kGoalkeeperFarJumpSpeed = 4.0_speed;
+static constexpr auto kGoalkeeperFarJumpSlowerSpeed = 2.5_speed;
+static constexpr auto kShotAtGoalMinimumSpeed = 1.0_speed;
 
 static constexpr int dseg_1105EF = 512;
 static constexpr int dseg_110611 = 112;
@@ -22,7 +23,6 @@ static int m_clearResultInterval = 660;
 static int m_clearResultHalftimeInterval = 385;
 static int m_playerDownTacklingInterval = 55;
 static int m_playerDownHeadingInterval = 55;
-
 
 static void shouldGoalkeeperDive();
 static void goalkeeperJumping();
@@ -36,7 +36,6 @@ static void tryBookingThePlayer();
 static void trySendingOffThePlayer();
 static void playerTackled();
 static void playerBeginTackling();
-static void playersTackledTheBallStrong();
 static void playerAttemptingJumpHeader();
 static void setThrowInPlayerDestinationCoordinates();
 static void setPlayerWithNoBallDestination();
@@ -62,11 +61,11 @@ using namespace SwosVM;
 void updatePlayers(TeamGeneralInfo *team)
 {
     A6 = team;
-    eax = *(dword *)&g_memByte[515576];     // mov eax, lastPlayerPlayed
-    *(dword *)&g_memByte[516888] = eax;     // mov prevLastPlayer, eax
-    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
-    *(dword *)&g_memByte[516892] = eax;     // mov prevLastTeamPlayed, eax
-    eax = *(dword *)&g_memByte[515568];     // mov eax, lastKeeperPlayed
+    eax = *(dword *)&g_memByte[515628];     // mov eax, lastPlayerPlayed
+    *(dword *)&g_memByte[516076] = eax;     // mov prevLastPlayer, eax
+    eax = *(dword *)&g_memByte[515624];     // mov eax, lastTeamPlayed
+    *(dword *)&g_memByte[516080] = eax;     // mov prevLastTeamPlayed, eax
+    eax = *(dword *)&g_memByte[515620];     // mov eax, lastKeeperPlayed
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (eax & 0x80000000) != 0;
@@ -75,9 +74,9 @@ void updatePlayers(TeamGeneralInfo *team)
         goto l_update_goalkeeper_saved_timer; // jz short @@update_goalkeeper_saved_timer
 
     {
-        dword src = *(dword *)&g_memByte[515576];
+        dword src = *(dword *)&g_memByte[515628];
         int32_t dstSigned = src;
-        int32_t srcSigned = 326028;
+        int32_t srcSigned = 326092;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -88,9 +87,9 @@ void updatePlayers(TeamGeneralInfo *team)
         goto l_update_goalkeeper_saved_timer; // jz short @@update_goalkeeper_saved_timer
 
     {
-        dword src = *(dword *)&g_memByte[515576];
+        dword src = *(dword *)&g_memByte[515628];
         int32_t dstSigned = src;
-        int32_t srcSigned = 327260;
+        int32_t srcSigned = 327324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -100,7 +99,7 @@ void updatePlayers(TeamGeneralInfo *team)
     if (flags.zero)
         goto l_update_goalkeeper_saved_timer; // jz short @@update_goalkeeper_saved_timer
 
-    *(dword *)&g_memByte[515568] = 0;       // mov lastKeeperPlayed, 0
+    *(dword *)&g_memByte[515620] = 0;       // mov lastKeeperPlayed, 0
 
 l_update_goalkeeper_saved_timer:;
     esi = A6;                               // mov esi, A6
@@ -211,15 +210,15 @@ l_update_player_switch_timer:;
 
 l_apply_after_touch_and_set_ball_location_flags:;
     applyBallAfterTouch();                  // call ApplyBallAfterTouch
-    A2 = 328492;                            // mov A2, offset ballSprite
+    A2 = 328556;                            // mov A2, offset ballSprite
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
-    *(word *)&g_memByte[516920] = 0;        // mov ballInUpperPenaltyArea, 0
-    *(word *)&g_memByte[516922] = 0;        // mov ballInLowerPenaltyArea, 0
-    *(word *)&g_memByte[516924] = 0;        // mov ballInGoalkeeperArea, 0
+    *(word *)&g_memByte[516108] = 0;        // mov ballInUpperPenaltyArea, 0
+    *(word *)&g_memByte[516110] = 0;        // mov ballInLowerPenaltyArea, 0
+    *(word *)&g_memByte[516112] = 0;        // mov ballInGoalkeeperArea, 0
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = 193;
@@ -292,11 +291,11 @@ l_apply_after_touch_and_set_ball_location_flags:;
     if (flags.sign != flags.overflow)
         goto l_not_in_penalty_area;         // jl short @@not_in_penalty_area
 
-    *(word *)&g_memByte[516922] = 1;        // mov ballInLowerPenaltyArea, 1
+    *(word *)&g_memByte[516110] = 1;        // mov ballInLowerPenaltyArea, 1
     goto l_check_goalkeeper_area;           // jmp short @@check_goalkeeper_area
 
 l_upper_penalty_area:;
-    *(word *)&g_memByte[516920] = 1;        // mov ballInUpperPenaltyArea, 1
+    *(word *)&g_memByte[516108] = 1;        // mov ballInUpperPenaltyArea, 1
 
 l_check_goalkeeper_area:;
     {
@@ -348,11 +347,11 @@ l_check_goalkeeper_area:;
         goto l_not_in_penalty_area;         // jl short @@not_in_penalty_area
 
 l_goalkeeper_area:;
-    *(word *)&g_memByte[516924] = 1;        // mov ballInGoalkeeperArea, 1
+    *(word *)&g_memByte[516112] = 1;        // mov ballInGoalkeeperArea, 1
 
 l_not_in_penalty_area:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -364,7 +363,7 @@ l_not_in_penalty_area:;
     if (!flags.zero)
         goto l_update_player_index;         // jnz short @@update_player_index
 
-    ax = *(word *)&g_memByte[515582];       // mov ax, goalOut
+    ax = *(word *)&g_memByte[515634];       // mov ax, goalOut
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -372,7 +371,7 @@ l_not_in_penalty_area:;
     if (flags.zero)
         goto l_update_player_index;         // jz short @@update_player_index
 
-    eax = *(dword *)&g_memByte[516920];     // mov eax, dword ptr ballInUpperPenaltyArea
+    eax = *(dword *)&g_memByte[516108];     // mov eax, dword ptr ballInUpperPenaltyArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (eax & 0x80000000) != 0;
@@ -380,7 +379,7 @@ l_not_in_penalty_area:;
     if (!flags.zero)
         goto l_update_player_index;         // jnz short @@update_player_index
 
-    *(word *)&g_memByte[515582] = 0;        // mov goalOut, 0
+    *(word *)&g_memByte[515634] = 0;        // mov goalOut, 0
 
 l_update_player_index:;
     esi = A6;                               // mov esi, A6
@@ -525,7 +524,7 @@ l_test_if_player_tackled:;
     if (!flags.zero)
         goto l_update_player_ball_distance; // jnz short @@update_player_ball_distance
 
-    ax = *(word *)&g_memByte[515872];       // mov ax, injuriesForever
+    ax = swos.injuriesForever;              // mov ax, injuriesForever
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -896,8 +895,8 @@ l_endless_loop:;
     goto l_endless_loop;                    // jmp short @@endless_loop
 
 l_player_goalkeeper:;
-    *(word *)&g_memByte[449500] = 0;        // mov goalTypeScored, GT_REGULAR
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    *(word *)&g_memByte[449552] = 0;        // mov goalTypeScored, GT_REGULAR
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -906,7 +905,7 @@ l_player_goalkeeper:;
         goto l_update_shot_chance_table_for_goalie; // jz short @@update_shot_chance_table_for_goalie
 
     {
-        word src = *(word *)&g_memByte[515632];
+        word src = *(word *)&g_memByte[515684];
         int16_t dstSigned = src;
         int16_t srcSigned = 55;
         word res = dstSigned - srcSigned;
@@ -920,7 +919,7 @@ l_player_goalkeeper:;
 
 l_update_shot_chance_table_for_goalie:;
     updatePlayerShotChanceTable(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());
-    ax = *(word *)&g_memByte[449185];       // mov ax, lastPlayerTurnFlags+1
+    ax = *(word *)&g_memByte[449247];       // mov ax, lastPlayerTurnFlags+1
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -928,7 +927,7 @@ l_update_shot_chance_table_for_goalie:;
     if (!flags.zero)
         goto l_this_player_last_played;     // jnz @@this_player_last_played
 
-    *(word *)&g_memByte[516914] = -1;       // mov ballNextGroundX, -1
+    *(word *)&g_memByte[516102] = -1;       // mov ballNextGroundX, -1
     esi = A6;                               // mov esi, A6
     ax = (word)readMemory(esi + 140, 2);    // mov ax, [esi+TeamGeneralInfo.goalkeeperPlaying]
     flags.carry = false;
@@ -960,7 +959,7 @@ l_update_ball_out_or_keepers:;
     writeMemory(esi + 84, 1, 0);            // mov byte ptr [esi+TeamGeneralInfo.ballOutOfPlayOrKeeper], 0
     writeMemory(esi + 86, 1, 0);            // mov byte ptr [esi+TeamGeneralInfo.goaliePlayingOrOut], 0
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -974,12 +973,12 @@ l_update_ball_out_or_keepers:;
 
     writeMemory(esi + 86, 1, -1);           // mov byte ptr [esi+TeamGeneralInfo.goaliePlayingOrOut], -1
     writeMemory(esi + 84, 1, -1);           // mov byte ptr [esi+TeamGeneralInfo.ballOutOfPlayOrKeeper], -1
-    ax = *(word *)&g_memByte[325296];       // mov ax, kGoalkeeperSpeedWhenGameStopped
+    ax = *(word *)&g_memByte[325372];       // mov ax, kGoalkeeperSpeedWhenGameStopped
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
 
 l_update_goalkeeper_speed:;
-    ax = *(word *)&g_memByte[325406];       // mov ax, kGoalkeeperGameSpeed
+    ax = *(word *)&g_memByte[325478];       // mov ax, kGoalkeeperGameSpeed
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     {
@@ -997,7 +996,7 @@ l_update_goalkeeper_speed:;
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -1012,7 +1011,7 @@ l_update_goalkeeper_speed:;
 l_goalkeeper_in_lower_half:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -1038,7 +1037,7 @@ l_goalkeeper_in_upper_half:;
         goto l_goalie_not_catching_the_ball; // jnz @@goalie_not_catching_the_ball
 
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -1068,7 +1067,7 @@ l_goalkeeper_in_upper_half:;
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -1142,7 +1141,7 @@ l_goalie_not_catching_the_ball:;
         goto l_player_expecting_pass;       // jz @@player_expecting_pass
 
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -1161,7 +1160,7 @@ l_goalie_not_catching_the_ball:;
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -1171,7 +1170,7 @@ l_goalie_not_catching_the_ball:;
     if (flags.zero)
         goto cseg_7F0DF;                    // jz short cseg_7F0DF
 
-    ax = *(word *)&g_memByte[516920];       // mov ax, ballInUpperPenaltyArea
+    ax = *(word *)&g_memByte[516108];       // mov ax, ballInUpperPenaltyArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -1182,7 +1181,7 @@ l_goalie_not_catching_the_ball:;
     goto l_ball_in_penalty_area;            // jmp short @@ball_in_penalty_area
 
 cseg_7F0DF:;
-    ax = *(word *)&g_memByte[516922];       // mov ax, ballInLowerPenaltyArea
+    ax = *(word *)&g_memByte[516110];       // mov ax, ballInLowerPenaltyArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -1191,7 +1190,7 @@ cseg_7F0DF:;
         goto l_check_pass_to_player;        // jz @@check_pass_to_player
 
 l_ball_in_penalty_area:;
-    eax = *(dword *)&g_memByte[515576];     // mov eax, lastPlayerPlayed
+    eax = *(dword *)&g_memByte[515628];     // mov eax, lastPlayerPlayed
     {
         int32_t dstSigned = A1;
         int32_t srcSigned = eax;
@@ -1206,7 +1205,7 @@ l_ball_in_penalty_area:;
 
     updateBallVariables();                  // call UpdateBallVariables
     calculateBallNextGroundXYPositions();   // call CalculateBallNextGroundXYPositions
-    ax = *(word *)&g_memByte[516924];       // mov ax, ballInGoalkeeperArea
+    ax = *(word *)&g_memByte[516112];       // mov ax, ballInGoalkeeperArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -1217,7 +1216,7 @@ l_ball_in_penalty_area:;
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 24, 4);          // mov eax, [esi+TeamGeneralInfo.shotChanceTable]
     A0 = eax;                               // mov A0, eax
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 240;
@@ -1242,7 +1241,7 @@ l_ball_in_penalty_area:;
         goto l_ball_standing_in_goalkeeper_area; // jnb @@ball_standing_in_goalkeeper_area
 
 l_ball_in_lower_goalkeeper_area:;
-    ax = *(word *)&g_memByte[516914];       // mov ax, ballNextGroundX
+    ax = *(word *)&g_memByte[516102];       // mov ax, ballNextGroundX
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -1250,13 +1249,13 @@ l_ball_in_lower_goalkeeper_area:;
     if (flags.sign)
         goto l_ball_standing_in_goalkeeper_area; // js @@ball_standing_in_goalkeeper_area
 
-    ax = *(word *)&g_memByte[516914];       // mov ax, ballNextGroundX
+    ax = *(word *)&g_memByte[516102];       // mov ax, ballNextGroundX
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    ax = *(word *)&g_memByte[516916];       // mov ax, ballNextYGroundY
+    ax = *(word *)&g_memByte[516104];       // mov ax, ballNextYGroundY
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -1366,7 +1365,7 @@ cseg_7F1C7:;
         goto l_ball_standing_in_goalkeeper_area; // jg @@ball_standing_in_goalkeeper_area
 
 l_in_penalty_area:;
-    ax = *(word *)&g_memByte[516914];       // mov ax, ballNextGroundX
+    ax = *(word *)&g_memByte[516102];       // mov ax, ballNextGroundX
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -1376,7 +1375,7 @@ l_in_penalty_area:;
         word res = dstSigned - srcSigned;
         *(word *)&D0 = res;
     }                                       // sub word ptr D0, ax
-    ax = *(word *)&g_memByte[516916];       // mov ax, ballNextYGroundY
+    ax = *(word *)&g_memByte[516104];       // mov ax, ballNextYGroundY
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     {
@@ -1410,7 +1409,7 @@ l_in_penalty_area:;
         dword res = dstSigned + srcSigned;
         D1 = res;
     }                                       // add D1, eax
-    ax = *(word *)&g_memByte[516914];       // mov ax, ballNextGroundX
+    ax = *(word *)&g_memByte[516102];       // mov ax, ballNextGroundX
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -1420,7 +1419,7 @@ l_in_penalty_area:;
         word res = dstSigned - srcSigned;
         *(word *)&D0 = res;
     }                                       // sub word ptr D0, ax
-    ax = *(word *)&g_memByte[516916];       // mov ax, ballNextYGroundY
+    ax = *(word *)&g_memByte[516104];       // mov ax, ballNextYGroundY
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     {
@@ -1471,10 +1470,10 @@ l_in_penalty_area:;
     if (!flags.carry && !flags.zero)
         goto l_ball_standing_in_goalkeeper_area; // ja short @@ball_standing_in_goalkeeper_area
 
-    ax = *(word *)&g_memByte[516914];       // mov ax, ballNextGroundX
+    ax = *(word *)&g_memByte[516102];       // mov ax, ballNextGroundX
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = *(word *)&g_memByte[516916];       // mov ax, ballNextYGroundY
+    ax = *(word *)&g_memByte[516104];       // mov ax, ballNextYGroundY
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
     ax = kGoalkeeperMoveToBallSpeed;        // mov ax, kGoalkeeperMoveToBallSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
@@ -1482,7 +1481,7 @@ l_in_penalty_area:;
 
 l_ball_standing_in_goalkeeper_area:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -1495,7 +1494,7 @@ l_ball_standing_in_goalkeeper_area:;
         goto cseg_7FCA1;                    // jnz cseg_7FCA1
 
     {
-        word src = *(word *)&g_memByte[516908];
+        word src = *(word *)&g_memByte[516096];
         int16_t dstSigned = src;
         int16_t srcSigned = 295;
         word res = dstSigned - srcSigned;
@@ -1508,7 +1507,7 @@ l_ball_standing_in_goalkeeper_area:;
         goto l_shot_on_goal_or_close;       // jb short @@shot_on_goal_or_close
 
     {
-        word src = *(word *)&g_memByte[516908];
+        word src = *(word *)&g_memByte[516096];
         int16_t dstSigned = src;
         int16_t srcSigned = 376;
         word res = dstSigned - srcSigned;
@@ -1564,7 +1563,7 @@ l_goalkeeper_dont_throw:;
     if (!flags.zero)
         goto cseg_7F511;                    // jnz cseg_7F511
 
-    ax = *(word *)&g_memByte[516924];       // mov ax, ballInGoalkeeperArea
+    ax = *(word *)&g_memByte[516112];       // mov ax, ballInGoalkeeperArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -1741,7 +1740,7 @@ cseg_7F511:;
     if (!flags.carry && !flags.zero)
         goto cseg_7F626;                    // ja cseg_7F626
 
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -1878,10 +1877,10 @@ cseg_7F5CC:;
         goto cseg_7F626;                    // ja short cseg_7F626
 
 cseg_7F601:;
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = *(word *)&g_memByte[516898];       // mov ax, ballDefensiveY
+    ax = *(word *)&g_memByte[516086];       // mov ax, ballDefensiveY
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
     goto cseg_7FCD0;                        // jmp cseg_7FCD0
 
@@ -1898,7 +1897,7 @@ cseg_7F626:;
     goto l_this_player_last_played;         // jmp @@this_player_last_played
 
 l_goal_attempt:;
-    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
+    eax = *(dword *)&g_memByte[515624];     // mov eax, lastTeamPlayed
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -1911,7 +1910,7 @@ l_goal_attempt:;
     if (!flags.zero)
         goto cseg_7F65A;                    // jnz short cseg_7F65A
 
-    ax = *(word *)&g_memByte[515566];       // mov ax, playerHadBall
+    ax = *(word *)&g_memByte[515618];       // mov ax, playerHadBall
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2113,7 +2112,7 @@ cseg_7F7BC:;
     if (!flags.zero)
         goto cseg_7FC48;                    // jnz cseg_7FC48
 
-    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
+    eax = *(dword *)&g_memByte[515624];     // mov eax, lastTeamPlayed
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -2126,7 +2125,7 @@ cseg_7F7BC:;
     if (!flags.zero)
         goto l_check_shot_at_goal_speed;    // jnz short @@check_shot_at_goal_speed
 
-    ax = *(word *)&g_memByte[515566];       // mov ax, playerHadBall
+    ax = *(word *)&g_memByte[515618];       // mov ax, playerHadBall
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2345,8 +2344,8 @@ l_get_goalie_skill:;
         word res = dstSigned + srcSigned;
         *(word *)&D1 = res;
     }                                       // add word ptr D1, 7
-    A0 = 519050;                            // mov A0, offset goalScoredChances
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    A0 = 518238;                            // mov A0, offset goalScoredChances
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 >> 1;
@@ -2408,15 +2407,15 @@ cseg_7FA45:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
-    ax = *(word *)&g_memByte[328536];       // mov ax, ballSprite.speed
-    *(word *)&g_memByte[336562] = ax;       // mov ballSpeed, ax
+    ax = *(word *)&g_memByte[328600];       // mov ax, ballSprite.speed
+    *(word *)&g_memByte[336626] = ax;       // mov ballSpeed, ax
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
     A0 = eax;                               // mov A0, eax
     esi = A0;                               // mov esi, A0
     writeMemory(esi + 118, 2, -1);          // mov [esi+TeamGeneralInfo.spinTimer], -1
     {
-        word src = *(word *)&g_memByte[328536];
+        word src = *(word *)&g_memByte[328600];
         int16_t dstSigned = src;
         int16_t srcSigned = 1536;
         word res = dstSigned - srcSigned;
@@ -2428,14 +2427,14 @@ cseg_7FA45:;
     if (flags.carry || flags.zero)
         goto cseg_7FA8E;                    // jbe short cseg_7FA8E
 
-    *(word *)&g_memByte[328536] = 1536;     // mov ballSprite.speed, 1536
+    *(word *)&g_memByte[328600] = 1536;     // mov ballSprite.speed, 1536
 
 cseg_7FA8E:;
     push(A1);                               // push A1
     goalkeeperJumping();                    // call GoalkeeperJumping
     pop(A1);                                // pop A1
-    ax = *(word *)&g_memByte[328536];       // mov ax, ballSprite.speed
-    *(word *)&g_memByte[336564] = ax;       // mov dseg_114EA6, ax
+    ax = *(word *)&g_memByte[328600];       // mov ax, ballSprite.speed
+    *(word *)&g_memByte[336628] = ax;       // mov dseg_114EA6, ax
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 102, 2, 0);           // mov [esi+TeamGeneralInfo.passKickTimer], 0
     writeMemory(esi + 104, 4, 0);           // mov [esi+TeamGeneralInfo.passingKickingPlayer], 0
@@ -2451,7 +2450,7 @@ l_goalkeeper_saved:;
     if (flags.zero)
         goto cseg_7FC01;                    // jz cseg_7FC01
 
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -2468,7 +2467,7 @@ l_goalkeeper_saved:;
         goto cseg_7FB57;                    // jb short cseg_7FB57
 
     *(word *)&D1 = 0;                       // mov word ptr D1, 0
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2476,7 +2475,7 @@ l_goalkeeper_saved:;
     if (!flags.zero)
         goto cseg_7FB1B;                    // jnz short cseg_7FB1B
 
-    ax = *(word *)&g_memByte[515580];       // mov ax, penalty
+    ax = *(word *)&g_memByte[515632];       // mov ax, penalty
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2486,7 +2485,7 @@ l_goalkeeper_saved:;
 
 cseg_7FB1B:;
     *(word *)&D1 = 1;                       // mov word ptr D1, 1
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 6;
@@ -2508,7 +2507,7 @@ cseg_7FB43:;
 
 cseg_7FB57:;
     *(word *)&D1 = 0;                       // mov word ptr D1, 0
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2516,7 +2515,7 @@ cseg_7FB57:;
     if (!flags.zero)
         goto cseg_7FB76;                    // jnz short cseg_7FB76
 
-    ax = *(word *)&g_memByte[515580];       // mov ax, penalty
+    ax = *(word *)&g_memByte[515632];       // mov ax, penalty
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2526,7 +2525,7 @@ cseg_7FB57:;
 
 cseg_7FB76:;
     *(word *)&D1 = 1;                       // mov word ptr D1, 1
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 12;
@@ -2573,10 +2572,10 @@ cseg_7FC01:;
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
 
 cseg_7FC23:;
-    ax = *(word *)&g_memByte[516902];       // mov ax, ballNotHighX
+    ax = *(word *)&g_memByte[516090];       // mov ax, ballNotHighX
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = *(word *)&g_memByte[516904];       // mov ax, ballNotHighY
+    ax = *(word *)&g_memByte[516092];       // mov ax, ballNotHighY
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
     goto cseg_7FCD0;                        // jmp cseg_7FCD0
 
@@ -2617,7 +2616,7 @@ cseg_7FCA1:;
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
 
 cseg_7FCD0:;
-    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
+    eax = *(dword *)&g_memByte[515624];     // mov eax, lastTeamPlayed
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -2630,7 +2629,7 @@ cseg_7FCD0:;
     if (!flags.zero)
         goto l_opponent_last_played;        // jnz short @@opponent_last_played
 
-    ax = *(word *)&g_memByte[515566];       // mov ax, playerHadBall
+    ax = *(word *)&g_memByte[515618];       // mov ax, playerHadBall
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2639,7 +2638,7 @@ cseg_7FCD0:;
         goto l_goalie_cant_catch_ball;      // jz @@goalie_cant_catch_ball
 
 l_opponent_last_played:;
-    ax = *(word *)&g_memByte[516924];       // mov ax, ballInGoalkeeperArea
+    ax = *(word *)&g_memByte[516112];       // mov ax, ballInGoalkeeperArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2650,7 +2649,7 @@ l_opponent_last_played:;
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 24, 4);          // mov eax, [esi+TeamGeneralInfo.shotChanceTable]
     A0 = eax;                               // mov A0, eax
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 240;
@@ -2675,7 +2674,7 @@ l_opponent_last_played:;
         goto l_goalie_cant_catch_ball;      // jnb @@goalie_cant_catch_ball
 
 cseg_7FD39:;
-    ax = *(word *)&g_memByte[516914];       // mov ax, ballNextGroundX
+    ax = *(word *)&g_memByte[516102];       // mov ax, ballNextGroundX
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2684,7 +2683,7 @@ cseg_7FD39:;
         goto l_goalie_cant_catch_ball;      // js @@goalie_cant_catch_ball
 
     {
-        word src = *(word *)&g_memByte[516900];
+        word src = *(word *)&g_memByte[516088];
         int16_t dstSigned = src;
         int16_t srcSigned = 27;
         word res = dstSigned - srcSigned;
@@ -2697,7 +2696,7 @@ cseg_7FD39:;
         goto l_goalie_cant_catch_ball;      // jg @@goalie_cant_catch_ball
 
     {
-        word src = *(word *)&g_memByte[516900];
+        word src = *(word *)&g_memByte[516088];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -2725,7 +2724,7 @@ cseg_7FD39:;
 
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -2758,7 +2757,7 @@ cseg_7FD39:;
 
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[516898];       // mov ax, ballDefensiveY
+    ax = *(word *)&g_memByte[516086];       // mov ax, ballDefensiveY
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -2792,7 +2791,7 @@ cseg_7FD39:;
     goalkeeperCaughtTheBall();              // call GoalkeeperCaughtTheBall
 
 l_goalie_cant_catch_ball:;
-    eax = *(dword *)&g_memByte[515576];     // mov eax, lastPlayerPlayed
+    eax = *(dword *)&g_memByte[515628];     // mov eax, lastPlayerPlayed
     {
         int32_t dstSigned = A1;
         int32_t srcSigned = eax;
@@ -2857,7 +2856,7 @@ cseg_7FE29:;
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
+    eax = *(dword *)&g_memByte[515624];     // mov eax, lastTeamPlayed
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -2870,7 +2869,7 @@ cseg_7FE29:;
     if (!flags.zero)
         goto l_opponent_player_touched_the_ball; // jnz @@opponent_player_touched_the_ball
 
-    ax = *(word *)&g_memByte[515566];       // mov ax, playerHadBall
+    ax = *(word *)&g_memByte[515618];       // mov ax, playerHadBall
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -2892,11 +2891,11 @@ cseg_7FE29:;
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 102, 2, 0);           // mov [esi+TeamGeneralInfo.passKickTimer], 0
     writeMemory(esi + 104, 4, 0);           // mov dword ptr [esi+104], 0
@@ -2907,16 +2906,16 @@ cseg_7FE29:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_opponent_player_touched_the_ball:;
-    eax = *(dword *)&g_memByte[515576];     // mov eax, lastPlayerPlayed
-    *(dword *)&g_memByte[515568] = eax;     // mov lastKeeperPlayed, eax
+    eax = *(dword *)&g_memByte[515628];     // mov eax, lastPlayerPlayed
+    *(dword *)&g_memByte[515620] = eax;     // mov lastKeeperPlayed, eax
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     updateBallWithControllingGoalkeeper(A1.as<Sprite&>());  // call UpdateBallWithControllingGoalkeeper
-    goalkeeperClaimedTheBall();             // call GoalkeeperClaimedTheBall
+    goalkeeperClaimedTheBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>(), A2.as<Sprite&>());             // call GoalkeeperClaimedTheBall
 
 l_clamp_ball_y_inside_pitch:;
     esi = A1;                               // mov esi, A1
@@ -2955,7 +2954,7 @@ l_check_ball_y_inside_bottom:;
 
 l_this_player_last_played:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -2967,7 +2966,7 @@ l_this_player_last_played:;
     if (!flags.zero)
         goto l_not_controlled_player;       // jnz @@not_controlled_player
 
-    ax = *(word *)&g_memByte[323620];       // mov ax, frameCount
+    ax = *(word *)&g_memByte[323696];       // mov ax, frameCount
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 14;
@@ -3004,7 +3003,7 @@ l_check_pass_to_player:;
     goto l_this_player_last_played;         // jmp short @@this_player_last_played
 
 l_player_booked:;
-    ax = *(word *)&g_memByte[515888];       // mov ax, whichCard
+    ax = *(word *)&g_memByte[515908];       // mov ax, whichCard
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -3020,7 +3019,7 @@ l_go_back_to_normal_state:;
 
 l_player_sad_or_happy:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 23;
         word res = dstSigned - srcSigned;
@@ -3033,7 +3032,7 @@ l_player_sad_or_happy:;
         goto l_go_back_to_normal_state;     // jz short @@go_back_to_normal_state
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 24;
         word res = dstSigned - srcSigned;
@@ -3098,7 +3097,7 @@ l_goalie_catching_the_ball:;
 
     writeMemory(esi + 82, 2, 0);            // mov [esi+TeamGeneralInfo.goalkeeperDivingLeft], 0
     updateBallWithControllingGoalkeeper(A1.as<Sprite&>());  // call UpdateBallWithControllingGoalkeeper
-    goalkeeperClaimedTheBall();             // call GoalkeeperClaimedTheBall
+    goalkeeperClaimedTheBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>(), A2.as<Sprite&>());             // call GoalkeeperClaimedTheBall
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 40, 2, 5);            // mov word ptr [esi+(Sprite.z+2)], 5
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
@@ -3127,7 +3126,7 @@ l_check_if_goalie_close_to_the_ball:;
 
     eax = readMemory(esi + 24, 4);          // mov eax, [esi+TeamGeneralInfo.shotChanceTable]
     A0 = eax;                               // mov A0, eax
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         word res = *(word *)&D1 & 240;
@@ -3152,7 +3151,7 @@ l_check_if_goalie_close_to_the_ball:;
     if (flags.sign)
         goto l_goalie_catches_the_ball;     // js short @@goalie_catches_the_ball
 
-    goalkeeperDeflectedBall();              // call cseg_78D9A
+    goalkeeperDeflectedBall(A6.as<TeamGeneralInfo&>(), A2.as<Sprite&>());              // call cseg_78D9A
     push(A0);                               // push A0
     SWOS::PlayKeeperClaimedComment();       // call PlayKeeperClaimedComment
     pop(A0);                                // pop A0
@@ -3165,7 +3164,7 @@ l_goalie_catches_the_ball:;
     writeMemory(esi + 44, 2, 0);            // mov [esi+Sprite.speed], 0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 82, 2, 1);            // mov [esi+Sprite.fullDirection], 1
-    goalkeeperClaimedTheBall();             // call GoalkeeperClaimedTheBall
+    goalkeeperClaimedTheBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>(), A2.as<Sprite&>());             // call GoalkeeperClaimedTheBall
     push(A0);                               // push A0
     SWOS::PlayKeeperClaimedComment();       // call PlayKeeperClaimedComment
     pop(A0);                                // pop A0
@@ -3245,14 +3244,14 @@ l_goalkeeper_still_diving:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 80, 2, 0);            // mov [esi+TeamGeneralInfo.goalkeeperDivingRight], 0
     updateBallWithControllingGoalkeeper(A1.as<Sprite&>());  // call UpdateBallWithControllingGoalkeeper
-    goalkeeperClaimedTheBall();             // call GoalkeeperClaimedTheBall
+    goalkeeperClaimedTheBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>(), A2.as<Sprite&>());             // call GoalkeeperClaimedTheBall
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 40, 2, 5);            // mov word ptr [esi+(Sprite.z+2)], 5
     goto l_goalkeeper_rise;                 // jmp short @@goalkeeper_rise
 
 l_goalie_diving_left:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -3411,7 +3410,7 @@ cseg_802A3:;
     }                                       // sub word ptr D1, ax
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -3481,7 +3480,7 @@ l_set_new_goalkeeper_speed:;
 
 cseg_803A4:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -3507,7 +3506,7 @@ cseg_803A4:;
 cseg_803C4:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -3554,7 +3553,7 @@ cseg_80404:;
     if (flags.sign)
         goto l_update_player_speed_and_deltas; // js @@update_player_speed_and_deltas
 
-    eax = *(dword *)&g_memByte[323636];     // mov eax, g_spriteGraphicsPtr
+    eax = *(dword *)&g_memByte[323712];     // mov eax, g_spriteGraphicsPtr
     A0 = eax;                               // mov A0, eax
     {
         word res = *(word *)&D0 << 2;
@@ -3700,7 +3699,7 @@ cseg_80519:;
     if (!flags.carry && !flags.zero)
         goto l_update_player_speed_and_deltas; // ja @@update_player_speed_and_deltas
 
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -3708,7 +3707,7 @@ cseg_80519:;
     if (!flags.zero)
         goto cseg_80540;                    // jnz short cseg_80540
 
-    ax = *(word *)&g_memByte[515580];       // mov ax, penalty
+    ax = *(word *)&g_memByte[515632];       // mov ax, penalty
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -3866,7 +3865,7 @@ cseg_8064D:;
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 24, 4);          // mov eax, [esi+24]
     A0 = eax;                               // mov A0, eax
-    ax = *(word *)&g_memByte[515580];       // mov ax, penalty
+    ax = *(word *)&g_memByte[515632];       // mov ax, penalty
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -3874,7 +3873,7 @@ cseg_8064D:;
     if (!flags.zero)
         goto cseg_80681;                    // jnz short cseg_80681
 
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -3883,14 +3882,14 @@ cseg_8064D:;
         goto cseg_8068B;                    // jz short cseg_8068B
 
 cseg_80681:;
-    A0 = 519065;                            // mov A0, offset dseg_17EECC
+    A0 = 518253;                            // mov A0, offset dseg_17EECC
 
 cseg_8068B:;
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 102, 2, 25);          // mov [esi+TeamGeneralInfo.passKickTimer], 25
     eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
@@ -3910,7 +3909,7 @@ cseg_8068B:;
     writeMemory(esi + 104, 4, 0);           // mov [esi+TeamGeneralInfo.passingKickingPlayer], 0
 
 cseg_806EE:;
-    ax = *(word *)&g_memByte[516924];       // mov ax, ballInGoalkeeperArea
+    ax = *(word *)&g_memByte[516112];       // mov ax, ballInGoalkeeperArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -3949,7 +3948,7 @@ l_ball_not_in_goalkeeper_area:;
     if (!flags.sign)
         goto cseg_8077F;                    // jns short cseg_8077F
 
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         word res = *(word *)&D1 & 240;
@@ -3991,7 +3990,7 @@ l_ball_not_in_goalkeeper_area:;
     goto cseg_808BF;                        // jmp cseg_808BF
 
 cseg_8077F:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         word res = *(word *)&D1 & 240;
@@ -4069,9 +4068,9 @@ cseg_807CB:;
         goto cseg_80A1B;                    // jl cseg_80A1B
 
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     esi = A2;                               // mov esi, A2
@@ -4089,7 +4088,7 @@ cseg_807CB:;
     writeMemory(esi + 80, 2, 1);            // mov [esi+TeamGeneralInfo.goalkeeperDivingRight], 1
     push(D0);                               // push D0
     push(A6);                               // push A6
-    goalkeeperClaimedTheBall();             // call GoalkeeperClaimedTheBall
+    goalkeeperClaimedTheBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>(), A2.as<Sprite&>());             // call GoalkeeperClaimedTheBall
     pop(A6);                                // pop A6
     pop(D0);                                // pop D0
     push(A0);                               // push A0
@@ -4099,12 +4098,12 @@ cseg_807CB:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 cseg_808BF:;
-    eax = *(dword *)&g_memByte[515576];     // mov eax, lastPlayerPlayed
-    *(dword *)&g_memByte[515568] = eax;     // mov lastKeeperPlayed, eax
+    eax = *(dword *)&g_memByte[515628];     // mov eax, lastPlayerPlayed
+    *(dword *)&g_memByte[515620] = eax;     // mov lastKeeperPlayed, eax
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
@@ -4122,7 +4121,7 @@ cseg_808BF:;
         writeMemory(esi + 44, 2, src);
     }                                       // sub [esi+Sprite.speed], ax
     {
-        word src = *(word *)&g_memByte[328536];
+        word src = *(word *)&g_memByte[328600];
         int16_t dstSigned = src;
         int16_t srcSigned = 1792;
         word res = dstSigned - srcSigned;
@@ -4134,7 +4133,7 @@ cseg_808BF:;
     if (flags.carry || flags.zero)
         goto cseg_80919;                    // jbe short cseg_80919
 
-    *(word *)&g_memByte[328536] = 1792;     // mov ballSprite.speed, 1792
+    *(word *)&g_memByte[328600] = 1792;     // mov ballSprite.speed, 1792
 
 cseg_80919:;
     esi = A6;                               // mov esi, A6
@@ -4146,7 +4145,7 @@ cseg_80919:;
     if (!flags.sign)
         goto cseg_8095F;                    // jns short cseg_8095F
 
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 15;
@@ -4164,7 +4163,7 @@ cseg_80919:;
     }                                       // sub word ptr D0, 960
     ax = D0;                                // mov ax, word ptr D0
     {
-        word src = *(word *)&g_memByte[328550];
+        word src = *(word *)&g_memByte[328614];
         int16_t dstSigned = src;
         int16_t srcSigned = ax;
         word res = dstSigned + srcSigned;
@@ -4173,7 +4172,7 @@ cseg_80919:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[328550] = src;
+        *(word *)&g_memByte[328614] = src;
     }                                       // add ballSprite.destX, ax
     goto cseg_80B1D;                        // jmp cseg_80B1D
 
@@ -4190,13 +4189,13 @@ cseg_8095F:;
         word res = dstSigned - srcSigned;
         *(word *)&D0 = res;
     }                                       // sub word ptr D0, ax
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     {
         word res = *(word *)&D2 & 14;
         *(word *)&D2 = res;
     }                                       // and word ptr D2, 0Eh
-    A0 = 325216;                            // mov A0, offset dseg_110BDB
+    A0 = 325292;                            // mov A0, offset dseg_110BDB
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D2;                     // movzx ebx, word ptr D2
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -4234,9 +4233,9 @@ cseg_8095F:;
 
 cseg_80A1B:;
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
@@ -4256,7 +4255,7 @@ cseg_80A1B:;
         word res = dstSigned - srcSigned;
         *(word *)&D1 = res;
     }                                       // sub word ptr D1, ax
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 31;
@@ -4301,7 +4300,7 @@ cseg_80A1B:;
         writeMemory(esi + 44, 2, src);
     }                                       // sub [esi+Sprite.speed], ax
     {
-        byte src = g_memByte[323626];
+        byte src = g_memByte[323702];
         byte res = src & 16;
         flags.carry = false;
         flags.overflow = false;
@@ -4327,7 +4326,7 @@ cseg_80A1B:;
 
 cseg_80B07:;
     {
-        word src = *(word *)&g_memByte[328536];
+        word src = *(word *)&g_memByte[328600];
         int16_t dstSigned = src;
         int16_t srcSigned = 1536;
         word res = dstSigned - srcSigned;
@@ -4339,7 +4338,7 @@ cseg_80B07:;
     if (flags.carry || flags.zero)
         goto cseg_80B1B;                    // jbe short cseg_80B1B
 
-    *(word *)&g_memByte[328536] = 1536;     // mov ballSprite.speed, 1536
+    *(word *)&g_memByte[328600] = 1536;     // mov ballSprite.speed, 1536
 
 cseg_80B1B:;
 
@@ -4347,7 +4346,7 @@ cseg_80B1D:;
     *(word *)&D0 = 1;                       // mov word ptr D0, 1
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -4405,7 +4404,7 @@ cseg_80BA0:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_its_controlled_player:;
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -4414,7 +4413,7 @@ l_its_controlled_player:;
         goto l_check_for_cpu_team;          // jz short @@check_for_cpu_team
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 31;
         word res = dstSigned - srcSigned;
@@ -4469,7 +4468,7 @@ cseg_80C0C:;
 
 cseg_80C56:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -4481,7 +4480,7 @@ cseg_80C56:;
     if (flags.zero)
         goto l_skip_break_handling;         // jz @@skip_break_handling
 
-    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
+    eax = *(dword *)&g_memByte[515640];     // mov eax, lastTeamPlayedBeforeBreak
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -4507,7 +4506,7 @@ cseg_80C56:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -4517,15 +4516,15 @@ cseg_80C56:;
     if (!flags.zero)
         goto cseg_80CB3;                    // jnz short cseg_80CB3
 
-    ax = *(word *)&g_memByte[515608];       // mov ax, cameraDirection
+    ax = *(word *)&g_memByte[515660];       // mov ax, cameraDirection
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
     {
-        word src = *(word *)&g_memByte[449206];
+        word src = *(word *)&g_memByte[449268];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[449206] = src;
+        *(word *)&g_memByte[449268] = src;
     }                                       // add dseg_132806, 1
 
 cseg_80CB3:;
@@ -4542,7 +4541,7 @@ cseg_80CB3:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -4565,7 +4564,7 @@ l_find_acceptable_turn_flags_loop:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -4586,16 +4585,16 @@ l_find_acceptable_turn_flags_loop:;
 
 l_created_acceptable_turn_flags:;
     ax = D0;                                // mov ax, word ptr D0
-    *(word *)&g_memByte[515608] = ax;       // mov cameraDirection, ax
+    *(word *)&g_memByte[515660] = ax;       // mov cameraDirection, ax
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
     {
-        word src = *(word *)&g_memByte[449210];
+        word src = *(word *)&g_memByte[449270];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[449210] = src;
+        *(word *)&g_memByte[449270] = src;
     }                                       // add deadThrowInDirectionVar, 1
 
 l_turn_flags_acceptable:;
@@ -4609,7 +4608,7 @@ l_turn_flags_acceptable:;
         goto cseg_80D49;                    // jnz short cseg_80D49
 
     {
-        word src = *(word *)&g_memByte[515594];
+        word src = *(word *)&g_memByte[515646];
         int16_t dstSigned = src;
         int16_t srcSigned = 55;
         word res = dstSigned - srcSigned;
@@ -4660,7 +4659,7 @@ l_test_fire:;
         goto l_test_direction;              // jz short @@test_direction
 
 l_joy_any_fire_pressed:;
-    ax = *(word *)&g_memByte[449120];       // mov ax, statsTimer
+    ax = *(word *)&g_memByte[449184];       // mov ax, statsTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -4668,18 +4667,13 @@ l_joy_any_fire_pressed:;
     if (flags.zero)
         goto l_hide_result;                 // jz short @@hide_result
 
-    *(word *)&g_memByte[515586] = 1;        // mov fireBlocked, 1
+    *(word *)&g_memByte[515638] = 1;        // mov fireBlocked, 1
 
 l_hide_result:;
     {
-        int16_t src = *(word *)&g_memByte[449124];
+        int16_t src = *(word *)&g_memByte[449186];
         src = -src;
-        *(word *)&g_memByte[449124] = src;
-    }                                       // neg timeVar
-    {
-        int16_t src = *(word *)&g_memByte[449122];
-        src = -src;
-        *(word *)&g_memByte[449122] = src;
+        *(word *)&g_memByte[449186] = src;
     }                                       // neg resultTimer
 
 l_test_direction:;
@@ -4711,7 +4705,7 @@ cseg_80DCC:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -4724,7 +4718,7 @@ cseg_80DCC:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
-    updatePlayerWithBall();                 // call UpdatePlayerWithBall
+    updatePlayerWithBall(A1.as<Sprite&>());                 // call UpdatePlayerWithBall
 
 l_skip_break_handling:;
     esi = A1;                               // mov esi, A1
@@ -4753,7 +4747,7 @@ l_skip_break_handling:;
 
 cseg_80E41:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -5004,7 +4998,7 @@ cseg_81028:;
 
 cseg_8108A:;
     esi = A6;                               // mov esi, A6
-    ax = (word)readMemory(esi + 112, 2);    // mov ax, [esi+TeamGeneralInfo.ballControllingPlayerDirection]
+    ax = (word)readMemory(esi + 112, 2);    // mov ax, [esi+TeamGeneralInfo.ballControllingDirection]
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -5032,13 +5026,13 @@ l_ball_becomes_free:;
     ax = (word)readMemory(esi + 110, 2);    // mov ax, [esi+TeamGeneralInfo.ballCanBeControlled]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     ax = D0;                                // mov ax, word ptr D0
-    writeMemory(esi + 112, 2, ax);          // mov [esi+TeamGeneralInfo.ballControllingPlayerDirection], ax
+    writeMemory(esi + 112, 2, ax);          // mov [esi+TeamGeneralInfo.ballControllingDirection], ax
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
     A0 = eax;                               // mov A0, eax
     esi = A0;                               // mov esi, A0
@@ -5050,7 +5044,7 @@ l_ball_becomes_free:;
     if (flags.zero)
         goto l_calculate_if_player_wins_ball; // jz short @@calculate_if_player_wins_ball
 
-    *(word *)&g_memByte[515566] = 1;        // mov playerHadBall, 1
+    *(word *)&g_memByte[515618] = 1;        // mov playerHadBall, 1
 
 l_calculate_if_player_wins_ball:;
     push(D0);                               // push D0
@@ -5058,7 +5052,8 @@ l_calculate_if_player_wins_ball:;
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    calculateIfPlayerWinsBall();            // call CalculateIfPlayerWinsBall
+    calculateIfPlayerWinsBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>(),
+        static_cast<Direction>(static_cast<int16_t>(D0.asWord())));
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -5110,7 +5105,7 @@ l_test_quick_fire:;
 
 cseg_811DF:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -5132,7 +5127,7 @@ cseg_811DF:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -5168,11 +5163,11 @@ cseg_81203:;
 
 cseg_81221:;
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 40, 2, 0);            // mov word ptr [esi+(Sprite.z+2)], 0
     push(D0);                               // push D0
@@ -5180,7 +5175,7 @@ cseg_81221:;
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    doPass();                               // call DoPass
+    doPass(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>()); // call DoPass
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -5190,7 +5185,7 @@ cseg_81221:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 72, 4, eax);          // mov [esi+TeamGeneralInfo.lastHeadingTacklingPlayer], eax
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -5202,11 +5197,11 @@ cseg_81221:;
     if (flags.zero)
         goto cseg_812C6;                    // jz short cseg_812C6
 
-    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515636] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
 
 cseg_812C6:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -5218,11 +5213,11 @@ cseg_812C6:;
     if (!flags.zero)
         goto l_not_penalty;                 // jnz short @@not_penalty
 
-    *(word *)&g_memByte[515580] = 1;        // mov penalty, 1
+    *(word *)&g_memByte[515632] = 1;        // mov penalty, 1
 
 l_not_penalty:;
-    *(word *)&g_memByte[515596] = 100;      // mov gameStatePl, 100
-    *(word *)&g_memByte[515598] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
+    *(word *)&g_memByte[515648] = 100;      // mov gameStatePl, 100
+    *(word *)&g_memByte[515650] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 94, 2, 1);            // mov [esi+TeamGeneralInfo.ballInPlay], 1
     writeMemory(esi + 96, 2, 1);            // mov [esi+TeamGeneralInfo.ballOutOfPlay], 1
@@ -5282,7 +5277,7 @@ l_no_passing:;
 
 cseg_813DA:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -5304,7 +5299,7 @@ cseg_813DA:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -5340,17 +5335,17 @@ cseg_813FE:;
 
 cseg_8141C:;
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     push(D0);                               // push D0
     push(A0);                               // push A0
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    playerKickingBall();                    // call PlayerKickingBall
+    playerKickingBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());                    // call PlayerKickingBall
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -5360,7 +5355,7 @@ cseg_8141C:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 72, 4, eax);          // mov [esi+TeamGeneralInfo.lastHeadingTacklingPlayer], eax
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -5372,11 +5367,11 @@ cseg_8141C:;
     if (flags.zero)
         goto cseg_814B5;                    // jz short cseg_814B5
 
-    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515636] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
 
 cseg_814B5:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -5388,11 +5383,11 @@ cseg_814B5:;
     if (!flags.zero)
         goto l_not_penalty2;                // jnz short @@not_penalty2
 
-    *(word *)&g_memByte[515580] = 1;        // mov penalty, 1
+    *(word *)&g_memByte[515632] = 1;        // mov penalty, 1
 
 l_not_penalty2:;
-    *(word *)&g_memByte[515596] = 100;      // mov gameStatePl, 100
-    *(word *)&g_memByte[515598] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
+    *(word *)&g_memByte[515648] = 100;      // mov gameStatePl, 100
+    *(word *)&g_memByte[515650] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 94, 2, 1);            // mov [esi+TeamGeneralInfo.ballInPlay], 1
     writeMemory(esi + 96, 2, 1);            // mov [esi+TeamGeneralInfo.ballOutOfPlay], 1
@@ -5624,7 +5619,7 @@ l_its_a_header:;
 
 l_not_a_header:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -5740,22 +5735,12 @@ l_inside_pitch_bottom_y:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_update_player_dest_x_y:;
-    A5 = 515768;                            // mov A5, offset kDefaultDestinations
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 2
-    eax = A5;                               // mov eax, A5
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    {
-        int32_t dstSigned = eax;
-        int32_t srcSigned = ebx;
-        dword res = dstSigned + srcSigned;
-        eax = res;
-    }                                       // add eax, ebx
-    A5 = eax;                               // mov A5, eax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
+    ax = getDefaultBallDestinations()[ebx / 4].x;
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -5765,8 +5750,7 @@ l_update_player_dest_x_y:;
         word res = dstSigned + srcSigned;
         *(word *)&D1 = res;
     }                                       // add word ptr D1, ax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi + 2, 2);      // mov ax, [esi+2]
+    ax = getDefaultBallDestinations()[ebx / 4].y;
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
@@ -5818,7 +5802,7 @@ l_test_allowed_turn_flags:;
         }
     }                                       // shl ax, cl
     {
-        byte src = g_memByte[515610];
+        byte src = g_memByte[515662];
         byte res = src & al;
         flags.carry = false;
         flags.overflow = false;
@@ -5828,15 +5812,15 @@ l_test_allowed_turn_flags:;
     if (!flags.zero)
         goto l_test_turn_flags_with_camera_direction; // jnz short @@test_turn_flags_with_camera_direction
 
-    ax = *(word *)&g_memByte[515608];       // mov ax, cameraDirection
+    ax = *(word *)&g_memByte[515660];       // mov ax, cameraDirection
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
     {
-        word src = *(word *)&g_memByte[449216];
+        word src = *(word *)&g_memByte[449274];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[449216] = src;
+        *(word *)&g_memByte[449274] = src;
     }                                       // add disallowedTurnFlagsCounter, 1
 
 l_test_turn_flags_with_camera_direction:;
@@ -5853,7 +5837,7 @@ l_test_turn_flags_with_camera_direction:;
         }
     }                                       // shl ax, cl
     {
-        byte src = g_memByte[515610];
+        byte src = g_memByte[515662];
         byte res = src & al;
         flags.carry = false;
         flags.overflow = false;
@@ -5876,7 +5860,7 @@ l_next_direction:;
         }
     }                                       // shl ax, cl
     {
-        byte src = g_memByte[515610];
+        byte src = g_memByte[515662];
         byte res = src & al;
         flags.carry = false;
         flags.overflow = false;
@@ -5897,20 +5881,20 @@ l_next_direction:;
 
 l_found_direction:;
     ax = D0;                                // mov ax, word ptr D0
-    *(word *)&g_memByte[515608] = ax;       // mov cameraDirection, ax
+    *(word *)&g_memByte[515660] = ax;       // mov cameraDirection, ax
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
     {
-        word src = *(word *)&g_memByte[449210];
+        word src = *(word *)&g_memByte[449270];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[449210] = src;
+        *(word *)&g_memByte[449270] = src;
     }                                       // add deadThrowInDirectionVar, 1
 
 l_check_if_throw_in_taker_substituted:;
-    ax = *(word *)&g_memByte[478672];       // mov ax, g_substituteInProgress
+    ax = *(word *)&g_memByte[478724];       // mov ax, g_substituteInProgress
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -5918,7 +5902,7 @@ l_check_if_throw_in_taker_substituted:;
     if (flags.zero)
         goto l_check_throw_in_game_state;   // jz short @@check_throw_in_game_state
 
-    eax = *(dword *)&g_memByte[478676];     // mov eax, substitutedPlSprite
+    eax = *(dword *)&g_memByte[478728];     // mov eax, substitutedPlSprite
     {
         int32_t dstSigned = A1;
         int32_t srcSigned = eax;
@@ -5933,7 +5917,7 @@ l_check_if_throw_in_taker_substituted:;
 
 l_check_throw_in_game_state:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 15;
         word res = dstSigned - srcSigned;
@@ -5946,7 +5930,7 @@ l_check_throw_in_game_state:;
         goto l_abort_throw_in;              // jb @@abort_throw_in
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -5995,7 +5979,7 @@ l_check_throw_in_game_state:;
     if (!flags.zero)
         goto l_update_player_speed_and_deltas; // jnz @@update_player_speed_and_deltas
 
-    ax = *(word *)&g_memByte[478658];       // mov ax, g_inSubstitutesMenu
+    ax = *(word *)&g_memByte[478710];       // mov ax, g_inSubstitutesMenu
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -6015,8 +5999,8 @@ l_throw_in_done_check_pass_or_kick:;
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 40, 2, 12);           // mov word ptr [esi+(Sprite.z+2)], 12
-    *(word *)&g_memByte[449180] = 0;        // mov hideBall, 0
-    ax = *(word *)&g_memByte[515620];       // mov ax, throwInPassOrKick
+    *(word *)&g_memByte[449242] = 0;        // mov hideBall, 0
+    ax = *(word *)&g_memByte[515672];       // mov ax, throwInPassOrKick
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -6037,7 +6021,7 @@ l_ready_for_throw_in:;
         goto l_throw_in_check_input_direction; // jnz short @@throw_in_check_input_direction
 
     {
-        word src = *(word *)&g_memByte[515594];
+        word src = *(word *)&g_memByte[515646];
         int16_t dstSigned = src;
         int16_t srcSigned = 55;
         word res = dstSigned - srcSigned;
@@ -6088,7 +6072,7 @@ l_throw_in_check_fire:;
         goto l_throw_in_check_direction;    // jz short @@throw_in_check_direction
 
 l_check_if_stats_showing:;
-    ax = *(word *)&g_memByte[449120];       // mov ax, statsTimer
+    ax = *(word *)&g_memByte[449184];       // mov ax, statsTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -6096,18 +6080,13 @@ l_check_if_stats_showing:;
     if (flags.zero)
         goto l_throw_in_hide_result;        // jz short @@throw_in_hide_result
 
-    *(word *)&g_memByte[515586] = 1;        // mov fireBlocked, 1
+    *(word *)&g_memByte[515638] = 1;        // mov fireBlocked, 1
 
 l_throw_in_hide_result:;
     {
-        int16_t src = *(word *)&g_memByte[449124];
+        int16_t src = *(word *)&g_memByte[449186];
         src = -src;
-        *(word *)&g_memByte[449124] = src;
-    }                                       // neg timeVar
-    {
-        int16_t src = *(word *)&g_memByte[449122];
-        src = -src;
-        *(word *)&g_memByte[449122] = src;
+        *(word *)&g_memByte[449186] = src;
     }                                       // neg resultTimer
 
 l_throw_in_check_direction:;
@@ -6141,7 +6120,7 @@ l_throw_in_got_input_direction:;
         }
     }                                       // shl ax, cl
     {
-        byte src = g_memByte[515610];
+        byte src = g_memByte[515662];
         byte res = src & al;
         flags.carry = false;
         flags.overflow = false;
@@ -6195,7 +6174,7 @@ l_throw_in_check_quick_fire:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -6205,7 +6184,7 @@ l_throw_in_check_quick_fire:;
     if (flags.zero)
         goto l_throw_in_check_normal_fire;  // jz short @@throw_in_check_normal_fire
 
-    *(word *)&g_memByte[515620] = 1;        // mov throwInPassOrKick, 1
+    *(word *)&g_memByte[515672] = 1;        // mov throwInPassOrKick, 1
     setPlayerAnimationTable(A1.as<Sprite&>(), getThrowInShortAnimTable());
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 13, 1, 20);           // mov [esi+Sprite.playerDownTimer], 20
@@ -6231,7 +6210,7 @@ l_throw_in_check_normal_fire:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -6241,7 +6220,7 @@ l_throw_in_check_normal_fire:;
     if (flags.zero)
         goto l_update_player_speed_and_deltas; // jz @@update_player_speed_and_deltas
 
-    *(word *)&g_memByte[515620] = 0;        // mov throwInPassOrKick, 0
+    *(word *)&g_memByte[515672] = 0;        // mov throwInPassOrKick, 0
     setPlayerAnimationTable(A1.as<Sprite&>(), getThrowInLongAnimTable());
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 13, 1, 25);           // mov [esi+Sprite.playerDownTimer], 25
@@ -6249,16 +6228,16 @@ l_throw_in_check_normal_fire:;
 
 l_do_throw_in_pass:;
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515566] = 1;        // mov playerHadBall, 1
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515618] = 1;        // mov playerHadBall, 1
     push(D0);                               // push D0
     push(A0);                               // push A0
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    doPass();                               // call DoPass
+    doPass(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>()); // call DoPass
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -6270,7 +6249,7 @@ l_do_throw_in_pass:;
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 54, 4, 1);            // mov [esi+Sprite.deltaZ], 1
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -6282,11 +6261,11 @@ l_do_throw_in_pass:;
     if (flags.zero)
         goto l_throw_in_ball_passed;        // jz short @@throw_in_ball_passed
 
-    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515636] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
 
 l_throw_in_ball_passed:;
-    *(word *)&g_memByte[515596] = 100;      // mov gameStatePl, ST_GAME_IN_PROGRESS
-    *(word *)&g_memByte[515598] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
+    *(word *)&g_memByte[515648] = 100;      // mov gameStatePl, ST_GAME_IN_PROGRESS
+    *(word *)&g_memByte[515650] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 94, 2, 1);            // mov [esi+TeamGeneralInfo.ballInPlay], 1
     writeMemory(esi + 96, 2, 1);            // mov [esi+TeamGeneralInfo.ballOutOfPlay], 1
@@ -6310,16 +6289,16 @@ l_throw_in_ball_passed:;
 
 l_do_throw_in_kick:;
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515566] = 1;        // mov playerHadBall, 1
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515618] = 1;        // mov playerHadBall, 1
     push(D0);                               // push D0
     push(A0);                               // push A0
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    playerKickingBall();                    // call PlayerKickingBall
+    playerKickingBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());                    // call PlayerKickingBall
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -6329,7 +6308,7 @@ l_do_throw_in_kick:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 72, 4, eax);          // mov [esi+TeamGeneralInfo.lastHeadingTacklingPlayer], eax
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -6341,11 +6320,11 @@ l_do_throw_in_kick:;
     if (flags.zero)
         goto l_throw_in_ball_kicked;        // jz short @@throw_in_ball_kicked
 
-    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515636] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
 
 l_throw_in_ball_kicked:;
-    *(word *)&g_memByte[515596] = 100;      // mov gameStatePl, ST_GAME_IN_PROGRESS
-    *(word *)&g_memByte[515598] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
+    *(word *)&g_memByte[515648] = 100;      // mov gameStatePl, ST_GAME_IN_PROGRESS
+    *(word *)&g_memByte[515650] = 100;      // mov gameState, ST_GAME_IN_PROGRESS
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 94, 2, 1);            // mov [esi+TeamGeneralInfo.ballInPlay], 1
     writeMemory(esi + 96, 2, 1);            // mov [esi+TeamGeneralInfo.ballOutOfPlay], 1
@@ -6368,7 +6347,7 @@ l_throw_in_ball_kicked:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_abort_throw_in:;
-    *(word *)&g_memByte[449180] = 0;        // mov hideBall, 0
+    *(word *)&g_memByte[449242] = 0;        // mov hideBall, 0
 
 l_throw_in_over:;
     esi = A1;                               // mov esi, A1
@@ -6474,7 +6453,7 @@ l_computer_tackling:;
     if (flags.zero)
         goto l_update_player_speed_and_deltas; // jz @@update_player_speed_and_deltas
 
-    ax = *(word *)&g_memByte[325300];       // mov ax, kPlayerGroundConstant
+    ax = *(word *)&g_memByte[325376];       // mov ax, kPlayerGroundConstant
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word src = (word)readMemory(esi + 44, 2);
@@ -6492,7 +6471,7 @@ l_computer_tackling:;
         goto l_player_still_tackling_and_moving; // jg short @@player_still_tackling_and_moving
 
     writeMemory(esi + 44, 2, 0);            // mov [esi+Sprite.speed], 0
-    setPlayerDowntimeAfterTackle();         // call SetPlayerDowntimeAfterTackle
+    setPlayerDowntimeAfterTackle(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());         // call SetPlayerDowntimeAfterTackle
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_player_still_tackling_and_moving:;
@@ -6665,7 +6644,7 @@ l_pl_tackling_out_of_pitch:;
 
 l_pl_tackling_in_pitch:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -6687,7 +6666,7 @@ l_pl_tackling_in_pitch:;
         goto l_tackling_empty_space;        // jnz @@tackling_empty_space
 
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -6735,11 +6714,11 @@ l_player_tackling_the_ball:;
     ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
     A0 = eax;                               // mov A0, eax
@@ -6752,7 +6731,7 @@ l_player_tackling_the_ball:;
     if (flags.zero)
         goto l_check_if_strong_tackle;      // jz short @@check_if_strong_tackle
 
-    *(word *)&g_memByte[515566] = 1;        // mov playerHadBall, 1
+    *(word *)&g_memByte[515618] = 1;        // mov playerHadBall, 1
 
 l_check_if_strong_tackle:;
     esi = A1;                               // mov esi, A1
@@ -6773,7 +6752,7 @@ l_check_if_strong_tackle:;
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    playerTackledTheBallWeak();             // call PlayerTackledTheBallWeak
+    playerTackledTheBallWeak(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());             // call PlayerTackledTheBallWeak
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -6785,7 +6764,7 @@ l_strong_tackle:;
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    playersTackledTheBallStrong();          // call PlayersTackledTheBallStrong
+    playerTackledTheBallStrong(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>()); // call PlayerTackledTheBallStrong
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -6874,7 +6853,7 @@ l_player_down_with_static_header:;
 cseg_822E4:;
     setStaticHeaderDirection();             // call SetStaticHeaderDirection
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -6948,16 +6927,16 @@ cseg_822E4:;
     ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 1;        // mov playerHadBall, 1
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 1;        // mov playerHadBall, 1
     push(A0);                               // push A0
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    playerHittingStaticHeader();            // call PlayerHittingStaticHeader
+    playerHittingStaticHeader(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());            // call PlayerHittingStaticHeader
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -7062,7 +7041,7 @@ cseg_8245D:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_update_heading_speed:;
-    ax = *(word *)&g_memByte[325302];       // mov ax, kPlayerAirConstant
+    ax = *(word *)&g_memByte[325378];       // mov ax, kPlayerAirConstant
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     {
@@ -7333,7 +7312,7 @@ l_check_if_header_winded_up:;
         goto l_update_player_speed_and_deltas; // jb @@update_player_speed_and_deltas
 
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -7397,16 +7376,16 @@ l_check_if_header_winded_up:;
     ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 1;        // mov playerHadBall, 1
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 1;        // mov playerHadBall, 1
     push(A0);                               // push A0
     push(A1);                               // push A1
     push(A2);                               // push A2
     push(A3);                               // push A3
-    playerHittingJumpHeader();              // call PlayerHittingJumpHeader
+    playerHittingJumpHeader(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>());              // call PlayerHittingJumpHeader
     pop(A3);                                // pop A3
     pop(A2);                                // pop A2
     pop(A1);                                // pop A1
@@ -7421,7 +7400,7 @@ l_check_if_header_winded_up:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_player_injured:;
-    ax = *(word *)&g_memByte[515872];       // mov ax, injuriesForever
+    ax = swos.injuriesForever;              // mov ax, injuriesForever
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -7568,7 +7547,7 @@ l_in_goalkeepers_area_by_y:;
     }                                       // sub [esi+Sprite.speed], ax
 
 l_player_not_in_goalkeepers_area:;
-    ax = *(word *)&g_memByte[325300];       // mov ax, kPlayerGroundConstant
+    ax = *(word *)&g_memByte[325376];       // mov ax, kPlayerGroundConstant
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     {
@@ -7685,7 +7664,7 @@ l_passed_to_player_inside_pitch:;
 
 l_test_for_long_pass:;
     {
-        word src = *(word *)&g_memByte[328536];
+        word src = *(word *)&g_memByte[328600];
         int16_t dstSigned = src;
         int16_t srcSigned = 512;
         word res = dstSigned - srcSigned;
@@ -7706,7 +7685,7 @@ l_test_for_long_pass:;
     if (flags.zero)
         goto l_cpu_passing_to;              // jz @@cpu_passing_to
 
-    ax = *(word *)&g_memByte[328534];       // mov ax, ballSprite.direction
+    ax = *(word *)&g_memByte[328598];       // mov ax, ballSprite.direction
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -7714,7 +7693,7 @@ l_test_for_long_pass:;
     if (flags.sign)
         goto l_ball_got_no_direction;       // js short @@ball_got_no_direction
 
-    ax = *(word *)&g_memByte[328574];       // mov ax, ballSprite.fullDirection
+    ax = *(word *)&g_memByte[328638];       // mov ax, ballSprite.fullDirection
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     al = (byte)readMemory(esi + 82, 1);     // mov al, byte ptr [esi+Sprite.fullDirection]
@@ -7815,7 +7794,7 @@ cseg_829AC:;
     *(int8_t *)&D1 = -*(int8_t *)&D1;       // neg byte ptr D1
 
 cseg_829BB:;
-    ax = *(word *)&g_memByte[328574];       // mov ax, ballSprite.fullDirection
+    ax = *(word *)&g_memByte[328638];       // mov ax, ballSprite.fullDirection
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     al = D1;                                // mov al, byte ptr D1
     {
@@ -7834,7 +7813,7 @@ cseg_829BB:;
         word res = *(word *)&D0 & 255;
         *(word *)&D0 = res;
     }                                       // and word ptr D0, 0FFh
-    A0 = 515640;                            // mov A0, offset kBallFriction
+    A0 = 515692;                            // mov A0, offset kBallFriction
     {
         word res = *(word *)&D0 & 255;
         *(word *)&D0 = res;
@@ -7897,7 +7876,7 @@ l_cpu_passing_to:;
 
 cseg_82AAF:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -7909,7 +7888,7 @@ cseg_82AAF:;
     if (flags.zero)
         goto cseg_82C41;                    // jz cseg_82C41
 
-    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
+    eax = *(dword *)&g_memByte[515640];     // mov eax, lastTeamPlayedBeforeBreak
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -7923,7 +7902,7 @@ cseg_82AAF:;
         goto l_update_player_speed_and_deltas; // jnz @@update_player_speed_and_deltas
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -7961,7 +7940,7 @@ cseg_82AE5:;
 
 cseg_82AF6:;
     {
-        word src = *(word *)&g_memByte[515608];
+        word src = *(word *)&g_memByte[515660];
         int16_t dstSigned = src;
         int16_t srcSigned = 8;
         word res = dstSigned - srcSigned;
@@ -7975,9 +7954,9 @@ cseg_82AF6:;
 
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    *(word *)&g_memByte[515608] = ax;       // mov cameraDirection, ax
+    *(word *)&g_memByte[515660] = ax;       // mov cameraDirection, ax
     {
-        word src = *(word *)&g_memByte[449204];
+        word src = *(word *)&g_memByte[449266];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
@@ -7986,11 +7965,11 @@ cseg_82AF6:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[449204] = src;
+        *(word *)&g_memByte[449266] = src;
     }                                       // add dseg_132804, 1
 
 l_pass_success:;
-    ax = *(word *)&g_memByte[515608];       // mov ax, cameraDirection
+    ax = *(word *)&g_memByte[515660];       // mov ax, cameraDirection
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
     esi = A6;                               // mov esi, A6
@@ -8004,18 +7983,18 @@ l_pass_success:;
     esi = A2;                               // mov esi, A2
     writeMemory(esi + 44, 2, 0);            // mov [esi+TeamGeneralInfo.currentAllowedDirection], 0
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
-    updatePlayerWithBall();                 // call UpdatePlayerWithBall
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
+    updatePlayerWithBall(A1.as<Sprite&>());                 // call UpdatePlayerWithBall
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 102, 2, 0);           // mov [esi+TeamGeneralInfo.passKickTimer], 0
     writeMemory(esi + 104, 4, 0);           // mov dword ptr [esi+104], 0
     writeMemory(esi + 116, 2, 0);           // mov word ptr [esi+116], 0
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 15;
         word res = dstSigned - srcSigned;
@@ -8028,7 +8007,7 @@ l_pass_success:;
         goto l_update_player_speed_and_deltas; // jb @@update_player_speed_and_deltas
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -8050,7 +8029,7 @@ l_pass_success:;
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 12, 1, 5);            // mov [esi+Sprite.playerState], PL_THROW_IN
     writeMemory(esi + 13, 1, 0);            // mov [esi+Sprite.playerDownTimer], 0
-    *(word *)&g_memByte[449180] = 1;        // mov hideBall, 1
+    *(word *)&g_memByte[449242] = 1;        // mov hideBall, 1
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 cseg_82C41:;
@@ -8175,7 +8154,7 @@ cseg_82D59:;
         goto cseg_82EC2;                    // jz cseg_82EC2
 
     {
-        word src = *(word *)&g_memByte[328536];
+        word src = *(word *)&g_memByte[328600];
         int16_t dstSigned = src;
         int16_t srcSigned = 1536;
         word res = dstSigned - srcSigned;
@@ -8215,7 +8194,7 @@ l_passed_to_player_becomes_main:;
     writeMemory(esi + 90, 2, 0);            // mov [esi+TeamGeneralInfo.passingToPlayer], 0
     writeMemory(esi + 58, 2, 0);            // mov [esi+TeamGeneralInfo.shooting], 0
     esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+TeamGeneralInfo.controlledPlayer]
+    ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
@@ -8236,7 +8215,7 @@ l_passed_to_player_becomes_main:;
     goto cseg_82E23;                        // jmp short cseg_82E23
 
 l_update_controlling_player:;
-    updateControllingPlayer();              // call UpdateControllingPlayer
+    updateBallWithControllingPlayer(A1.as<Sprite&>());              // call UpdateControllingPlayer
 
 cseg_82E23:;
     esi = A6;                               // mov esi, A6
@@ -8257,7 +8236,7 @@ cseg_82E23:;
     if (!flags.zero)
         goto cseg_82E97;                    // jnz short cseg_82E97
 
-    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
+    eax = *(dword *)&g_memByte[515624];     // mov eax, lastTeamPlayed
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -8270,7 +8249,7 @@ cseg_82E23:;
     if (!flags.zero)
         goto cseg_82E92;                    // jnz short cseg_82E92
 
-    ax = *(word *)&g_memByte[515566];       // mov ax, playerHadBall
+    ax = *(word *)&g_memByte[515618];       // mov ax, playerHadBall
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -8285,15 +8264,15 @@ cseg_82E23:;
     goto cseg_82E97;                        // jmp short cseg_82E97
 
 cseg_82E92:;
-    goalkeeperClaimedTheBall();             // call GoalkeeperClaimedTheBall
+    goalkeeperClaimedTheBall(A6.as<TeamGeneralInfo&>(), A1.as<Sprite&>(), A2.as<Sprite&>());             // call GoalkeeperClaimedTheBall
 
 cseg_82E97:;
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515572] = eax;     // mov lastTeamPlayed, eax
+    *(dword *)&g_memByte[515624] = eax;     // mov lastTeamPlayed, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515576] = eax;     // mov lastPlayerPlayed, eax
-    *(word *)&g_memByte[515580] = 0;        // mov penalty, 0
-    *(word *)&g_memByte[515566] = 0;        // mov playerHadBall, 0
+    *(dword *)&g_memByte[515628] = eax;     // mov lastPlayerPlayed, eax
+    *(word *)&g_memByte[515632] = 0;        // mov penalty, 0
+    *(word *)&g_memByte[515618] = 0;        // mov playerHadBall, 0
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 cseg_82EC2:;
@@ -8418,7 +8397,7 @@ l_player_chase_ball:;
 
 l_player_still_moving:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -8455,7 +8434,7 @@ l_player_still_moving:;
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -8548,7 +8527,7 @@ l_cancel_pass:;
     goto l_stop_player;                     // jmp @@stop_player
 
 cseg_8308D:;
-    ax = *(word *)&g_memByte[515582];       // mov ax, goalOut
+    ax = *(word *)&g_memByte[515634];       // mov ax, goalOut
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -8621,7 +8600,7 @@ cseg_8308D:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_injury_forever:;
-    ax = *(word *)&g_memByte[325440];       // mov ax, dseg_110D8D
+    ax = *(word *)&g_memByte[325506];       // mov ax, dseg_110D8D
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     {
@@ -8639,7 +8618,7 @@ l_injury_forever:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_not_controlled_player:;
-    ax = *(word *)&g_memByte[478672];       // mov ax, g_substituteInProgress
+    ax = *(word *)&g_memByte[478724];       // mov ax, g_substituteInProgress
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -8647,7 +8626,7 @@ l_not_controlled_player:;
     if (flags.zero)
         goto l_test_update_player_index;    // jz short @@test_update_player_index
 
-    eax = *(dword *)&g_memByte[478676];     // mov eax, substitutedPlSprite
+    eax = *(dword *)&g_memByte[478728];     // mov eax, substitutedPlSprite
     {
         int32_t dstSigned = A1;
         int32_t srcSigned = eax;
@@ -8678,7 +8657,7 @@ l_test_update_player_index:;
         goto l_next_player;                 // jnz @@next_player
 
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -8691,7 +8670,7 @@ l_test_update_player_index:;
         goto l_this_is_substituted_player;  // jz @@this_is_substituted_player
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 30;
         word res = dstSigned - srcSigned;
@@ -8703,7 +8682,7 @@ l_test_update_player_index:;
     if (!flags.zero)
         goto l_this_is_substituted_player;  // jnz @@this_is_substituted_player
 
-    eax = *(dword *)&g_memByte[336012];     // mov eax, winningTeamPtr
+    eax = *(dword *)&g_memByte[336076];     // mov eax, winningTeamPtr
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (eax & 0x80000000) != 0;
@@ -8765,7 +8744,7 @@ l_test_update_player_index:;
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 10, 4);          // mov eax, [esi+TeamGeneralInfo.inGameTeamPtr]
     D0 = eax;                               // mov D0, eax
-    eax = *(dword *)&g_memByte[336012];     // mov eax, winningTeamPtr
+    eax = *(dword *)&g_memByte[336076];     // mov eax, winningTeamPtr
     {
         int32_t dstSigned = D0;
         int32_t srcSigned = eax;
@@ -8790,7 +8769,7 @@ l_player_in_winning_team:;
 
 l_this_is_substituted_player:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -8803,7 +8782,7 @@ l_this_is_substituted_player:;
         goto l_update_destination_reached_state; // jnz short @@update_destination_reached_state
 
     {
-        word src = *(word *)&g_memByte[515612];
+        word src = *(word *)&g_memByte[515664];
         int16_t dstSigned = src;
         int16_t srcSigned = 25;
         word res = dstSigned - srcSigned;
@@ -8816,7 +8795,7 @@ l_this_is_substituted_player:;
         goto l_update_destination_reached_state; // ja short @@update_destination_reached_state
 
     {
-        word src = *(word *)&g_memByte[515614];
+        word src = *(word *)&g_memByte[515666];
         int16_t dstSigned = src;
         int16_t srcSigned = 4;
         word res = dstSigned - srcSigned;
@@ -8829,7 +8808,7 @@ l_this_is_substituted_player:;
         goto l_next_player;                 // jz @@next_player
 
     {
-        word src = *(word *)&g_memByte[515614];
+        word src = *(word *)&g_memByte[515666];
         int16_t dstSigned = src;
         int16_t srcSigned = 5;
         word res = dstSigned - srcSigned;
@@ -8842,7 +8821,7 @@ l_this_is_substituted_player:;
         goto l_next_player;                 // jz @@next_player
 
     {
-        word src = *(word *)&g_memByte[515614];
+        word src = *(word *)&g_memByte[515666];
         int16_t dstSigned = src;
         int16_t srcSigned = 6;
         word res = dstSigned - srcSigned;
@@ -8855,7 +8834,7 @@ l_this_is_substituted_player:;
         goto l_update_destination_reached_state; // jb short @@update_destination_reached_state
 
     {
-        word src = *(word *)&g_memByte[515614];
+        word src = *(word *)&g_memByte[515666];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -8916,7 +8895,7 @@ l_check_for_controlled_player:;
     pop(A1);                                // pop A1
 
 l_check_if_this_player_getting_booked:;
-    eax = *(dword *)&g_memByte[515892];     // mov eax, bookedPlayer
+    eax = *(dword *)&g_memByte[515912];     // mov eax, bookedPlayer
     {
         int32_t dstSigned = A1;
         int32_t srcSigned = eax;
@@ -8929,9 +8908,9 @@ l_check_if_this_player_getting_booked:;
     if (!flags.zero)
         goto l_check_for_substituted_player; // jnz @@check_for_substituted_player
 
-    ax = *(word *)&g_memByte[515604];       // mov ax, foulXCoordinate
+    ax = *(word *)&g_memByte[515656];       // mov ax, foulXCoordinate
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    ax = *(word *)&g_memByte[515606];       // mov ax, foulYCoordinate
+    ax = *(word *)&g_memByte[515658];       // mov ax, foulYCoordinate
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     {
         int16_t dstSigned = *(word *)&D1;
@@ -8967,7 +8946,7 @@ l_check_if_this_player_getting_booked:;
         goto l_player_not_by_foul_spot;     // jnz short @@player_not_by_foul_spot
 
     {
-        word src = *(word *)&g_memByte[515870];
+        word src = *(word *)&g_memByte[515890];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -8979,9 +8958,9 @@ l_check_if_this_player_getting_booked:;
     if (!flags.zero)
         goto l_update_player_speed_and_deltas; // jnz @@update_player_speed_and_deltas
 
-    *(word *)&g_memByte[515870] = 3;        // mov refState, REF_ABOUT_TO_GIVE_CARD
+    *(word *)&g_memByte[515890] = 3;        // mov refState, REF_ABOUT_TO_GIVE_CARD
     {
-        word src = *(word *)&g_memByte[515888];
+        word src = *(word *)&g_memByte[515908];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -8994,7 +8973,7 @@ l_check_if_this_player_getting_booked:;
         goto l_player_getting_yellow_card;  // jz short @@player_getting_yellow_card
 
     {
-        word src = *(word *)&g_memByte[515888];
+        word src = *(word *)&g_memByte[515908];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -9031,7 +9010,7 @@ l_player_not_by_foul_spot:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_check_for_substituted_player:;
-    ax = *(word *)&g_memByte[478672];       // mov ax, g_substituteInProgress
+    ax = *(word *)&g_memByte[478724];       // mov ax, g_substituteInProgress
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -9042,7 +9021,7 @@ l_check_for_substituted_player:;
     if (flags.sign)
         goto l_set_player_going_in_speed;   // js @@set_player_going_in_speed
 
-    eax = *(dword *)&g_memByte[478676];     // mov eax, substitutedPlSprite
+    eax = *(dword *)&g_memByte[478728];     // mov eax, substitutedPlSprite
     {
         int32_t dstSigned = A1;
         int32_t srcSigned = eax;
@@ -9069,7 +9048,7 @@ l_check_for_substituted_player:;
     if (flags.zero)
         goto l_new_player_about_to_go_in;   // jz short @@new_player_about_to_go_in
 
-    ax = *(word *)&g_memByte[515616];       // mov ax, substitutedPlDestX
+    ax = *(word *)&g_memByte[515668];       // mov ax, substitutedPlDestX
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     {
@@ -9084,7 +9063,7 @@ l_check_for_substituted_player:;
     if (!flags.zero)
         goto l_set_substituted_player_destination; // jnz @@set_substituted_player_destination
 
-    ax = *(word *)&g_memByte[515618];       // mov ax, substitutedPlDestY
+    ax = *(word *)&g_memByte[515670];       // mov ax, substitutedPlDestY
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
     {
@@ -9100,7 +9079,7 @@ l_check_for_substituted_player:;
         goto l_set_substituted_player_destination; // jnz @@set_substituted_player_destination
 
     {
-        word src = *(word *)&g_memByte[478672];
+        word src = *(word *)&g_memByte[478724];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -9112,21 +9091,21 @@ l_check_for_substituted_player:;
     if (flags.zero)
         goto l_new_player_about_to_go_in;   // jz short @@new_player_about_to_go_in
 
-    *(word *)&g_memByte[478672] = 2;        // mov g_substituteInProgress, 2
-    ax = *(word *)&g_memByte[478664];       // mov ax, plComingX
-    *(word *)&g_memByte[515616] = ax;       // mov substitutedPlDestX, ax
-    ax = *(word *)&g_memByte[478666];       // mov ax, plComingY
-    *(word *)&g_memByte[515618] = ax;       // mov substitutedPlDestY, ax
+    *(word *)&g_memByte[478724] = 2;        // mov g_substituteInProgress, 2
+    ax = *(word *)&g_memByte[478716];       // mov ax, plComingX
+    *(word *)&g_memByte[515668] = ax;       // mov substitutedPlDestX, ax
+    ax = *(word *)&g_memByte[478718];       // mov ax, plComingY
+    *(word *)&g_memByte[515670] = ax;       // mov substitutedPlDestY, ax
     goto l_set_substituted_player_destination; // jmp short @@set_substituted_player_destination
 
 l_new_player_about_to_go_in:;
-    *(word *)&g_memByte[478672] = -1;       // mov g_substituteInProgress, -1
-    ax = *(word *)&g_memByte[478668];       // mov ax, plSubstitutedX
+    *(word *)&g_memByte[478724] = -1;       // mov g_substituteInProgress, -1
+    ax = *(word *)&g_memByte[478720];       // mov ax, plSubstitutedX
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 32, 2, ax);           // mov word ptr [esi+(Sprite.x+2)], ax
-    ax = *(word *)&g_memByte[478670];       // mov ax, plSubstitutedY
+    ax = *(word *)&g_memByte[478722];       // mov ax, plSubstitutedY
     writeMemory(esi + 36, 2, ax);           // mov word ptr [esi+(Sprite.y+2)], ax
-    ax = *(word *)&g_memByte[325292];       // mov ax, kSubstitutedPlayerSpeed
+    ax = *(word *)&g_memByte[325368];       // mov ax, kSubstitutedPlayerSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     writeMemory(esi + 108, 2, 0);           // mov [esi+Sprite.sentAway], 0
     goto l_check_if_sent_away;              // jmp short @@check_if_sent_away
@@ -9134,17 +9113,17 @@ l_new_player_about_to_go_in:;
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_set_substituted_player_destination:;
-    ax = *(word *)&g_memByte[515616];       // mov ax, substitutedPlDestX
+    ax = *(word *)&g_memByte[515668];       // mov ax, substitutedPlDestX
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = *(word *)&g_memByte[515618];       // mov ax, substitutedPlDestY
+    ax = *(word *)&g_memByte[515670];       // mov ax, substitutedPlDestY
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[325292];       // mov ax, kSubstitutedPlayerSpeed
+    ax = *(word *)&g_memByte[325368];       // mov ax, kSubstitutedPlayerSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     goto l_update_player_speed_and_deltas;  // jmp @@update_player_speed_and_deltas
 
 l_set_player_going_in_speed:;
-    eax = *(dword *)&g_memByte[478676];     // mov eax, substitutedPlSprite
+    eax = *(dword *)&g_memByte[478728];     // mov eax, substitutedPlSprite
     {
         int32_t dstSigned = A1;
         int32_t srcSigned = eax;
@@ -9157,7 +9136,7 @@ l_set_player_going_in_speed:;
     if (!flags.zero)
         goto l_check_if_sent_away;          // jnz short @@check_if_sent_away
 
-    ax = *(word *)&g_memByte[325292];       // mov ax, kSubstitutedPlayerSpeed
+    ax = *(word *)&g_memByte[325368];       // mov ax, kSubstitutedPlayerSpeed
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     eax = readMemory(esi + 46, 4);          // mov eax, [esi+Sprite.deltaX]
@@ -9176,7 +9155,7 @@ l_set_player_going_in_speed:;
     if (!flags.zero)
         goto l_check_if_sent_away;          // jnz short @@check_if_sent_away
 
-    *(word *)&g_memByte[478672] = 0;        // mov g_substituteInProgress, 0
+    *(word *)&g_memByte[478724] = 0;        // mov g_substituteInProgress, 0
 
 l_check_if_sent_away:;
     esi = A1;                               // mov esi, A1
@@ -9188,7 +9167,7 @@ l_check_if_sent_away:;
     if (!flags.zero)
         goto l_update_player_speed_and_deltas; // jnz @@update_player_speed_and_deltas
 
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -9201,7 +9180,7 @@ l_check_if_sent_away:;
 
 l_set_player_positions_if_game_break:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -9221,16 +9200,16 @@ l_set_player_positions_if_game_break:;
     goto l_set_player_with_no_ball_destination; // jmp @@set_player_with_no_ball_destination
 
 l_game_interrupted_get_ball_x_y:;
-    ax = *(word *)&g_memByte[515598];       // mov ax, gameState
+    ax = *(word *)&g_memByte[515650];       // mov ax, gameState
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
 
 l_get_foul_coordinates:;
-    ax = *(word *)&g_memByte[515604];       // mov ax, foulXCoordinate
+    ax = *(word *)&g_memByte[515656];       // mov ax, foulXCoordinate
     *(word *)&D6 = ax;                      // mov word ptr D6, ax
-    ax = *(word *)&g_memByte[515606];       // mov ax, foulYCoordinate
+    ax = *(word *)&g_memByte[515658];       // mov ax, foulYCoordinate
     *(word *)&D7 = ax;                      // mov word ptr D7, ax
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 29;
         word res = dstSigned - srcSigned;
@@ -9243,7 +9222,7 @@ l_get_foul_coordinates:;
         goto l_update_player_speed_and_deltas; // jz @@update_player_speed_and_deltas
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 30;
         word res = dstSigned - srcSigned;
@@ -9256,7 +9235,7 @@ l_get_foul_coordinates:;
         goto l_update_player_speed_and_deltas; // jz @@update_player_speed_and_deltas
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -9269,7 +9248,7 @@ l_get_foul_coordinates:;
         goto l_set_player_with_no_ball_destination; // jz @@set_player_with_no_ball_destination
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -9282,7 +9261,7 @@ l_get_foul_coordinates:;
         goto l_set_player_with_no_ball_destination; // jz @@set_player_with_no_ball_destination
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -9295,7 +9274,7 @@ l_get_foul_coordinates:;
         goto l_set_player_with_no_ball_destination; // jz @@set_player_with_no_ball_destination
 
     {
-        word src = *(word *)&g_memByte[449234];
+        word src = *(word *)&g_memByte[449284];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -9308,7 +9287,7 @@ l_get_foul_coordinates:;
         goto l_check_for_penalty_shootout;  // jnz short @@check_for_penalty_shootout
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 4;
         word res = dstSigned - srcSigned;
@@ -9321,7 +9300,7 @@ l_get_foul_coordinates:;
         goto l_corner;                      // jz short @@corner
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 5;
         word res = dstSigned - srcSigned;
@@ -9347,7 +9326,7 @@ l_corner:;
         goto l_top_break;                   // jl short @@top_break
 
 l_check_for_penalty_shootout:;
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -9357,7 +9336,7 @@ l_check_for_penalty_shootout:;
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -9370,7 +9349,7 @@ l_check_for_penalty_shootout:;
     goto l_bottom_break;                    // jmp short @@bottom_break
 
 l_check_team_for_penalty_positions:;
-    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
+    eax = *(dword *)&g_memByte[515640];     // mov eax, lastTeamPlayedBeforeBreak
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -9384,11 +9363,11 @@ l_check_team_for_penalty_positions:;
         goto l_top_break;                   // jnz short @@top_break
 
 l_bottom_break:;
-    A5 = 516942;                            // mov A5, offset bottomBallOutOfPlayPositions
+    A5 = 516130;                            // mov A5, offset bottomBallOutOfPlayPositions
     goto cseg_8364D;                        // jmp short cseg_8364D
 
 l_top_break:;
-    A5 = 517070;                            // mov A5, offset topBallOutOfPlayPositions
+    A5 = 516258;                            // mov A5, offset topBallOutOfPlayPositions
 
 cseg_8364D:;
     {
@@ -9411,8 +9390,8 @@ cseg_8364D:;
     if (flags.zero)
         goto l_set_player_with_no_ball_destination; // jz @@set_player_with_no_ball_destination
 
-    *(word *)&g_memByte[516940] = 0;        // mov freeKickDestX, 0
-    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
+    *(word *)&g_memByte[516128] = 0;        // mov freeKickDestX, 0
+    eax = *(dword *)&g_memByte[515640];     // mov eax, lastTeamPlayedBeforeBreak
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -9426,7 +9405,7 @@ cseg_8364D:;
         goto l_not_in_free_kick_state;      // jz @@not_in_free_kick_state
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 6;
         word res = dstSigned - srcSigned;
@@ -9439,7 +9418,7 @@ cseg_8364D:;
         goto l_not_in_free_kick_state;      // jb @@not_in_free_kick_state
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -9452,7 +9431,7 @@ cseg_8364D:;
         goto l_not_in_free_kick_state;      // ja @@not_in_free_kick_state
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 6;
         word res = dstSigned - srcSigned;
@@ -9465,7 +9444,7 @@ cseg_8364D:;
         goto l_not_in_free_kick_state;      // jz @@not_in_free_kick_state
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -9570,7 +9549,7 @@ l_player_got_red_card_get_next:;
     goto l_pl_loop_start;                   // jmp short @@pl_loop_start
 
 cseg_8375A:;
-    ax = *(word *)&g_memByte[515598];       // mov ax, gameState
+    ax = *(word *)&g_memByte[515650];       // mov ax, gameState
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     {
         int16_t dstSigned = *(word *)&D2;
@@ -9582,7 +9561,7 @@ cseg_8375A:;
         word res = *(word *)&D2 << 1;
         *(word *)&D2 = res;
     }                                       // shl word ptr D2, 1
-    A0 = 516926;                            // mov A0, offset freeKickFactorsX
+    A0 = 516114;                            // mov A0, offset freeKickFactorsX
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D2;                     // movzx ebx, word ptr D2
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -9592,7 +9571,7 @@ cseg_8375A:;
         *(word *)&D2 = res;
     }                                       // shl word ptr D2, 2
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516940] = ax;       // mov freeKickDestX, ax
+    *(word *)&g_memByte[516128] = ax;       // mov freeKickDestX, ax
     {
         word res = *(word *)&D2 >> 2;
         *(word *)&D2 = res;
@@ -9629,13 +9608,13 @@ l_next_free_kick_taker:;
 
     ax = D2;                                // mov ax, word ptr D2
     {
-        word src = *(word *)&g_memByte[516940];
+        word src = *(word *)&g_memByte[516128];
         int16_t dstSigned = src;
         int16_t srcSigned = ax;
         word res = dstSigned - srcSigned;
         flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
         src = res;
-        *(word *)&g_memByte[516940] = src;
+        *(word *)&g_memByte[516128] = src;
     }                                       // sub freeKickDestX, ax
 
 l_free_kick_taker_has_red_card:;
@@ -9681,7 +9660,7 @@ cseg_8381B:;
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -9817,7 +9796,7 @@ cseg_83981:;
         word res = dstSigned + srcSigned;
         *(word *)&D1 = res;
     }                                       // add word ptr D1, 1000
-    ax = *(word *)&g_memByte[516940];       // mov ax, freeKickDestX
+    ax = *(word *)&g_memByte[516128];       // mov ax, freeKickDestX
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -9837,7 +9816,7 @@ cseg_83999:;
         word res = dstSigned - srcSigned;
         *(word *)&D1 = res;
     }                                       // sub word ptr D1, 1000
-    ax = *(word *)&g_memByte[516940];       // mov ax, freeKickDestX
+    ax = *(word *)&g_memByte[516128];       // mov ax, freeKickDestX
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -9859,7 +9838,7 @@ cseg_839B1:;
     }                                       // add word ptr D1, 1000
     *(int16_t *)&D1 = -*(int16_t *)&D1;     // neg word ptr D1
     *(int16_t *)&D2 = -*(int16_t *)&D2;     // neg word ptr D2
-    ax = *(word *)&g_memByte[516940];       // mov ax, freeKickDestX
+    ax = *(word *)&g_memByte[516128];       // mov ax, freeKickDestX
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -9881,7 +9860,7 @@ cseg_839D7:;
     }                                       // sub word ptr D1, 1000
     *(int16_t *)&D1 = -*(int16_t *)&D1;     // neg word ptr D1
     *(int16_t *)&D2 = -*(int16_t *)&D2;     // neg word ptr D2
-    ax = *(word *)&g_memByte[516940];       // mov ax, freeKickDestX
+    ax = *(word *)&g_memByte[516128];       // mov ax, freeKickDestX
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -9920,7 +9899,7 @@ l_set_player_with_no_ball_destination:;
 
 cseg_83A41:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -9946,7 +9925,7 @@ cseg_83A41:;
     if (flags.zero)
         goto l_update_player_speed_and_deltas; // jz @@update_player_speed_and_deltas
 
-    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
+    eax = *(dword *)&g_memByte[515640];     // mov eax, lastTeamPlayedBeforeBreak
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -9961,7 +9940,7 @@ cseg_83A41:;
 
     ax = (word)readMemory(esi + 58, 2);     // mov ax, [esi+Sprite.destX]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[515604];       // mov ax, foulXCoordinate
+    ax = *(word *)&g_memByte[515656];       // mov ax, foulXCoordinate
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -9979,7 +9958,7 @@ cseg_83A41:;
     *(word *)((byte *)&D0 + 2) = dx;        // mov word ptr D0+2, dx
     ax = (word)readMemory(esi + 60, 2);     // mov ax, [esi+Sprite.destY]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    ax = *(word *)&g_memByte[515606];       // mov ax, foulYCoordinate
+    ax = *(word *)&g_memByte[515658];       // mov ax, foulYCoordinate
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -10014,7 +9993,7 @@ cseg_83A41:;
     if (!flags.carry && !flags.zero)
         goto l_update_player_speed_and_deltas; // ja short @@update_player_speed_and_deltas
 
-    ax = *(word *)&g_memByte[515604];       // mov ax, foulXCoordinate
+    ax = *(word *)&g_memByte[515656];       // mov ax, foulXCoordinate
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         int16_t dstSigned = *(word *)&D0;
@@ -10100,7 +10079,7 @@ l_update_player_speed_and_deltas:;
         goto l_not_goalkeeper;              // jnz short @@not_goalkeeper
 
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -10121,7 +10100,7 @@ l_update_player_speed_and_deltas:;
     if (!flags.zero)
         goto l_not_goalkeeper;              // jnz short @@not_goalkeeper
 
-    eax = *(dword *)&g_memByte[516920];     // mov eax, dword ptr ballInUpperPenaltyArea
+    eax = *(dword *)&g_memByte[516108];     // mov eax, dword ptr ballInUpperPenaltyArea
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (eax & 0x80000000) != 0;
@@ -10201,7 +10180,7 @@ l_got_movement:;
 
 l_skip_setting_direction:;
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -10214,7 +10193,7 @@ l_skip_setting_direction:;
         goto l_ball_going_to_player;        // jz short @@ball_going_to_player
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -10226,9 +10205,9 @@ l_skip_setting_direction:;
     if (!flags.carry && !flags.zero)
         goto l_ball_going_to_player;        // ja short @@ball_going_to_player
 
-    ax = *(word *)&g_memByte[515604];       // mov ax, foulXCoordinate
+    ax = *(word *)&g_memByte[515656];       // mov ax, foulXCoordinate
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
-    ax = *(word *)&g_memByte[515606];       // mov ax, foulYCoordinate
+    ax = *(word *)&g_memByte[515658];       // mov ax, foulYCoordinate
     *(word *)&D4 = ax;                      // mov word ptr D4, ax
     goto l_calculate_player_ball_direction; // jmp short @@calculate_player_ball_direction
 
@@ -10346,7 +10325,7 @@ l_next_player:;
         goto l_players_loop;                // jns @@players_loop
 
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -10359,7 +10338,7 @@ l_next_player:;
         goto cseg_83DF5;                    // jz short cseg_83DF5
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -10373,9 +10352,9 @@ l_next_player:;
 
 cseg_83DF5:;
     {
-        dword src = *(dword *)&g_memByte[515576];
+        dword src = *(dword *)&g_memByte[515628];
         int32_t dstSigned = src;
-        int32_t srcSigned = 326028;
+        int32_t srcSigned = 326092;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -10386,9 +10365,9 @@ cseg_83DF5:;
         goto l_check_goalie2;               // jnz short @@check_goalie2
 
     {
-        dword src = *(dword *)&g_memByte[516888];
+        dword src = *(dword *)&g_memByte[516076];
         int32_t dstSigned = src;
-        int32_t srcSigned = 326028;
+        int32_t srcSigned = 326092;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -10402,9 +10381,9 @@ cseg_83DF5:;
 
 l_check_goalie2:;
     {
-        dword src = *(dword *)&g_memByte[515576];
+        dword src = *(dword *)&g_memByte[515628];
         int32_t dstSigned = src;
-        int32_t srcSigned = 327260;
+        int32_t srcSigned = 327324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -10415,9 +10394,9 @@ l_check_goalie2:;
         return;                             // jnz short @@out
 
     {
-        dword src = *(dword *)&g_memByte[516888];
+        dword src = *(dword *)&g_memByte[516076];
         int32_t dstSigned = src;
-        int32_t srcSigned = 327260;
+        int32_t srcSigned = 327324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -10428,11 +10407,11 @@ l_check_goalie2:;
         return;                             // jz short @@out
 
 cseg_83E27:;
-    eax = *(dword *)&g_memByte[516888];     // mov eax, prevLastPlayer
-    *(dword *)&g_memByte[515236] = eax;     // mov lastPlayerBeforeGoalkeeper, eax
-    eax = *(dword *)&g_memByte[516892];     // mov eax, prevLastTeamPlayed
-    *(dword *)&g_memByte[515232] = eax;     // mov lastTeamScored, eax
-    *(word *)&g_memByte[450782] = 50;       // mov nobodysBallTimer, 50
+    eax = *(dword *)&g_memByte[516076];     // mov eax, prevLastPlayer
+    *(dword *)&g_memByte[515288] = eax;     // mov lastPlayerBeforeGoalkeeper, eax
+    eax = *(dword *)&g_memByte[516080];     // mov eax, prevLastTeamPlayed
+    *(dword *)&g_memByte[515284] = eax;     // mov lastTeamScored, eax
+    *(word *)&g_memByte[450834] = 50;       // mov nobodysBallTimer, 50
 }
 
 void setClearResultHalftimeInterval(int interval)
@@ -10479,7 +10458,7 @@ static void shouldGoalkeeperDive()
     }                                       // sub word ptr D0, ax
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -10523,7 +10502,7 @@ l_ball_in_front_of_goalkeeper:;
     if (flags.sign)
         goto l_goalkeeper_wont_dive;        // js @@goalkeeper_wont_dive
 
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -10531,7 +10510,7 @@ l_ball_in_front_of_goalkeeper:;
     if (!flags.zero)
         goto l_penalty_shot;                // jnz short @@penalty_shot
 
-    ax = *(word *)&g_memByte[515580];       // mov ax, penalty
+    ax = *(word *)&g_memByte[515632];       // mov ax, penalty
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -10540,7 +10519,7 @@ l_ball_in_front_of_goalkeeper:;
         goto l_normal_shot;                 // jz short @@normal_shot
 
 l_penalty_shot:;
-    ax = *(word *)&g_memByte[325234];       // mov ax, kKeeperPenaltySaveDistanceFar
+    ax = *(word *)&g_memByte[325310];       // mov ax, kKeeperPenaltySaveDistanceFar
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     flags.carry = false;
     flags.overflow = false;
@@ -10565,7 +10544,7 @@ l_penalty_shot:;
     if (flags.zero)
         goto l_penalty_compare_distance;    // jz short @@penalty_compare_distance
 
-    ax = *(word *)&g_memByte[325236];       // mov ax, kKeeperPenaltySaveDistanceNear
+    ax = *(word *)&g_memByte[325312];       // mov ax, kKeeperPenaltySaveDistanceNear
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
 
 l_penalty_compare_distance:;
@@ -10585,7 +10564,7 @@ l_penalty_compare_distance:;
     goto l_try_saving;                      // jmp @@try_saving
 
 l_normal_shot:;
-    ax = *(word *)&g_memByte[325232];       // mov ax, kKeeperSaveDistance
+    ax = *(word *)&g_memByte[325308];       // mov ax, kKeeperSaveDistance
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         int16_t dstSigned = *(word *)&D0;
@@ -10637,7 +10616,7 @@ cseg_78AE6:;
     if (flags.zero)
         goto l_goalkeeper_wont_dive;        // jz @@goalkeeper_wont_dive
 
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
     *(word *)&D4 = ax;                      // mov word ptr D4, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -10687,7 +10666,7 @@ cseg_78B34:;
     if (flags.carry || flags.zero)
         goto l_goalkeeper_wont_dive;        // jbe @@goalkeeper_wont_dive
 
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
     *(word *)&D4 = ax;                      // mov word ptr D4, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -10710,7 +10689,7 @@ cseg_78B95:;
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 24, 4);          // mov eax, [esi+TeamGeneralInfo.shotChanceTable]
     A0 = eax;                               // mov A0, eax
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 15;
@@ -10735,7 +10714,7 @@ cseg_78B95:;
 
 l_calc_frames:;
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    A0 = 323744;                            // mov A0, offset kGoalkeeperDiveDeltas
+    A0 = 323820;                            // mov A0, offset kGoalkeeperDiveDeltas
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -10745,7 +10724,7 @@ l_calc_frames:;
     eax = readMemory(esi + ebx, 4);         // mov eax, [esi+ebx]
     D0 = eax;                               // mov D0, eax
     {
-        word src = *(word *)&g_memByte[336574];
+        word src = *(word *)&g_memByte[336638];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
@@ -10754,7 +10733,7 @@ l_calc_frames:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[336574] = src;
+        *(word *)&g_memByte[336638] = src;
     }                                       // add goalkeeperDiveDeadVar, 1
     getFramesNeededToCoverDistance();       // call GetFramesNeededToCoverDistance
     ax = D7;                                // mov ax, word ptr D7
@@ -10825,7 +10804,7 @@ static void goalkeeperJumping()
     if (!flags.carry && !flags.zero)
         goto l_ball_far_away;               // ja short @@ball_far_away
 
-    ax = *(word *)&g_memByte[516248];       // mov ax, kGoalkeeperNearJumpSpeed
+    ax = *(word *)&g_memByte[516062];       // mov ax, kGoalkeeperNearJumpSpeed
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     goto l_speed_setting_done;              // jmp short @@speed_setting_done
@@ -10854,13 +10833,13 @@ l_ball_far_away:;
     if (flags.zero)
         goto l_speed_setting_done;          // jz short @@speed_setting_done
 
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         word res = *(word *)&D1 & 255;
         *(word *)&D1 = res;
     }                                       // and word ptr D1, 0FFh
-    ax = *(word *)&g_memByte[516248];       // mov ax, kGoalkeeperNearJumpSpeed
+    ax = *(word *)&g_memByte[516062];       // mov ax, kGoalkeeperNearJumpSpeed
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -10886,7 +10865,7 @@ l_speed_setting_done:;
     writeMemory(esi + 70, 1, 0);            // mov byte ptr [esi+TeamGeneralInfo.field_46], 0
     writeMemory(esi + 80, 2, 0);            // mov [esi+TeamGeneralInfo.goalkeeperDivingRight], 0
     {
-        word src = *(word *)&g_memByte[516906];
+        word src = *(word *)&g_memByte[516094];
         int16_t dstSigned = src;
         int16_t srcSigned = 5;
         word res = dstSigned - srcSigned;
@@ -10901,7 +10880,7 @@ l_speed_setting_done:;
     writeMemory(esi + 12, 1, 7);            // mov [esi+Sprite.playerState], PL_GOALIE_DIVING_LOW
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -10922,7 +10901,7 @@ l_goalie_jumping_high:;
     writeMemory(esi + 12, 1, 6);            // mov [esi+Sprite.playerState], PL_GOALIE_DIVING_HIGH
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -10945,28 +10924,13 @@ l_set_down_timer:;
     writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
     ax = D3;                                // mov ax, word ptr D3
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    A5 = 515768;                            // mov A5, offset kDefaultDestinations
+    const auto& defaultDestination = getDefaultBallDestinations()[*(word *)&D0];
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 2
-    eax = A5;                               // mov eax, A5
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    {
-        int32_t dstSigned = eax;
-        int32_t srcSigned = ebx;
-        dword res = dstSigned + srcSigned;
-        eax = res;
-    }                                       // add eax, ebx
-    A5 = eax;                               // mov A5, eax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    {
-        int32_t dstSigned = A5;
-        int32_t srcSigned = 2;
-        dword res = dstSigned + srcSigned;
-        A5 = res;
-    }                                       // add A5, 2
+    ax = defaultDestination.x;              // mov ax, [kDefaultDestinations+ebx]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -10978,8 +10942,7 @@ l_set_down_timer:;
     }                                       // add word ptr D0, ax
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
+    ax = defaultDestination.y;              // mov ax, [kDefaultDestinations+ebx+2]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
@@ -11005,7 +10968,7 @@ static void goalkeeperCaughtTheBall()
 {
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -11032,9 +10995,9 @@ l_set_anim_table:;
     writeMemory(esi + 13, 1, 15);           // mov [esi+Sprite.playerDownTimer], 15
     ax = kGoalkeeperCatchSpeed;             // mov ax, kGoalkeeperCatchSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
-    ax = *(word *)&g_memByte[516914];       // mov ax, ballNextGroundX
+    ax = *(word *)&g_memByte[516102];       // mov ax, ballNextGroundX
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = *(word *)&g_memByte[516916];       // mov ax, ballNextYGroundY
+    ax = *(word *)&g_memByte[516104];       // mov ax, ballNextYGroundY
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
     {
         word src = (word)readMemory(esi + 60, 2);
@@ -11255,7 +11218,7 @@ static void updateBallVariables()
 l_ball_going_up:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -11282,11 +11245,11 @@ l_ball_going_up:;
 
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    *(word *)&g_memByte[516896] = ax;       // mov ballDefensiveX, ax
+    *(word *)&g_memByte[516084] = ax;       // mov ballDefensiveX, ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    *(word *)&g_memByte[516898] = ax;       // mov ballDefensiveY, ax
+    *(word *)&g_memByte[516086] = ax;       // mov ballDefensiveY, ax
     ax = (word)readMemory(esi + 40, 2);     // mov ax, word ptr [esi+(Sprite.z+2)]
-    *(word *)&g_memByte[516900] = ax;       // mov ballDefensiveZ, ax
+    *(word *)&g_memByte[516088] = ax;       // mov ballDefensiveZ, ax
     esi = A1;                               // mov esi, A1
     eax = readMemory(esi + 34, 4);          // mov eax, [esi+Sprite.y]
     {
@@ -11388,9 +11351,9 @@ l_set_ball_y_to_0:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516896] = ax;       // mov ballDefensiveX, ax
+    *(word *)&g_memByte[516084] = ax;       // mov ballDefensiveX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516898] = ax;       // mov ballDefensiveY, ax
+    *(word *)&g_memByte[516086] = ax;       // mov ballDefensiveY, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -11403,7 +11366,7 @@ l_set_ball_y_to_0:;
 
 cseg_77879:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516900] = ax;       // mov ballDefensiveZ, ax
+    *(word *)&g_memByte[516088] = ax;       // mov ballDefensiveZ, ax
     ax = D1;                                // mov ax, word ptr D1
     {
         word tmp = *(word *)((byte *)&D1 + 2);
@@ -11440,12 +11403,12 @@ l_ball_above_player_check:;
     if (flags.sign == flags.overflow)
         goto l_ball_above_135;              // jge short @@ball_above_135
 
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
-    *(word *)&g_memByte[516902] = ax;       // mov ballNotHighX, ax
-    ax = *(word *)&g_memByte[516898];       // mov ax, ballDefensiveY
-    *(word *)&g_memByte[516904] = ax;       // mov ballNotHighY, ax
-    ax = *(word *)&g_memByte[516900];       // mov ax, ballDefensiveZ
-    *(word *)&g_memByte[516906] = ax;       // mov ballNotHighZ, ax
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
+    *(word *)&g_memByte[516090] = ax;       // mov ballNotHighX, ax
+    ax = *(word *)&g_memByte[516086];       // mov ax, ballDefensiveY
+    *(word *)&g_memByte[516092] = ax;       // mov ballNotHighY, ax
+    ax = *(word *)&g_memByte[516088];       // mov ax, ballDefensiveZ
+    *(word *)&g_memByte[516094] = ax;       // mov ballNotHighZ, ax
     {
         int32_t dstSigned = D2;
         int32_t srcSigned = 8847360;
@@ -11531,9 +11494,9 @@ l_ball_above_135:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516902] = ax;       // mov ballNotHighX, ax
+    *(word *)&g_memByte[516090] = ax;       // mov ballNotHighX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516904] = ax;       // mov ballNotHighY, ax
+    *(word *)&g_memByte[516092] = ax;       // mov ballNotHighY, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -11546,7 +11509,7 @@ l_ball_above_135:;
 
 cseg_779B0:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516906] = ax;       // mov ballNotHighZ, ax
+    *(word *)&g_memByte[516094] = ax;       // mov ballNotHighZ, ax
     ax = D1;                                // mov ax, word ptr D1
     {
         word tmp = *(word *)((byte *)&D1 + 2);
@@ -11583,9 +11546,9 @@ cseg_779F5:;
     if (flags.sign == flags.overflow)
         goto l_ball_between_129_135;        // jge short @@ball_between_129_135
 
-    *(word *)&g_memByte[516908] = 0;        // mov strikeDestX, 0
-    *(word *)&g_memByte[516910] = 0;        // mov dseg_17E661, 0
-    *(word *)&g_memByte[516912] = 0;        // mov dseg_17E663, 0
+    *(word *)&g_memByte[516096] = 0;        // mov strikeDestX, 0
+    *(word *)&g_memByte[516098] = 0;        // mov dseg_17E661, 0
+    *(word *)&g_memByte[516100] = 0;        // mov dseg_17E663, 0
     {
         int32_t dstSigned = D2;
         int32_t srcSigned = 8454144;
@@ -11671,9 +11634,9 @@ l_ball_between_129_135:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516908] = ax;       // mov strikeDestX, ax
+    *(word *)&g_memByte[516096] = ax;       // mov strikeDestX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516910] = ax;       // mov dseg_17E661, ax
+    *(word *)&g_memByte[516098] = ax;       // mov dseg_17E661, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -11686,7 +11649,7 @@ l_ball_between_129_135:;
 
 cseg_77ADE:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516912] = ax;       // mov dseg_17E663, ax
+    *(word *)&g_memByte[516100] = ax;       // mov dseg_17E663, ax
     ax = D1;                                // mov ax, word ptr D1
     {
         word tmp = *(word *)((byte *)&D1 + 2);
@@ -11713,7 +11676,7 @@ cseg_77ADE:;
 l_ball_going_down:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -11740,11 +11703,11 @@ l_ball_going_down:;
 
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    *(word *)&g_memByte[516896] = ax;       // mov ballDefensiveX, ax
+    *(word *)&g_memByte[516084] = ax;       // mov ballDefensiveX, ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    *(word *)&g_memByte[516898] = ax;       // mov ballDefensiveY, ax
+    *(word *)&g_memByte[516086] = ax;       // mov ballDefensiveY, ax
     ax = (word)readMemory(esi + 40, 2);     // mov ax, word ptr [esi+(Sprite.z+2)]
-    *(word *)&g_memByte[516900] = ax;       // mov ballDefensiveZ, ax
+    *(word *)&g_memByte[516088] = ax;       // mov ballDefensiveZ, ax
     esi = A1;                               // mov esi, A1
     eax = readMemory(esi + 34, 4);          // mov eax, [esi+Sprite.y]
     {
@@ -11846,9 +11809,9 @@ l_ball_above_player:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516896] = ax;       // mov ballDefensiveX, ax
+    *(word *)&g_memByte[516084] = ax;       // mov ballDefensiveX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516898] = ax;       // mov ballDefensiveY, ax
+    *(word *)&g_memByte[516086] = ax;       // mov ballDefensiveY, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -11861,7 +11824,7 @@ l_ball_above_player:;
 
 cseg_77C50:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516900] = ax;       // mov ballDefensiveZ, ax
+    *(word *)&g_memByte[516088] = ax;       // mov ballDefensiveZ, ax
     ax = D1;                                // mov ax, word ptr D1
     {
         word tmp = *(word *)((byte *)&D1 + 2);
@@ -11898,12 +11861,12 @@ cseg_77C95:;
     if (flags.sign != flags.overflow)
         goto cseg_77CDD;                    // jl short cseg_77CDD
 
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
-    *(word *)&g_memByte[516902] = ax;       // mov ballNotHighX, ax
-    ax = *(word *)&g_memByte[516898];       // mov ax, ballDefensiveY
-    *(word *)&g_memByte[516904] = ax;       // mov ballNotHighY, ax
-    ax = *(word *)&g_memByte[516900];       // mov ax, ballDefensiveZ
-    *(word *)&g_memByte[516906] = ax;       // mov ballNotHighZ, ax
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
+    *(word *)&g_memByte[516090] = ax;       // mov ballNotHighX, ax
+    ax = *(word *)&g_memByte[516086];       // mov ax, ballDefensiveY
+    *(word *)&g_memByte[516092] = ax;       // mov ballNotHighY, ax
+    ax = *(word *)&g_memByte[516088];       // mov ax, ballDefensiveZ
+    *(word *)&g_memByte[516094] = ax;       // mov ballNotHighZ, ax
     {
         int32_t dstSigned = D2;
         int32_t srcSigned = 50003968;
@@ -11989,9 +11952,9 @@ cseg_77CDD:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516902] = ax;       // mov ballNotHighX, ax
+    *(word *)&g_memByte[516090] = ax;       // mov ballNotHighX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516904] = ax;       // mov ballNotHighY, ax
+    *(word *)&g_memByte[516092] = ax;       // mov ballNotHighY, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -12004,7 +11967,7 @@ cseg_77CDD:;
 
 cseg_77D90:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516906] = ax;       // mov ballNotHighZ, ax
+    *(word *)&g_memByte[516094] = ax;       // mov ballNotHighZ, ax
     ax = D1;                                // mov ax, word ptr D1
     {
         word tmp = *(word *)((byte *)&D1 + 2);
@@ -12041,9 +12004,9 @@ cseg_77DD5:;
     if (flags.sign != flags.overflow)
         goto cseg_77E0B;                    // jl short cseg_77E0B
 
-    *(word *)&g_memByte[516908] = 0;        // mov strikeDestX, 0
-    *(word *)&g_memByte[516910] = 0;        // mov dseg_17E661, 0
-    *(word *)&g_memByte[516912] = 0;        // mov dseg_17E663, 0
+    *(word *)&g_memByte[516096] = 0;        // mov strikeDestX, 0
+    *(word *)&g_memByte[516098] = 0;        // mov dseg_17E661, 0
+    *(word *)&g_memByte[516100] = 0;        // mov dseg_17E663, 0
     {
         int32_t dstSigned = D2;
         int32_t srcSigned = 50397184;
@@ -12129,9 +12092,9 @@ cseg_77E0B:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516908] = ax;       // mov strikeDestX, ax
+    *(word *)&g_memByte[516096] = ax;       // mov strikeDestX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516910] = ax;       // mov dseg_17E661, ax
+    *(word *)&g_memByte[516098] = ax;       // mov dseg_17E661, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -12144,7 +12107,7 @@ cseg_77E0B:;
 
 cseg_77EBE:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516912] = ax;       // mov dseg_17E663, ax
+    *(word *)&g_memByte[516100] = ax;       // mov dseg_17E663, ax
     ax = D1;                                // mov ax, word ptr D1
     {
         word tmp = *(word *)((byte *)&D1 + 2);
@@ -12283,9 +12246,9 @@ l_ball_right_of_player:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516896] = ax;       // mov ballDefensiveX, ax
+    *(word *)&g_memByte[516084] = ax;       // mov ballDefensiveX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516898] = ax;       // mov ballDefensiveY, ax
+    *(word *)&g_memByte[516086] = ax;       // mov ballDefensiveY, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -12298,7 +12261,7 @@ l_ball_right_of_player:;
 
 cseg_77FF6:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516900] = ax;       // mov ballDefensiveZ, ax
+    *(word *)&g_memByte[516088] = ax;       // mov ballDefensiveZ, ax
     goto cseg_78136;                        // jmp cseg_78136
 
 l_ball_going_right:;
@@ -12416,9 +12379,9 @@ l_ball_left_of_player:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516896] = ax;       // mov ballDefensiveX, ax
+    *(word *)&g_memByte[516084] = ax;       // mov ballDefensiveX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516898] = ax;       // mov ballDefensiveY, ax
+    *(word *)&g_memByte[516086] = ax;       // mov ballDefensiveY, ax
     ax = D3;                                // mov ax, word ptr D3
     flags.carry = false;
     flags.overflow = false;
@@ -12431,7 +12394,7 @@ l_ball_left_of_player:;
 
 cseg_780F5:;
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516900] = ax;       // mov ballDefensiveZ, ax
+    *(word *)&g_memByte[516088] = ax;       // mov ballDefensiveZ, ax
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -12441,26 +12404,26 @@ cseg_780F5:;
 l_ball_not_moving:;
     esi = A2;                               // mov esi, A2
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    *(word *)&g_memByte[516896] = ax;       // mov ballDefensiveX, ax
+    *(word *)&g_memByte[516084] = ax;       // mov ballDefensiveX, ax
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    *(word *)&g_memByte[516898] = ax;       // mov ballDefensiveY, ax
+    *(word *)&g_memByte[516086] = ax;       // mov ballDefensiveY, ax
     ax = (word)readMemory(esi + 40, 2);     // mov ax, word ptr [esi+(Sprite.z+2)]
-    *(word *)&g_memByte[516900] = ax;       // mov ballDefensiveZ, ax
+    *(word *)&g_memByte[516088] = ax;       // mov ballDefensiveZ, ax
 
 cseg_78136:;
-    ax = *(word *)&g_memByte[516896];       // mov ax, ballDefensiveX
-    *(word *)&g_memByte[516902] = ax;       // mov ballNotHighX, ax
-    ax = *(word *)&g_memByte[516898];       // mov ax, ballDefensiveY
-    *(word *)&g_memByte[516904] = ax;       // mov ballNotHighY, ax
-    ax = *(word *)&g_memByte[516900];       // mov ax, ballDefensiveZ
-    *(word *)&g_memByte[516906] = ax;       // mov ballNotHighZ, ax
+    ax = *(word *)&g_memByte[516084];       // mov ax, ballDefensiveX
+    *(word *)&g_memByte[516090] = ax;       // mov ballNotHighX, ax
+    ax = *(word *)&g_memByte[516086];       // mov ax, ballDefensiveY
+    *(word *)&g_memByte[516092] = ax;       // mov ballNotHighY, ax
+    ax = *(word *)&g_memByte[516088];       // mov ax, ballDefensiveZ
+    *(word *)&g_memByte[516094] = ax;       // mov ballNotHighZ, ax
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
-    *(word *)&g_memByte[516908] = 0;        // mov strikeDestX, 0
-    *(word *)&g_memByte[516910] = 0;        // mov dseg_17E661, 0
-    *(word *)&g_memByte[516912] = 0;        // mov dseg_17E663, 0
+    *(word *)&g_memByte[516096] = 0;        // mov strikeDestX, 0
+    *(word *)&g_memByte[516098] = 0;        // mov dseg_17E661, 0
+    *(word *)&g_memByte[516100] = 0;        // mov dseg_17E663, 0
 
 l_out:;
     pop(D7);                                // pop D7
@@ -12665,15 +12628,15 @@ l_z_in_range:;
     }                                       // xchg ax, word ptr D3+2
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[516914] = ax;       // mov ballNextGroundX, ax
+    *(word *)&g_memByte[516102] = ax;       // mov ballNextGroundX, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[516916] = ax;       // mov ballNextYGroundY, ax
+    *(word *)&g_memByte[516104] = ax;       // mov ballNextYGroundY, ax
     ax = D3;                                // mov ax, word ptr D3
-    *(word *)&g_memByte[516918] = 0;        // mov ballNextZDeadVar, 0
+    *(word *)&g_memByte[516106] = 0;        // mov ballNextZDeadVar, 0
     goto l_out;                             // jmp short @@out
 
 l_ball_standing:;
-    *(word *)&g_memByte[516914] = -1;       // mov ballNextGroundX, -1
+    *(word *)&g_memByte[516102] = -1;       // mov ballNextGroundX, -1
 
 l_out:;
     pop(D7);                                // pop D7
@@ -13000,7 +12963,7 @@ l_foul_concedeed:;
         src = res;
         writeMemory(esi + 4, 2, src);
     }                                       // add [esi+TeamStatisticsData.foulsConceded], 1
-    ax = *(word *)&g_memByte[515886];       // mov ax, cardsDisallowed
+    ax = *(word *)&g_memByte[515906];       // mov ax, cardsDisallowed
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -13008,7 +12971,7 @@ l_foul_concedeed:;
     if (!flags.zero)
         goto l_no_cards_given;              // jnz @@no_cards_given
 
-    ax = *(word *)&g_memByte[459200];       // mov ax, g_trainingGame
+    ax = *(word *)&g_memByte[459252];       // mov ax, g_trainingGame
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -13071,7 +13034,7 @@ l_foul_concedeed:;
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -13113,7 +13076,7 @@ l_not_in_penalty_area:;
     *(word *)&D2 = 129;                     // mov word ptr D2, 129
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -13292,7 +13255,7 @@ l_next_player:;
         goto l_players_loop;                // jns @@players_loop
 
     eax = A5;                               // mov eax, A5
-    *(dword *)&g_memByte[336592] = eax;     // mov dseg_114EC2, eax
+    *(dword *)&g_memByte[336656] = eax;     // mov dseg_114EC2, eax
     {
         int32_t dstSigned = A2;
         int32_t srcSigned = eax;
@@ -13306,7 +13269,7 @@ l_next_player:;
         goto cseg_79444;                    // jz short cseg_79444
 
 l_in_penalty_area:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 30;
@@ -13316,7 +13279,7 @@ l_in_penalty_area:;
         word res = *(word *)&D0 >> 1;
         *(word *)&D0 = res;
     }                                       // shr word ptr D0, 1
-    ax = *(word *)&g_memByte[515902];       // mov ax, playerCardChance
+    ax = *(word *)&g_memByte[515922];       // mov ax, playerCardChance
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -13395,7 +13358,7 @@ l_no_cards_given:;
 static void testFoulForPenaltyAndFreeKick()
 {
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 101;
         word res = dstSigned - srcSigned;
@@ -13415,7 +13378,7 @@ static void testFoulForPenaltyAndFreeKick()
     *(word *)&D2 = ax;                      // mov word ptr D2, ax
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -13425,7 +13388,7 @@ static void testFoulForPenaltyAndFreeKick()
     if (flags.zero)
         goto l_left_team;                   // jz @@left_team
 
-    *(word *)&g_memByte[515608] = 4;        // mov cameraDirection, 4
+    *(word *)&g_memByte[515660] = 4;        // mov cameraDirection, 4
     {
         int16_t dstSigned = *(word *)&D2;
         int16_t srcSigned = 682;
@@ -13462,11 +13425,11 @@ static void testFoulForPenaltyAndFreeKick()
     if (!flags.zero && flags.sign == flags.overflow)
         goto l_not_in_lower_penalty_area;   // jg @@not_in_lower_penalty_area
 
-    *(word *)&g_memByte[515598] = 14;       // mov gameState, ST_PENALTY
-    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
-    g_memByte[515610] = 56;                 // mov byte ptr playerTurnFlags, 38h
-    *(word *)&g_memByte[515604] = 336;      // mov foulXCoordinate, 336
-    *(word *)&g_memByte[515606] = 711;      // mov foulYCoordinate, 711
+    *(word *)&g_memByte[515650] = 14;       // mov gameState, ST_PENALTY
+    swos.breakCameraMode = CameraBreakMode::kInactive;
+    g_memByte[515662] = 56;                 // mov byte ptr playerTurnFlags, 38h
+    *(word *)&g_memByte[515656] = 336;      // mov foulXCoordinate, 336
+    *(word *)&g_memByte[515658] = 711;      // mov foulYCoordinate, 711
     push(D0);                               // push D0
     push(D1);                               // push D1
     push(D2);                               // push D2
@@ -13501,7 +13464,7 @@ static void testFoulForPenaltyAndFreeKick()
     goto l_continue_after_penalty;          // jmp @@continue_after_penalty
 
 l_left_team:;
-    *(word *)&g_memByte[515608] = 0;        // mov cameraDirection, 0
+    *(word *)&g_memByte[515660] = 0;        // mov cameraDirection, 0
     {
         int16_t dstSigned = *(word *)&D2;
         int16_t srcSigned = 216;
@@ -13538,11 +13501,11 @@ l_left_team:;
     if (!flags.zero && flags.sign == flags.overflow)
         goto l_not_in_upper_penalty_area;   // jg @@not_in_upper_penalty_area
 
-    *(word *)&g_memByte[515598] = 14;       // mov gameState, ST_PENALTY
-    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
-    g_memByte[515610] = 131;                // mov byte ptr playerTurnFlags, 83h
-    *(word *)&g_memByte[515604] = 336;      // mov foulXCoordinate, 336
-    *(word *)&g_memByte[515606] = 187;      // mov foulYCoordinate, 187
+    *(word *)&g_memByte[515650] = 14;       // mov gameState, ST_PENALTY
+    swos.breakCameraMode = CameraBreakMode::kInactive;
+    g_memByte[515662] = 131;                // mov byte ptr playerTurnFlags, 83h
+    *(word *)&g_memByte[515656] = 336;      // mov foulXCoordinate, 336
+    *(word *)&g_memByte[515658] = 187;      // mov foulYCoordinate, 187
     push(D0);                               // push D0
     push(D1);                               // push D1
     push(D2);                               // push D2
@@ -13633,7 +13596,7 @@ l_not_in_lower_penalty_area:;
 l_its_a_free_kick:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -13791,47 +13754,47 @@ l_right_team_made_foul:;
         goto l_free_kick_left_2;            // jl short @@free_kick_left_2
 
 l_free_kick_left_1:;
-    *(word *)&g_memByte[515598] = 6;        // mov gameState, ST_FREE_KICK_LEFT1
+    *(word *)&g_memByte[515650] = 6;        // mov gameState, ST_FREE_KICK_LEFT1
     goto l_save_foul_coordinates;           // jmp short @@save_foul_coordinates
 
 l_free_kick_left_2:;
-    *(word *)&g_memByte[515598] = 7;        // mov gameState, ST_FREE_KICK_LEFT2
+    *(word *)&g_memByte[515650] = 7;        // mov gameState, ST_FREE_KICK_LEFT2
     goto l_save_foul_coordinates;           // jmp short @@save_foul_coordinates
 
 l_free_kick_left_3:;
-    *(word *)&g_memByte[515598] = 8;        // mov gameState, ST_FREE_KICK_LEFT3
+    *(word *)&g_memByte[515650] = 8;        // mov gameState, ST_FREE_KICK_LEFT3
     goto l_save_foul_coordinates;           // jmp short @@save_foul_coordinates
 
 l_free_kick_center:;
-    *(word *)&g_memByte[515598] = 9;        // mov gameState, ST_FREE_KICK_CENTER
+    *(word *)&g_memByte[515650] = 9;        // mov gameState, ST_FREE_KICK_CENTER
     goto l_save_foul_coordinates;           // jmp short @@save_foul_coordinates
 
 l_free_kick_right_1:;
-    *(word *)&g_memByte[515598] = 10;       // mov gameState, ST_FREE_KICK_RIGHT1
+    *(word *)&g_memByte[515650] = 10;       // mov gameState, ST_FREE_KICK_RIGHT1
     goto l_save_foul_coordinates;           // jmp short @@save_foul_coordinates
 
 l_free_kick_right_2:;
-    *(word *)&g_memByte[515598] = 11;       // mov gameState, ST_FREE_KICK_RIGHT2
+    *(word *)&g_memByte[515650] = 11;       // mov gameState, ST_FREE_KICK_RIGHT2
     goto l_save_foul_coordinates;           // jmp short @@save_foul_coordinates
 
 l_free_kick_right_3:;
-    *(word *)&g_memByte[515598] = 12;       // mov gameState, ST_FREE_KICK_RIGHT3
+    *(word *)&g_memByte[515650] = 12;       // mov gameState, ST_FREE_KICK_RIGHT3
     goto l_save_foul_coordinates;           // jmp short @@save_foul_coordinates
 
 l_ordinary_foul:;
-    *(word *)&g_memByte[515598] = 13;       // mov gameState, ST_FOUL
+    *(word *)&g_memByte[515650] = 13;       // mov gameState, ST_FOUL
 
 l_save_foul_coordinates:;
-    *(word *)&g_memByte[515600] = -1;       // mov breakCameraMode, -1
-    g_memByte[515610] = -1;                 // mov byte ptr playerTurnFlags, -1
+    swos.breakCameraMode = CameraBreakMode::kInactive;
+    g_memByte[515662] = -1;                 // mov byte ptr playerTurnFlags, -1
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[515604] = ax;       // mov foulXCoordinate, ax
+    *(word *)&g_memByte[515656] = ax;       // mov foulXCoordinate, ax
     ax = D2;                                // mov ax, word ptr D2
-    *(word *)&g_memByte[515606] = ax;       // mov foulYCoordinate, ax
+    *(word *)&g_memByte[515658] = ax;       // mov foulYCoordinate, ax
 
 l_continue_after_penalty:;
     {
-        word src = *(word *)&g_memByte[449234];
+        word src = *(word *)&g_memByte[449284];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -13843,19 +13806,19 @@ l_continue_after_penalty:;
     if (!flags.zero)
         goto l_jump_here;                   // jnz short @@jump_here
 
-    A6 = 515420;                            // mov A6, offset bottomTeamData
+    A6 = 515472;                            // mov A6, offset bottomTeamData
 
 l_jump_here:;
-    *(word *)&g_memByte[515596] = 101;      // mov gameStatePl, 101
-    *(word *)&g_memByte[515584] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
+    *(word *)&g_memByte[515648] = 101;      // mov gameStatePl, 101
+    *(word *)&g_memByte[515636] = 0;        // mov gameNotInProgressCounterWriteOnly, 0
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
-    *(dword *)&g_memByte[515588] = eax;     // mov lastTeamPlayedBeforeBreak, eax
-    *(word *)&g_memByte[515592] = 0;        // mov stoppageTimerTotal, 0
-    *(word *)&g_memByte[515594] = 0;        // mov stoppageTimerActive, 0
+    *(dword *)&g_memByte[515640] = eax;     // mov lastTeamPlayedBeforeBreak, eax
+    *(word *)&g_memByte[515644] = 0;        // mov stoppageTimerTotal, 0
+    *(word *)&g_memByte[515646] = 0;        // mov stoppageTimerActive, 0
     stopAllPlayers();                       // call StopAllPlayers
-    *(word *)&g_memByte[449176] = 0;        // mov cameraXVelocity, 0
-    *(word *)&g_memByte[449178] = 0;        // mov cameraYVelocity, 0
+    *(word *)&g_memByte[449238] = 0;        // mov cameraXVelocity, 0
+    *(word *)&g_memByte[449240] = 0;        // mov cameraYVelocity, 0
 }
 
 // in:
@@ -13869,7 +13832,7 @@ l_jump_here:;
 // It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void tryBookingThePlayer()
 {
-    ax = *(word *)&g_memByte[448704];       // mov ax, plg_D3_param
+    ax = *(word *)&g_memByte[448768];       // mov ax, plg_D3_param
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -13939,7 +13902,7 @@ l_player_controls_team:;
     if (!flags.zero)
         goto l_second_team;                 // jnz short @@second_team
 
-    ax = *(word *)&g_memByte[448706];       // mov ax, team1NumAllowedInjuries
+    ax = *(word *)&g_memByte[448770];       // mov ax, team1NumAllowedInjuries
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -13949,7 +13912,7 @@ l_player_controls_team:;
     goto l_player_has_no_cards;             // jmp short @@player_has_no_cards
 
 l_second_team:;
-    ax = *(word *)&g_memByte[448708];       // mov ax, team2NumAllowedInjuries
+    ax = *(word *)&g_memByte[448772];       // mov ax, team2NumAllowedInjuries
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -13973,7 +13936,7 @@ l_player_has_no_cards:;
         word res = *(word *)&D0 << 1;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 1
-    A0 = 331902;                            // mov A0, offset inGameTeamPlayerOffsets
+    A0 = 331966;                            // mov A0, offset inGameTeamPlayerOffsets
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -13996,14 +13959,14 @@ l_player_has_no_cards:;
         word res = dstSigned + srcSigned;
         *(word *)&D0 = res;
     }                                       // add word ptr D0, 1
-    ax = *(word *)&g_memByte[448704];       // mov ax, plg_D3_param
+    ax = *(word *)&g_memByte[448768];       // mov ax, plg_D3_param
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto cseg_795E0;                    // jnz short cseg_795E0
 
-    A0 = 516394;                            // mov A0, offset dseg_17E3EE
+    A0 = 516064;                            // mov A0, offset dseg_17E3EE
     esi = A5;                               // mov esi, A5
     al = (byte)readMemory(esi + 51, 1);     // mov al, [esi+PlayerGameHeader.previousCards]
     flags.carry = false;
@@ -14012,7 +13975,7 @@ l_player_has_no_cards:;
     if (flags.zero)
         goto cseg_795B7;                    // jz short cseg_795B7
 
-    A0 = 516399;                            // mov A0, offset dseg_17E3F3
+    A0 = 516069;                            // mov A0, offset dseg_17E3F3
 
 cseg_795B7:;
     esi = A5;                               // mov esi, A5
@@ -14064,10 +14027,10 @@ l_give_yellow_card_to_player:;
         writeMemory(esi + 102, 2, src);
     }                                       // add [esi+Sprite.cards], 1
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515896] = eax;     // mov lastTeamBooked, eax
+    *(dword *)&g_memByte[515916] = eax;     // mov lastTeamBooked, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515892] = eax;     // mov bookedPlayer, eax
-    *(word *)&g_memByte[515900] = 0;        // mov refTimer, 0
+    *(dword *)&g_memByte[515912] = eax;     // mov bookedPlayer, eax
+    *(word *)&g_memByte[515920] = 0;        // mov refTimer, 0
     {
         word src = (word)readMemory(esi + 102, 2);
         int16_t dstSigned = src;
@@ -14080,7 +14043,7 @@ l_give_yellow_card_to_player:;
     if (flags.zero)
         goto l_second_yellow_card;          // jz short @@second_yellow_card
 
-    *(word *)&g_memByte[515888] = 1;        // mov whichCard, CARD_YELLOW
+    *(word *)&g_memByte[515908] = 1;        // mov whichCard, CARD_YELLOW
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 14, 4);          // mov eax, [esi+TeamGeneralInfo.teamStatsPtr]
     A0 = eax;                               // mov A0, eax
@@ -14101,7 +14064,7 @@ l_give_yellow_card_to_player:;
     return;                                 // retn
 
 l_second_yellow_card:;
-    *(word *)&g_memByte[515888] = 3;        // mov whichCard, CARD_SECOND_YELLOW
+    *(word *)&g_memByte[515908] = 3;        // mov whichCard, CARD_SECOND_YELLOW
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 14, 4);          // mov eax, [esi+TeamGeneralInfo.teamStatsPtr]
     A0 = eax;                               // mov A0, eax
@@ -14136,7 +14099,7 @@ l_second_yellow_card:;
         goto l_team2_red_card;              // jnz short @@team2_red_card
 
     {
-        word src = *(word *)&g_memByte[448706];
+        word src = *(word *)&g_memByte[448770];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -14144,18 +14107,18 @@ l_second_yellow_card:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[448706] = src;
+        *(word *)&g_memByte[448770] = src;
     }                                       // sub team1NumAllowedInjuries, 1
     goto l_given_card_ok;                   // jmp short @@given_card_ok
 
 l_team2_red_card:;
     {
-        word src = *(word *)&g_memByte[448708];
+        word src = *(word *)&g_memByte[448772];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
         src = res;
-        *(word *)&g_memByte[448708] = src;
+        *(word *)&g_memByte[448772] = src;
     }                                       // sub team2NumAllowedInjuries, 1
 
 l_given_card_ok:;
@@ -14203,7 +14166,7 @@ l_player:;
     if (!flags.zero)
         goto l_team2;                       // jnz short @@team2
 
-    ax = *(word *)&g_memByte[448706];       // mov ax, team1NumAllowedInjuries
+    ax = *(word *)&g_memByte[448770];       // mov ax, team1NumAllowedInjuries
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -14213,7 +14176,7 @@ l_player:;
     goto cseg_7972E;                        // jmp short cseg_7972E
 
 l_team2:;
-    ax = *(word *)&g_memByte[448708];       // mov ax, team2NumAllowedInjuries
+    ax = *(word *)&g_memByte[448772];       // mov ax, team2NumAllowedInjuries
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -14237,7 +14200,7 @@ cseg_7972E:;
         word res = *(word *)&D0 << 1;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 1
-    A0 = 331902;                            // mov A0, offset inGameTeamPlayerOffsets
+    A0 = 331966;                            // mov A0, offset inGameTeamPlayerOffsets
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -14261,14 +14224,14 @@ cseg_7972E:;
         word res = dstSigned + srcSigned;
         *(word *)&D0 = res;
     }                                       // add word ptr D0, 3
-    ax = *(word *)&g_memByte[448704];       // mov ax, plg_D3_param
+    ax = *(word *)&g_memByte[448768];       // mov ax, plg_D3_param
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (!flags.zero)
         goto cseg_79804;                    // jnz short cseg_79804
 
-    A0 = 516394;                            // mov A0, offset dseg_17E3EE
+    A0 = 516064;                            // mov A0, offset dseg_17E3EE
     esi = A5;                               // mov esi, A5
     al = (byte)readMemory(esi + 51, 1);     // mov al, [esi+PlayerGameHeader.previousCards]
     flags.carry = false;
@@ -14277,7 +14240,7 @@ cseg_7972E:;
     if (flags.zero)
         goto cseg_797DB;                    // jz short cseg_797DB
 
-    A0 = 516399;                            // mov A0, offset dseg_17E3F3
+    A0 = 516069;                            // mov A0, offset dseg_17E3F3
 
 cseg_797DB:;
     esi = A5;                               // mov esi, A5
@@ -14309,11 +14272,11 @@ l_computer_team_no_red_card:;
 
 l_update_statistics_with_red_card:;
     eax = A6;                               // mov eax, A6
-    *(dword *)&g_memByte[515896] = eax;     // mov lastTeamBooked, eax
+    *(dword *)&g_memByte[515916] = eax;     // mov lastTeamBooked, eax
     eax = A1;                               // mov eax, A1
-    *(dword *)&g_memByte[515892] = eax;     // mov bookedPlayer, eax
-    *(word *)&g_memByte[515900] = 0;        // mov refTimer, 0
-    *(word *)&g_memByte[515888] = 2;        // mov whichCard, CARD_RED
+    *(dword *)&g_memByte[515912] = eax;     // mov bookedPlayer, eax
+    *(word *)&g_memByte[515920] = 0;        // mov refTimer, 0
+    *(word *)&g_memByte[515908] = 2;        // mov whichCard, CARD_RED
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi + 14, 4);          // mov eax, [esi+TeamGeneralInfo.teamStatsPtr]
     A0 = eax;                               // mov A0, eax
@@ -14364,7 +14327,7 @@ l_no_yellow_card:;
         goto l_second_team_player;          // jnz short @@second_team_player
 
     {
-        word src = *(word *)&g_memByte[448706];
+        word src = *(word *)&g_memByte[448770];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -14372,18 +14335,18 @@ l_no_yellow_card:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[448706] = src;
+        *(word *)&g_memByte[448770] = src;
     }                                       // sub team1NumAllowedInjuries, 1
     goto l_red_card_given_out;              // jmp short @@red_card_given_out
 
 l_second_team_player:;
     {
-        word src = *(word *)&g_memByte[448708];
+        word src = *(word *)&g_memByte[448772];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
         src = res;
-        *(word *)&g_memByte[448708] = src;
+        *(word *)&g_memByte[448772] = src;
     }                                       // sub team2NumAllowedInjuries, 1
 
 l_red_card_given_out:;
@@ -14406,7 +14369,7 @@ l_red_card_given_out:;
 // It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void playerTackled()
 {
-    ax = *(word *)&g_memByte[459200];       // mov ax, g_trainingGame
+    ax = *(word *)&g_memByte[459252];       // mov ax, g_trainingGame
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -14438,7 +14401,7 @@ l_not_a_training_game:;
     if (!flags.zero)
         goto l_second_team;                 // jnz short @@second_team
 
-    ax = *(word *)&g_memByte[448706];       // mov ax, team1NumAllowedInjuries
+    ax = *(word *)&g_memByte[448770];       // mov ax, team1NumAllowedInjuries
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -14448,7 +14411,7 @@ l_not_a_training_game:;
     goto l_injury_allowed;                  // jmp short @@injury_allowed
 
 l_second_team:;
-    ax = *(word *)&g_memByte[448708];       // mov ax, team2NumAllowedInjuries
+    ax = *(word *)&g_memByte[448772];       // mov ax, team2NumAllowedInjuries
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
@@ -14469,7 +14432,7 @@ l_injury_allowed:;
         word res = *(word *)&D0 << 1;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 1
-    A0 = 331902;                            // mov A0, offset inGameTeamPlayerOffsets
+    A0 = 331966;                            // mov A0, offset inGameTeamPlayerOffsets
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -14484,9 +14447,9 @@ l_injury_allowed:;
         eax = res;
     }                                       // add eax, ebx
     A0 = eax;                               // mov A0, eax
-    ax = *(word *)&g_memByte[448690];       // mov ax, gameLengthInGame
+    ax = *(word *)&g_memByte[448754];       // mov ax, gameLengthInGame
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    A5 = 516240;                            // mov A5, offset kTackleInjuryProbability
+    A5 = 516054;                            // mov A5, offset kTackleInjuryProbability
     esi = A0;                               // mov esi, A0
     al = (byte)readMemory(esi + 77, 1);     // mov al, [esi+PlayerGameHeader.injuriesBitfield]
     *(byte *)&D0 = al;                      // mov byte ptr D0, al
@@ -14505,7 +14468,7 @@ l_injury_allowed:;
     if (!flags.zero)
         goto l_not_injured;                 // jnz short @@not_injured
 
-    A5 = 516244;                            // mov A5, offset kTackleInjuryProbabilityAlreadyInjured
+    A5 = 516058;                            // mov A5, offset kTackleInjuryProbabilityAlreadyInjured
 
 l_not_injured:;
     SWOS::Rand();                           // call Rand
@@ -14524,7 +14487,7 @@ l_not_injured:;
         goto l_set_tackled_anim_table;      // jnb @@set_tackled_anim_table
 
     playInjuryComment(A6.as<TeamGeneralInfo&>());
-    A5 = 516210;                            // mov A5, offset kInjuryLevels
+    A5 = 516024;                            // mov A5, offset kInjuryLevels
     esi = A0;                               // mov esi, A0
     al = (byte)readMemory(esi + 77, 1);     // mov al, [esi+PlayerGameHeader.injuriesBitfield]
     *(byte *)&D0 = al;                      // mov byte ptr D0, al
@@ -14543,7 +14506,7 @@ l_not_injured:;
     if (!flags.zero)
         goto cseg_79E4D;                    // jnz short cseg_79E4D
 
-    A5 = 516217;                            // mov A5, offset kInjuryLevelAlreadyInjured
+    A5 = 516031;                            // mov A5, offset kInjuryLevelAlreadyInjured
 
 cseg_79E4D:;
     SWOS::Rand();                           // call Rand
@@ -14770,7 +14733,7 @@ cseg_79FD7:;
         word res = *(word *)&D1 >> 5;
         *(word *)&D1 = res;
     }                                       // shr word ptr D1, 5
-    A0 = 516224;                            // mov A0, offset dseg_17E2EC
+    A0 = 516038;                            // mov A0, offset dseg_17E2EC
     {
         word res = *(word *)&D1 << 1;
         *(word *)&D1 = res;
@@ -14794,7 +14757,7 @@ cseg_79FD7:;
         goto l_team2_injury;                // jnz short @@team2_injury
 
     {
-        word src = *(word *)&g_memByte[448706];
+        word src = *(word *)&g_memByte[448770];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -14802,13 +14765,13 @@ cseg_79FD7:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[448706] = src;
+        *(word *)&g_memByte[448770] = src;
     }                                       // sub team1NumAllowedInjuries, 1
     goto l_set_tackled_anim_table;          // jmp short @@set_tackled_anim_table
 
 l_team2_injury:;
     {
-        word src = *(word *)&g_memByte[448708];
+        word src = *(word *)&g_memByte[448772];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -14816,7 +14779,7 @@ l_team2_injury:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[448708] = src;
+        *(word *)&g_memByte[448772] = src;
     }                                       // sub team2NumAllowedInjuries, 1
 
 l_set_tackled_anim_table:;
@@ -14855,7 +14818,7 @@ static void playerBeginTackling()
         word res = dstSigned - srcSigned;
         *(word *)&D1 = res;
     }                                       // sub word ptr D1, 1
-    A0 = 331902;                            // mov A0, offset inGameTeamPlayerOffsets
+    A0 = 331966;                            // mov A0, offset inGameTeamPlayerOffsets
     {
         word res = *(word *)&D1 << 1;
         *(word *)&D1 = res;
@@ -14888,28 +14851,13 @@ static void playerBeginTackling()
 l_no_faster_tackle:;
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 13, 1, -1);           // mov [esi+Sprite.playerDownTimer], -1
-    A5 = 515768;                            // mov A5, offset kDefaultDestinations
+    const auto& defaultDestination = getDefaultBallDestinations()[*(word *)&D0];
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 2
-    eax = A5;                               // mov eax, A5
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    {
-        int32_t dstSigned = eax;
-        int32_t srcSigned = ebx;
-        dword res = dstSigned + srcSigned;
-        eax = res;
-    }                                       // add eax, ebx
-    A5 = eax;                               // mov A5, eax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    {
-        int32_t dstSigned = A5;
-        int32_t srcSigned = 2;
-        dword res = dstSigned + srcSigned;
-        A5 = res;
-    }                                       // add A5, 2
+    ax = defaultDestination.x;              // mov ax, [kDefaultDestinations+ebx]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -14921,8 +14869,7 @@ l_no_faster_tackle:;
     }                                       // add word ptr D0, ax
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
+    ax = defaultDestination.y;              // mov ax, [kDefaultDestinations+ebx+2]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
@@ -14937,308 +14884,11 @@ l_no_faster_tackle:;
     }                                       // add word ptr D0, ax
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[325408];       // mov ax, kPlayerTacklingSpeed
+    ax = *(word *)&g_memByte[325480];       // mov ax, kPlayerTacklingSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     writeMemory(esi + 106, 2, 0);           // mov [esi+Sprite.tacklingTimer], 0
 }
 
-
-// in:
-//      A1 -> sprite (player)
-//      A6 -> team (general)
-//
-// Player is tackling and hitting the ball. Adjust ball direction according to the player direction and
-// controls direction (do deflected tackles). Set ball destination coordinates far away in that direction.
-// Adjust ball speed after tackle to 125% of player's speed (100% if CPU player). Set player's speed
-// afterward to 50%. If opponent's controlled player is more than 9u away from the ball and distance
-// between the 2 players is greater than 32u it is considered a good tackle.
-//  u = sqr((x1 - x2) ^ 2) + sqr((y1 - y2) ^ 2)
-//
-// MECHANICALLY CONVERTED: This function was generated from SWOS assembly by ida2asm.
-// It is only a temporary implementation and should eventually be replaced with idiomatic C++.
-static void playersTackledTheBallStrong()
-{
-    esi = A6;                               // mov esi, A6
-    ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+TeamGeneralInfo.currentAllowedDirection]
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    flags.carry = false;
-    flags.sign = (ax & 0x8000) != 0;
-    flags.zero = ax == 0;                   // or ax, ax
-    if (!flags.sign)
-        goto l_current_direction_allowed;   // jns short @@current_direction_allowed
-
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-
-l_current_direction_allowed:;
-    A2 = 328492;                            // mov A2, offset ballSprite
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = D1;                                // mov ax, word ptr D1
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        *(word *)&D0 = res;
-    }                                       // sub word ptr D0, ax
-    if (flags.zero)
-        goto l_set_controlled_player_direction; // jz short @@set_controlled_player_direction
-
-    {
-        word res = *(word *)&D0 & 7;
-        *(word *)&D0 = res;
-    }                                       // and word ptr D0, 7
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 4;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp word ptr D0, 4
-    if (flags.zero)
-        goto l_set_controlled_player_direction; // jz short @@set_controlled_player_direction
-
-    if (flags.carry)
-        goto l_controls_leaning_leftward;   // jb short @@controls_leaning_leftward
-
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 1;
-        word res = dstSigned + srcSigned;
-        flags.carry = res < static_cast<uint16_t>(dstSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, 1
-    goto l_set_new_direction;               // jmp short @@set_new_direction
-
-l_controls_leaning_leftward:;
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = 1;
-        word res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint16_t>(dstSigned) < static_cast<uint16_t>(srcSigned);
-        flags.sign = (res & 0x8000) != 0;
-        flags.zero = res == 0;
-        *(word *)&D0 = res;
-    }                                       // sub word ptr D0, 1
-    goto l_set_new_direction;               // jmp short @@set_new_direction
-
-l_set_controlled_player_direction:;
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 42, 2);     // mov ax, [esi+Sprite.direction]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-
-l_set_new_direction:;
-    {
-        word res = *(word *)&D0 & 7;
-        *(word *)&D0 = res;
-    }                                       // and word ptr D0, 7
-    ax = D0;                                // mov ax, word ptr D0
-    esi = A6;                               // mov esi, A6
-    writeMemory(esi + 56, 2, ax);           // mov [esi+TeamGeneralInfo.controlledPlDirection], ax
-    A0 = 515768;                            // mov A0, offset kDefaultDestinations
-    {
-        word res = *(word *)&D0 << 2;
-        *(word *)&D0 = res;
-    }                                       // shl word ptr D0, 2
-    esi = A0;                               // mov esi, A0
-    ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    esi = A2;                               // mov esi, A2
-    ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    {
-        int16_t dstSigned = *(word *)&D1;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D1 = res;
-    }                                       // add word ptr D1, ax
-    ax = D1;                                // mov ax, word ptr D1
-    writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi + ebx + 2, 2); // mov ax, [esi+ebx+2]
-    {
-        int16_t dstSigned = *(word *)&D1;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D1 = res;
-    }                                       // add word ptr D1, ax
-    ax = D1;                                // mov ax, word ptr D1
-    esi = A2;                               // mov esi, A2
-    writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    esi = A6;                               // mov esi, A6
-    ax = (word)readMemory(esi + 4, 2);      // mov ax, [esi+TeamGeneralInfo.playerNumber]
-    flags.carry = false;
-    flags.sign = (ax & 0x8000) != 0;
-    flags.zero = ax == 0;                   // or ax, ax
-    if (!flags.zero)
-        goto l_player_not_cpu;              // jnz short @@player_not_cpu
-
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    esi = A2;                               // mov esi, A2
-    writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
-    flags.carry = false;
-    flags.sign = (ax & 0x8000) != 0;
-    flags.zero = ax == 0;                   // or ax, ax
-    goto l_halve_player_speed;              // jmp short @@halve_player_speed
-
-l_player_not_cpu:;
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    {
-        word res = *(word *)&D0 >> 2;
-        *(word *)&D0 = res;
-    }                                       // shr word ptr D0, 2
-    ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, ax
-    ax = D0;                                // mov ax, word ptr D0
-    esi = A2;                               // mov esi, A2
-    writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    {
-        word res = *(word *)&D0 >> 2;
-        *(word *)&D0 = res;
-    }                                       // shr word ptr D0, 2
-    ax = (word)readMemory(esi + 44, 2);     // mov ax, [esi+Sprite.speed]
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned + srcSigned;
-        *(word *)&D0 = res;
-    }                                       // add word ptr D0, ax
-    ax = D0;                                // mov ax, word ptr D0
-    esi = A2;                               // mov esi, A2
-    writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
-
-l_halve_player_speed:;
-    esi = A1;                               // mov esi, A1
-    {
-        word src = (word)readMemory(esi + 44, 2);
-        word res = src >> 1;
-        src = res;
-        writeMemory(esi + 44, 2, src);
-    }                                       // shr [esi+Sprite.speed], 1
-    writeMemory(esi + 96, 2, 1);            // mov [esi+Sprite.tackleState], 1
-    esi = A6;                               // mov esi, A6
-    eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
-    A0 = eax;                               // mov A0, eax
-    esi = A0;                               // mov esi, A0
-    eax = readMemory(esi + 32, 4);          // mov eax, [esi+TeamGeneralInfo.controlledPlayer]
-    A0 = eax;                               // mov A0, eax
-    {
-        int32_t dstSigned = A0;
-        int32_t srcSigned = 0;
-        dword res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
-        flags.sign = (res & 0x80000000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp A0, 0
-    if (flags.zero)
-        goto l_out;                         // jz @@out
-
-    esi = A0;                               // mov esi, A0
-    {
-        dword src = readMemory(esi + 74, 4);
-        int32_t dstSigned = src;
-        int32_t srcSigned = 9;
-        dword res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
-        flags.sign = (res & 0x80000000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp [esi+Sprite.ballDistance], 9
-    if (flags.carry)
-        goto l_out;                         // jb @@out
-
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
-    {
-        int16_t dstSigned = *(word *)&D0;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        *(word *)&D0 = res;
-    }                                       // sub word ptr D0, ax
-    ax = D0;                                // mov ax, word ptr D0
-    bx = D0;                                // mov bx, word ptr D0
-    {
-        int32_t res = (int16_t)ax * (int16_t)bx;
-        ax = res & 0xffff;
-        dx = res >> 16;
-    }                                       // imul bx
-    *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    *(word *)((byte *)&D0 + 2) = dx;        // mov word ptr D0+2, dx
-    esi = A1;                               // mov esi, A1
-    ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    esi = A0;                               // mov esi, A0
-    ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
-    {
-        int16_t dstSigned = *(word *)&D1;
-        int16_t srcSigned = ax;
-        word res = dstSigned - srcSigned;
-        *(word *)&D1 = res;
-    }                                       // sub word ptr D1, ax
-    ax = D1;                                // mov ax, word ptr D1
-    bx = D1;                                // mov bx, word ptr D1
-    {
-        int32_t res = (int16_t)ax * (int16_t)bx;
-        ax = res & 0xffff;
-        dx = res >> 16;
-    }                                       // imul bx
-    *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    *(word *)((byte *)&D1 + 2) = dx;        // mov word ptr D1+2, dx
-    eax = D1;                               // mov eax, D1
-    {
-        int32_t dstSigned = D0;
-        int32_t srcSigned = eax;
-        dword res = dstSigned + srcSigned;
-        D0 = res;
-    }                                       // add D0, eax
-    {
-        int32_t dstSigned = D0;
-        int32_t srcSigned = 32;
-        dword res = dstSigned - srcSigned;
-        flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
-        flags.sign = (res & 0x80000000) != 0;
-        flags.zero = res == 0;
-    }                                       // cmp D0, 32
-    if (flags.carry || flags.zero)
-        goto l_out;                         // jbe short @@out
-
-    SWOS::PlayGoodTackleComment();          // call PlayGoodTackleComment
-    esi = A1;                               // mov esi, A1
-    writeMemory(esi + 96, 2, 2);            // mov [esi+Sprite.tackleState], TS_GOOD_TACKLE
-
-l_out:;
-    SWOS::PlayKickSample();                 // call PlayKickSample
-    resetBothTeamSpinTimers();              // call ResetBothTeamSpinTimers
-}
 
 // in:
 //      D0 -  direction
@@ -15261,28 +14911,13 @@ static void playerAttemptingJumpHeader()
     esi = A1;                               // mov esi, A1
     writeMemory(esi + 13, 1, m_playerDownHeadingInterval); // mov [esi+Sprite.playerDownTimer], m_playerDownHeadingInterval
     writeMemory(esi + 12, 1, 9);            // mov [esi+Sprite.playerState], PL_JUMP_HEADING
-    A5 = 515768;                            // mov A5, offset kDefaultDestinations
+    const auto& defaultDestination = getDefaultBallDestinations()[*(word *)&D0];
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 2
-    eax = A5;                               // mov eax, A5
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    {
-        int32_t dstSigned = eax;
-        int32_t srcSigned = ebx;
-        dword res = dstSigned + srcSigned;
-        eax = res;
-    }                                       // add eax, ebx
-    A5 = eax;                               // mov A5, eax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    {
-        int32_t dstSigned = A5;
-        int32_t srcSigned = 2;
-        dword res = dstSigned + srcSigned;
-        A5 = res;
-    }                                       // add A5, 2
+    ax = defaultDestination.x;              // mov ax, [kDefaultDestinations+ebx]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -15294,8 +14929,7 @@ static void playerAttemptingJumpHeader()
     }                                       // add word ptr D0, ax
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
+    ax = defaultDestination.y;              // mov ax, [kDefaultDestinations+ebx+2]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
@@ -15310,7 +14944,7 @@ static void playerAttemptingJumpHeader()
     }                                       // add word ptr D0, ax
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[325410];       // mov ax, kJumpHeaderSpeed
+    ax = *(word *)&g_memByte[325482];       // mov ax, kJumpHeaderSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
 }
 
@@ -15323,7 +14957,7 @@ static void playerAttemptingJumpHeader()
 // It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void setThrowInPlayerDestinationCoordinates()
 {
-    A0 = 328492;                            // mov A0, offset ballSprite
+    A0 = 328556;                            // mov A0, offset ballSprite
     esi = A0;                               // mov esi, A0
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
@@ -15383,7 +15017,7 @@ l_set_player_x:;
 // It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void setPlayerWithNoBallDestination()
 {
-    A0 = 372152;                            // mov A0, offset g_tacticsTable
+    A0 = 372216;                            // mov A0, offset g_tacticsTable
     esi = A6;                               // mov esi, A6
     ax = (word)readMemory(esi + 28, 2);     // mov ax, [esi+TeamGeneralInfo.tactics]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
@@ -15396,7 +15030,7 @@ static void setPlayerWithNoBallDestination()
     eax = readMemory(esi + ebx, 4);         // mov eax, [esi+ebx]
     A0 = eax;                               // mov A0, eax
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -15409,7 +15043,7 @@ static void setPlayerWithNoBallDestination()
         goto l_keepers_ball_or_goalout;     // jz short @@keepers_ball_or_goalout
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -15422,7 +15056,7 @@ static void setPlayerWithNoBallDestination()
         goto l_keepers_ball_or_goalout;     // jz short @@keepers_ball_or_goalout
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -15439,7 +15073,7 @@ l_keepers_ball_or_goalout:;
     al = (byte)readMemory(esi + 369, 1);    // mov al, [esi+Tactics.ballOutOfPlayTactics]
     ah = (int8_t)al < 0 ? -1 : 0;           // cbw
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    A0 = 372152;                            // mov A0, offset g_tacticsTable
+    A0 = 372216;                            // mov A0, offset g_tacticsTable
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
@@ -15481,13 +15115,13 @@ l_game_in_progress:;
     dx = tmp.hi16;                          // mul bx
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     *(word *)((byte *)&D0 + 2) = dx;        // mov word ptr D0+2, dx
-    ax = *(word *)&g_memByte[516012];       // mov ax, playerXQuadrantOffset
+    ax = *(word *)&g_memByte[516020];       // mov ax, playerXQuadrantOffset
     *(word *)&D3 = ax;                      // mov word ptr D3, ax
-    ax = *(word *)&g_memByte[516014];       // mov ax, playerYQuadrantOffset
+    ax = *(word *)&g_memByte[516022];       // mov ax, playerYQuadrantOffset
     *(word *)&D4 = ax;                      // mov word ptr D4, ax
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -15497,7 +15131,7 @@ l_game_in_progress:;
     if (!flags.zero)
         goto l_right_team_invert;           // jnz short @@right_team_invert
 
-    ax = *(word *)&g_memByte[516006];       // mov ax, ballQuadrantIndex
+    ax = *(word *)&g_memByte[516014];       // mov ax, ballQuadrantIndex
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -15516,7 +15150,7 @@ l_game_in_progress:;
 
 l_right_team_invert:;
     *(word *)&D1 = 34;                      // mov word ptr D1, 34
-    ax = *(word *)&g_memByte[516006];       // mov ax, ballQuadrantIndex
+    ax = *(word *)&g_memByte[516014];       // mov ax, ballQuadrantIndex
     {
         int16_t dstSigned = *(word *)&D1;
         int16_t srcSigned = ax;
@@ -15556,7 +15190,7 @@ l_send_player_to_his_quadrant:;
         word res = *(word *)&D2 & 15;
         *(word *)&D2 = res;
     }                                       // and word ptr D2, 0Fh
-    A0 = 515944;                            // mov A0, offset playerXQuadrantsCoordinates
+    A0 = 515952;                            // mov A0, offset playerXQuadrantsCoordinates
     {
         word res = *(word *)&D1 << 1;
         *(word *)&D1 = res;
@@ -15570,7 +15204,7 @@ l_send_player_to_his_quadrant:;
         word res = dstSigned + srcSigned;
         *(word *)&D3 = res;
     }                                       // add word ptr D3, ax
-    A0 = 515974;                            // mov A0, offset playerYQuadrantCoordinates
+    A0 = 515982;                            // mov A0, offset playerYQuadrantCoordinates
     {
         word res = *(word *)&D2 << 1;
         *(word *)&D2 = res;
@@ -15592,7 +15226,7 @@ l_send_player_to_his_quadrant:;
     }                                       // sub word ptr D3, 4
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -15731,7 +15365,7 @@ l_goalkeeper:;
     *(word *)&D3 = 161;                     // mov word ptr D3, 161
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -15812,28 +15446,13 @@ static void attemptStaticHeader()
     writeMemory(esi + 98, 2, 0);            // mov [esi+Sprite.heading], 0
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 42, 2, ax);           // mov [esi+Sprite.direction], ax
-    A5 = 515768;                            // mov A5, offset kDefaultDestinations
+    const auto& defaultDestination = getDefaultBallDestinations()[*(word *)&D0];
     {
         word res = *(word *)&D0 << 2;
         *(word *)&D0 = res;
     }                                       // shl word ptr D0, 2
-    eax = A5;                               // mov eax, A5
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
-    {
-        int32_t dstSigned = eax;
-        int32_t srcSigned = ebx;
-        dword res = dstSigned + srcSigned;
-        eax = res;
-    }                                       // add eax, ebx
-    A5 = eax;                               // mov A5, eax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
-    {
-        int32_t dstSigned = A5;
-        int32_t srcSigned = 2;
-        dword res = dstSigned + srcSigned;
-        A5 = res;
-    }                                       // add A5, 2
+    ax = defaultDestination.x;              // mov ax, [kDefaultDestinations+ebx]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 32, 2);     // mov ax, word ptr [esi+(Sprite.x+2)]
@@ -15845,8 +15464,7 @@ static void attemptStaticHeader()
     }                                       // add word ptr D0, ax
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 58, 2, ax);           // mov [esi+Sprite.destX], ax
-    esi = A5;                               // mov esi, A5
-    ax = (word)readMemory(esi, 2);          // mov ax, [esi]
+    ax = defaultDestination.y;              // mov ax, [kDefaultDestinations+ebx+2]
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     esi = A1;                               // mov esi, A1
     ax = (word)readMemory(esi + 36, 2);     // mov ax, word ptr [esi+(Sprite.y+2)]
@@ -15861,7 +15479,7 @@ static void attemptStaticHeader()
     }                                       // add word ptr D0, ax
     ax = D0;                                // mov ax, word ptr D0
     writeMemory(esi + 60, 2, ax);           // mov [esi+Sprite.destY], ax
-    ax = *(word *)&g_memByte[516886];       // mov ax, kStaticHeaderPlayerSpeed
+    ax = *(word *)&g_memByte[516074];       // mov ax, kStaticHeaderPlayerSpeed
     writeMemory(esi + 44, 2, ax);           // mov [esi+Sprite.speed], ax
     setPlayerAnimationTable(A1.as<Sprite&>(), getStaticHeaderAttemptAnimTable());
     esi = A1;                               // mov esi, A1
@@ -15988,7 +15606,7 @@ static void AI_SetControlsDirection()
     if (!flags.zero)
         return;                             // jnz return
 
-    ax = *(word *)&g_memByte[519156];       // mov ax, AI_counter
+    ax = *(word *)&g_memByte[518344];       // mov ax, AI_counter
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -15997,16 +15615,16 @@ static void AI_SetControlsDirection()
         goto l_bump_resume_play_ai_timer;   // jz short @@bump_resume_play_ai_timer
 
     {
-        word src = *(word *)&g_memByte[519156];
+        word src = *(word *)&g_memByte[518344];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
         src = res;
-        *(word *)&g_memByte[519156] = src;
+        *(word *)&g_memByte[518344] = src;
     }                                       // sub AI_counter, 1
 
 l_bump_resume_play_ai_timer:;
-    ax = *(word *)&g_memByte[519128];       // mov ax, AI_resumePlayTimer
+    ax = *(word *)&g_memByte[518316];       // mov ax, AI_resumePlayTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -16015,7 +15633,7 @@ l_bump_resume_play_ai_timer:;
         goto l_generate_rand;               // jz short @@generate_rand
 
     {
-        word src = *(word *)&g_memByte[519128];
+        word src = *(word *)&g_memByte[518316];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -16024,13 +15642,13 @@ l_bump_resume_play_ai_timer:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
         src = res;
-        *(word *)&g_memByte[519128] = src;
+        *(word *)&g_memByte[518316] = src;
     }                                       // sub AI_resumePlayTimer, 1
 
 l_generate_rand:;
     SWOS::Rand();                           // call Rand
     ax = D0;                                // mov ax, word ptr D0
-    *(word *)&g_memByte[519130] = ax;       // mov AI_rand, ax
+    *(word *)&g_memByte[518318] = ax;       // mov AI_rand, ax
     esi = A6;                               // mov esi, A6
     {
         word src = (word)readMemory(esi + 130, 2);
@@ -16045,7 +15663,7 @@ l_generate_rand:;
     writeMemory(esi + 51, 1, 0);            // mov [esi+TeamGeneralInfo.fireThisFrame], 0
     writeMemory(esi + 48, 1, 0);            // mov [esi+TeamGeneralInfo.quickFire], 0
     writeMemory(esi + 49, 1, 0);            // mov [esi+TeamGeneralInfo.normalFire], 0
-    ax = *(word *)&g_memByte[478658];       // mov ax, g_inSubstitutesMenu
+    ax = *(word *)&g_memByte[478710];       // mov ax, g_inSubstitutesMenu
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -16075,10 +15693,10 @@ l_generate_rand:;
     *(word *)&D7 = ax;                      // mov word ptr D7, ax
 
 l_player_direction_set:;
-    A0 = 328492;                            // mov A0, offset ballSprite
+    A0 = 328556;                            // mov A0, offset ballSprite
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -16163,7 +15781,7 @@ l_save_angle:;
     ax = D0;                                // mov ax, word ptr D0
     *(word *)&D5 = ax;                      // mov word ptr D5, ax
     {
-        word src = *(word *)&g_memByte[515596];
+        word src = *(word *)&g_memByte[515648];
         int16_t dstSigned = src;
         int16_t srcSigned = 100;
         word res = dstSigned - srcSigned;
@@ -16175,7 +15793,7 @@ l_save_angle:;
     if (flags.zero)
         goto l_game_in_progress;            // jz @@game_in_progress
 
-    eax = *(dword *)&g_memByte[515588];     // mov eax, lastTeamPlayedBeforeBreak
+    eax = *(dword *)&g_memByte[515640];     // mov eax, lastTeamPlayedBeforeBreak
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -16189,7 +15807,7 @@ l_save_angle:;
         return;                             // jnz return
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 21;
         word res = dstSigned - srcSigned;
@@ -16202,7 +15820,7 @@ l_save_angle:;
         goto l_game_not_over;               // jb @@game_not_over
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 30;
         word res = dstSigned - srcSigned;
@@ -16214,7 +15832,7 @@ l_save_angle:;
     if (!flags.carry && !flags.zero)
         goto l_game_not_over;               // ja @@game_not_over
 
-    ax = *(word *)&g_memByte[448686];       // mov ax, team1Computer
+    ax = *(word *)&g_memByte[448750];       // mov ax, team1Computer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -16222,7 +15840,7 @@ l_save_angle:;
     if (flags.zero)
         goto l_game_not_over;               // jz @@game_not_over
 
-    ax = *(word *)&g_memByte[448688];       // mov ax, team2Computer
+    ax = *(word *)&g_memByte[448752];       // mov ax, team2Computer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -16231,7 +15849,7 @@ l_save_angle:;
         goto l_game_not_over;               // jz @@game_not_over
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 25;
         word res = dstSigned - srcSigned;
@@ -16244,7 +15862,7 @@ l_save_angle:;
         goto l_showing_result_on_halftime;  // jz short @@showing_result_on_halftime
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 26;
         word res = dstSigned - srcSigned;
@@ -16257,7 +15875,7 @@ l_save_angle:;
         goto l_not_showing_final_result;    // jnz short @@not_showing_final_result
 
     {
-        word src = *(word *)&g_memByte[515592];
+        word src = *(word *)&g_memByte[515644];
         int16_t dstSigned = src;
         int16_t srcSigned = *(word *)&m_clearResultInterval;
         word res = dstSigned - srcSigned;
@@ -16273,7 +15891,7 @@ l_save_angle:;
 
 l_showing_result_on_halftime:;
     {
-        word src = *(word *)&g_memByte[515592];
+        word src = *(word *)&g_memByte[515644];
         int16_t dstSigned = src;
         int16_t srcSigned = *(word *)&m_clearResultInterval;
         word res = dstSigned - srcSigned;
@@ -16289,7 +15907,7 @@ l_showing_result_on_halftime:;
 
 l_not_showing_final_result:;
     {
-        word src = *(word *)&g_memByte[515592];
+        word src = *(word *)&g_memByte[515644];
         int16_t dstSigned = src;
         int16_t srcSigned = *(word *)&m_clearResultHalftimeInterval;
         word res = dstSigned - srcSigned;
@@ -16309,7 +15927,7 @@ l_interval_expired_fire:;
 l_set_direction:;
 
 l_check_if_result_shown:;
-    ax = *(word *)&g_memByte[449122];       // mov ax, resultTimer
+    ax = *(word *)&g_memByte[449186];       // mov ax, resultTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -16318,7 +15936,7 @@ l_check_if_result_shown:;
         return;                             // jnz return
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -16331,7 +15949,7 @@ l_check_if_result_shown:;
         goto l_update_turn_direction;       // jz @@update_turn_direction
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -16344,7 +15962,7 @@ l_check_if_result_shown:;
         goto l_update_turn_direction;       // jz @@update_turn_direction
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -16357,7 +15975,7 @@ l_check_if_result_shown:;
         goto l_update_turn_direction;       // jz @@update_turn_direction
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 15;
         word res = dstSigned - srcSigned;
@@ -16370,7 +15988,7 @@ l_check_if_result_shown:;
         goto l_no_throw_in;                 // jb short @@no_throw_in
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -16384,7 +16002,7 @@ l_check_if_result_shown:;
 
 l_no_throw_in:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 13;
         word res = dstSigned - srcSigned;
@@ -16397,7 +16015,7 @@ l_no_throw_in:;
         goto l_foul_or_free_kick;           // jz short @@foul_or_free_kick
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 6;
         word res = dstSigned - srcSigned;
@@ -16410,7 +16028,7 @@ l_no_throw_in:;
         return;                             // jb return
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -16448,7 +16066,7 @@ l_foul_or_free_kick:;
     return;                                 // jmp return
 
 l_game_not_over:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 63;
@@ -16466,7 +16084,7 @@ l_game_not_over:;
         word res = dstSigned + srcSigned;
         *(word *)&D0 = res;
     }                                       // add word ptr D0, 50
-    ax = *(word *)&g_memByte[515594];       // mov ax, stoppageTimerActive
+    ax = *(word *)&g_memByte[515646];       // mov ax, stoppageTimerActive
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -16479,7 +16097,7 @@ l_game_not_over:;
     if (!flags.carry && !flags.zero)
         goto l_set_direction;               // ja @@set_direction
 
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -16488,7 +16106,7 @@ l_game_not_over:;
         goto l_doing_penalties;             // jnz @@doing_penalties
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -16501,7 +16119,7 @@ l_game_not_over:;
         goto l_doing_penalties;             // jz @@doing_penalties
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 3;
         word res = dstSigned - srcSigned;
@@ -16514,7 +16132,7 @@ l_game_not_over:;
         goto l_keepers_ball;                // jz @@keepers_ball
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -16527,7 +16145,7 @@ l_game_not_over:;
         goto l_keepers_ball;                // jz @@keepers_ball
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 2;
         word res = dstSigned - srcSigned;
@@ -16540,7 +16158,7 @@ l_game_not_over:;
         goto l_keepers_ball;                // jz @@keepers_ball
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 0;
         word res = dstSigned - srcSigned;
@@ -16553,7 +16171,7 @@ l_game_not_over:;
         goto l_goal_scored;                 // jz @@goal_scored
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 6;
         word res = dstSigned - srcSigned;
@@ -16566,7 +16184,7 @@ l_game_not_over:;
         goto l_test_throw_in;               // jb short @@test_throw_in
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -16580,7 +16198,7 @@ l_game_not_over:;
 
 l_test_throw_in:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 15;
         word res = dstSigned - srcSigned;
@@ -16593,7 +16211,7 @@ l_test_throw_in:;
         goto l_test_foul;                   // jb short @@test_foul
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -16605,7 +16223,7 @@ l_test_throw_in:;
     if (!flags.carry && !flags.zero)
         goto l_test_foul;                   // ja short @@test_foul
 
-    ax = *(word *)&g_memByte[515598];       // mov ax, gameState
+    ax = *(word *)&g_memByte[515650];       // mov ax, gameState
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         int16_t dstSigned = *(word *)&D1;
@@ -16613,14 +16231,14 @@ l_test_throw_in:;
         word res = dstSigned - srcSigned;
         *(word *)&D1 = res;
     }                                       // sub word ptr D1, ST_THROW_IN_FORWARD_RIGHT
-    A0 = 519162;                            // mov A0, offset AI_throwInDirections
+    A0 = 518350;                            // mov A0, offset AI_throwInDirections
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D1;                     // movzx ebx, word ptr D1
     al = (byte)readMemory(esi + ebx, 1);    // mov al, [esi+ebx]
     *(byte *)&D1 = al;                      // mov byte ptr D1, al
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -16639,7 +16257,7 @@ l_test_throw_in:;
 
 l_test_foul:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 13;
         word res = dstSigned - srcSigned;
@@ -16654,7 +16272,7 @@ l_test_foul:;
     goto l_apply_after_touch;               // jmp @@apply_after_touch
 
 l_keepers_ball:;
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 1;
@@ -16667,7 +16285,7 @@ l_keepers_ball:;
     if (flags.zero)
         goto cseg_84775;                    // jz cseg_84775
 
-    ax = *(word *)&g_memByte[515608];       // mov ax, cameraDirection
+    ax = *(word *)&g_memByte[515660];       // mov ax, cameraDirection
     {
         int16_t dstSigned = *(word *)&D7;
         int16_t srcSigned = ax;
@@ -16681,7 +16299,7 @@ l_keepers_ball:;
         goto l_apply_after_touch;           // jz @@apply_after_touch
 
     {
-        word src = *(word *)&g_memByte[328524];
+        word src = *(word *)&g_memByte[328588];
         int16_t dstSigned = src;
         int16_t srcSigned = 336;
         word res = dstSigned - srcSigned;
@@ -16748,7 +16366,7 @@ cseg_845CC:;
 
 l_goal_scored:;
     {
-        word src = *(word *)&g_memByte[515594];
+        word src = *(word *)&g_memByte[515646];
         int16_t dstSigned = src;
         int16_t srcSigned = 150;
         word res = dstSigned - srcSigned;
@@ -16760,7 +16378,7 @@ l_goal_scored:;
     if (flags.carry)
         goto cseg_84775;                    // jb cseg_84775
 
-    ax = *(word *)&g_memByte[515608];       // mov ax, cameraDirection
+    ax = *(word *)&g_memByte[515660];       // mov ax, cameraDirection
     {
         int16_t dstSigned = *(word *)&D7;
         int16_t srcSigned = ax;
@@ -16775,7 +16393,7 @@ l_goal_scored:;
 
     goto cseg_84775;                        // jmp cseg_84775
 
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 15;
@@ -16790,7 +16408,7 @@ l_goal_scored:;
 
     goto cseg_84775;                        // jmp cseg_84775
 
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 15;
@@ -16806,7 +16424,7 @@ l_goal_scored:;
     goto l_apply_after_touch;               // jmp @@apply_after_touch
 
 l_free_kick:;
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 15;
@@ -16822,7 +16440,7 @@ l_free_kick:;
     goto cseg_84775;                        // jmp cseg_84775
 
 cseg_84671:;
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 15;
@@ -16857,7 +16475,7 @@ cseg_84671:;
     goto cseg_84775;                        // jmp cseg_84775
 
 l_doing_penalties:;
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 7;
@@ -16873,7 +16491,7 @@ l_doing_penalties:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -17081,7 +16699,7 @@ cseg_84815:;
     return;                                 // retn
 
 l_update_turn_direction:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 14;
@@ -17094,7 +16712,7 @@ l_update_turn_direction:;
     if (!flags.zero)
         return;                             // jnz return
 
-    ax = *(word *)&g_memByte[519126];       // mov ax, AI_turnDirection
+    ax = *(word *)&g_memByte[518314];       // mov ax, AI_turnDirection
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -17103,7 +16721,7 @@ l_update_turn_direction:;
         goto cseg_8489B;                    // jns short cseg_8489B
 
     {
-        word src = *(word *)&g_memByte[519126];
+        word src = *(word *)&g_memByte[518314];
         int16_t dstSigned = src;
         int16_t srcSigned = -1;
         word res = dstSigned - srcSigned;
@@ -17116,15 +16734,15 @@ l_update_turn_direction:;
         goto cseg_84890;                    // jz short cseg_84890
 
     {
-        word src = *(word *)&g_memByte[519126];
+        word src = *(word *)&g_memByte[518314];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned + srcSigned;
         src = res;
-        *(word *)&g_memByte[519126] = src;
+        *(word *)&g_memByte[518314] = src;
     }                                       // add AI_turnDirection, 1
     {
-        word src = *(word *)&g_memByte[519126];
+        word src = *(word *)&g_memByte[518314];
         int16_t dstSigned = src;
         int16_t srcSigned = -1;
         word res = dstSigned - srcSigned;
@@ -17142,7 +16760,7 @@ cseg_84890:;
 
 cseg_8489B:;
     {
-        word src = *(word *)&g_memByte[519126];
+        word src = *(word *)&g_memByte[518314];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -17155,15 +16773,15 @@ cseg_8489B:;
         goto cseg_848BB;                    // jz short cseg_848BB
 
     {
-        word src = *(word *)&g_memByte[519126];
+        word src = *(word *)&g_memByte[518314];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
         src = res;
-        *(word *)&g_memByte[519126] = src;
+        *(word *)&g_memByte[518314] = src;
     }                                       // sub AI_turnDirection, 1
     {
-        word src = *(word *)&g_memByte[519126];
+        word src = *(word *)&g_memByte[518314];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -17181,7 +16799,7 @@ cseg_848BB:;
 l_apply_turn_direction:;
     ax = D7;                                // mov ax, word ptr D7
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[519126];       // mov ax, AI_turnDirection
+    ax = *(word *)&g_memByte[518314];       // mov ax, AI_turnDirection
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -17202,7 +16820,7 @@ l_apply_turn_direction:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -17219,7 +16837,7 @@ l_apply_turn_direction:;
 
 l_save_for_next_frame:;
     ax = D1;                                // mov ax, word ptr D1
-    *(word *)&g_memByte[519126] = ax;       // mov AI_turnDirection, ax
+    *(word *)&g_memByte[518314] = ax;       // mov AI_turnDirection, ax
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -17227,7 +16845,7 @@ l_save_for_next_frame:;
     return;                                 // retn
 
 l_game_in_progress:;
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -17235,7 +16853,7 @@ l_game_in_progress:;
     if (!flags.zero)
         goto l_penalty;                     // jnz short @@penalty
 
-    ax = *(word *)&g_memByte[515580];       // mov ax, penalty
+    ax = *(word *)&g_memByte[515632];       // mov ax, penalty
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -17254,7 +16872,7 @@ l_penalty:;
         goto l_ball_after_touch_allowed;    // jns @@ball_after_touch_allowed
 
 l_no_penalty:;
-    ax = *(word *)&g_memByte[519156];       // mov ax, AI_counter
+    ax = *(word *)&g_memByte[518344];       // mov ax, AI_counter
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -17304,7 +16922,7 @@ l_direction_updated:;
 
     goto l_noone_near;                      // jmp @@noone_near
 
-    eax = *(dword *)&g_memByte[515572];     // mov eax, lastTeamPlayed
+    eax = *(dword *)&g_memByte[515624];     // mov eax, lastTeamPlayed
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -17335,7 +16953,7 @@ l_theres_a_player_near:;
     if (flags.zero)
         return;                             // jz return
 
-    ax = *(word *)&g_memByte[448851];       // mov ax, deadVarAlways0
+    ax = *(word *)&g_memByte[448915];       // mov ax, deadVarAlways0
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -17346,7 +16964,7 @@ l_theres_a_player_near:;
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
     A0 = eax;                               // mov A0, eax
-    eax = *(dword *)&g_memByte[448877];     // mov eax, dseg_1309C1
+    eax = *(dword *)&g_memByte[448941];     // mov eax, dseg_1309C1
     {
         int32_t dstSigned = A0;
         int32_t srcSigned = eax;
@@ -17399,7 +17017,7 @@ cseg_84A0D:;
 l_player_facing_left_or_right:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -17410,7 +17028,7 @@ l_player_facing_left_or_right:;
         goto l_top_team_test;               // jz short @@top_team_test
 
     {
-        word src = *(word *)&g_memByte[328528];
+        word src = *(word *)&g_memByte[328592];
         int16_t dstSigned = src;
         int16_t srcSigned = 158;
         word res = dstSigned - srcSigned;
@@ -17426,7 +17044,7 @@ l_player_facing_left_or_right:;
 
 l_top_team_test:;
     {
-        word src = *(word *)&g_memByte[328528];
+        word src = *(word *)&g_memByte[328592];
         int16_t dstSigned = src;
         int16_t srcSigned = 740;
         word res = dstSigned - srcSigned;
@@ -17463,7 +17081,7 @@ cseg_84A53:;
     if (flags.carry)
         goto cseg_84A85;                    // jb short cseg_84A85
 
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 3;
@@ -17799,7 +17417,7 @@ cseg_84C00:;
 
 cseg_84C93:;
     {
-        word src = *(word *)&g_memByte[519130];
+        word src = *(word *)&g_memByte[518318];
         int16_t dstSigned = src;
         int16_t srcSigned = 8;
         word res = dstSigned - srcSigned;
@@ -17824,7 +17442,7 @@ cseg_84C93:;
         goto cseg_84F4B;                    // ja cseg_84F4B
 
 cseg_84CAD:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 12;
@@ -17886,7 +17504,7 @@ cseg_84D10:;
     if (!flags.zero)
         goto cseg_84DD3;                    // jnz cseg_84DD3
 
-    ax = *(word *)&g_memByte[323620];       // mov ax, frameCount
+    ax = *(word *)&g_memByte[323696];       // mov ax, frameCount
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 127;
@@ -17917,7 +17535,7 @@ cseg_84D57:;
         goto cseg_84E16;                    // jz cseg_84E16
 
     {
-        byte src = g_memByte[323626];
+        byte src = g_memByte[323702];
         byte res = src & 128;
         flags.carry = false;
         flags.overflow = false;
@@ -18064,7 +17682,7 @@ l_decide_if_flipping_direction:;
     if (flags.carry)
         goto l_set_opposite_direction;      // jb short @@set_opposite_direction
 
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         word res = *(word *)&D1 & 14;
@@ -18106,7 +17724,7 @@ l_use_current_player_direction:;
 l_our_player_closest:;
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 132, 2, 0);           // mov [esi+TeamGeneralInfo.field_84], 0
-    ax = *(word *)&g_memByte[519128];       // mov ax, AI_resumePlayTimer
+    ax = *(word *)&g_memByte[518316];       // mov ax, AI_resumePlayTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -18118,14 +17736,14 @@ l_our_player_closest:;
     if (!flags.carry)
         return;                             // jnb return
 
-    *(word *)&g_memByte[519128] = 15;       // mov AI_resumePlayTimer, 15
+    *(word *)&g_memByte[518316] = 15;       // mov AI_resumePlayTimer, 15
     ax = D7;                                // mov ax, word ptr D7
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 44, 2, ax);           // mov [esi+TeamGeneralInfo.currentAllowedDirection], ax
     writeMemory(esi + 48, 1, 1);            // mov [esi+TeamGeneralInfo.quickFire], 1
-    ax = *(word *)&g_memByte[449238];       // mov ax, AI_maxStoppageTime
+    ax = *(word *)&g_memByte[449288];       // mov ax, AI_maxStoppageTime
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[515594];       // mov ax, stoppageTimerActive
+    ax = *(word *)&g_memByte[515646];       // mov ax, stoppageTimerActive
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -18138,8 +17756,8 @@ l_our_player_closest:;
     if (!flags.carry && !flags.zero)
         goto l_jmp_return;                  // ja short @@jmp_return
 
-    ax = *(word *)&g_memByte[515594];       // mov ax, stoppageTimerActive
-    *(word *)&g_memByte[449238] = ax;       // mov AI_maxStoppageTime, ax
+    ax = *(word *)&g_memByte[515646];       // mov ax, stoppageTimerActive
+    *(word *)&g_memByte[449288] = ax;       // mov AI_maxStoppageTime, ax
 
 l_jmp_return:;
     return;                                 // jmp return
@@ -18239,7 +17857,7 @@ cseg_84FCA:;
         byte res = dstSigned - srcSigned;
         *(byte *)&D2 = res;
     }                                       // sub byte ptr D2, al
-    *(word *)&g_memByte[519128] = 15;       // mov AI_resumePlayTimer, 15
+    *(word *)&g_memByte[518316] = 15;       // mov AI_resumePlayTimer, 15
     *(word *)&D0 = -1;                      // mov word ptr D0, -1
     al = D2;                                // mov al, byte ptr D2
     flags.carry = false;
@@ -18252,7 +17870,7 @@ cseg_84FCA:;
     *(int16_t *)&D0 = -*(int16_t *)&D0;     // neg word ptr D0
 
 cseg_85025:;
-    eax = *(dword *)&g_memByte[328542];     // mov eax, ballSprite.deltaY
+    eax = *(dword *)&g_memByte[328606];     // mov eax, ballSprite.deltaY
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (eax & 0x80000000) != 0;
@@ -18261,7 +17879,7 @@ cseg_85025:;
         goto cseg_8503F;                    // js short cseg_8503F
 
     {
-        word src = *(word *)&g_memByte[328528];
+        word src = *(word *)&g_memByte[328592];
         int16_t dstSigned = src;
         int16_t srcSigned = 555;
         word res = dstSigned - srcSigned;
@@ -18277,7 +17895,7 @@ cseg_85025:;
 
 cseg_8503F:;
     {
-        word src = *(word *)&g_memByte[328528];
+        word src = *(word *)&g_memByte[328592];
         int16_t dstSigned = src;
         int16_t srcSigned = 342;
         word res = dstSigned - srcSigned;
@@ -18290,7 +17908,7 @@ cseg_8503F:;
         goto cseg_850E1;                    // jb cseg_850E1
 
 cseg_8504E:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
     {
         word res = *(word *)&D1 & 28;
@@ -18301,7 +17919,7 @@ cseg_8504E:;
         *(word *)&D1 = res;
     }                                       // shr word ptr D1, 2
     {
-        word src = *(word *)&g_memByte[328524];
+        word src = *(word *)&g_memByte[328588];
         int16_t dstSigned = src;
         int16_t srcSigned = 193;
         word res = dstSigned - srcSigned;
@@ -18314,7 +17932,7 @@ cseg_8504E:;
         goto cseg_85080;                    // jb short cseg_85080
 
     {
-        word src = *(word *)&g_memByte[328524];
+        word src = *(word *)&g_memByte[328588];
         int16_t dstSigned = src;
         int16_t srcSigned = 478;
         word res = dstSigned - srcSigned;
@@ -18328,7 +17946,7 @@ cseg_8504E:;
 
 cseg_85080:;
     {
-        word src = *(word *)&g_memByte[328524];
+        word src = *(word *)&g_memByte[328588];
         int16_t dstSigned = src;
         int16_t srcSigned = 118;
         word res = dstSigned - srcSigned;
@@ -18341,7 +17959,7 @@ cseg_85080:;
         goto cseg_850C5;                    // jb short cseg_850C5
 
     {
-        word src = *(word *)&g_memByte[328524];
+        word src = *(word *)&g_memByte[328588];
         int16_t dstSigned = src;
         int16_t srcSigned = 553;
         word res = dstSigned - srcSigned;
@@ -18432,7 +18050,7 @@ cseg_850E1:;
     return;                                 // jmp return
 
 cseg_850F9:;
-    ax = *(word *)&g_memByte[519128];       // mov ax, AI_resumePlayTimer
+    ax = *(word *)&g_memByte[518316];       // mov ax, AI_resumePlayTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -18448,7 +18066,7 @@ cseg_850F9:;
     writeMemory(esi + 134, 2, 0);           // mov [esi+TeamGeneralInfo.AI_afterTouchStrength], 0
     goto cseg_85178;                        // jmp short cseg_85178
 
-    ax = *(word *)&g_memByte[519128];       // mov ax, AI_resumePlayTimer
+    ax = *(word *)&g_memByte[518316];       // mov ax, AI_resumePlayTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -18464,7 +18082,7 @@ cseg_850F9:;
     writeMemory(esi + 134, 2, 1);           // mov [esi+TeamGeneralInfo.AI_afterTouchStrength], 1
     goto cseg_85178;                        // jmp short cseg_85178
 
-    ax = *(word *)&g_memByte[519128];       // mov ax, AI_resumePlayTimer
+    ax = *(word *)&g_memByte[518316];       // mov ax, AI_resumePlayTimer
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -18480,7 +18098,7 @@ cseg_850F9:;
     writeMemory(esi + 134, 2, 2);           // mov [esi+TeamGeneralInfo.AI_afterTouchStrength], 2
 
 cseg_85178:;
-    *(word *)&g_memByte[519128] = 15;       // mov AI_resumePlayTimer, 15
+    *(word *)&g_memByte[518316] = 15;       // mov AI_resumePlayTimer, 15
     ax = D7;                                // mov ax, word ptr D7
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 44, 2, ax);           // mov [esi+TeamGeneralInfo.currentAllowedDirection], ax
@@ -18507,9 +18125,9 @@ cseg_851B4:;
     return;                                 // jmp return
 
 l_update_max_stoppage_time:;
-    ax = *(word *)&g_memByte[449238];       // mov ax, AI_maxStoppageTime
+    ax = *(word *)&g_memByte[449288];       // mov ax, AI_maxStoppageTime
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
-    ax = *(word *)&g_memByte[515594];       // mov ax, stoppageTimerActive
+    ax = *(word *)&g_memByte[515646];       // mov ax, stoppageTimerActive
     {
         int16_t dstSigned = *(word *)&D0;
         int16_t srcSigned = ax;
@@ -18522,13 +18140,13 @@ l_update_max_stoppage_time:;
     if (!flags.carry && !flags.zero)
         goto l_decide_after_touch_strength; // ja short @@decide_after_touch_strength
 
-    ax = *(word *)&g_memByte[515594];       // mov ax, stoppageTimerActive
-    *(word *)&g_memByte[449238] = ax;       // mov AI_maxStoppageTime, ax
+    ax = *(word *)&g_memByte[515646];       // mov ax, stoppageTimerActive
+    *(word *)&g_memByte[449288] = ax;       // mov AI_maxStoppageTime, ax
 
 l_decide_after_touch_strength:;
-    *(word *)&g_memByte[519128] = 15;       // mov AI_resumePlayTimer, 15
+    *(word *)&g_memByte[518316] = 15;       // mov AI_resumePlayTimer, 15
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -18541,7 +18159,7 @@ l_decide_after_touch_strength:;
         goto l_weak_after_touch;            // jz @@weak_after_touch
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 31;
         word res = dstSigned - srcSigned;
@@ -18554,7 +18172,7 @@ l_decide_after_touch_strength:;
         goto l_weak_after_touch;            // jz @@weak_after_touch
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 6;
         word res = dstSigned - srcSigned;
@@ -18567,7 +18185,7 @@ l_decide_after_touch_strength:;
         goto l_test_corner;                 // jb short @@test_corner
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -18581,7 +18199,7 @@ l_decide_after_touch_strength:;
 
 l_test_corner:;
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 4;
         word res = dstSigned - srcSigned;
@@ -18594,7 +18212,7 @@ l_test_corner:;
         goto l_medium_after_touch;          // jz short @@medium_after_touch
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 5;
         word res = dstSigned - srcSigned;
@@ -18606,7 +18224,7 @@ l_test_corner:;
     if (flags.zero)
         goto l_medium_after_touch;          // jz short @@medium_after_touch
 
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 24;
@@ -18690,7 +18308,7 @@ l_activate_normal_fire:;
     writeMemory(esi + 44, 2, ax);           // mov [esi+TeamGeneralInfo.currentAllowedDirection], ax
     writeMemory(esi + 49, 1, 1);            // mov [esi+TeamGeneralInfo.normalFire], 1
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -18703,7 +18321,7 @@ l_activate_normal_fire:;
         goto l_no_after_touch;              // jz @@no_after_touch
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 31;
         word res = dstSigned - srcSigned;
@@ -18716,7 +18334,7 @@ l_activate_normal_fire:;
         goto l_no_after_touch;              // jz @@no_after_touch
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 4;
         word res = dstSigned - srcSigned;
@@ -18729,7 +18347,7 @@ l_activate_normal_fire:;
         goto l_corner;                      // jz @@corner
 
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 5;
         word res = dstSigned - srcSigned;
@@ -18741,12 +18359,12 @@ l_activate_normal_fire:;
     if (flags.zero)
         goto l_corner;                      // jz @@corner
 
-    *(word *)&g_memByte[519128] = 15;       // mov AI_resumePlayTimer, 15
+    *(word *)&g_memByte[518316] = 15;       // mov AI_resumePlayTimer, 15
     writeMemory(esi + 44, 2, ax);           // mov [esi+TeamGeneralInfo.currentAllowedDirection], ax
     writeMemory(esi + 49, 1, 1);            // mov [esi+TeamGeneralInfo.normalFire], 1
     *(word *)&D0 = 0;                       // mov word ptr D0, 0
     {
-        word src = *(word *)&g_memByte[515598];
+        word src = *(word *)&g_memByte[515650];
         int16_t dstSigned = src;
         int16_t srcSigned = 13;
         word res = dstSigned - srcSigned;
@@ -18760,7 +18378,7 @@ l_activate_normal_fire:;
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.overflow = ((dstSigned ^ srcSigned) & (dstSigned ^ static_cast<int32_t>(res))) < 0;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
@@ -18824,7 +18442,7 @@ cseg_85384:;
     return;                                 // jmp return
 
 l_corner:;
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 7;
@@ -18901,7 +18519,7 @@ cseg_85417:;
         }
     }                                       // shl ax, cl
     {
-        word src = *(word *)&g_memByte[515610];
+        word src = *(word *)&g_memByte[515662];
         word res = src & ax;
         flags.carry = false;
         flags.overflow = false;
@@ -18978,7 +18596,7 @@ l_pass_to_player_too_far_or_null:;
     if (flags.zero)
         goto l_decide_if_flipping_direction; // jz @@decide_if_flipping_direction
 
-    ax = *(word *)&g_memByte[448851];       // mov ax, deadVarAlways0
+    ax = *(word *)&g_memByte[448915];       // mov ax, deadVarAlways0
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -18986,7 +18604,7 @@ l_pass_to_player_too_far_or_null:;
     if (!flags.zero)
         goto cseg_84DE0;                    // jnz cseg_84DE0
 
-    ax = *(word *)&g_memByte[515276];       // mov ax, topTeamData.playerNumber
+    ax = *(word *)&g_memByte[515328];       // mov ax, topTeamData.playerNumber
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -18994,7 +18612,7 @@ l_pass_to_player_too_far_or_null:;
     if (!flags.zero)
         goto l_jmp_decide_if_flipping_direction; // jnz short @@jmp_decide_if_flipping_direction
 
-    ax = *(word *)&g_memByte[515424];       // mov ax, bottomTeamData.playerNumber
+    ax = *(word *)&g_memByte[515476];       // mov ax, bottomTeamData.playerNumber
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -19031,7 +18649,7 @@ l_jmp_decide_if_flipping_direction:;
         goto l_decide_if_flipping_direction; // jg @@decide_if_flipping_direction
 
 l_randomly_flip_or_continue_direction:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 24;
@@ -19045,13 +18663,13 @@ l_randomly_flip_or_continue_direction:;
         goto l_use_current_player_direction; // jnz @@use_current_player_direction
 
     checkForAmigaModeDirectionFlipBan(A5.as<Sprite *>());
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 2;
         *(word *)&D0 = res;
     }                                       // and word ptr D0, 2
-    A0 = 519134;                            // mov A0, offset AI_randomRotateTable
+    A0 = 518322;                            // mov A0, offset AI_randomRotateTable
     esi = A0;                               // mov esi, A0
     ebx = *(word *)&D0;                     // movzx ebx, word ptr D0
     ax = (word)readMemory(esi + ebx, 2);    // mov ax, [esi+ebx]
@@ -19175,7 +18793,7 @@ l_ball_after_touch_allowed:;
     esi = A6;                               // mov esi, A6
     ax = (word)readMemory(esi + 56, 2);     // mov ax, [esi+TeamGeneralInfo.controlledPlDirection]
     *(word *)&D1 = ax;                      // mov word ptr D1, ax
-    ax = *(word *)&g_memByte[515628];       // mov ax, playingPenalties
+    ax = *(word *)&g_memByte[515680];       // mov ax, playingPenalties
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -19183,7 +18801,7 @@ l_ball_after_touch_allowed:;
     if (!flags.zero)
         goto l_no_ball_after_touch;         // jnz short @@no_ball_after_touch
 
-    ax = *(word *)&g_memByte[515580];       // mov ax, penalty
+    ax = *(word *)&g_memByte[515632];       // mov ax, penalty
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -19191,7 +18809,7 @@ l_ball_after_touch_allowed:;
     if (!flags.zero)
         goto l_no_ball_after_touch;         // jnz short @@no_ball_after_touch
 
-    ax = *(word *)&g_memByte[519130];       // mov ax, AI_rand
+    ax = *(word *)&g_memByte[518318];       // mov ax, AI_rand
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 1;
@@ -19238,7 +18856,7 @@ l_no_ball_after_touch:;
     return;                                 // retn
 
 l_do_long_kick:;
-    A0 = 519150;                            // mov A0, offset AI_longKickTable
+    A0 = 518338;                            // mov A0, offset AI_longKickTable
     goto l_set_new_direction_for_kick_pass; // jmp short @@set_new_direction_for_kick_pass
 
 l_apply_left_spin:;
@@ -19258,7 +18876,7 @@ l_apply_left_spin:;
         flags.sign = (res & 0x8000) != 0;
         flags.zero = res == 0;
     }                                       // and word ptr D0, 7
-    A0 = 519138;                            // mov A0, offset AI_leftSpinTable
+    A0 = 518326;                            // mov A0, offset AI_leftSpinTable
     goto l_set_new_direction_for_kick_pass; // jmp short @@set_new_direction_for_kick_pass
 
 l_apply_right_spin:;
@@ -19274,7 +18892,7 @@ l_apply_right_spin:;
         word res = *(word *)&D0 & 7;
         *(word *)&D0 = res;
     }                                       // and word ptr D0, 7
-    A0 = 519144;                            // mov A0, offset AI_rotateRightTable
+    A0 = 518332;                            // mov A0, offset AI_rotateRightTable
 
 l_set_new_direction_for_kick_pass:;
     esi = A6;                               // mov esi, A6
@@ -19314,7 +18932,7 @@ l_set_new_direction_for_kick_pass:;
 // It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void AI_Kick()
 {
-    ax = *(word *)&g_memByte[448851];       // mov ax, deadVarAlways0
+    ax = *(word *)&g_memByte[448915];       // mov ax, deadVarAlways0
     flags.carry = false;
     flags.overflow = false;
     flags.sign = (ax & 0x8000) != 0;
@@ -19322,7 +18940,7 @@ static void AI_Kick()
     if (flags.zero)
         goto cseg_85B62;                    // jz short cseg_85B62
 
-    eax = *(dword *)&g_memByte[448877];     // mov eax, dseg_1309C1
+    eax = *(dword *)&g_memByte[448941];     // mov eax, dseg_1309C1
     {
         int32_t dstSigned = A6;
         int32_t srcSigned = eax;
@@ -19338,7 +18956,7 @@ static void AI_Kick()
     esi = A6;                               // mov esi, A6
     eax = readMemory(esi, 4);               // mov eax, [esi+TeamGeneralInfo.opponentsTeam]
     A0 = eax;                               // mov A0, eax
-    eax = *(dword *)&g_memByte[448877];     // mov eax, dseg_1309C1
+    eax = *(dword *)&g_memByte[448941];     // mov eax, dseg_1309C1
     {
         int32_t dstSigned = A0;
         int32_t srcSigned = eax;
@@ -19352,7 +18970,7 @@ static void AI_Kick()
         return;                             // jz @@out
 
 cseg_85B62:;
-    ax = *(word *)&g_memByte[323626];       // mov ax, currentGameTick
+    ax = *(word *)&g_memByte[323702];       // mov ax, currentGameTick
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
         word res = *(word *)&D0 & 6;
@@ -19464,17 +19082,17 @@ l_kick:;
 // It is only a temporary implementation and should eventually be replaced with idiomatic C++.
 static void AI_SetDirectionTowardOpponentsGoal()
 {
-    ax = *(word *)&g_memByte[519156];       // mov ax, AI_counter
+    ax = *(word *)&g_memByte[518344];       // mov ax, AI_counter
     flags.carry = false;
     flags.sign = (ax & 0x8000) != 0;
     flags.zero = ax == 0;                   // or ax, ax
     if (flags.zero)
         return;                             // jz @@out
 
-    ax = *(word *)&g_memByte[328524];       // mov ax, word ptr ballSprite.x+2
+    ax = *(word *)&g_memByte[328588];       // mov ax, word ptr ballSprite.x+2
     *(word *)&D0 = ax;                      // mov word ptr D0, ax
     {
-        word src = *(word *)&g_memByte[519158];
+        word src = *(word *)&g_memByte[518346];
         int16_t dstSigned = src;
         int16_t srcSigned = 1;
         word res = dstSigned - srcSigned;
@@ -19487,7 +19105,7 @@ static void AI_SetDirectionTowardOpponentsGoal()
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -19526,7 +19144,7 @@ static void AI_SetDirectionTowardOpponentsGoal()
 l_attacking_top:;
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515420;
+        int32_t srcSigned = 515472;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -19597,7 +19215,7 @@ static void AI_DecideWhetherToTriggerFire()
 
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -19689,7 +19307,7 @@ l_facing_toward_opponents_goal:;
     if (!flags.carry && !flags.zero)
         goto l_no_fire;                     // ja @@no_fire
 
-    eax = *(dword *)&g_memByte[328546];     // mov eax, ballSprite.deltaZ
+    eax = *(dword *)&g_memByte[328610];     // mov eax, ballSprite.deltaZ
     flags.carry = false;
     flags.sign = (eax & 0x80000000) != 0;
     flags.zero = eax == 0;                  // or eax, eax
@@ -19697,7 +19315,7 @@ l_facing_toward_opponents_goal:;
         goto l_ball_falling;                // js short @@ball_falling
 
     {
-        word src = *(word *)&g_memByte[328532];
+        word src = *(word *)&g_memByte[328596];
         int16_t dstSigned = src;
         int16_t srcSigned = 8;
         word res = dstSigned - srcSigned;
@@ -19709,7 +19327,7 @@ l_facing_toward_opponents_goal:;
         goto l_no_fire;                     // jb @@no_fire
 
     {
-        word src = *(word *)&g_memByte[328532];
+        word src = *(word *)&g_memByte[328596];
         int16_t dstSigned = src;
         int16_t srcSigned = 14;
         word res = dstSigned - srcSigned;
@@ -19724,7 +19342,7 @@ l_facing_toward_opponents_goal:;
 
 l_ball_falling:;
     {
-        word src = *(word *)&g_memByte[328532];
+        word src = *(word *)&g_memByte[328596];
         int16_t dstSigned = src;
         int16_t srcSigned = 12;
         word res = dstSigned - srcSigned;
@@ -19736,7 +19354,7 @@ l_ball_falling:;
         goto l_no_fire;                     // jb @@no_fire
 
     {
-        word src = *(word *)&g_memByte[328532];
+        word src = *(word *)&g_memByte[328596];
         int16_t dstSigned = src;
         int16_t srcSigned = 20;
         word res = dstSigned - srcSigned;
@@ -19808,12 +19426,12 @@ l_trigger_joypad:;
     ax = D0;                                // mov ax, word ptr D0
     esi = A6;                               // mov esi, A6
     writeMemory(esi + 44, 2, ax);           // mov [esi+TeamGeneralInfo.currentAllowedDirection], ax
-    *(word *)&g_memByte[519156] = 15;       // mov AI_counter, 15
-    *(word *)&g_memByte[519160] = ax;       // mov AI_counterWriteOnly, ax
-    *(word *)&g_memByte[519158] = 2;        // mov AI_attackHalf, 2
+    *(word *)&g_memByte[518344] = 15;       // mov AI_counter, 15
+    *(word *)&g_memByte[518348] = ax;       // mov AI_counterWriteOnly, ax
+    *(word *)&g_memByte[518346] = 2;        // mov AI_attackHalf, 2
     {
         int32_t dstSigned = A6;
-        int32_t srcSigned = 515272;
+        int32_t srcSigned = 515324;
         dword res = dstSigned - srcSigned;
         flags.carry = static_cast<uint32_t>(dstSigned) < static_cast<uint32_t>(srcSigned);
         flags.sign = (res & 0x80000000) != 0;
@@ -19822,7 +19440,7 @@ l_trigger_joypad:;
     if (flags.zero)
         goto l_out_fire;                    // jz short @@out_fire
 
-    *(word *)&g_memByte[519158] = 1;        // mov AI_attackHalf, 1
+    *(word *)&g_memByte[518346] = 1;        // mov AI_attackHalf, 1
 
 l_out_fire:;
     *(word *)&D0 = 0;                       // mov word ptr D0, 0
@@ -19883,7 +19501,7 @@ static void findClosestPlayerToBallFacing()
     D2 = -1;                                // mov D2, -1
     *(word *)&D3 = 1;                       // mov word ptr D3, 1
     *(word *)&D4 = 10;                      // mov word ptr D4, 10
-    A3 = 515272;                            // mov A3, offset topTeamData
+    A3 = 515324;                            // mov A3, offset topTeamData
     esi = A3;                               // mov esi, A3
     eax = readMemory(esi + 20, 4);          // mov eax, [esi+TeamGeneralInfo.spritesTable]
     A2 = eax;                               // mov A2, eax
@@ -19996,7 +19614,7 @@ l_next_player:;
         goto l_players_loop;                // jns @@players_loop
 
     *(word *)&D4 = 10;                      // mov word ptr D4, 10
-    A3 = 515420;                            // mov A3, offset bottomTeamData
+    A3 = 515472;                            // mov A3, offset bottomTeamData
     esi = A3;                               // mov esi, A3
     eax = readMemory(esi + 20, 4);          // mov eax, [esi+TeamGeneralInfo.spritesTable]
     A2 = eax;                               // mov A2, eax

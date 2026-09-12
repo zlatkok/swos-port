@@ -12,7 +12,6 @@ constexpr int kTopStartLocationY = 16;
 constexpr int kBottomStartLocationY = 664;
 constexpr int kCenterX = 176;
 
-constexpr int kPenaltyShootoutCameraX = 336;
 constexpr int kPenaltyShootoutCameraY = 107;
 constexpr int kLeavingBenchCameraDestX = 211;
 
@@ -143,7 +142,7 @@ static CameraParams bookingPlayerMode()
 
 static CameraParams penaltyShootoutMode()
 {
-    return { kPenaltyShootoutCameraX, kPenaltyShootoutCameraY };
+    return { kPitchCenterX, kPenaltyShootoutCameraY };
 }
 
 static CameraParams benchMode(bool substitutingPlayer)
@@ -327,22 +326,22 @@ static std::pair<int, int> getGameStoppedCameraDirections()
 {
     int xDirection = 0, yDirection = 0;
 
-    int direction;
-    bool gotPlayerDirection = false;
+    Direction direction;
+    bool gotDirection = false;
 
     if (swos.lastTeamPlayedBeforeBreak && swos.lastTeamPlayedBeforeBreak->controlledPlayer) {
         direction = swos.lastTeamPlayedBeforeBreak->controlledPlayer->direction;
-        gotPlayerDirection = true;
+        gotDirection = true;
     } else {
         direction = swos.cameraDirection;
     }
 
-    if (gotPlayerDirection || direction != -1) {
+    if (gotDirection || direction != Direction::kNoDirection) {
         static const int8_t kNextCameraDirections[16] = {
             0, -1, 1, -1, 1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1
         };
-        xDirection = kNextCameraDirections[2 * direction];
-        yDirection = kNextCameraDirections[2 * direction + 1];
+        xDirection = kNextCameraDirections[2 * static_cast<int>(direction)];
+        yDirection = kNextCameraDirections[2 * static_cast<int>(direction) + 1];
     }
 
     return { xDirection, yDirection };

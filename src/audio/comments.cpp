@@ -237,6 +237,11 @@ void playInjuryComment(const TeamGeneralInfo& team)
         playComment(kInjury);
 }
 
+void playGoodTackleComment()
+{
+    playComment(kGoodTackle, false);
+}
+
 void clearPenaltyFlag()
 {
     m_performingPenalty = 0;
@@ -405,11 +410,6 @@ static void playGoodPassComment()
     playComment(kGoodPass, false);
 }
 
-void SWOS::PlayGoodTackleComment()
-{
-    playComment(kGoodTackle, false);
-}
-
 void playPostHitComment()
 {
     playComment(kHitPost);
@@ -463,20 +463,20 @@ void SWOS::PlayGoalkeeperSavedComment()
         playComment(kKeeperSaved);
 }
 
-void playOwnGoalComment()
-{
-    playComment(kOwnGoal);
-#ifdef __ANDROID__
-    vibrate();
-#endif
-}
-
 void playGoalComment()
 {
     if (m_performingPenalty || swos.penaltiesState == -1)
         playPenaltyGoalComment();
     else
         playComment(kGoal);
+#ifdef __ANDROID__
+    vibrate();
+#endif
+}
+
+void playOwnGoalComment()
+{
+    playComment(kOwnGoal);
 #ifdef __ANDROID__
     vibrate();
 #endif

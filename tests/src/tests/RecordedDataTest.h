@@ -146,7 +146,7 @@ private:
     void verifySprites(const Sprite *sprites);
     void verifyBench();
     void verifyPlayerSpriteOrder(char *players, const TeamGeneralInfo& team);
-    void verifyShotChanceTable(int recOffset, SwosDataPointer<const int16_t> table);
+    void verifyShotChanceTable(int recOffset, SwosDataPointer<const ShotChanceTable> table);
     void verifySpritePointer(SwosDataPointer<Sprite> recSprite, SwosDataPointer<Sprite> sprite);
 
     ResFilenameList m_files;

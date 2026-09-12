@@ -136,22 +136,17 @@ void playAwayGoalSample()
     playSfx(kHomeGoal);
 }
 
-void SWOS::PlayRefereeWhistleSample()
-{
-    playRefereeWhistleSample();
-}
-
 void playRefereeWhistleSample()
 {
     playSfx(kWhistle, 42);
 }
 
+void playKickSample()
+{
+    playSfx(kKick, 25);
+}
+
 void SWOS::PlayFoulWhistleSample()
 {
     playSfx(kFoulWhistle, 42);
-}
-
-void SWOS::PlayKickSample()
-{
-    playSfx(kKick, 25);
 }

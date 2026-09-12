@@ -99436,7 +99436,7 @@ mov     A1, eax     ; A1 -> marked player sprite
 mov     esi, A1
 cmp     [esi+Sprite.playerState], PL_NORMAL
 jnz     short @@out
-mov     esi, A0
+mov     esi, A0     ; A0 -> sprite for player mark (diamond)
 mov     [esi+Sprite.imageIndex], SPR_PLAYER_MARK
 mov     esi, A1
 mov     ax, word ptr [esi+(Sprite.x+2)]
@@ -105159,11 +105159,11 @@ ApplyBallAfterTouch endp
 
 SetPlayerDowntimeAfterTackle proc near ; CODE XREF: UpdatePlayers+35CF↓p
 call    GetPlayerPointerFromShirtNumber
-mov     A0, offset kPlayerTacklingDownTime
+mov     A0, offset kStrongTackleDownTime
 mov     esi, A1
 cmp     [esi+Sprite.tacklingTimer], -1
 jnz     short @@ordinary_player
-mov     A0, offset kComputerTacklingDownTime
+mov     A0, offset kWeakTackleDownTime
 
 @@ordinary_player:  ; CODE XREF: SetPlayerDowntimeAfterTackle+1A↑j
 mov     esi, A4
@@ -108041,14 +108041,14 @@ mov     word ptr D1, ax
 mov     esi, A0
 movzx   ebx, word ptr D0
 mov     ax, [esi+ebx]
-add     word ptr D1, ax
+add     word ptr D1, ax ; D1 = goalkeeper x + value from the table
 mov     esi, A1
 mov     ax, word ptr [esi+(Sprite.y+2)]
 mov     word ptr D2, ax
 mov     esi, A0
 movzx   ebx, word ptr D0
 mov     ax, [esi+ebx+2]
-add     word ptr D2, ax
+add     word ptr D2, ax ; D2 = goalkeeper y + value from the table
 mov     A0, offset ballSprite
 mov     esi, A0
 mov     [esi+Sprite.speed], 0
@@ -108819,6 +108819,7 @@ PlayerKickingBall endp
 
 ; in:
 ;      D0 -  direction
+;      A1 -> player sprite
 ;      A6 -> team (general)
 ; out:
 ;      A0 -> player sprite
@@ -109207,7 +109208,7 @@ PlayerHittingJumpHeader endp
 DoFlyingHeader proc near
                     ; CODE XREF: PlayerHittingJumpHeader:@@right_held↑p
                     ; PlayerHittingJumpHeader:@@left_held↑p ...
-mov     eax, kHeaderLowJumpHeight
+mov     eax, kFlyingHeaderBallDeltaZ
 mov     esi, A2
 mov     [esi+Sprite.deltaZ], eax
 mov     esi, A2
@@ -109230,7 +109231,7 @@ DoFlyingHeader endp
 
 DoLobHeader proc near ; CODE XREF: PlayerHittingJumpHeader+106↑p
                     ; PlayerHittingJumpHeader:@@down_left_held↑p ...
-mov     eax, kHeaderHighJumpHeight
+mov     eax, kLobHeaderBallDeltaZ
 mov     esi, A2
 mov     [esi+Sprite.deltaZ], eax
 mov     esi, A2
@@ -109349,8 +109350,8 @@ SetPlayerAnimationTableAndPictureIndex endp
 ; in:
 ;      A1 -> sprite (player)
 
-UpdateControllingPlayer proc near
-                    ; CODE XREF: UpdatePlayers:@@update_controlling_player↓p
+UpdateBallWithControllingPlayer proc near
+                    ; CODE XREF: UpdatePlayers:@@update_ball_with_controlling_player↓p
 mov     esi, A1
 mov     ax, [esi+Sprite.direction]
 mov     word ptr D0, ax
@@ -109396,7 +109397,7 @@ mov     esi, A0
 mov     [esi+Sprite.deltaZ], eax ; halve the ball z each frame when player controlling it
 call    ResetBothTeamSpinTimers
 retn
-UpdateControllingPlayer endp
+UpdateBallWithControllingPlayer endp
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -111020,7 +111021,7 @@ CheckIfBallOutOfPlay proc near ; CODE XREF: UpdateBall+D5C↑p
 mov     stateGoal, 0 ; size 0x8e7
 mov     playRefereeWhistle, 0
 cmp     gameStatePl, ST_STOPPED
-jz      @@starting_the_game
+jz      @@check_whether_to_play_referee_whistle
 mov     playRefereeWhistle, 1
 mov     A6, offset ballSprite
 mov     esi, A6
@@ -111498,11 +111499,11 @@ call    EnqueueThrowInSample
 @@break_handled:    ; CODE XREF: CheckIfBallOutOfPlay+385↑j
                     ; CheckIfBallOutOfPlay+5EB↑j ...
 cmp     forceLeftTeam, 1
-jnz     short cseg_7DB29
+jnz     short @@game_stopped
 mov     A6, offset topTeamData
 
-cseg_7DB29:         ; CODE XREF: CheckIfBallOutOfPlay+858↑j
-mov     gameStatePl, 101
+@@game_stopped:     ; CODE XREF: CheckIfBallOutOfPlay+858↑j
+mov     gameStatePl, ST_STOPPED
 mov     gameNotInProgressCounterWriteOnly, 0
 mov     ax, word ptr D1
 mov     foulXCoordinate, ax
@@ -111520,7 +111521,8 @@ call    StopAllPlayers
 mov     cameraXVelocity, 0
 mov     cameraYVelocity, 0
 
-@@starting_the_game: ; CODE XREF: CheckIfBallOutOfPlay+1A↑j
+@@check_whether_to_play_referee_whistle:
+                    ; CODE XREF: CheckIfBallOutOfPlay+1A↑j
 mov     ax, playRefereeWhistle
 or      ax, ax
 jz      short @@out
@@ -116604,7 +116606,7 @@ mov     [esi+TeamGeneralInfo.passingToPlayer], 0
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.shooting], 0
 mov     esi, A1
-mov     ax, word ptr [esi+TeamGeneralInfo.controlledPlayer]
+mov     ax, word ptr [esi+(Sprite.x+2)]
 mov     esi, A1
 mov     [esi+Sprite.destX], ax
 mov     esi, A1
@@ -116613,13 +116615,13 @@ mov     esi, A1
 mov     [esi+Sprite.destY], ax
 mov     esi, A1
 cmp     [esi+Sprite.playerOrdinal], 1
-jnz     short @@update_controlling_player
+jnz     short @@update_ball_with_controlling_player
 call    UpdateBallWithControllingGoalkeeper
 jmp     short cseg_82E23
 ; ---------------------------------------------------------------------------
 
-@@update_controlling_player: ; CODE XREF: UpdatePlayers+4409↑j
-call    UpdateControllingPlayer
+@@update_ball_with_controlling_player: ; CODE XREF: UpdatePlayers+4409↑j
+call    UpdateBallWithControllingPlayer
 
 cseg_82E23:         ; CODE XREF: UpdatePlayers+4410↑j
 mov     esi, A6
@@ -245883,10 +245885,10 @@ kPlayerHeaderSpeedIncrease dw -336, -288, -240, -192, -144, -96, -48, 0, 513, 10
 dw 3083, 3597, 15   ; indexed by player's heading skill, add to his speed
                     ; -0.65625, -0.5625, -0.46875, -0.375, -0.28125, -0.1875, -0.09375,
                     ; 0.0, 1.001953125, 2.005859375, 3.009765625, 4.013671875, 5.017578125
-kHeaderLowJumpHeight dd 20000h ; DATA XREF: DoFlyingHeader↑r
+kFlyingHeaderBallDeltaZ dd 20000h ; DATA XREF: DoFlyingHeader↑r
                     ; =2.0, for flying headers
-kHeaderHighJumpHeight dd 24000h ; DATA XREF: DoLobHeader↑r
-                    ; =4.25, for lob headers
+kLobHeaderBallDeltaZ dd 24000h ; DATA XREF: DoLobHeader↑r
+                    ; =2.25, for lob headers
 kBallSpeedPassingIncrease dw 0, 48, 96, 144, 192, 256, 320, 384
                     ; DATA XREF: DoPass+464↑o
                     ; player's passing skill is index in this table, result is ball speed increase after the pass
@@ -245917,8 +245919,8 @@ kBallSpeedKicking dw -384, -270, -162, -54, 54, 162, 270, 384
 dseg_17E276 dw 4, 5, 6, 8, 11, 14, 17, 21
                     ; DATA XREF: CalculateIfPlayerWinsBall+407↑o
 kAIFailedPassChance dw 6, 4, 3, 2, 1, 0, 0, 0 ; DATA XREF: DoPass+E4↑o
-                    ; indexed by player's passing, lower is better
-                    ; compared to random timer value 0..15, if greater or equal, the pass is botched
+                    ; indexed by player's passing, lower values are better
+                    ; compared to random timer value 0..15, if less, the pass is botched
 kBallSpeedFinishing dw -288, -160, -32, 96, 224, 352, 480, 608
                     ; DATA XREF: PlayerKickingBall+1EA↑o
                     ; add this to ball speed when player is kicking, based on finishing skill
@@ -245936,7 +245938,7 @@ kPlAvgTacklingBallControlDiffChance db 16, 17, 18, 19, 20, 21, 22, 23
                     ; if a random number is greater than this value, ball is won
 kControlledBallJiggleOffsets dw 0, -1, 1, -1, 1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1
                     ; DATA XREF: UpdateBallWithControllingGoalkeeper+18↑o
-                    ; UpdateControllingPlayer+18↑o
+                    ; UpdateBallWithControllingPlayer+18↑o
                     ; player direction is index
                     ; even indices are for x, and odd for y coordinate
                     ; these values are added to x and y coordinate of player
@@ -245960,9 +245962,9 @@ kTackleInjuryProbabilityAlreadyInjured db 96, 57, 41, 28
 kGoalkeeperNearJumpSpeed dw 1024 ; DATA XREF: GoalkeeperJumping+F↑r
                     ; GoalkeeperJumping+77↑r
                     ; =2.0
-kPlayerTacklingDownTime dw 30, 27, 24, 21, 18, 15, 12, 9
+kStrongTackleDownTime dw 30, 27, 24, 21, 18, 15, 12, 9
                     ; DATA XREF: SetPlayerDowntimeAfterTackle+5↑o
-kComputerTacklingDownTime dw 3, 3, 3, 3, 3, 3, 3, 3
+kWeakTackleDownTime dw 3, 3, 3, 3, 3, 3, 3, 3
                     ; DATA XREF: SetPlayerDowntimeAfterTackle+1C↑o
                     ; dunno
 kPlayerSpeedsGameInProgress dw 928, 974, 1020, 1066, 1112, 1158, 1204, 1250

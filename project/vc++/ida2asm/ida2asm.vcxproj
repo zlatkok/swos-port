@@ -125,20 +125,20 @@
   <ItemGroup>
     <CustomBuild Include="..\..\..\ida2asm\gen-lookup\gen-lookup.py">
       <FileType>Document</FileType>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating token lookup function...</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating token lookup function...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Checking generated token lookup files...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Checking generated token lookup files...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)TokenLookup.stamp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)TokenLookup.stamp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generating token lookup function...</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generating token lookup function...</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)TokenLookup.h;$(IntDir)TokenTypeEnum.h;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Checking generated token lookup files...</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Checking generated token lookup files...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)TokenLookup.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)TokenLookup.stamp</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
     </CustomBuild>

@@ -1,3 +1,6 @@
+Original SWOS SETUP.DAT format
+==============================
+
 Fields marked with star (*) are filled during the program execution and their
 value in file is completely ignored.
 
@@ -10,16 +13,16 @@ offset | length  | description
        |         | override: for [fF] 0, for [hH] -1
  02    | 1 word  | 1 = director scenes OFF, !1 = ON
  04    | 1 word  | mute sound flag (1 = no sound)
- 06    | 1 word  | joy_kbd_word - flag za kontrole, vrednosti:
-       |         | 1 - tastatura
-       |         | 2 - joypad
-       |         | 3 - joypad + tastatura
-       |         | 4 - tastatura + joypad
-       |         | 5 - dva joypada
-       |         | 6 - mis
+ 06    | 1 word  | joy_kbd_word - control configuration:
+       |         | 1 - keyboard
+       |         | 2 - joystick
+       |         | 3 - joystick + keyboard
+       |         | 4 - keyboard + joystick
+       |         | 5 - two joysticks
+       |         | 6 - mouse
  08    | 4 bytes | ???
- 12    | 1 word  | video_speed_index, ako je indeks visi ceka se vise ciklusa
-       |         | pri malim pauzama sinhronizovanim sa ekranom
+ 12    | 1 word  | video_speed_index; a higher index waits for more cycles
+       |         | during short display-synchronized delays
  14    | 6 bytes | ???
  20    | 1 byte  | *joy1_X_value
  21    | 1 byte  | *joy1_Y_value
@@ -29,7 +32,7 @@ offset | length  | description
  28    | 1 word  | ???
  30    | 1 word  | joy1_center_X
  32    | 1 word  | joy1_center_Y
- 34    | 4 bytes | uopste se ne koristi
+ 34    | 4 bytes | unused
  38    | 1 word  | joy1_min_Y
  40    | 1 word  | joy1_min_X
  42    | 1 word  | joy1_max_X
@@ -58,15 +61,15 @@ offset | length  | description
  86    | 1 word  | joy2_Y_positive_divisor
  88    | 1 word  | *joy1_status
  90    | 1 word  | *joy2_status
- 92    | 1 word  | broj loopova za joypad 1
- 94    | 1 word  |          - || -        2
- 96    | 1 byte  | scan-code za: gore (default: "HPKM", tj. strelice)
- 97    | 1 byte  |   -||-        dole
- 98    | 1 byte  |   -||-        levo
- 99    | 1 byte  |   -||-        desno
- 100   | 1 byte  |   -||-        pucanje (default 1D - levi control)
- 101   | 1 byte  | Joypad 1 primary fire, -1 ili -2 (za prvo ili drugo dugme)
- 102   | 1 byte  | Joypad 1 secondary fire,          - || -
- 103   | 1 byte  | Joypad 2 primary fire,            - || -
- 104   | 1 byte  | Joypad 2 secondary fire,          - || -
+ 92    | 1 word  | number of polling loops for joystick 1
+ 94    | 1 word  | number of polling loops for joystick 2
+ 96    | 1 byte  | scan code for up (default: "HPKM", the arrow keys)
+ 97    | 1 byte  | scan code for down
+ 98    | 1 byte  | scan code for left
+ 99    | 1 byte  | scan code for right
+ 100   | 1 byte  | scan code for fire (default: 1D, left Ctrl)
+ 101   | 1 byte  | joystick 1 primary fire, -1 or -2 (first/second button)
+ 102   | 1 byte  | joystick 1 secondary fire, -1 or -2
+ 103   | 1 byte  | joystick 2 primary fire, -1 or -2
+ 104   | 1 byte  | joystick 2 secondary fire, -1 or -2
 -------+---------+---------------------------------------------

@@ -9,7 +9,7 @@
 #include "sfx.h"
 #include "result.h"
 #include "random.h"
-#include "playerDirection.h"
+#include "direction.h"
 
 static constexpr int kControlledBallSpeedReduction = 13;
 static constexpr int kBallAirSpeedReduction = 4;
@@ -20,19 +20,19 @@ static constexpr int kLeftInnerGoalCollisionX = kLeftInnerGoalPost + 1;
 static constexpr int kRightInnerGoalCollisionX = kRightInnerGoalPost + 1;
 static constexpr int kRightOuterGoalCollisionX = kRightOuterGoalPost + 1;
 
-static constexpr auto kAllowUpwardPlayerDirections = allowPlayerDirections(PlayerDirection::kLeft,
-    PlayerDirection::kUpLeft, PlayerDirection::kUp, PlayerDirection::kUpRight, PlayerDirection::kRight);
-static constexpr auto kAllowDownwardPlayerDirections = allowPlayerDirections(PlayerDirection::kLeft,
-    PlayerDirection::kDownLeft, PlayerDirection::kDown, PlayerDirection::kDownRight, PlayerDirection::kRight);
-static constexpr auto kAllowLeftwardPlayerDirections = allowPlayerDirections(PlayerDirection::kUp,
-    PlayerDirection::kUpLeft, PlayerDirection::kLeft, PlayerDirection::kDownLeft, PlayerDirection::kDown);
-static constexpr auto kAllowRightwardPlayerDirections = allowPlayerDirections(PlayerDirection::kUp,
-    PlayerDirection::kUpRight, PlayerDirection::kRight, PlayerDirection::kDownRight, PlayerDirection::kDown);
+static constexpr auto kAllowUpwardDirections = makeDirectionMask(Direction::kLeft,
+    Direction::kTopLeft, Direction::kTop, Direction::kTopRight, Direction::kRight);
+static constexpr auto kAllowDownwardDirections = makeDirectionMask(Direction::kLeft,
+    Direction::kBottomLeft, Direction::kBottom, Direction::kBottomRight, Direction::kRight);
+static constexpr auto kAllowLeftwardDirections = makeDirectionMask(Direction::kTop,
+    Direction::kTopLeft, Direction::kLeft, Direction::kBottomLeft, Direction::kBottom);
+static constexpr auto kAllowRightwardDirections = makeDirectionMask(Direction::kTop,
+    Direction::kTopRight, Direction::kRight, Direction::kBottomRight, Direction::kBottom);
 
 static constexpr int kSpinDuration = 10;
 static constexpr int kKickSetupFrame = 4;
-static constexpr int16_t kHighKickBallSpeed = 2688;   // Q7.9: 5.25 pixels/tick
-static constexpr int16_t kNormalKickBallSpeed = 2560; // Q7.9: 5 pixels/tick
+static constexpr auto kHighKickBallSpeed = 5.25_speed;
+static constexpr auto kNormalKickBallSpeed = 5.0_speed;
 
 static constexpr int16_t kSpinMultiplierFactors[kSpinDuration] = { 5, 4, 3, 2, 2, 2, 2, 1, 1, 1 };
 
@@ -58,8 +58,8 @@ struct BallStoppage
     TeamGeneralInfo *team;
     int x;
     int y;
-    int cameraDirection;
-    uint8_t playerTurnFlags;
+    Direction cameraDirection;
+    DirectionMask playerTurnFlags;
 };
 
 static Sprite m_ballShadowSprite;
@@ -80,6 +80,10 @@ static const BallDestinationTable kLeftThrowInBallDestDelta = {
 };
 static const BallDestinationTable kRightThrowInBallDestDelta = {
     -250, -1000, 1000, -1000, 1000, 0, 1000, 1000, -250, 1000, -1000, 1000, -1000, 0, -1000, -1000,
+};
+static const BallDestinationTable kDefaultBallDestinations = {
+    0, -1000, 1000, -1000, 1000, 0, 1000, 1000,
+    0, 1000, -1000, 1000, -1000, 0, -1000, -1000,
 };
 static const BallDestinationTable kPenaltyBallDestDelta = {
     0, -1000, 500, -1000, 1000, 0, 500, 1000, 0, 1000, -500, 1000, -1000, 0, -500, -1000,
@@ -189,7 +193,7 @@ void checkIfBallOutOfPlay()
         return;
     }
 
-    constexpr int kNearMissMinimumBallSpeed = 768;
+    constexpr auto kNearMissMinimumBallSpeed = 1.5_speed;
     constexpr int kNearMissLeftX = 290;
     constexpr int kNearMissRightX = 381;
     constexpr int kNearMissMaximumZ = 23; // SWOS tests ball Z + 2 against 25.
@@ -218,6 +222,7 @@ void checkIfBallOutOfPlay()
             makeGoalOut(swos.topTeamData, true, left);
     } else if (ballY > kBottomPitchLine) {
         bool corner = swos.lastTeamPlayed == &swos.bottomTeamData;
+        // forceLeftTeam isn't a proper boolean
         bool useUpperRestart = swos.forceLeftTeam == 1;
         stoppage = corner ?
             makeCorner(swos.topTeamData, useUpperRestart, left) :
@@ -270,8 +275,13 @@ const BallDestinationTable& getBallDestCoordinatesTable()
                 kLowerRightCornerBallDestDelta : kLowerLeftCornerBallDestDelta;
         }
     } else {
-        return *reinterpret_cast<BallDestinationTable *>(swos.kDefaultDestinations);
+        return getDefaultBallDestinations();
     }
+}
+
+const BallDestinationTable& getDefaultBallDestinations()
+{
+    return kDefaultBallDestinations;
 }
 
 // Besides setting x and y coordinates, stops the ball and puts it to the ground (z = 0).
@@ -339,10 +349,11 @@ static bool afterTouchAllowed(const TeamGeneralInfo& team)
         (swos.gameStatePl == GameState::kInProgress || swos.gameState != GameState::kKeeperHoldsTheBall);
 }
 
-static PlayerDirection relativeControlDirection(const TeamGeneralInfo& team)
+static Direction relativeControlDirection(const TeamGeneralInfo& team)
 {
     // Center the eight-way direction circle on the player's facing direction.
-    return static_cast<PlayerDirection>((team.allowedPlDirection - team.currentAllowedDirection) & 7);
+    return static_cast<Direction>((static_cast<int>(team.controlledPlDirection) -
+        static_cast<int>(team.currentAllowedDirection)) & 7);
 }
 
 static SpinDirection startOrGetSpin(TeamGeneralInfo& team)
@@ -357,28 +368,28 @@ static SpinDirection startOrGetSpin(TeamGeneralInfo& team)
         return SpinDirection::kNone;
 
     auto relativeDirection = relativeControlDirection(team);
-    if (relativeDirection == PlayerDirection::kUp || relativeDirection == PlayerDirection::kDown)
+    if (relativeDirection == Direction::kTop || relativeDirection == Direction::kBottom)
         return SpinDirection::kNone;
 
-    if (relativeDirection < PlayerDirection::kDown) {
-        team.leftSpin = 1;
+    if (relativeDirection < Direction::kBottom) {
+        team.leftSpin = true;
         return SpinDirection::kLeft;
     }
 
-    team.rightSpin = 1;
+    team.rightSpin = true;
     return SpinDirection::kRight;
 }
 
-static void addSpinToBall(int direction, SpinDirection spin, const int16_t factors[8][4], int spinTimer)
+static void addSpinToBall(Direction direction, SpinDirection spin, const int16_t factors[8][4], int spinTimer)
 {
-    assert(direction >= 0 && direction < 8);
+    assert(direction >= Direction::kLowestDirection && direction < Direction::kNumDirections);
     assert(spin != SpinDirection::kNone);
     assert(spinTimer >= 0 && spinTimer < kSpinDuration);
 
     auto factorIndex = spin == SpinDirection::kRight ? 2 : 0;
     auto multiplier = kSpinMultiplierFactors[spinTimer];
-    auto deltaX = static_cast<int16_t>(factors[direction][factorIndex] * multiplier);
-    auto deltaY = static_cast<int16_t>(factors[direction][factorIndex + 1] * multiplier);
+    auto deltaX = static_cast<int16_t>(factors[static_cast<int>(direction)][factorIndex] * multiplier);
+    auto deltaY = static_cast<int16_t>(factors[static_cast<int>(direction)][factorIndex + 1] * multiplier);
 
     // Preserve the original 16-bit additions to the ball destination.
     swos.ballSprite.destX = static_cast<int16_t>(
@@ -395,14 +406,14 @@ static void advanceSpinTimer(TeamGeneralInfo& team)
         team.spinTimer = static_cast<uint16_t>(-1);
 }
 
-static void adjustKickSpeedForDirection(int direction)
+static void adjustKickSpeedForDirection(Direction direction)
 {
     auto speed = static_cast<uint16_t>(swos.ballSprite.speed);
 
     // Vertical kicks retain 3/4 speed, diagonals 7/8, and horizontal kicks full speed.
-    if (direction == 0 || direction == 4)
+    if (direction == Direction::kTop || direction == Direction::kBottom)
         swos.ballSprite.speed = static_cast<int16_t>(speed - (speed >> 2));
-    else if (direction & 1)
+    else if (static_cast<int>(direction) & 1)
         swos.ballSprite.speed = static_cast<int16_t>(speed - (speed >> 2) + (speed >> 3));
 }
 
@@ -418,13 +429,13 @@ static void applyKickAfterTouch(TeamGeneralInfo& team)
         return;
 
     if (!spinTimer) {
-        team.leftSpin = 0;
-        team.rightSpin = 0;
+        team.leftSpin = false;
+        team.rightSpin = false;
     }
 
     auto spin = startOrGetSpin(team);
     if (spin != SpinDirection::kNone)
-        addSpinToBall(team.allowedPlDirection, spin, kKickSpinFactors, spinTimer);
+        addSpinToBall(team.controlledPlDirection, spin, kKickSpinFactors, spinTimer);
 
     if (spinTimer == kKickSetupFrame) {
         // SWOS waits until the fifth after-touch update before deciding whether
@@ -437,9 +448,9 @@ static void applyKickAfterTouch(TeamGeneralInfo& team)
             updateKick = true;
         } else {
             auto relativeDirection = relativeControlDirection(team);
-            if (relativeDirection == PlayerDirection::kRight || relativeDirection == PlayerDirection::kLeft) {
+            if (relativeDirection == Direction::kRight || relativeDirection == Direction::kLeft) {
                 updateKick = true;
-            } else if (relativeDirection >= PlayerDirection::kDownRight && relativeDirection <= PlayerDirection::kDownLeft) {
+            } else if (relativeDirection >= Direction::kBottomRight && relativeDirection <= Direction::kBottomLeft) {
                 // Back-left, back and back-right turn the normal kick into a high kick.
                 updateKick = true;
                 highKick = true;
@@ -449,7 +460,7 @@ static void applyKickAfterTouch(TeamGeneralInfo& team)
         if (updateKick) {
             swos.ballSprite.deltaZ = highKick ? 2_fp : 1.375_fp;
             swos.ballSprite.speed = highKick ? kHighKickBallSpeed : kNormalKickBallSpeed;
-            adjustKickSpeedForDirection(team.allowedPlDirection);
+            adjustKickSpeedForDirection(team.controlledPlDirection);
         }
     }
 
@@ -474,10 +485,10 @@ static void applyPassAfterTouch(TeamGeneralInfo& team)
         return;
 
     if (!spinTimer) {
-        team.leftSpin = 0;
-        team.rightSpin = 0;
-        team.longPass = 0;
-        team.longSpinPass = 0;
+        team.leftSpin = false;
+        team.rightSpin = false;
+        team.longPass = false;
+        team.longSpinPass = false;
     }
 
     auto spin = startOrGetSpin(team);
@@ -489,17 +500,17 @@ static void applyPassAfterTouch(TeamGeneralInfo& team)
     if (!team.longPass && !team.longSpinPass) {
         auto pressedDirection = static_cast<int16_t>(team.currentAllowedDirection);
         if (pressedDirection < 0) {
-            team.longPass = 1;
+            team.longPass = true;
             increasePassSpeed();
         } else {
             auto relativeDirection = relativeControlDirection(team);
-            if (relativeDirection == PlayerDirection::kRight || relativeDirection == PlayerDirection::kLeft) {
+            if (relativeDirection == Direction::kRight || relativeDirection == Direction::kLeft) {
                 // Holding left or right after passing selects a long pass.
-                team.longPass = 1;
+                team.longPass = true;
                 increasePassSpeed();
-            } else if (relativeDirection >= PlayerDirection::kDownRight && relativeDirection <= PlayerDirection::kDownLeft) {
+            } else if (relativeDirection >= Direction::kBottomRight && relativeDirection <= Direction::kBottomLeft) {
                 // Holding backwards selects the alternate long, spinning pass.
-                team.longSpinPass = 1;
+                team.longSpinPass = true;
                 increasePassSpeed();
             }
         }
@@ -570,14 +581,14 @@ static BallStoppage handleGoal(TeamGeneralInfo& goalSide, int teamNumber)
         static_cast<int16_t>(swos.statsTeam1Goals - swos.statsTeam2Goals);
     goalScored(teamNumber, *getGoalScorer());
 
-    swos.goalCameraMode = 1;
+    swos.goalCameraMode = true;
     swos.teamScoredDataPtr = &goalSide;
     swos.teamScoredGamePtr = goalSide.inGameTeamPtr;
 
     auto& opposingSide = *goalSide.opponentTeam;
     BallStoppage stoppage = &opposingSide == &swos.topTeamData ?
-        BallStoppage{&opposingSide, kPitchCenterX, kPitchCenterY, 4, kAllowDownwardPlayerDirections} :
-        BallStoppage{&opposingSide, kPitchCenterX, kPitchCenterY, 0, kAllowUpwardPlayerDirections};
+        BallStoppage{&opposingSide, kPitchCenterX, kPitchCenterY, Direction::kBottom, kAllowDownwardDirections} :
+        BallStoppage{&opposingSide, kPitchCenterX, kPitchCenterY, Direction::kTop, kAllowUpwardDirections};
 
     if (swos.goalTypeScored == static_cast<int>(GoalType::kOwnGoal))
         playOwnGoalComment();
@@ -593,7 +604,7 @@ static BallStoppage handleGoal(TeamGeneralInfo& goalSide, int teamNumber)
     swos.goalCounter = getGoalCelebrationTime(previousGoalDifference);
     swos.patternsGoalCounter = 1;
     swos.gameState = GameState::kPlayersGoingToInitialPositions;
-    swos.breakCameraMode = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
     return stoppage;
 }
 
@@ -601,12 +612,21 @@ static BallStoppage makeCorner(TeamGeneralInfo& team, bool upper, bool left)
 {
     // Restart positions sit just inside the four pitch corners. Direction masks
     // permit only input which sends the ball back onto the pitch.
+    constexpr DirectionMask kAllowedTopLeftCornerDirections = makeDirectionMask(
+        Direction::kRight, Direction::kBottomRight, Direction::kBottom);
+    constexpr DirectionMask kAllowedTopRightCornerDirections = makeDirectionMask(
+        Direction::kLeft, Direction::kBottomLeft, Direction::kBottom);
+    constexpr DirectionMask kAllowedBottomLeftCornerDirections = makeDirectionMask(
+        Direction::kTop, Direction::kTopRight, Direction::kRight);
+    constexpr DirectionMask kAllowedBottomRightCornerDirections = makeDirectionMask(
+        Direction::kTop, Direction::kTopLeft, Direction::kLeft);
     BallStoppage stoppage{
         &team,
         left ? 86 : 585,
         upper ? 134 : 764,
-        left ? 2 : 6,
-        static_cast<uint8_t>(upper ? (left ? 0x1c : 0x70) : (left ? 0x07 : 0xc1)),
+        left ? Direction::kRight : Direction::kLeft,
+        static_cast<DirectionMask>(upper ? (left ? kAllowedTopLeftCornerDirections : kAllowedTopRightCornerDirections) :
+            (left ? kAllowedBottomLeftCornerDirections : kAllowedBottomRightCornerDirections)),
     };
 
     // Corner state names are relative to the attacking team, hence their apparent
@@ -616,8 +636,8 @@ static BallStoppage makeCorner(TeamGeneralInfo& team, bool upper, bool left)
     else
         swos.gameState = left ? GameState::kCornerRight : GameState::kCornerLeft;
 
-    swos.breakCameraMode = -1;
-    ++team.teamStatsPtr->cornersWon;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
+    team.teamStatsPtr->cornersWon++;
     enqueueCornerSample();
     return stoppage;
 }
@@ -628,8 +648,8 @@ static BallStoppage makeGoalOut(TeamGeneralInfo& team, bool upper, bool left)
         &team,
         left ? 276 : 396,
         upper ? 154 : 744,
-        upper ? 4 : 0,
-        upper ? kAllowDownwardPlayerDirections : kAllowUpwardPlayerDirections,
+        upper ? Direction::kBottom : Direction::kTop,
+        upper ? kAllowDownwardDirections : kAllowUpwardDirections,
     };
 
     if (upper)
@@ -637,13 +657,13 @@ static BallStoppage makeGoalOut(TeamGeneralInfo& team, bool upper, bool left)
     else
         swos.gameState = left ? GameState::kGoalOutLeft : GameState::kGoalOutRight;
 
-    swos.breakCameraMode = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
     // Human-controlled teams may use the full inward-facing arc. CPU teams are
     // prevented from turning exactly sideways along the goal line.
     if (!team.playerNumber)
-        stoppage.playerTurnFlags &= static_cast<uint8_t>(
-            ~allowPlayerDirections(PlayerDirection::kLeft, PlayerDirection::kRight));
-    swos.goalOut = 1;
+        stoppage.playerTurnFlags &= static_cast<DirectionMask>(
+            ~makeDirectionMask(Direction::kLeft, Direction::kRight));
+    swos.goalOut = true;
     return stoppage;
 }
 
@@ -652,15 +672,15 @@ static BallStoppage makeThrowIn(int ballX, int ballY)
     auto& team = *swos.lastTeamPlayed->opponentTeam;
     bool rightHalf = ballX >= kPitchCenterX;
     swos.gameState = getThrowInState(rightHalf, &team == &swos.topTeamData, ballY);
-    swos.breakCameraMode = -1;
+    swos.breakCameraMode = CameraBreakMode::kInactive;
     enqueueThrowInSample();
 
     return {
         &team,
         rightHalf ? kRightThrowInLine : kLeftThrowInLine,
         ballY,
-        rightHalf ? 6 : 2,
-        rightHalf ? kAllowLeftwardPlayerDirections : kAllowRightwardPlayerDirections,
+        rightHalf ? Direction::kLeft : Direction::kRight,
+        rightHalf ? kAllowLeftwardDirections : kAllowRightwardDirections,
     };
 }
 
@@ -668,22 +688,26 @@ static GameState getThrowInState(bool rightHalf, bool topTeam, int ballY)
 {
     // Separate states select the forward, central or defensive throw-in setup for
     // each team. The labels are team-relative rather than screen-relative.
-    bool upperThird = ballY < 342;
-    bool middleThird = !upperThird && ballY < 556;
+    bool upperThird = ballY < kPitchUpperThirdYLimit;
+    bool middleThird = !upperThird && ballY < kPitchMiddleThirdYLimit;
 
     if (rightHalf) {
-        if (topTeam)
+        if (topTeam) {
             return upperThird ? GameState::kThrowInForwardRight :
                 middleThird ? GameState::kThrowInCenterRight : GameState::kThrowInBackRight;
-        return upperThird ? GameState::kThrowInBackLeft :
-            middleThird ? GameState::kThrowInCenterLeft : GameState::kThrowInForwardLeft;
+        } else {
+            return upperThird ? GameState::kThrowInBackLeft :
+                middleThird ? GameState::kThrowInCenterLeft : GameState::kThrowInForwardLeft;
+        }
     }
 
-    if (topTeam)
+    if (topTeam) {
         return upperThird ? GameState::kThrowInForwardLeft :
             middleThird ? GameState::kThrowInCenterLeft : GameState::kThrowInBackLeft;
-    return upperThird ? GameState::kThrowInBackRight :
-        middleThird ? GameState::kThrowInCenterRight : GameState::kThrowInForwardRight;
+    } else {
+        return upperThird ? GameState::kThrowInBackRight :
+            middleThird ? GameState::kThrowInCenterRight : GameState::kThrowInForwardRight;
+    }
 }
 
 // Advances to next frame for ball sprite, and sets the image to it. Next frame is simply next
@@ -716,7 +740,7 @@ static void updateBallAnimation()
         }
 
         if (swos.ballSprite.speed) {
-            constexpr int kWholeSpriteSpeed = 512;
+            constexpr auto kWholeSpriteSpeed = 1.0_speed;
 
             // Speed is Q7.9. Faster travel subtracts more from the frame timer,
             // making the four ball images rotate proportionally faster.
@@ -753,7 +777,9 @@ static void updateBallSpeedAndXYCoordinates()
         swos.ballSprite.fullDirection = direction;
         direction = ((direction + 16) & 0xff) >> 5;
     }
-    swos.ballSprite.direction = direction;
+    swos.ballSprite.direction = static_cast<Direction>(direction);
+    assert(swos.ballSprite.direction == Direction::kNoDirection ||
+        swos.ballSprite.direction >= Direction::kLowestDirection && swos.ballSprite.direction < Direction::kNumDirections);
 
     // Planar speed loses a fixed Q7.9 amount each tick. Ground friction also
     // includes the selected pitch's adjustment unless a player controls the ball.
@@ -872,7 +898,7 @@ static void handleGoalFrameCollisions(FixedPoint& previousX, FixedPoint& previou
     static constexpr int kBottomNetLine = kBottomPitchLine + 9;
     static constexpr int kRearTopNetHeight = 10;
     static constexpr int kFrameDeflectionDistance = 1'000;
-    static constexpr int kFrameDeflectionSpeed = 512;
+    static constexpr auto kFrameDeflectionSpeed = 1.0_speed;
 
     int ballY = swos.ballSprite.y.whole();
     if (ballY < kTopPitchLine || ballY > kBottomPitchLine) {

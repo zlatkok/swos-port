@@ -1,3 +1,9 @@
+Historical SWOS++ development journal
+=====================================
+
+This journal predates the swos-port helper edition. Paths, plans and status
+notes below should be read as historical context.
+
 01.01.2017.
 - all bugs should be fixed, preparing the release
 - GAH! just found out that the watchers were broken ever since port to GCC :(

@@ -3,6 +3,7 @@
 #include "SwosPointer.h"
 #include "FixedPoint.h"
 #include "Sprite.h"
+#include "direction.h"
 
 using dword = uint32_t;
 using word = uint16_t;
@@ -132,20 +133,6 @@ static_assert(sizeof(SpriteGraphics) == 24, "SpriteGraphics is invalid");
 constexpr int kLastFrameLoopMarker = -999;
 constexpr int kLastFrameHoldMarker = -101;
 constexpr int kFrameLoopbackMarker = -100;
-
-enum Direction
-{
-    kNoDirection = -1,
-    kFacingTop = 0,
-    kFacingTopRight = 1,
-    kFacingRight = 2,
-    kFacingBottomRight = 3,
-    kFacingBottom = 4,
-    kFacingBottomLeft = 5,
-    kFacingLeft = 6,
-    kFacingTopLeft = 7,
-    kNumDirections = 8,
-};
 
 enum class PlayerPosition : int8_t
 {
@@ -329,6 +316,32 @@ struct PlayerGameHeader : private SWOS::TeamGameHeader, public PlayerInfo {
 
 static_assert(sizeof(PlayerGameHeader) == kTeamGameHeaderSize + sizeof(PlayerInfo), "PlayerGameHeader invalid");
 
+struct ShotChanceTable
+{
+    int16_t unknown00;
+    int16_t unknown02;
+    int16_t unknown04;
+    int16_t goalkeeperRunSpeed;
+    int16_t goalkeeperHighBallRunSpeed;
+    int16_t goalkeeperDiveSpeedIndex[16];
+    int16_t unknown42;
+    int16_t unknown44;
+    int16_t unknown46;
+    int16_t closeBallCatchChance;
+    int16_t unknown50;
+    int16_t strongDeflectionChance;
+    int16_t mediumDeflectionChance;
+    int16_t unknown56;
+    int16_t distantBallHandlingChance;
+};
+
+static_assert(sizeof(ShotChanceTable) == 60, "ShotChanceTable invalid");
+static_assert(offsetof(ShotChanceTable, goalkeeperRunSpeed) == 6);
+static_assert(offsetof(ShotChanceTable, goalkeeperDiveSpeedIndex) == 10);
+static_assert(offsetof(ShotChanceTable, closeBallCatchChance) == 48);
+static_assert(offsetof(ShotChanceTable, strongDeflectionChance) == 52);
+static_assert(offsetof(ShotChanceTable, distantBallHandlingChance) == 58);
+
 struct TeamGeneralInfo
 {
     SwosDataPointer<TeamGeneralInfo> opponentTeam;
@@ -339,22 +352,22 @@ struct TeamGeneralInfo
     SwosDataPointer<TeamStatsData> teamStatsPtr;
     word teamNumber;
     SwosDataPointer<SwosDataPointer<Sprite>> players;   // 11
-    SwosDataPointer<const int16_t> shotChanceTable;
+    SwosDataPointer<const ShotChanceTable> shotChanceTable;
     word tactics;
     word updatePlayerIndex;
     SwosDataPointer<Sprite> controlledPlayer;
     SwosDataPointer<Sprite> passToPlayerPtr;
     word playerHasBall;
-    word allowedDirections;
-    word currentAllowedDirection;
-    word direction;
+    Direction allowedDirections;
+    Direction currentAllowedDirection;
+    Direction direction;
     byte quickFire;
     byte normalFire;
     byte firePressed;
     byte fireThisFrame;
     word headerOrTackle;
     word fireCounter;
-    word allowedPlDirection;
+    Direction controlledPlDirection;
     word shooting;
     byte ofs60;
     byte plVeryCloseToBall;
@@ -383,9 +396,9 @@ struct TeamGeneralInfo
     word ballY;
     word passKickTimer;
     SwosDataPointer<Sprite> passingKickingPlayer;
-    word ofs108;
+    word ballDirectionChangeTimer;
     word ballCanBeControlled;
-    word ballControllingPlayerDirection;
+    Direction ballControllingDirection;
     word ofs114;
     word ofs116;
     word spinTimer;
@@ -564,6 +577,20 @@ enum Tactics
     kTacticUserE = 16,
     kTacticUserF = 17,
     kTacticImported = 1000,
+};
+
+enum class CameraBreakMode : word
+{
+    kWaitingForBallToStop = 0,
+    kPreparingBreak = 1,
+    kPositioningPlayers = 2,
+    kWaitingForPlayers = 3,
+    kChangingDirections = 4,
+    kClearingCard = 5,
+    kPreparingRestart = 6,
+    kWaitingForPlayerControl = 7,
+    kCompletingRestart = 8,
+    kInactive = static_cast<word>(-1),
 };
 
 enum class GameState : word

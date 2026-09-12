@@ -1,5 +1,7 @@
 #pragma once
 
+#include "direction.h"
+
 struct Sprite;
 
 enum AnimationTableFlags : uint8_t
@@ -24,7 +26,7 @@ struct AnimationTable
     uint8_t frameDelay;
     uint8_t flags;
 
-    int16_t getFrameTableOffset(int direction, int group = 0) const;
+    int16_t getFrameTableOffset(Direction direction, int group = 0) const;
 
     const int16_t *getFrameTableOffsets() const
     {

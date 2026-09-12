@@ -1,0 +1,17 @@
+Latin-character encoding used by the original tools
+====================================================
+
+South Slavic Latin letters and their unaccented equivalents:
+
+    letter:      đ  ž  ć  č  š
+    equivalent:  d  z  c  c  s
+
+Character codes:
+
+    đ - 0xf0     Đ - 0xd0
+    ž - 0x9e     Ž - 0x8e
+    ć - 0xe6     Ć - 0xc6
+    č - 0xe8     Č - 0xc8
+    š - 0x9a     Š - 0x8a
+
+These values describe the legacy single-byte code page, not ASCII or UTF-8.

@@ -127,11 +127,18 @@
   <ItemGroup>
     <Text Include="..\..\..\swos\symbols.txt" />
   </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <ProjectReference Include="..\ida2asm\ida2asm.vcxproj">
+      <Project>{FAB9021D-E0DB-4023-B0F4-FC6881742D10}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <Target Name="BuildReleaseIda2Asm" BeforeTargets="CustomBuild" Condition="'$(Configuration)' != 'Release'">
     <MSBuild Projects="..\ida2asm\ida2asm.vcxproj" Targets="Build"
-      Properties="Configuration=Release;Platform=$(Platform);SolutionDir=$(MSBuildThisFileDirectory)..\" />
+      Properties="Configuration=Release;Platform=$(Platform);SolutionDir=$(SolutionDir)" />
   </Target>
 </Project>

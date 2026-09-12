@@ -1,14 +1,58 @@
+Shot chance table
+=================
+
 Size: 60 bytes.
 
 For goalkeepers: kGoalieSkillTables
 For players: kPlayerShotChanceTable
 
+The table contains 30 signed 16-bit values. TeamGeneralInfo.shotChanceTable
+points to one of the eight goalkeeper-skill rows while a goalkeeper is being
+controlled, or to the player row otherwise. Only the fields listed below have
+confirmed runtime reads; the remaining values still need analysis.
+
 offset  length  description
 ------  ------  -----------
-   6      2     some player speed
-  48      2     goalkeeper catching the ball chance, 0..15
-                if random value (bits 4..7 of currentGameTick) is less than this, goalkeeper catches the ball
-                so the bigger the value, the greater the chance of catching (15 = 93.75%)
-  52      2     0..15
-  54      2     0..15 ..maybe?
-  58      2     0..15
+   0      2     unknown
+   2      2     unknown
+   4      2     unknown
+   6      2     goalkeeper run speed; also halved for one approach calculation
+   8      2     goalkeeper run speed used when handling a high ball
+  10     32     16 goalkeeper dive-speed indices, selected with
+                currentGameTick & 0x0f. The selected value is decremented and
+                clamped to zero before indexing kGoalkeeperDiveDeltas.
+  42      2     unknown
+  44      2     unknown
+  46      2     unknown
+  48      2     close-ball catch chance, 0..15. The goalkeeper catches when
+                ((currentGameTick & 0xf0) >> 4) is less than this value;
+                otherwise the ball is deflected. Thus N means N/16 chance.
+  50      2     unknown
+  52      2     strong-deflection chance, 0..15
+  54      2     medium-deflection chance after the strong range. This is a
+                range length, not an absolute threshold. Remaining values up
+                to 15 produce a weak deflection.
+  56      2     unknown
+  58      2     chance threshold, 0..15, for handling a ball outside the
+                goalkeeper area. Two goalkeeper paths compare a random nibble
+                against it before continuing their catch/approach logic.
+
+Deflection selection
+--------------------
+
+GoalkeeperDeflectedBall derives a uniform value from 0 through 15 from bits
+2..5 of currentGameTick. Values below the offset-52 field produce a strong
+deflection. The following offset-54 values produce a medium deflection, and
+all remaining values produce a weak deflection. In the supplied goalkeeper
+rows the strong chance rises from 2/16 to 9/16 with skill, while the medium
+chance remains 6/16.
+
+Known skill progression
+-----------------------
+
+Across goalkeeper skill rows 0..7, the offset-6 speed rises from 832 to 1024,
+the offset-8 speed rises from 160 to 256, and both the close-ball catch and
+outside-area thresholds rise from 5 to 12. The dive-speed-index distributions
+also shift toward lower indices; after the decrement performed by the code,
+lower indices select lower values from kGoalkeeperDiveDeltas and therefore
+require more frames to cover the same distance.

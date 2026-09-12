@@ -1,3 +1,8 @@
+Historical standalone SWOS++ changelog
+======================================
+
+This changelog predates the swos-port helper edition.
+
 version 1.4: (19.07.2004)
 - fixed nasty bug that occasionally caused replay file corruption after calling bench
 - now lastgame.rpl is properly saved even if game is aborted (e.g. alt+f1)

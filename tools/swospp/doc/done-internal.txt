@@ -1,3 +1,8 @@
+Historical internal implementation log
+======================================
+
+This log predates the swos-port helper edition and is retained for context.
+
 INTERNAL LIST OF STUFF DONE:
 2.0:
 - use BIOS for joystick handling, works like charm on DOSBox

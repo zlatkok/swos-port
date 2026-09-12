@@ -1,0 +1,44 @@
+SWOS++ binary format
+====================
+
+Historical ZKBF container format used by SWOS++.
+
+offset  size  description
+------  ----  -----------
+   0      4   signature, 'ZKBF', big endian
+              "Zlatko Karakas Binary Format"
+   4      4   version, word.word, major.minor
+   8      4   header size
+  12      4   checksum
+  16      4   offset to code & data
+  20      4   code & data size
+  24      4   offset to patch data
+  28      4   patch data size
+  32      4   offset to relocations
+  36      4   relocations size
+  40      4   BSS size
+  44      4   entry point (init routine)
+
+The checksum is calculated by the following algorithm, assuming that code and
+data, patch data, and relocations form one linear memory block addressed by
+`ptr`:
+
+uint CalcChecksum(char *ptr)
+{
+    uint i, c;
+    for (i = c = 0; *ptr; ptr++, i++) {
+        c += i + *ptr;
+        c <<= 1;
+        c ^= i + *ptr;
+    }
+    return c;
+}
+
+Relocations are divided into six sections, each terminated by `(dword)-1`:
+
+1) offsets in code and data to which `swos_code_base` is added
+2) offsets in code and data to which `swos_data_base` is added
+3) offsets in code and data to which `load_address` is added
+4) offsets in patch data to which `swos_code_base` is added
+5) offsets in patch data to which `swos_data_base` is added
+6) offsets in patch data to which `load_address` is added

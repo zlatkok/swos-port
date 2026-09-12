@@ -54,6 +54,14 @@ def isPotentialVmSymbol(token):
 
 numArgs = len(sys.argv)
 
+if any(arg in ('-h', '--help') for arg in sys.argv[1:]):
+    print(f'''Usage: {os.path.basename(sys.argv[0])} INPUT_FILE [INPUT_FILE ...]
+
+Update numeric SwosVM offsets in converted C++ files using symbol addresses from
+vm.cpp in the current directory. Updated files are written to the current
+directory using the input files' base names; input files are not overwritten.''')
+    sys.exit(0)
+
 if numArgs <= 1:
     sys.exit('No input files specified')
 

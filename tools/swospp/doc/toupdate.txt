@@ -1,37 +1,46 @@
-Pri izdavanju nove verzije:
+Legacy SWOS++ release checklist
+===============================
 
-ove dve promene su sada obuhvacene preko version.inc:
-  swppmenu.asm: about string
-  pdata.asm: new_message string
-file_id.diz, datum i verzija
-todo/history, upisati promene, datum i verziju (uradi dir sync da se sve pokrije)
-download, linkovati, verzija + velicine fajlova
-news, objaviti + datum
-files, preimenovati
-screenshots, slike ako ima nekih promena
-readme.txt: koliko program zahteva memorije za ucitavanje (ali RELEASE!)
+This checklist describes the former standalone SWOS++ release process. The
+copy under swos-port is an internal compatibility helper and is not released
+as the normal SWOS++ distribution. Keep this list only as historical build and
+packaging guidance.
 
-na kraju obavezno sve proveriti!
+When making a new standalone version:
 
-Test verzija:
-- create archive: swospp-<build-number>.zip
-    root\
+- `version.inc` supplies the version used by the about string in `swppmenu.asm`
+  and the new-message string in `pdata.asm`.
+- Update the date and version in `file_id.diz`.
+- Add changes, date, and version to TODO/history; synchronize the directories
+  to ensure everything is included.
+- Update the download link, version, and file sizes.
+- Publish a news item with the date.
+- Rename release files as needed.
+- Update screenshots when the visuals changed.
+- Update the release memory requirement in `readme.txt`.
+- Perform a complete final verification.
+
+Test-version archive layout:
+
+    swospp-<build-number>.zip
         loader.bin
         netplay-info.txt
         changes.txt
         readme.txt
         file_id.diz
-        debug\
+        debug/
             swospp.bin
-        release\
+        release/
             swospp.bin
-- bump build number (version.inc)
-- edit changes.txt
-- edit/bump version number in netplay-info.txt
-- edit file_id.diz
-- edit year in readme.txt if necessary :P
-- remove int 1's :P
-- backup archive
-- backup source
 
-Naravno probati dal radi uopste :P
+Test-version steps:
+
+- bump the build number in `version.inc`
+- edit `changes.txt`
+- edit or bump the version in `netplay-info.txt`
+- edit `file_id.diz`
+- update the year in `readme.txt` if necessary
+- remove any `int 1` debugging instructions
+- back up the archive
+- back up the source
+- verify that the resulting build actually runs
