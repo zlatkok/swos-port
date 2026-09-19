@@ -45,6 +45,29 @@ constexpr int kGameBreakResult = 31'000;
 constexpr int kMaxResultTicks = 32'000;
 constexpr int kResultTickClamped = 29'000;
 
+static int m_clearResultInterval = 660;
+static int m_clearResultHalftimeInterval = 385;
+
+int clearResultInterval()
+{
+    return m_clearResultInterval;
+}
+
+int clearResultHalftimeInterval()
+{
+    return m_clearResultHalftimeInterval;
+}
+
+void setClearResultInterval(int interval)
+{
+    m_clearResultInterval = interval;
+}
+
+void setClearResultHalftimeInterval(int interval)
+{
+    m_clearResultHalftimeInterval = interval;
+}
+
 struct GoalInfo
 {
     GoalType type;

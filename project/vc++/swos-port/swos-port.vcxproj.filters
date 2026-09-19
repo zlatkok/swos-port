@@ -80,6 +80,9 @@
     <Filter Include="Source Files\animation">
       <UniqueIdentifier>{233c03e4-7952-4bdf-b1bb-f53e8714b877}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\game\ai">
+      <UniqueIdentifier>{4ab1af79-cb50-4449-a9fe-12666a0d3d9a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\main.cpp">
@@ -441,6 +444,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\game\animation\animation.cpp">
       <Filter>Source Files\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\game\ai\ai.cpp">
+      <Filter>Source Files\game\ai</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -821,6 +827,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\game\animation\animation.h">
       <Filter>Source Files\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\game\ai\ai.h">
+      <Filter>Source Files\game\ai</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

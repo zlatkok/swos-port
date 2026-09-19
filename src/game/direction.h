@@ -27,7 +27,7 @@ constexpr DirectionMask makeDirectionMask(Directions... directions)
     return static_cast<DirectionMask>(((DirectionMask{1} << static_cast<unsigned>(directions)) | ...));
 }
 
-int operator-(Direction lhs, Direction rhs)
+constexpr int operator-(Direction lhs, Direction rhs)
 {
     return static_cast<int>(lhs) - static_cast<int>(rhs);
 }
@@ -40,4 +40,14 @@ constexpr bool isUpwardFacing(Direction direction)
 constexpr bool isDownwardFacing(Direction direction)
 {
     return direction == Direction::kBottom || direction == Direction::kBottomLeft || direction == Direction::kBottomRight;
+}
+
+constexpr bool hasDirection(Direction direction)
+{
+    return static_cast<int16_t>(direction) >= 0;
+}
+
+constexpr bool isValidDirection(Direction direction)
+{
+    return direction >= Direction::kLowestDirection && direction < Direction::kNumDirections;
 }

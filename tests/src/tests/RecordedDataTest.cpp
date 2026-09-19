@@ -414,10 +414,10 @@ void RecordedDataTest::verifyTeam(const TeamGeneralInfo& recTeam, const TeamGene
     assertEqual(recTeam.longPass, team.longPass);
     assertEqual(recTeam.longSpinPass, team.longSpinPass);
     assertEqual(recTeam.passInProgress, team.passInProgress);
-    assertEqual(recTeam.AITimer, team.AITimer);
-    assertEqual(recTeam.ofs134, team.ofs134);
-    assertEqual(recTeam.ofs136, team.ofs136);
-    assertEqual(recTeam.ofs138, team.ofs138);
+    assertEqual(recTeam.cpuControlUpdateCounter, team.cpuControlUpdateCounter);
+    assertEqual(recTeam.cpuDecisionCooldown, team.cpuDecisionCooldown);
+    assertEqual(recTeam.cpuAftertouchStrength, team.cpuAftertouchStrength);
+    assertEqual(recTeam.cpuBallSpinDirection, team.cpuBallSpinDirection);
     assertEqual(recTeam.wonTheBallTimer, team.wonTheBallTimer);
     assertEqual(recTeam.goalkeeperPlaying, team.goalkeeperPlaying);
     assertEqual(recTeam.resetControls, team.resetControls);

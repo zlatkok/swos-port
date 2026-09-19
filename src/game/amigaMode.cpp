@@ -1,5 +1,6 @@
 #include "amigaMode.h"
 #include "gameLoop.h"
+#include "result.h"
 #include "updatePlayers.h"
 #include "timer.h"
 #include "ball.h"
@@ -7,11 +8,11 @@
 static bool m_enabled;
 static bool m_preventDirectionFlip;
 
-static const uint32_t kGoalkeeperDiveDeltasAmiga[8] = {
-    0x3'0000, 0x3'8000, 0x4'0000, 0x4'8000, 0x5'0000, 0x5'8000, 0x6'0000, 0x6'8000
+static constexpr std::array<FixedPoint, 8> kGoalkeeperDiveDeltasAmiga = {
+    3.0_fp, 3.5_fp, 4.0_fp, 4.5_fp, 5.0_fp, 5.5_fp, 6.0_fp, 6.5_fp,
 };
-static const uint32_t kGoalkeeperDiveDeltasPC[8] = {
-    0x2'8000, 0x3'0000, 0x3'8000, 0x4'0000, 0x4'8000, 0x5'0000, 0x5'8000, 0x6'0000
+static constexpr std::array<FixedPoint, 8> kGoalkeeperDiveDeltasPC = {
+    2.5_fp, 3.0_fp, 3.5_fp, 4.0_fp, 4.5_fp, 5.0_fp, 5.5_fp, 6.0_fp,
 };
 
 bool amigaModeActive()
@@ -33,11 +34,11 @@ void setAmigaModeEnabled(bool enable)
             setClearResultInterval(600);
             setClearResultHalftimeInterval(350);
             swos.kKeeperSaveDistance = 24;
-            setControlledBallSpeedReduction(16);
-            setBallAirSpeedReduction(10);
+            setControlledBallSpeedReduction(0.03125_speed);
+            setBallAirSpeedReduction(0.01953125_speed);
             setBallAirFriction(4608);
 
-            memcpy(swos.kGoalkeeperDiveDeltas, kGoalkeeperDiveDeltasAmiga, sizeof(kGoalkeeperDiveDeltasAmiga));
+            std::copy(kGoalkeeperDiveDeltasAmiga.begin(), kGoalkeeperDiveDeltasAmiga.end(), swos.kGoalkeeperDiveDeltas);
 
             setTargetFps(kTargetFpsAmiga);
         } else {
@@ -51,11 +52,11 @@ void setAmigaModeEnabled(bool enable)
             setClearResultInterval(660);
             setClearResultHalftimeInterval(385);
             swos.kKeeperSaveDistance = 16;
-            setControlledBallSpeedReduction(13);
-            setBallAirSpeedReduction(4);
+            setControlledBallSpeedReduction(0.025390625_speed);
+            setBallAirSpeedReduction(0.0078125_speed);
             setBallAirFriction(3291);
 
-            memcpy(swos.kGoalkeeperDiveDeltas, kGoalkeeperDiveDeltasPC, sizeof(kGoalkeeperDiveDeltasPC));
+            std::copy(kGoalkeeperDiveDeltasPC.begin(), kGoalkeeperDiveDeltasPC.end(), swos.kGoalkeeperDiveDeltas);
 
             setTargetFps(kTargetFpsPC);
         }
@@ -68,15 +69,11 @@ void checkForAmigaModeDirectionFlipBan(const Sprite *sprite)
     if (amigaModeActive()) {
         m_preventDirectionFlip = sprite->x.whole() >= 273 && sprite->x.whole() <= 398 &&
             (sprite->y.whole() <= 158 || sprite->y.whole() >= 740);
-        SwosVM::flags.zero = !m_preventDirectionFlip;
     }
 }
 
-void writeAmigaModeDirectionFlip(TeamGeneralInfo *team)
+void applyAmigaModeDirectionFlipBan(TeamGeneralInfo *team)
 {
-    if (m_preventDirectionFlip) {
+    if (m_preventDirectionFlip)
         team->currentAllowedDirection = Direction::kNoDirection;
-        D0.lo16 = -1;
-        SwosVM::ax = -1;
-    }
 }

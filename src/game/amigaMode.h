@@ -3,4 +3,4 @@
 bool amigaModeActive();
 void setAmigaModeEnabled(bool enable);
 void checkForAmigaModeDirectionFlipBan(const Sprite *sprite);
-void writeAmigaModeDirectionFlip(TeamGeneralInfo *team);
+void applyAmigaModeDirectionFlipBan(TeamGeneralInfo *team);

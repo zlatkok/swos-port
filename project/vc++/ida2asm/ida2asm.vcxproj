@@ -18,6 +18,9 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..'))</RepoRoot>
+  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\ida2asm\src\InputConverter.cpp" />
     <ClCompile Include="..\..\..\ida2asm\src\InputConverterWorker.cpp" />
@@ -128,19 +131,19 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Checking generated token lookup files...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Checking generated token lookup files...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)TokenLookup.stamp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(RepoRoot)\ida2asm\src\Util\Util.h;$(RepoRoot)\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)TokenLookup.stamp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python %(Identity) $(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(RepoRoot)\ida2asm\src\Util\Util.h;$(RepoRoot)\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">python %(Identity) $(RepoRoot)\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">python %(Identity) $(RepoRoot)\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">python %(Identity) $(RepoRoot)\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">python %(Identity) $(RepoRoot)\ida2asm\gen-lookup\tokens.lst $(IntDir)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Checking generated token lookup files...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Checking generated token lookup files...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)TokenLookup.stamp</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)TokenLookup.stamp</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\..\ida2asm\src\Util\Util.h;$(SolutionDir)..\..\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(RepoRoot)\ida2asm\src\Util\Util.h;$(RepoRoot)\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(RepoRoot)\ida2asm\src\Util\Util.h;$(RepoRoot)\ida2asm\gen-lookup\tokens.lst</AdditionalInputs>
     </CustomBuild>
     <None Include="..\..\..\ida2asm\gen-lookup\tokens.lst" />
   </ItemGroup>
@@ -187,24 +190,24 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)..\..\ida2asm\src;$(SolutionDir)..\..\ida2asm\src\Parser;$(SolutionDir)..\..\ida2asm\src\InputSymbols;$(SolutionDir)..\..\ida2asm\src\OutputWriter;$(SolutionDir)..\..\ida2asm\src\OutputItem;$(SolutionDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
-    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IncludePath>$(RepoRoot)\ida2asm\src;$(RepoRoot)\ida2asm\src\Parser;$(RepoRoot)\ida2asm\src\InputSymbols;$(RepoRoot)\ida2asm\src\OutputWriter;$(RepoRoot)\ida2asm\src\OutputItem;$(RepoRoot)\ida2asm\src\Util;$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <IntDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)..\..\ida2asm\src;$(SolutionDir)..\..\ida2asm\src\Parser;$(SolutionDir)..\..\ida2asm\src\InputSymbols;$(SolutionDir)..\..\ida2asm\src\OutputWriter;$(SolutionDir)..\..\ida2asm\src\OutputItem;$(SolutionDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
-    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IncludePath>$(RepoRoot)\ida2asm\src;$(RepoRoot)\ida2asm\src\Parser;$(RepoRoot)\ida2asm\src\InputSymbols;$(RepoRoot)\ida2asm\src\OutputWriter;$(RepoRoot)\ida2asm\src\OutputItem;$(RepoRoot)\ida2asm\src\Util;$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <IntDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <OutDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)..\..\ida2asm\src;$(SolutionDir)..\..\ida2asm\src\Parser;$(SolutionDir)..\..\ida2asm\src\InputSymbols;$(SolutionDir)..\..\ida2asm\src\OutputWriter;$(SolutionDir)..\..\ida2asm\src\OutputItem;$(SolutionDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <IncludePath>$(RepoRoot)\ida2asm\src;$(RepoRoot)\ida2asm\src\Parser;$(RepoRoot)\ida2asm\src\InputSymbols;$(RepoRoot)\ida2asm\src\OutputWriter;$(RepoRoot)\ida2asm\src\OutputItem;$(RepoRoot)\ida2asm\src\Util;$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <OutDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)..\..\ida2asm\src;$(SolutionDir)..\..\ida2asm\src\Parser;$(SolutionDir)..\..\ida2asm\src\InputSymbols;$(SolutionDir)..\..\ida2asm\src\OutputWriter;$(SolutionDir)..\..\ida2asm\src\OutputItem;$(SolutionDir)..\..\ida2asm\src\Util;$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
+    <IncludePath>$(RepoRoot)\ida2asm\src;$(RepoRoot)\ida2asm\src\Parser;$(RepoRoot)\ida2asm\src\InputSymbols;$(RepoRoot)\ida2asm\src\OutputWriter;$(RepoRoot)\ida2asm\src\OutputItem;$(RepoRoot)\ida2asm\src\Util;$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\;$(IncludePath)</IncludePath>
+    <OutDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</OutDir>
+    <IntDir>$(RepoRoot)\tmp\$(ProjectName)-$(Platform)-$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -212,8 +215,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>$(SolutionDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>$(SolutionDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <PrecompiledHeaderFile>$(RepoRoot)\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(RepoRoot)\ida2asm\src\stdinc.h</ForcedIncludeFiles>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;NOMINMAX</PreprocessorDefinitions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -235,8 +238,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>$(SolutionDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>$(SolutionDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <PrecompiledHeaderFile>$(RepoRoot)\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(RepoRoot)\ida2asm\src\stdinc.h</ForcedIncludeFiles>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;NDEBUG;NOMINMAX</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CallingConvention>Cdecl</CallingConvention>
@@ -262,8 +265,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeaderFile>$(SolutionDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>$(SolutionDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <PrecompiledHeaderFile>$(RepoRoot)\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(RepoRoot)\ida2asm\src\stdinc.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <SupportJustMyCode>true</SupportJustMyCode>
       <Optimization>Disabled</Optimization>
@@ -278,8 +281,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeaderFile>$(SolutionDir)..\..\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>$(SolutionDir)..\..\ida2asm\src\stdinc.h</ForcedIncludeFiles>
+      <PrecompiledHeaderFile>$(RepoRoot)\ida2asm\src\stdinc.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>$(RepoRoot)\ida2asm\src\stdinc.h</ForcedIncludeFiles>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>NDEBUG;NOMINMAX</PreprocessorDefinitions>
       <IntrinsicFunctions>true</IntrinsicFunctions>

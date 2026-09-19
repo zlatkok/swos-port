@@ -6280,3 +6280,35 @@ startFirstExtraTime, endFirstExtraTime and now game.cpp is fully cleansed from t
 - finished the remaining two functions from players.cpp: playerKickingBall() and calculateIfPlayerWinsBall()
 - players.cpp status clean! removed orphaned SWOS data items as well, and now we're in the summit of
   updatePlayers.cpp mountain ;)
+- pushed to GitHub
+- converted findClosestPlayerToBallFacing() to break the ice
+13.09.2026.
+- extracted AI routines to their own file, will be converting this one first (as it mostly came from
+  updatePlayers.cpp)
+- converted all except updateCpuPlayerControls() which is AI's UpldatePlayers(): it's maybe 20-30% of it,
+  started but it's so huge it has to be done in phases
+14.09.2026.
+- done many Codex passes over updateCpuPlayerControls(), but it's a tough cookie; still, it's pretty
+  reduced in size, and VM parts are almost removed
+- finally it's done, amazing that the function core ended up with just <400 lines of code; ai.cpp now free
+  from naively generated code
+- looking to updatePlayers.cpp, there are still some small functions there, possibly some overlap with
+  player.cpp and ball.cpp; I'll solve that later, for now let's just get it all converted first
+15.09.2026.
+- doing all those little functions in updatePlayer.cpp by hand, saving up tokens for the showdown with the
+  main boss, converted: setPlayerWithNoBallDestination(), setThrowInPlayerCoordinates()
+16.09.2026.
+- changed the approach: gonna convert all the small-medium functions with remaining tokens, since Codex does
+  such a good job at it, and work on updatePlayers() manually when they run out; so far, converted:
+  goalkeeperJumping(), goalkeeperCaughtTheBall(), getFramesNeededToCoverDistance(),
+  playerAttemptingJumpHeader(), playerTackled(), trySendingOffThePlayer(), tryBookingThePlayer(),
+  resolveFoulAsPenaltyFreeKickOrOrdinaryFoul(),
+17.09.2026.
+/
+18.09.2026.
+/
+19.09.2026.
+- converted: playerTacklingTestFoul(), calculateBallNextGroundXYPositions(), updateBallVariables() (renamed
+  to updateGoalkeeperBallProjections()), shouldGoalkeeperDive()
+- everything except the main body of updatePlayers() converted!
+- pushed to GitHub

@@ -2,6 +2,7 @@
 # list of functions and variables to remove completely
 # to remove a range, list beginning and ending function separated by - (minus)
 # ranges are semi-open, just like in C++
+# for detailed format information, consult docs/ida2asm.md
 #
 
 @remove
@@ -24,11 +25,10 @@ ShowRestOfPics - GameOver
 copySpriteAllowAND - stateGoal
 StartFirstExtraTime - DoGoalkeeperSprites
 SetJumpHeaderHitAnimTable
-PlayKickSample
-EnqueueDeletedSample - PlayPostHitComment
 SetStaticHeaderDirection
 PlayerHittingStaticHeader - GetFilenameAndExtension
-kPlayerShotChanceTable - AI_turnDirection
+kPlayerShotChanceTable - dseg_180584
+AI_maxStoppageTime
 
 # advertisements + some of sprites code
 CopyAdvertisementsData - UpdateControlledPlayer
@@ -45,7 +45,6 @@ aSprite_dat
 UnchainSpriteInMenus - DrawSpriteCentered
 ClearSprite - ShowMenu
 DrawSprite_entry2
-numberBuffer - prevLastPlayer
 bookedPlayerCardOrNumberSprite
 allSpritesArray - lastSelectedTeam
 numSpritesToRender
@@ -62,11 +61,15 @@ team1GoalkeeperReplaced - statsTimer
 whiteGuyConvertTable - topTeamPtr
 kBallSpeedBounceFactorTable - kBallAirFriction
 kDefaultDestinations - dseg_17DEF4
+playerXQuadrantsCoordinates - ballQuadrantIndex
+playerXQuadrantOffset
+playerYQuadrantOffset
 # player constants; keep the surrounding values still used in updatePlayers.cpp
 kBallJumpHeaderDeltaZ
-kPlayerHeaderSpeedIncrease - kInjuryLevels
-kStrongTackleDownTime - dseg_17E3EE
+kPlayerHeaderSpeedIncrease - dseg_17E3EE
 kGoalieSkill7Table - kStaticHeaderPlayerSpeed
+kPlayerTacklingSpeed
+kJumpHeaderSpeed
 
 # pitches
 DrawPatternFromIndex
@@ -109,9 +112,6 @@ DrawMenuText - ZeroOutStars
 controlsHeldTimer
 lastControls
 replaySelected
-# select files menu
-dta - dseg_180584
-
 # options
 OptionsMenuSelected - FriendlyMenuInit
 
@@ -135,9 +135,8 @@ g_joy1Fire2 - dosMemOfs60c00h
 
 # commentary & SFX
 PlayHitFrameComment
-SetVolumeOrStopChants - PlayPenaltyComment
-PlayBallBounceSample - PlayFansChant10lSample
-PlayRefereeWhistleSample - PlayFoulWhistleSample
+SetVolumeOrStopChants - PlayPostHitComment
+PlayRefereeWhistleSample - PlayFansChant10lSample
 PlayNearMissComment
 #g_commentary   # career file buffer
 # + intro stuff
@@ -243,7 +242,6 @@ currentGoalPtr - cameraCoordinatesValid
 hilLeftTeamGoals - winningTeamPtr
 
 # ball sprites and frame indices, moving and static
-ballMovingFrameIndices - goalCounter
 # must keep ballSprite for now, too many references
 ballShadowSprite - gridUpperRowLeftSprite
 kControlledBallSpeedReduction - kPlayerGroundConstant
@@ -255,6 +253,11 @@ statsTeam1GoalsCopy2 - statsTeam1GoalsCopy
 team1PenaltyShooterIndex - penaltyShooterSprite
 team1PenaltyAttempts - penaltiesTimer
 
+# updatePlayers
+lastPlayerPlayed
+lastPlayerBeforeGoalkeeper
+numberBuffer - prevLastTeamPlayed
+
 # dead vars
 throwInDeadVar
 hilStarted
@@ -264,8 +267,24 @@ ballUpdatedByGoalkeeper
 timeVar
 deadCameraBreakVar04
 initialKickWriteOnlyTicks
-deadCameraBreakVar01 - forceLeftTeam
+deadCameraBreakVar01 - goalCounter
 writeOnlyVar03
+deadVarAlways0
+deadVarAlways0_1
+dseg_114EC2
+cardsDisallowed
+ballNextGroundX
+ballNextYGroundY
+ballNextZDeadVar
+ballDefensiveX
+ballDefensiveY
+ballDefensiveZ
+ballNotHighX
+ballNotHighY
+ballNotHighZ
+dseg_17E661
+dseg_17E663
+goalkeeperDiveDeadVar
 
 
 #
@@ -558,6 +577,8 @@ isGameFriendly, word
 team1NumAllowedInjuries, word
 team2NumAllowedInjuries, word
 stoppageEventTimer, word
+ballInUpperPenaltyArea, word
+ballInLowerPenaltyArea, word
 ballInGoalkeeperArea, word
 
 # game
@@ -591,8 +612,6 @@ refState, word
 lastTeamBooked, TeamGeneralInfo *
 currentScorer, Sprite *
 lastTeamScored, TeamGeneralInfo *
-lastPlayerPlayed, Sprite *
-lastPlayerBeforeGoalkeeper, Sprite *
 lastKeeperPlayed, Sprite *
 playerHadBall, word
 goalOut, word
@@ -738,7 +757,6 @@ gameState, GameState
 playingPenalties, word
 stateGoal, word
 patternsGoalCounter, word
-forceLeftTeam, word
 secondLeg, word
 playing2ndGame, word
 
@@ -755,8 +773,6 @@ runSlower, word
 lastTeamScoredNumber, word
 lastPlayerScored, Sprite *
 goalTypeScored, word
-playerXQuadrantOffset, word
-playerYQuadrantOffset, word
 ballQuadrantIndex, word
 
 # keep these so the competition buffer integrity static assert could work
@@ -774,11 +790,10 @@ animTablesStart, array char (align: 2)
 animTablesEnd, array char
 frameIndicesTablesStart, array char (align: 2)
 jumpHeaderHitTeam1TopFrames, array char
-AI_turnDirection, word
 USER_A, TeamTactics (align: 1)
 
 ### debug dump
-#AI_attackHalf, word
+#cpuAftertouchTargetGoal, word
 
 
 #
@@ -871,9 +886,6 @@ SwapPlayerNameData
 PlayMatchSelected
 
 # commentary/sfx
-PlayPenaltyComment
-PlayFoulComment
-PlayDangerousPlayComment
 PlayPostHitComment
 PlayBarHitComment
 PlayKeeperClaimedComment
@@ -883,7 +895,6 @@ PlayGoalComment
 PlayMissGoalSample
 PlayHomeGoalSample
 PlayAwayGoalSample
-PlayFoulWhistleSample
 PlayFansChant8lSample
 PlayFansChant10lSample
 PlayIntroChantSample

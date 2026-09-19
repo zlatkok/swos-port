@@ -389,18 +389,18 @@ static void playPenaltySavedComment()
     m_performingPenalty = false;
 }
 
-void SWOS::PlayPenaltyComment()
+void playPenaltyComment()
 {
     m_performingPenalty = true;
     playComment(kPenalty);
 }
 
-void SWOS::PlayFoulComment()
+void playFoulComment()
 {
     playComment(kFoul);
 }
 
-void SWOS::PlayDangerousPlayComment()
+void playDangerousPlayComment()
 {
     playComment(kDirtyTackle);
 }
@@ -443,7 +443,7 @@ void SWOS::PlayBarHitComment()
     playBarHitComment();
 }
 
-void SWOS::PlayKeeperClaimedComment()
+void playKeeperClaimedComment()
 {
     if (m_performingPenalty) {
         playComment(kPenaltySaved);
@@ -453,6 +453,11 @@ void SWOS::PlayKeeperClaimedComment()
         if (m_lastPlayedCategory != kPenaltySaved || !commentPlaying())
             playComment(kKeeperClaimed);
     }
+}
+
+void SWOS::PlayKeeperClaimedComment()
+{
+    playKeeperClaimedComment();
 }
 
 void SWOS::PlayGoalkeeperSavedComment()

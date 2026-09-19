@@ -391,7 +391,7 @@ struct TeamGeneralInfo {
     word longPass;
     word longSpinPass;
     word passInProgress;
-    word AITimer;
+    word cpuControlUpdateCounter;
     word ofs134;
     word ofs136;
     word ofs138;    // timer
@@ -444,13 +444,13 @@ enum gameStates {
     ST_KEEPER_HOLDS_BALL            =   3,
     ST_CORNER_LEFT                  =   4,
     ST_CORNER_RIGHT                 =   5,
-    ST_FREE_KICK_LEFT1              =   6,
-    ST_FREE_KICK_LEFT2              =   7,
-    ST_FREE_KICK_LEFT3              =   8,
+    ST_FREE_KICK_OUTER_LEFT              =   6,
+    ST_FREE_KICK_MIDDLE_LEFT              =   7,
+    ST_FREE_KICK_INNER_LEFT              =   8,
     ST_FREE_KICK_CENTER             =   9,
-    ST_FREE_KICK_RIGHT1             =  10,
-    ST_FREE_KICK_RIGHT2             =  11,
-    ST_FREE_KICK_RIGHT3             =  12,
+    ST_FREE_KICK_INNER_RIGHT             =  10,
+    ST_FREE_KICK_MIDDLE_RIGHT             =  11,
+    ST_FREE_KICK_OUTER_RIGHT             =  12,
     ST_FOUL                         =  13,
     ST_PENALTY                      =  14,
     ST_THROW_IN_FORWARD_RIGHT       =  15,

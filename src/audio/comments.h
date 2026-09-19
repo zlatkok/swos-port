@@ -20,6 +20,10 @@ void toggleMuteCommentary();
 void playHeaderComment(const TeamGeneralInfo& team);
 void playInjuryComment(const TeamGeneralInfo& team);
 void playGoodTackleComment();
+void playKeeperClaimedComment();
+void playDangerousPlayComment();
+void playPenaltyComment();
+void playFoulComment();
 void clearPenaltyFlag();
 
 namespace SWOS {

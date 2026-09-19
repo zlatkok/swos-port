@@ -10,6 +10,7 @@
 #include "result.h"
 #include "random.h"
 #include "direction.h"
+#include "updatePlayers.h"
 
 static constexpr int kControlledBallSpeedReduction = 13;
 static constexpr int kBallAirSpeedReduction = 4;
@@ -66,6 +67,7 @@ static Sprite m_ballShadowSprite;
 
 static int16_t m_ballNextX; // predicted ball location on the ground
 static int16_t m_ballNextY;
+static PlayerQuadrantOffset m_playerQuadrantOffset;
 
 // when the player controls the ball, the speed is reduced by this much
 static int m_controlledBallSpeedReduction = kControlledBallSpeedReduction;
@@ -162,10 +164,8 @@ void updateBall()
 
 // Apply directional input after a kick or pass. Spin weakens over ten frames;
 // kicks can become high kicks, while passes can become long-pass variants.
-void applyBallAfterTouch()
+void applyBallAfterTouch(TeamGeneralInfo& team)
 {
-    auto& team = A6.as<TeamGeneralInfo&>();
-
     if (team.passInProgress)
         applyPassAfterTouch(team);
     else
@@ -222,11 +222,9 @@ void checkIfBallOutOfPlay()
             makeGoalOut(swos.topTeamData, true, left);
     } else if (ballY > kBottomPitchLine) {
         bool corner = swos.lastTeamPlayed == &swos.bottomTeamData;
-        // forceLeftTeam isn't a proper boolean
-        bool useUpperRestart = swos.forceLeftTeam == 1;
         stoppage = corner ?
-            makeCorner(swos.topTeamData, useUpperRestart, left) :
-            makeGoalOut(swos.bottomTeamData, useUpperRestart, left);
+            makeCorner(swos.topTeamData, false, left) :
+            makeGoalOut(swos.bottomTeamData, false, left);
     } else {
         stoppage = makeThrowIn(ballX, ballY);
     }
@@ -282,6 +280,11 @@ const BallDestinationTable& getBallDestCoordinatesTable()
 const BallDestinationTable& getDefaultBallDestinations()
 {
     return kDefaultBallDestinations;
+}
+
+PlayerQuadrantOffset getPlayerQuadrantOffset()
+{
+    return m_playerQuadrantOffset;
 }
 
 // Besides setting x and y coordinates, stops the ball and puts it to the ground (z = 0).
@@ -382,7 +385,7 @@ static SpinDirection startOrGetSpin(TeamGeneralInfo& team)
 
 static void addSpinToBall(Direction direction, SpinDirection spin, const int16_t factors[8][4], int spinTimer)
 {
-    assert(direction >= Direction::kLowestDirection && direction < Direction::kNumDirections);
+    assert(isValidDirection(direction));
     assert(spin != SpinDirection::kNone);
     assert(spinTimer >= 0 && spinTimer < kSpinDuration);
 
@@ -521,7 +524,7 @@ static void applyPassAfterTouch(TeamGeneralInfo& team)
 
 static Sprite *getGoalScorer()
 {
-    auto scorer = swos.lastPlayerPlayed.asPtr();
+    auto scorer = getLastPlayerPlayed();
     // Outfield players are stored directly in lastPlayerPlayed. For goalkeepers
     // that slot identifies the goalie sprite, while lastKeeperPlayed identifies
     // the actual player record used by the goal statistics code.
@@ -564,10 +567,7 @@ static void applyStoppage(const BallStoppage& stoppage)
     swos.foulYCoordinate = stoppage.y;
     swos.cameraDirection = stoppage.cameraDirection;
     swos.playerTurnFlags = stoppage.playerTurnFlags;
-    // forceLeftTeam is a debug/compatibility override from SWOS: it forces the
-    // upper team to take the restart regardless of the normal decision above.
-    auto team = swos.forceLeftTeam == 1 ? &swos.topTeamData : stoppage.team;
-    swos.lastTeamPlayedBeforeBreak = team;
+    swos.lastTeamPlayedBeforeBreak = stoppage.team;
     swos.stoppageTimerTotal = 0;
     swos.stoppageTimerActive = 0;
     stopAllPlayers();
@@ -778,8 +778,7 @@ static void updateBallSpeedAndXYCoordinates()
         direction = ((direction + 16) & 0xff) >> 5;
     }
     swos.ballSprite.direction = static_cast<Direction>(direction);
-    assert(swos.ballSprite.direction == Direction::kNoDirection ||
-        swos.ballSprite.direction >= Direction::kLowestDirection && swos.ballSprite.direction < Direction::kNumDirections);
+    assert(swos.ballSprite.direction == Direction::kNoDirection || isValidDirection(swos.ballSprite.direction));
 
     // Planar speed loses a fixed Q7.9 amount each tick. Ground friction also
     // includes the selected pitch's adjustment unless a player controls the ball.
@@ -1170,7 +1169,7 @@ void updateBallQuadrants()
 
     auto xOffset = static_cast<int16_t>(quadrantX - kBallXQuadrantLimits[xQuadrant] - kHalfQuadrantWidth);
     auto yOffset = static_cast<int16_t>(quadrantY - kBallYQuadrantLimits[yQuadrant] - kHalfQuadrantHeight);
-    swos.playerXQuadrantOffset = xOffset * kPlayerOffsetScaleNumerator / kPlayerOffsetScaleDenominator;
-    swos.playerYQuadrantOffset = yOffset * kPlayerOffsetScaleNumerator / kPlayerOffsetScaleDenominator;
+    m_playerQuadrantOffset.x = xOffset * kPlayerOffsetScaleNumerator / kPlayerOffsetScaleDenominator;
+    m_playerQuadrantOffset.y = yOffset * kPlayerOffsetScaleNumerator / kPlayerOffsetScaleDenominator;
     swos.ballQuadrantIndex = xQuadrant + kNumHorizontalQuadrants * yQuadrant;
 }

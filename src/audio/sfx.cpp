@@ -146,7 +146,7 @@ void playKickSample()
     playSfx(kKick, 25);
 }
 
-void SWOS::PlayFoulWhistleSample()
+void playFoulWhistleSample()
 {
     playSfx(kFoulWhistle, 42);
 }

@@ -20,6 +20,7 @@ void playMissGoalSample();
 void playHomeGoalSample();
 void playAwayGoalSample();
 void playRefereeWhistleSample();
+void playFoulWhistleSample();
 void playKickSample();
 void stopBackgroudCrowdNoise();
 void playEndGameWhistleSample();

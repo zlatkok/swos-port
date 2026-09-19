@@ -4,6 +4,7 @@
 #include "referee.h"
 #include "camera.h"
 #include "text.h"
+#include "updatePlayers.h"
 
 constexpr int kPlayerNameX = 12;
 constexpr int kPlayerNameY = 0;
@@ -27,10 +28,10 @@ void updateCurrentPlayerName()
         showNameBlinking(swos.currentScorer, swos.lastTeamScored);
     } else if (cardHandingInProgress()) {
         showNameBlinking(swos.bookedPlayer, swos.lastTeamBooked);
-    } else if (swos.lastPlayerBeforeGoalkeeper) {
-        prolongLastPlayersName(swos.lastPlayerBeforeGoalkeeper, swos.lastTeamScored);
+    } else if (auto lastPlayerBeforeGoalkeeper = getLastPlayerBeforeGoalkeeper()) {
+        prolongLastPlayersName(lastPlayerBeforeGoalkeeper, swos.lastTeamScored);
     } else {
-        auto lastPlayer = swos.lastPlayerPlayed;
+        auto lastPlayer = getLastPlayerPlayed();
         auto lastTeam = swos.lastTeamPlayed;
 
         if (swos.gameStatePl == GameState::kInProgress) {
@@ -100,7 +101,7 @@ static void showCurrentPlayerName(const Sprite *lastPlayer, const TeamGeneralInf
 static void hideCurrentPlayerName()
 {
     m_playerOrdinal = -1;
-    swos.lastPlayerBeforeGoalkeeper = nullptr;
+    resetLastPlayerBeforeGoalkeeper();
 }
 
 static void showNameBlinking(const Sprite *lastPlayer, const TeamGeneralInfo *lastTeam)

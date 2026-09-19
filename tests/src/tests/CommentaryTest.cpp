@@ -241,7 +241,7 @@ static void testCustomSfx()
         { playCrowdNoise, "bgcrd3l.mp3" },
         { playRefereeWhistleSample, "whistle.raw", kSizeofWaveHeader },
         { playEndGameWhistleSample, "endgamew.mp3" },
-        { PlayFoulWhistleSample, "foul.mp3" },
+        { playFoulWhistleSample, "foul.mp3" },
         { playKickSample, "kickx.mp3" },
         { playBallBounceSample, "bouncex.ogg" },
     };
@@ -313,7 +313,7 @@ static void testCustomFreeKickSamples()
     for (int i = 0; i < 3; i++) {
         for (size_t index : { 0, 1, 0, 1, 2, 0, 1, 0, 1, 2, 1, 2 }) {
             resetMockSdlMixer();
-            PlayFoulComment();
+            playFoulComment();
 
             char expectedData[] = "free_kick_01_x3.mp3";
             static const std::array<const char *, 3> kSuffixes = { "1_x3", "2_x2", "3" };
@@ -339,7 +339,7 @@ static void testEmptyCategories()
         void (*playFunc)();
         void (*setupFunc)() = nullptr;
     } static const kEmptyDirsData[] = {
-        { "dirty_tackle", PlayDangerousPlayComment },
+        { "dirty_tackle", playDangerousPlayComment },
         { "end_game_rout", triggerItsBeenACompleteRoutComment },
         { "end_game_sensational", triggerSensationalGameComment },
         { "end_game_so_close", triggerDrawComment },
@@ -386,7 +386,7 @@ static void testEmptyCategories()
 static void testCustomCommentary()
 {
     testCustomIdenticalSamplesCategory([] { playHeaderComment(*team); }, "header");
-    testCustomIdenticalSamplesCategory(PlayPenaltyComment, "penalty");
+    testCustomIdenticalSamplesCategory(playPenaltyComment, "penalty");
     testCustomCornerSamples();
     testCustomFreeKickSamples();
     testEmptyCategories();
@@ -487,14 +487,14 @@ void CommentaryTest::setupCommentInterruptionTest()
 void CommentaryTest::testCommentInterruption()
 {
     resetMockSdlMixer();
-    PlayFoulComment();
+    playFoulComment();
     auto chunk = getAndCheckLastPlayedChunk();
 
     playGoodTackleComment();
     auto chunk2 = getAndCheckLastPlayedChunk();
     assertEqual(chunk, chunk2);
 
-    PlayPenaltyComment();
+    playPenaltyComment();
     auto chunk3 = getAndCheckLastPlayedChunk();
     assertNotEqual(chunk, chunk3);
 }
@@ -677,7 +677,7 @@ void CommentaryTest::testZipFileComments()
             "Herr Doktor, nein zezancija, senzacija versteh, SEN-ZA-CI-JA!\r\n"
             "Ah ja, ja, natürlich, senzacija.\r\n", 158 },
         { 3, 6, triggerDrawComment, "Za dlaku sinko", 14 },
-        { 6, 6, PlayFoulComment, "free_kick", 9 },
+        { 6, 6, playFoulComment, "free_kick", 9 },
         { 3, 3, PlayGoalComment, "goal", 4, 3 },
         { 4, 1, triggerGoodPassComment, "good_pay", 8 },
         { 4, 1, playGoodTackleComment, "tackled.mp3", 12 },

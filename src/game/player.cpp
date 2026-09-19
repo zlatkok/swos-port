@@ -6,6 +6,7 @@
 #include "sfx.h"
 #include "pitchConstants.h"
 #include "random.h"
+#include "updatePlayers.h"
 
 static constexpr auto kGoalkeeperStrongDeflectBallSpeed = 3.0_speed;
 static constexpr auto kGoalkeeperMediumDeflectBallSpeed = 2.0_speed;
@@ -206,7 +207,7 @@ void calculateIfPlayerWinsBall(TeamGeneralInfo& team, Sprite& player, Direction 
     constexpr int kBallNudgeRange = 4;
     constexpr auto kAlignedMovementSpeedIncrease = 0.5_speed;
 
-    assert(direction >= Direction::kLowestDirection && direction < Direction::kNumDirections);
+    assert(isValidDirection(direction));
     team.passInProgress = false;
 
     auto& opponent = *team.opponentTeam;
@@ -314,7 +315,7 @@ void playerKickingBall(TeamGeneralInfo& team, const Sprite& player)
     team.controlledPlDirection = player.direction;
 
     auto& ball = swos.ballSprite;
-    assert(player.direction >= Direction::kLowestDirection && player.direction < Direction::kNumDirections);
+    assert(isValidDirection(player.direction));
     const auto& destination = getBallDestCoordinatesTable()[static_cast<size_t>(player.direction)];
     ball.destX = static_cast<int16_t>(ball.x.whole() + destination.x);
     ball.destY = static_cast<int16_t>(ball.y.whole() + destination.y);
@@ -498,7 +499,7 @@ void playerTackledTheBallWeak(TeamGeneralInfo& team, Sprite& player)
 
 void goalkeeperClaimedTheBall(TeamGeneralInfo& team, Sprite& goalKeeper, Sprite& ballSprite)
 {
-    swos.lastPlayerBeforeGoalkeeper = swos.lastPlayerPlayed;
+    setLastPlayerBeforeGoalkeeper(getLastPlayerPlayed());
     swos.lastTeamScored = swos.lastTeamPlayed;
     ballSprite.speed = 0;
 
@@ -523,7 +524,7 @@ void goalkeeperClaimedTheBall(TeamGeneralInfo& team, Sprite& goalKeeper, Sprite&
         swos.playerTurnFlags &= mask;
     }
 
-    auto keeperTeam = swos.forceLeftTeam == 1 ? &swos.topTeamData : &team;
+    auto keeperTeam = &team;
 
     swos.gameState = GameState::kKeeperHoldsTheBall;
     swos.breakCameraMode = CameraBreakMode::kInactive;
@@ -724,7 +725,7 @@ static void doLobHeader(Sprite& player, Sprite& ball)
 static std::pair<Sprite *, uint32_t> getClosestNonControlledPlayerInDirection(
     Direction direction, const TeamGeneralInfo& team)
 {
-    assert(direction >= Direction::kLowestDirection && direction < Direction::kNumDirections);
+    assert(isValidDirection(direction));
 
     auto closestDistance = std::numeric_limits<uint32_t>::max();
     Sprite *closestPlayer{};

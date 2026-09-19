@@ -31,3 +31,6 @@ constexpr int kCrossbarHeight = 15;
 constexpr int kGoalHeight = 19;
 
 constexpr int kTopPenaltySpotY = 187;
+constexpr int kBottomPenaltySpotY = 711;
+
+constexpr int kNumBallQuadrants = 35;

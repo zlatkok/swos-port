@@ -407,16 +407,20 @@ struct TeamGeneralInfo
     word longPass;
     word longSpinPass;
     word passInProgress;
-    word AITimer;
-    word ofs134;
-    word ofs136;
-    word ofs138;    // timer
+    word cpuControlUpdateCounter;
+    word cpuDecisionCooldown;
+    word cpuAftertouchStrength;
+    word cpuBallSpinDirection;
     word wonTheBallTimer;
     word goalkeeperPlaying;
     word resetControls;
     byte secondaryFire;
 };
 static_assert(sizeof(TeamGeneralInfo) == 145, "TeamGeneralInfo is invalid");
+static_assert(offsetof(TeamGeneralInfo, cpuControlUpdateCounter) == 130);
+static_assert(offsetof(TeamGeneralInfo, cpuDecisionCooldown) == 132);
+static_assert(offsetof(TeamGeneralInfo, cpuAftertouchStrength) == 134);
+static_assert(offsetof(TeamGeneralInfo, cpuBallSpinDirection) == 136);
 
 using PositionsTable = std::array<SwosDataPointer<byte>, 18>;
 static_assert(sizeof(PositionsTable) == 72, "PositionsTable is invalid");
@@ -601,6 +605,13 @@ enum class GameState : word
     kKeeperHoldsTheBall = 3,
     kCornerLeft = 4,
     kCornerRight = 5,
+    kFreeKickOuterLeft = 6,
+    kFreeKickMiddleLeft = 7,
+    kFreeKickInnerLeft = 8,
+    kFreeKickCenter = 9,
+    kFreeKickInnerRight = 10,
+    kFreeKickMiddleRight = 11,
+    kFreeKickOuterRight = 12,
     kFoul = 13,
     kPenalty = 14,
     kThrowInForwardRight = 15,

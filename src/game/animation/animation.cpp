@@ -3,7 +3,7 @@
 
 int16_t AnimationTable::getFrameTableOffset(Direction direction, int group /* = 0 */) const
 {
-    assert(direction >= Direction::kLowestDirection && direction < Direction::kNumDirections);
+    assert(isValidDirection(direction));
     assert(group >= 0 && group < 4);
 
     if (group < 0 || group >= 4 ||

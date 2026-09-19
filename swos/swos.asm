@@ -1,4 +1,4 @@
-﻿; ---------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
 
 REGS struc ; (sizeof=0x1C, mappedto_56)
                     ; XREF: dseg:kBallAirSpeedReduction/o FF0006CE/r ...
@@ -565,13 +565,13 @@ rightSpin dw ?      ; XREF: UpdatePlayers+3EC8/r
 longPass dw ?       ; XREF: UpdatePlayers+3EAC/r UpdatePlayers+3F92/r
 longSpinPass dw ?
 passInProgress dw ? ; XREF: InitTeamsData+362/w DoPass+562/w ...
-AI_timer dw ?       ; XREF: AI_SetControlsDirection+53/w
-field_84 dw ?       ; XREF: AI_SetControlsDirection+9DD/r
-                    ; AI_SetControlsDirection+9EF/w ...
-AI_afterTouchStrength dw ? ; XREF: AI_SetControlsDirection+E92/w
-                    ; AI_SetControlsDirection+EAD/w ...
-AI_ballSpinDirection dw ? ; XREF: AI_SetControlsDirection+FD9/w
-                    ; AI_SetControlsDirection+10AC/w ...
+AI_timer dw ?       ; XREF: UpdateCpuPlayerControls+53/w
+field_84 dw ?       ; XREF: UpdateCpuPlayerControls+9DD/r
+                    ; UpdateCpuPlayerControls+9EF/w ...
+AI_afterTouchStrength dw ? ; XREF: UpdateCpuPlayerControls+E92/w
+                    ; UpdateCpuPlayerControls+EAD/w ...
+AI_ballSpinDirection dw ? ; XREF: UpdateCpuPlayerControls+FD9/w
+                    ; UpdateCpuPlayerControls+10AC/w ...
 wonTheBallTimer dw ? ; XREF: InitTeamsData+300/w UpdatePlayers+97/r ...
 goalkeeperPlaying dw ? ; XREF: InitTeamsData+1FB/w StopAllPlayers+B4/w ...
 resetControls dw ?  ; XREF: InitTeamsData+20A/w
@@ -1574,6 +1574,19 @@ COLOR_YELLOW  = 15
 LAST_FRAME_LOOP_MARKER  = 4294966297 ; -999
 LAST_FRAME_HOLD_MARKER  = 4294967195 ; -101
 FRAME_LOOP_BACK_MARKER  = 4294967196 ; -100
+
+; ---------------------------------------------------------------------------
+
+; enum Direction, mappedto_73, width 2 bytes
+kDirectionTop  = 0
+kDirectionTopRight  = 1
+kDirectionRight  = 2
+kDirectionBottomRight  = 3
+kDirectionBottom  = 4
+kDirectionLeftBottom  = 5
+kDirectionLeft  = 6
+kDirectionTopLeft  = 7
+kNoDirection  = 65535
 
 
 
@@ -104609,7 +104622,7 @@ mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.playerNumber]
 or      ax, ax
 jnz     short @@player_controlled_team
-and     byte ptr playerTurnFlags, 10111011b ; turn of left and right
+and     byte ptr playerTurnFlags, 0BBh ; turn off left and right
 
 @@player_controlled_team: ; CODE XREF: GoalkeeperClaimedTheBall+5B↑j
 cmp     forceLeftTeam, 1
@@ -106858,12 +106871,12 @@ GoalkeeperCaughtTheBall endp
 ;      A6 -> player team (general)
 
 GoalkeeperDeflectedBall proc near ; CODE XREF: UpdatePlayers+175E↓p
-mov     word ptr D0, 0
+mov     word ptr D0, 0 ; D0 = direction away from goal
 cmp     A6, offset bottomTeamData
-jz      short cseg_78DB8
+jz      short @@set_ball_destination
 mov     word ptr D0, 4
 
-cseg_78DB8:         ; CODE XREF: GoalkeeperDeflectedBall+13↑j
+@@set_ball_destination: ; CODE XREF: GoalkeeperDeflectedBall+13↑j
 mov     A0, offset kDefaultDestinations
 shl     word ptr D0, 2
 mov     esi, A2
@@ -108644,7 +108657,7 @@ mov     eax, [esi+TeamGeneralInfo.controlledPlayer]
 mov     A0, eax     ; A0 -> controlled player
 mov     esi, A1
 mov     ax, [esi+Sprite.direction]
-mov     word ptr D0, ax ; D0 = controlled player direction
+mov     word ptr D0, ax ; D0 = kicking player direction
 mov     ax, word ptr D0
 mov     word ptr D2, ax
 mov     ax, word ptr D2
@@ -108695,7 +108708,7 @@ cmp     A6, offset topTeamData ; abort if game not in progress, or throw-in in p
 jz      short @@top_team
 mov     esi, A2
 cmp     word ptr [esi+(Sprite.y+2)], 342
-jg      @@not_a_shot_on_goal
+jg      @@check_is_goalkeeper
 mov     esi, A6     ; bottom team shooting at top goal
 mov     ax, [esi+TeamGeneralInfo.controlledPlDirection]
 or      ax, ax
@@ -108706,13 +108719,13 @@ jz      short @@possible_shot_on_goal
 mov     esi, A6
 cmp     [esi+TeamGeneralInfo.controlledPlDirection], 7
 jz      short @@possible_shot_on_goal ; and player turned approximately in goal direction
-jmp     @@not_a_shot_on_goal
+jmp     @@check_is_goalkeeper
 ; ---------------------------------------------------------------------------
 
 @@top_team:         ; CODE XREF: PlayerKickingBall+126↑j
 mov     esi, A2
 cmp     word ptr [esi+(Sprite.y+2)], 556
-jl      @@not_a_shot_on_goal
+jl      @@check_is_goalkeeper
 mov     esi, A6     ; top team shooting at bottom goal
 cmp     [esi+TeamGeneralInfo.controlledPlDirection], 4
 jz      short @@possible_shot_on_goal
@@ -108721,7 +108734,7 @@ cmp     [esi+TeamGeneralInfo.controlledPlDirection], 3
 jz      short @@possible_shot_on_goal
 mov     esi, A6
 cmp     [esi+TeamGeneralInfo.controlledPlDirection], 5
-jnz     @@not_a_shot_on_goal
+jnz     @@check_is_goalkeeper
 
 @@possible_shot_on_goal: ; CODE XREF: PlayerKickingBall+147↑j
                     ; PlayerKickingBall+154↑j ...
@@ -108759,7 +108772,7 @@ mov     word ptr D0, ax
 mov     ax, word ptr D0
 mov     esi, A2
 add     [esi+Sprite.speed], ax
-jmp     short @@not_a_shot_on_goal
+jmp     short @@check_is_goalkeeper
 ; ---------------------------------------------------------------------------
 
 @@its_a_long_shot:  ; CODE XREF: PlayerKickingBall+1B1↑j
@@ -108781,11 +108794,11 @@ mov     ax, word ptr D0
 mov     esi, A2
 add     [esi+Sprite.speed], ax
 
-@@not_a_shot_on_goal: ; CODE XREF: PlayerKickingBall+134↑j
+@@check_is_goalkeeper: ; CODE XREF: PlayerKickingBall+134↑j
                     ; PlayerKickingBall+163↑j ...
 mov     esi, A1
 cmp     [esi+Sprite.playerOrdinal], 1
-jnz     short cseg_7AE0E
+jnz     short @@check_opponent_goalkeeper
 mov     esi, A1
 cmp     [esi+Sprite.direction], 2
 jz      short @@play_kick_sample_and_leave
@@ -108793,7 +108806,7 @@ mov     esi, A1
 cmp     [esi+Sprite.direction], 6
 jz      short @@play_kick_sample_and_leave
 
-cseg_7AE0E:         ; CODE XREF: PlayerKickingBall+2A2↑j
+@@check_opponent_goalkeeper: ; CODE XREF: PlayerKickingBall+2A2↑j
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
@@ -109204,6 +109217,9 @@ PlayerHittingJumpHeader endp
 
 ; =============== S U B R O U T I N E =======================================
 
+; in:
+;     A1 -> heading player
+;     A2 -> ball sprite
 
 DoFlyingHeader proc near
                     ; CODE XREF: PlayerHittingJumpHeader:@@right_held↑p
@@ -109448,7 +109464,7 @@ SetThrowInPlayerDestinationCoordinates endp
 ;     A1 -> player
 ;     A6 -> team (general info)
 ;
-; Weak tackle: player speed goes down to 50%, ball speed = 75% of original player speed.
+; Weak tackle: player speed goes down to 50%, ball speed = 75% of the original player speed.
 
 PlayerTackledTheBallWeak proc near ; CODE XREF: UpdatePlayers+3795↓p
 mov     esi, A6
@@ -109457,12 +109473,12 @@ mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.currentAllowedDirection]
 mov     word ptr D1, ax
 or      ax, ax
-jns     short @@controls_something
+jns     short @@calculate_direction
 mov     esi, A1
 mov     ax, [esi+Sprite.direction]
 mov     word ptr D1, ax
 
-@@controls_something: ; CODE XREF: PlayerTackledTheBallWeak+22↑j
+@@calculate_direction: ; CODE XREF: PlayerTackledTheBallWeak+22↑j
 mov     A2, offset ballSprite
 mov     esi, A1
 mov     ax, [esi+Sprite.direction]
@@ -109509,7 +109525,7 @@ mov     esi, A0
 movzx   ebx, word ptr D0
 mov     ax, [esi+ebx]
 mov     word ptr D1, ax
-mov     esi, A2
+mov     esi, A2     ; A2 -> ball sprite
 mov     ax, word ptr [esi+(Sprite.x+2)]
 add     word ptr D1, ax
 mov     ax, word ptr D1
@@ -114554,7 +114570,7 @@ jnz     short cseg_80C0C
 push    A1
 push    A2
 push    A3
-call    AI_SetControlsDirection
+call    UpdateCpuPlayerControls
 pop     A3
 pop     A2
 pop     A1
@@ -115355,7 +115371,7 @@ jnz     short @@test_allowed_turn_flags
 push    A1
 push    A2
 push    A3
-call    AI_SetControlsDirection
+call    UpdateCpuPlayerControls
 pop     A3
 pop     A2
 pop     A1
@@ -116423,7 +116439,7 @@ jnz     short cseg_82AAF
 push    A1
 push    A2
 push    A3
-call    AI_Kick
+call    CpuPlayerAttemptTackle
 pop     A3
 pop     A2
 pop     A1
@@ -116890,7 +116906,7 @@ jnz     short @@check_if_this_player_getting_booked
 push    A1
 push    A2
 push    A3
-call    AI_SetControlsDirection
+call    UpdateCpuPlayerControls
 pop     A3
 pop     A2
 pop     A1
@@ -117772,24 +117788,24 @@ align 4
 ; in:
 ;      A6 -> team data
 
-AI_SetControlsDirection proc near ; CODE XREF: UpdatePlayers+21E9↑p
+UpdateCpuPlayerControls proc near ; CODE XREF: UpdatePlayers+21E9↑p
                     ; UpdatePlayers+2EE3↑p ...
 mov     esi, A6     ; size 0x164d
 mov     ax, [esi+TeamGeneralInfo.resetControls]
 or      ax, ax
 jnz     return
-mov     ax, AI_counter
+mov     ax, cpuShotAftertouchTimer
 or      ax, ax
 jz      short @@bump_resume_play_ai_timer
-sub     AI_counter, 1
+sub     cpuShotAftertouchTimer, 1
 
-@@bump_resume_play_ai_timer: ; CODE XREF: AI_SetControlsDirection+1F↑j
+@@bump_resume_play_ai_timer: ; CODE XREF: UpdateCpuPlayerControls+1F↑j
 mov     ax, AI_resumePlayTimer
 or      ax, ax
 jz      short @@generate_rand
 sub     AI_resumePlayTimer, 1
 
-@@generate_rand:    ; CODE XREF: AI_SetControlsDirection+32↑j
+@@generate_rand:    ; CODE XREF: UpdateCpuPlayerControls+32↑j
 call    Rand
 mov     ax, word ptr D0
 mov     AI_rand, ax
@@ -117821,7 +117837,7 @@ mov     esi, A5
 mov     ax, [esi+Sprite.direction]
 mov     word ptr D7, ax ; D7 = controlling player direction
 
-@@player_direction_set: ; CODE XREF: AI_SetControlsDirection+CA↑j
+@@player_direction_set: ; CODE XREF: UpdateCpuPlayerControls+CA↑j
 mov     A0, offset ballSprite
 cmp     A6, offset bottomTeamData
 jz      short @@bottom_team
@@ -117829,10 +117845,10 @@ mov     word ptr D2, 769 ; lower goal line (for top team)
 jmp     short @@calc_distance
 ; ---------------------------------------------------------------------------
 
-@@bottom_team:      ; CODE XREF: AI_SetControlsDirection+F0↑j
+@@bottom_team:      ; CODE XREF: UpdateCpuPlayerControls+F0↑j
 mov     word ptr D2, 129 ; upper goal line (for bottom team)
 
-@@calc_distance:    ; CODE XREF: AI_SetControlsDirection+FB↑j
+@@calc_distance:    ; CODE XREF: UpdateCpuPlayerControls+FB↑j
 mov     word ptr D1, 336 ; D1 = pitch center by x
 mov     esi, A0     ; A0 -> ball sprite
 mov     ax, word ptr [esi+(Sprite.x+2)]
@@ -117871,7 +117887,7 @@ pop     D5
 jns     short @@save_angle
 mov     word ptr D0, 0 ; ball right at the center of the goal line
 
-@@save_angle:       ; CODE XREF: AI_SetControlsDirection+1D2↑j
+@@save_angle:       ; CODE XREF: UpdateCpuPlayerControls+1D2↑j
 mov     ax, word ptr D0
 mov     word ptr D5, ax ; D5 = angle between the ball and the center of the opponent's goal
 cmp     gameStatePl, ST_GAME_IN_PROGRESS
@@ -117904,29 +117920,29 @@ jb      return
 jmp     short @@interval_expired_fire
 ; ---------------------------------------------------------------------------
 
-@@showing_result_on_halftime: ; CODE XREF: AI_SetControlsDirection+24A↑j
+@@showing_result_on_halftime: ; CODE XREF: UpdateCpuPlayerControls+24A↑j
 cmp     stoppageTimerTotal, 660
 jb      return
 jmp     short @@interval_expired_fire
 ; ---------------------------------------------------------------------------
 
-@@not_showing_final_result: ; CODE XREF: AI_SetControlsDirection+254↑j
+@@not_showing_final_result: ; CODE XREF: UpdateCpuPlayerControls+254↑j
 cmp     stoppageTimerTotal, 385 ; 385 ticks if showing result after 2nd half (but not final)
 jb      return
 
-@@interval_expired_fire: ; CODE XREF: AI_SetControlsDirection+265↑j
-                    ; AI_SetControlsDirection+276↑j
+@@interval_expired_fire: ; CODE XREF: UpdateCpuPlayerControls+265↑j
+                    ; UpdateCpuPlayerControls+276↑j
 mov     esi, A6     ; simulate joy fire, to remove the result from the screen
 mov     [esi+TeamGeneralInfo.firePressed], 1
 retn
 ; ---------------------------------------------------------------------------
 
-@@set_direction:    ; CODE XREF: AI_SetControlsDirection+376↓j
+@@set_direction:    ; CODE XREF: UpdateCpuPlayerControls+376↓j
 jmp     short $+2
 ; ---------------------------------------------------------------------------
 
 @@check_if_result_shown:
-                    ; CODE XREF: AI_SetControlsDirection:@@set_direction↑j
+                    ; CODE XREF: UpdateCpuPlayerControls:@@set_direction↑j
 mov     ax, resultTimer
 or      ax, ax
 jnz     return
@@ -117941,7 +117957,7 @@ jb      short @@no_throw_in
 cmp     gameState, ST_THROW_IN_BACK_LEFT
 jbe     @@update_turn_direction
 
-@@no_throw_in:      ; CODE XREF: AI_SetControlsDirection+2D5↑j
+@@no_throw_in:      ; CODE XREF: UpdateCpuPlayerControls+2D5↑j
 cmp     gameState, ST_FOUL
 jz      short @@foul_or_free_kick
 cmp     gameState, ST_FREE_KICK_LEFT1
@@ -117949,7 +117965,7 @@ jb      return
 cmp     gameState, ST_FREE_KICK_RIGHT3
 ja      return
 
-@@foul_or_free_kick: ; CODE XREF: AI_SetControlsDirection+2ED↑j
+@@foul_or_free_kick: ; CODE XREF: UpdateCpuPlayerControls+2ED↑j
 mov     ax, word ptr D5 ; D5 = angle between the ball and the center of the opponent's goal
 mov     word ptr D0, ax
 add     word ptr D0, 16
@@ -117961,8 +117977,8 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax ; force only that dire
 jmp     return
 ; ---------------------------------------------------------------------------
 
-@@game_not_over:    ; CODE XREF: AI_SetControlsDirection+210↑j
-                    ; AI_SetControlsDirection+21E↑j ...
+@@game_not_over:    ; CODE XREF: UpdateCpuPlayerControls+210↑j
+                    ; UpdateCpuPlayerControls+21E↑j ...
 mov     ax, currentGameTick
 mov     word ptr D0, ax
 and     word ptr D0, 3Fh
@@ -117989,7 +118005,7 @@ jb      short @@test_throw_in
 cmp     gameState, ST_FREE_KICK_RIGHT3
 jbe     @@free_kick
 
-@@test_throw_in:    ; CODE XREF: AI_SetControlsDirection+3D9↑j
+@@test_throw_in:    ; CODE XREF: UpdateCpuPlayerControls+3D9↑j
 cmp     gameState, ST_THROW_IN_FORWARD_RIGHT
 jb      short @@test_foul
 cmp     gameState, ST_THROW_IN_BACK_LEFT
@@ -118008,15 +118024,15 @@ ror     byte ptr D1, 4 ; flip direction top-down
 jmp     cseg_84671
 ; ---------------------------------------------------------------------------
 
-@@test_foul:        ; CODE XREF: AI_SetControlsDirection+3F1↑j
-                    ; AI_SetControlsDirection+3FB↑j
+@@test_foul:        ; CODE XREF: UpdateCpuPlayerControls+3F1↑j
+                    ; UpdateCpuPlayerControls+3FB↑j
 cmp     gameState, ST_FOUL
 jz      @@free_kick
 jmp     @@apply_after_touch
 ; ---------------------------------------------------------------------------
 
-@@keepers_ball:     ; CODE XREF: AI_SetControlsDirection+3A1↑j
-                    ; AI_SetControlsDirection+3AF↑j ...
+@@keepers_ball:     ; CODE XREF: UpdateCpuPlayerControls+3A1↑j
+                    ; UpdateCpuPlayerControls+3AF↑j ...
 mov     ax, AI_rand
 mov     word ptr D0, ax
 and     word ptr D0, 1 ; do something random... 2 choices
@@ -118033,7 +118049,7 @@ jz      @@apply_after_touch
 jmp     cseg_84775
 ; ---------------------------------------------------------------------------
 
-cseg_845CC:         ; CODE XREF: AI_SetControlsDirection+495↑j
+cseg_845CC:         ; CODE XREF: UpdateCpuPlayerControls+495↑j
 cmp     word ptr D7, 5
 jz      @@apply_after_touch
 cmp     word ptr D7, 7
@@ -118041,7 +118057,7 @@ jz      @@apply_after_touch
 jmp     cseg_84775
 ; ---------------------------------------------------------------------------
 
-@@goal_scored:      ; CODE XREF: AI_SetControlsDirection+3CB↑j
+@@goal_scored:      ; CODE XREF: UpdateCpuPlayerControls+3CB↑j
 cmp     stoppageTimerActive, 150
 jb      cseg_84775
 mov     ax, cameraDirection
@@ -118062,8 +118078,8 @@ jnz     cseg_84775
 jmp     @@apply_after_touch
 ; ---------------------------------------------------------------------------
 
-@@free_kick:        ; CODE XREF: AI_SetControlsDirection+3E3↑j
-                    ; AI_SetControlsDirection+454↑j
+@@free_kick:        ; CODE XREF: UpdateCpuPlayerControls+3E3↑j
+                    ; UpdateCpuPlayerControls+454↑j
 mov     ax, AI_rand
 mov     word ptr D0, ax
 and     word ptr D0, 0Fh
@@ -118071,8 +118087,8 @@ jnz     cseg_8470F
 jmp     cseg_84775
 ; ---------------------------------------------------------------------------
 
-cseg_84671:         ; CODE XREF: AI_SetControlsDirection+43A↑j
-                    ; AI_SetControlsDirection+447↑j
+cseg_84671:         ; CODE XREF: UpdateCpuPlayerControls+43A↑j
+                    ; UpdateCpuPlayerControls+447↑j
 mov     ax, AI_rand
 mov     word ptr D0, ax
 and     word ptr D0, 0Fh
@@ -118085,8 +118101,8 @@ jnz     @@apply_after_touch
 jmp     cseg_84775
 ; ---------------------------------------------------------------------------
 
-@@doing_penalties:  ; CODE XREF: AI_SetControlsDirection+385↑j
-                    ; AI_SetControlsDirection+393↑j
+@@doing_penalties:  ; CODE XREF: UpdateCpuPlayerControls+385↑j
+                    ; UpdateCpuPlayerControls+393↑j
 mov     ax, AI_rand
 mov     word ptr D0, ax
 and     word ptr D0, 7
@@ -118102,7 +118118,7 @@ jmp     return
 ; ---------------------------------------------------------------------------
 
 @@penalty_random_direction_disallowed:
-                    ; CODE XREF: AI_SetControlsDirection+5BE↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+5BE↑j
 mov     esi, A5
 mov     ax, [esi+Sprite.direction]
 or      ax, ax
@@ -118113,7 +118129,7 @@ jz      return
 jmp     short @@apply_after_touch ; doing penalties, and the player's direction isn't up or down
 ; ---------------------------------------------------------------------------
 
-cseg_8470F:         ; CODE XREF: AI_SetControlsDirection+552↑j
+cseg_8470F:         ; CODE XREF: UpdateCpuPlayerControls+552↑j
 mov     ax, word ptr D5
 mov     word ptr D0, ax
 add     word ptr D0, 16
@@ -118125,8 +118141,8 @@ jz      short @@apply_after_touch
 jmp     cseg_84815
 ; ---------------------------------------------------------------------------
 
-@@apply_after_touch: ; CODE XREF: AI_SetControlsDirection+45A↑j
-                    ; AI_SetControlsDirection+486↑j ...
+@@apply_after_touch: ; CODE XREF: UpdateCpuPlayerControls+45A↑j
+                    ; UpdateCpuPlayerControls+486↑j ...
 mov     ax, word ptr D7
 mov     word ptr D2, ax ; D2 = controlled player direction
 or      ax, ax
@@ -118137,8 +118153,8 @@ sub     byte ptr D2, al ; D2 = difference between player's facing direction and 
 jmp     @@update_max_stoppage_time
 ; ---------------------------------------------------------------------------
 
-cseg_84775:         ; CODE XREF: AI_SetControlsDirection+473↑j
-                    ; AI_SetControlsDirection+4B3↑j ...
+cseg_84775:         ; CODE XREF: UpdateCpuPlayerControls+473↑j
+                    ; UpdateCpuPlayerControls+4B3↑j ...
 mov     ax, word ptr D7
 mov     word ptr D0, ax
 shl     word ptr D0, 5
@@ -118170,7 +118186,7 @@ jnz     @@apply_after_touch
 jmp     @@our_player_closest
 ; ---------------------------------------------------------------------------
 
-cseg_84815:         ; CODE XREF: AI_SetControlsDirection+62F↑j
+cseg_84815:         ; CODE XREF: UpdateCpuPlayerControls+62F↑j
 mov     ax, word ptr D5
 mov     word ptr D0, ax
 add     word ptr D0, 16
@@ -118182,8 +118198,8 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@update_turn_direction: ; CODE XREF: AI_SetControlsDirection+2AB↑j
-                    ; AI_SetControlsDirection+2B9↑j ...
+@@update_turn_direction: ; CODE XREF: UpdateCpuPlayerControls+2AB↑j
+                    ; UpdateCpuPlayerControls+2B9↑j ...
 mov     ax, currentGameTick
 mov     word ptr D0, ax
 and     word ptr D0, 0Eh ; timer mod 16, but only 0,2,4,6,8,10,12,14
@@ -118197,22 +118213,22 @@ add     AI_turnDirection, 1
 cmp     AI_turnDirection, -1
 jnz     return
 
-cseg_84890:         ; CODE XREF: AI_SetControlsDirection+764↑j
+cseg_84890:         ; CODE XREF: UpdateCpuPlayerControls+764↑j
 mov     word ptr D1, 1
 jmp     short @@apply_turn_direction
 ; ---------------------------------------------------------------------------
 
-cseg_8489B:         ; CODE XREF: AI_SetControlsDirection+75A↑j
+cseg_8489B:         ; CODE XREF: UpdateCpuPlayerControls+75A↑j
 cmp     AI_turnDirection, 1
 jz      short cseg_848BB
 sub     AI_turnDirection, 1
 cmp     AI_turnDirection, 1
 jnz     return
 
-cseg_848BB:         ; CODE XREF: AI_SetControlsDirection+78F↑j
+cseg_848BB:         ; CODE XREF: UpdateCpuPlayerControls+78F↑j
 mov     word ptr D1, -1
 
-@@apply_turn_direction: ; CODE XREF: AI_SetControlsDirection+785↑j
+@@apply_turn_direction: ; CODE XREF: UpdateCpuPlayerControls+785↑j
 mov     ax, word ptr D7
 mov     word ptr D0, ax
 mov     ax, AI_turnDirection
@@ -118229,14 +118245,14 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@save_for_next_frame: ; CODE XREF: AI_SetControlsDirection+7E5↑j
+@@save_for_next_frame: ; CODE XREF: UpdateCpuPlayerControls+7E5↑j
 mov     ax, word ptr D1
 mov     AI_turnDirection, ax
 or      ax, ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@game_in_progress: ; CODE XREF: AI_SetControlsDirection+1F1↑j
+@@game_in_progress: ; CODE XREF: UpdateCpuPlayerControls+1F1↑j
 mov     ax, playingPenalties
 or      ax, ax
 jnz     short @@penalty
@@ -118244,19 +118260,19 @@ mov     ax, penalty
 or      ax, ax
 jz      short @@no_penalty
 
-@@penalty:          ; CODE XREF: AI_SetControlsDirection+811↑j
+@@penalty:          ; CODE XREF: UpdateCpuPlayerControls+811↑j
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.spinTimer]
 or      ax, ax
 jns     @@ball_after_touch_allowed
 
-@@no_penalty:       ; CODE XREF: AI_SetControlsDirection+81C↑j
-mov     ax, AI_counter
+@@no_penalty:       ; CODE XREF: UpdateCpuPlayerControls+81C↑j
+mov     ax, cpuShotAftertouchTimer
 or      ax, ax
 jz      short @@direction_updated
-call    AI_SetDirectionTowardOpponentsGoal
+call    SetCpuPlayerDirectionTowardGoal
 
-@@direction_updated: ; CODE XREF: AI_SetControlsDirection+83A↑j
+@@direction_updated: ; CODE XREF: UpdateCpuPlayerControls+83A↑j
 cmp     A5, 0       ; check for controlled player
 jz      return
 mov     esi, A6
@@ -118286,9 +118302,9 @@ jz      @@noone_near
 jmp     cseg_855B1
 ; ---------------------------------------------------------------------------
 
-@@theres_a_player_near: ; CODE XREF: AI_SetControlsDirection+86C↑j
-                    ; AI_SetControlsDirection+879↑j
-call    AI_DecideWhetherToTriggerFire
+@@theres_a_player_near: ; CODE XREF: UpdateCpuPlayerControls+86C↑j
+                    ; UpdateCpuPlayerControls+879↑j
+call    DecideWhetherCpuPlayerFires
 jz      return
 mov     ax, deadVarAlways0
 or      ax, ax
@@ -118296,7 +118312,7 @@ jz      short cseg_84A0D
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
-mov     eax, dseg_1309C1
+mov     eax, deadVarAlways0_1
 cmp     A0, eax
 jnz     short cseg_84A0D
 mov     esi, A0
@@ -118304,8 +118320,8 @@ mov     ax, [esi+TeamGeneralInfo.playerHasBall]
 or      ax, ax
 jnz     return
 
-cseg_84A0D:         ; CODE XREF: AI_SetControlsDirection+8CA↑j
-                    ; AI_SetControlsDirection+8E4↑j
+cseg_84A0D:         ; CODE XREF: UpdateCpuPlayerControls+8CA↑j
+                    ; UpdateCpuPlayerControls+8E4↑j
 mov     esi, A5
 cmp     [esi+Sprite.direction], 2
 jz      short @@player_facing_left_or_right
@@ -118314,7 +118330,7 @@ cmp     [esi+Sprite.direction], 6
 jnz     short cseg_84A53
 
 @@player_facing_left_or_right:
-                    ; CODE XREF: AI_SetControlsDirection+904↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+904↑j
 cmp     A6, offset topTeamData
 jz      short @@top_team_test
 cmp     word ptr ballSprite.y+2, 158
@@ -118322,12 +118338,12 @@ jle     cseg_84AEB
 jmp     short cseg_84A53
 ; ---------------------------------------------------------------------------
 
-@@top_team_test:    ; CODE XREF: AI_SetControlsDirection+91D↑j
+@@top_team_test:    ; CODE XREF: UpdateCpuPlayerControls+91D↑j
 cmp     word ptr ballSprite.y+2, 740
 jge     cseg_84AEB
 
-cseg_84A53:         ; CODE XREF: AI_SetControlsDirection+911↑j
-                    ; AI_SetControlsDirection+92E↑j
+cseg_84A53:         ; CODE XREF: UpdateCpuPlayerControls+911↑j
+                    ; UpdateCpuPlayerControls+92E↑j
 cmp     D6, 28800
 ja      cseg_84AEB
 cmp     D6, 12800
@@ -118337,13 +118353,13 @@ mov     word ptr D0, ax
 and     word ptr D0, 3
 jnz     short cseg_84AEB
 
-cseg_84A85:         ; CODE XREF: AI_SetControlsDirection+959↑j
+cseg_84A85:         ; CODE XREF: UpdateCpuPlayerControls+959↑j
 mov     byte ptr D1, 0Fh
 cmp     D6, 3200
 ja      short cseg_84A9F
 mov     byte ptr D1, 32h
 
-cseg_84A9F:         ; CODE XREF: AI_SetControlsDirection+982↑j
+cseg_84A9F:         ; CODE XREF: UpdateCpuPlayerControls+982↑j
 mov     esi, A5
 mov     ax, [esi+42]
 mov     word ptr D2, ax
@@ -118360,8 +118376,8 @@ mov     al, byte ptr D1
 cmp     byte ptr D2, al
 jg      cseg_850F9
 
-cseg_84AEB:         ; CODE XREF: AI_SetControlsDirection+928↑j
-                    ; AI_SetControlsDirection+939↑j ...
+cseg_84AEB:         ; CODE XREF: UpdateCpuPlayerControls+928↑j
+                    ; UpdateCpuPlayerControls+939↑j ...
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.field_84]
 or      ax, ax
@@ -118384,7 +118400,7 @@ jz      @@our_player_closest
 jmp     cseg_84D57
 ; ---------------------------------------------------------------------------
 
-cseg_84B5B:         ; CODE XREF: AI_SetControlsDirection+9E7↑j
+cseg_84B5B:         ; CODE XREF: UpdateCpuPlayerControls+9E7↑j
 cmp     D6, 9800
 jb      cseg_84DD3
 cmp     A5, 0
@@ -118404,7 +118420,7 @@ mov     esi, A2
 cmp     dword ptr [esi+74], 5000
 jb      cseg_84C93
 
-cseg_84BBE:         ; CODE XREF: AI_SetControlsDirection+A86↑j
+cseg_84BBE:         ; CODE XREF: UpdateCpuPlayerControls+A86↑j
 mov     esi, A0
 mov     eax, [esi+TeamGeneralInfo.passToPlayerPtr]
 mov     A2, eax
@@ -118419,8 +118435,8 @@ jb      cseg_84C93
 jmp     cseg_84DD3
 ; ---------------------------------------------------------------------------
 
-cseg_84C00:         ; CODE XREF: AI_SetControlsDirection+A95↑j
-                    ; AI_SetControlsDirection+AD2↑j
+cseg_84C00:         ; CODE XREF: UpdateCpuPlayerControls+A95↑j
+                    ; UpdateCpuPlayerControls+AD2↑j
 cmp     D6, 180000
 ja      cseg_84F4B
 mov     ax, word ptr D7
@@ -118448,14 +118464,14 @@ jnz     cseg_84DD3
 jmp     @@our_player_closest
 ; ---------------------------------------------------------------------------
 
-cseg_84C93:         ; CODE XREF: AI_SetControlsDirection+AA4↑j
-                    ; AI_SetControlsDirection+AE1↑j
+cseg_84C93:         ; CODE XREF: UpdateCpuPlayerControls+AA4↑j
+                    ; UpdateCpuPlayerControls+AE1↑j
 cmp     AI_rand, 8
 ja      short cseg_84CAD
 cmp     D6, 48400
 ja      cseg_84F4B
 
-cseg_84CAD:         ; CODE XREF: AI_SetControlsDirection+B87↑j
+cseg_84CAD:         ; CODE XREF: UpdateCpuPlayerControls+B87↑j
 mov     ax, currentGameTick
 mov     word ptr D0, ax
 and     word ptr D0, 0Ch
@@ -118476,8 +118492,8 @@ jz      @@our_player_closest
 jmp     short $+2
 ; ---------------------------------------------------------------------------
 
-cseg_84D10:         ; CODE XREF: AI_SetControlsDirection+B1C↑j
-                    ; AI_SetControlsDirection+B47↑j ...
+cseg_84D10:         ; CODE XREF: UpdateCpuPlayerControls+B1C↑j
+                    ; UpdateCpuPlayerControls+B47↑j ...
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.field_84]
 or      ax, ax
@@ -118490,8 +118506,8 @@ jnb     cseg_84DD3
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.field_84], 4
 
-cseg_84D57:         ; CODE XREF: AI_SetControlsDirection+A17↑j
-                    ; AI_SetControlsDirection+A42↑j
+cseg_84D57:         ; CODE XREF: UpdateCpuPlayerControls+A17↑j
+                    ; UpdateCpuPlayerControls+A42↑j
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.plVeryCloseToBall]
 or      al, al
@@ -118509,7 +118525,7 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@turn_left:        ; CODE XREF: AI_SetControlsDirection+C5B↑j
+@@turn_left:        ; CODE XREF: UpdateCpuPlayerControls+C5B↑j
 mov     esi, A5
 mov     ax, [esi+Sprite.direction]
 mov     word ptr D0, ax
@@ -118521,14 +118537,14 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-cseg_84DD3:         ; CODE XREF: AI_SetControlsDirection+A51↑j
-                    ; AI_SetControlsDirection+A5E↑j ...
+cseg_84DD3:         ; CODE XREF: UpdateCpuPlayerControls+A51↑j
+                    ; UpdateCpuPlayerControls+A5E↑j ...
 mov     esi, A6
 mov     al, [esi+TeamGeneralInfo.plVeryCloseToBall]
 or      al, al
 jz      short cseg_84E16
 
-cseg_84DE0:         ; CODE XREF: AI_SetControlsDirection+13BC↓j
+cseg_84DE0:         ; CODE XREF: UpdateCpuPlayerControls+13BC↓j
 mov     ax, word ptr D5
 mov     word ptr D0, ax
 add     word ptr D0, 16
@@ -118540,8 +118556,8 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-cseg_84E16:         ; CODE XREF: AI_SetControlsDirection+C4E↑j
-                    ; AI_SetControlsDirection+CCA↑j
+cseg_84E16:         ; CODE XREF: UpdateCpuPlayerControls+C4E↑j
+                    ; UpdateCpuPlayerControls+CCA↑j
 mov     esi, A5
 mov     ax, [esi+Sprite.direction]
 mov     esi, A6
@@ -118550,8 +118566,8 @@ retn
 ; ---------------------------------------------------------------------------
 
 @@decide_if_flipping_direction:
-                    ; CODE XREF: AI_SetControlsDirection+13AD↓j
-                    ; AI_SetControlsDirection:@@jmp_decide_if_flipping_direction↓j ...
+                    ; CODE XREF: UpdateCpuPlayerControls+13AD↓j
+                    ; UpdateCpuPlayerControls:@@jmp_decide_if_flipping_direction↓j ...
 mov     esi, A5
 mov     ax, [esi+Sprite.fullDirection]
 mov     word ptr D0, ax
@@ -118577,8 +118593,8 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@set_opposite_direction: ; CODE XREF: AI_SetControlsDirection+D58↑j
-                    ; AI_SetControlsDirection+D67↑j ...
+@@set_opposite_direction: ; CODE XREF: UpdateCpuPlayerControls+D58↑j
+                    ; UpdateCpuPlayerControls+D67↑j ...
 mov     ax, word ptr D0
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
@@ -118587,7 +118603,7 @@ retn
 ; ---------------------------------------------------------------------------
 
 @@use_current_player_direction:
-                    ; CODE XREF: AI_SetControlsDirection+1420↓j
+                    ; CODE XREF: UpdateCpuPlayerControls+1420↓j
 mov     ax, word ptr D7
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
@@ -118595,14 +118611,14 @@ or      ax, ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@our_player_closest: ; CODE XREF: AI_SetControlsDirection+6AC↑j
-                    ; AI_SetControlsDirection+6FC↑j ...
+@@our_player_closest: ; CODE XREF: UpdateCpuPlayerControls+6AC↑j
+                    ; UpdateCpuPlayerControls+6FC↑j ...
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.field_84], 0
 mov     ax, AI_resumePlayTimer
 or      ax, ax
 jnz     return      ; small delay before getting the ball back to play
-call    AI_ResumeGameDelay
+call    IsCpuReadyToResumePlay
 jnb     return      ; wait a little while for player to get rid of the ball
 mov     AI_resumePlayTimer, 15
 mov     ax, word ptr D7 ; D7 should be controlled player direction...
@@ -118619,12 +118635,12 @@ ja      short @@jmp_return
 mov     ax, stoppageTimerActive
 mov     AI_maxStoppageTime, ax
 
-@@jmp_return:       ; CODE XREF: AI_SetControlsDirection+E24↑j
+@@jmp_return:       ; CODE XREF: UpdateCpuPlayerControls+E24↑j
 jmp     return
 ; ---------------------------------------------------------------------------
 
-cseg_84F4B:         ; CODE XREF: AI_SetControlsDirection+AF6↑j
-                    ; AI_SetControlsDirection+B93↑j
+cseg_84F4B:         ; CODE XREF: UpdateCpuPlayerControls+AF6↑j
+                    ; UpdateCpuPlayerControls+B93↑j
 mov     ax, word ptr D5
 mov     word ptr D0, ax
 add     word ptr D0, 16
@@ -118641,8 +118657,8 @@ jz      short cseg_84FA0
 jmp     cseg_84D10
 ; ---------------------------------------------------------------------------
 
-cseg_84FA0:         ; CODE XREF: AI_SetControlsDirection+E71↑j
-                    ; AI_SetControlsDirection+E7B↑j ...
+cseg_84FA0:         ; CODE XREF: UpdateCpuPlayerControls+E71↑j
+                    ; UpdateCpuPlayerControls+E7B↑j ...
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 2
 cmp     D6, 115600
@@ -118650,7 +118666,7 @@ ja      short cseg_84FCA
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 1
 
-cseg_84FCA:         ; CODE XREF: AI_SetControlsDirection+EA5↑j
+cseg_84FCA:         ; CODE XREF: UpdateCpuPlayerControls+EA5↑j
 mov     ax, word ptr D7
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
@@ -118668,7 +118684,7 @@ or      al, al
 jns     short cseg_85025
 neg     word ptr D0
 
-cseg_85025:         ; CODE XREF: AI_SetControlsDirection+F08↑j
+cseg_85025:         ; CODE XREF: UpdateCpuPlayerControls+F08↑j
 mov     eax, ballSprite.deltaY
 or      eax, eax
 js      short cseg_8503F
@@ -118677,11 +118693,11 @@ ja      cseg_850E1
 jmp     short cseg_8504E
 ; ---------------------------------------------------------------------------
 
-cseg_8503F:         ; CODE XREF: AI_SetControlsDirection+F18↑j
+cseg_8503F:         ; CODE XREF: UpdateCpuPlayerControls+F18↑j
 cmp     word ptr ballSprite.y+2, 342
 jb      cseg_850E1
 
-cseg_8504E:         ; CODE XREF: AI_SetControlsDirection+F29↑j
+cseg_8504E:         ; CODE XREF: UpdateCpuPlayerControls+F29↑j
 mov     ax, currentGameTick
 mov     word ptr D1, ax
 and     word ptr D1, 1Ch
@@ -118691,7 +118707,7 @@ jb      short cseg_85080
 cmp     word ptr ballSprite.x+2, 478
 jb      short cseg_85097
 
-cseg_85080:         ; CODE XREF: AI_SetControlsDirection+F5F↑j
+cseg_85080:         ; CODE XREF: UpdateCpuPlayerControls+F5F↑j
 cmp     word ptr ballSprite.x+2, 118
 jb      short cseg_850C5
 cmp     word ptr ballSprite.x+2, 553
@@ -118699,7 +118715,7 @@ ja      short cseg_850C5
 jmp     short cseg_850AE
 ; ---------------------------------------------------------------------------
 
-cseg_85097:         ; CODE XREF: AI_SetControlsDirection+F6A↑j
+cseg_85097:         ; CODE XREF: UpdateCpuPlayerControls+F6A↑j
 mov     ax, word ptr D1
 or      ax, ax
 jz      short cseg_850CF
@@ -118708,7 +118724,7 @@ jb      short cseg_850E1
 jmp     short cseg_850DA
 ; ---------------------------------------------------------------------------
 
-cseg_850AE:         ; CODE XREF: AI_SetControlsDirection+F81↑j
+cseg_850AE:         ; CODE XREF: UpdateCpuPlayerControls+F81↑j
 mov     ax, word ptr D1
 or      ax, ax
 jz      short cseg_850DA
@@ -118717,34 +118733,34 @@ jb      short cseg_850CF
 jmp     short cseg_850E1
 ; ---------------------------------------------------------------------------
 
-cseg_850C5:         ; CODE XREF: AI_SetControlsDirection+F74↑j
-                    ; AI_SetControlsDirection+F7F↑j
+cseg_850C5:         ; CODE XREF: UpdateCpuPlayerControls+F74↑j
+                    ; UpdateCpuPlayerControls+F7F↑j
 cmp     word ptr D1, 4
 jb      short cseg_850E1
 
-cseg_850CF:         ; CODE XREF: AI_SetControlsDirection+F8C↑j
-                    ; AI_SetControlsDirection+FAD↑j
+cseg_850CF:         ; CODE XREF: UpdateCpuPlayerControls+F8C↑j
+                    ; UpdateCpuPlayerControls+FAD↑j
 mov     word ptr D0, 0
 jmp     short cseg_850E1
 ; ---------------------------------------------------------------------------
 
-cseg_850DA:         ; CODE XREF: AI_SetControlsDirection+F98↑j
-                    ; AI_SetControlsDirection+FA3↑j
+cseg_850DA:         ; CODE XREF: UpdateCpuPlayerControls+F98↑j
+                    ; UpdateCpuPlayerControls+FA3↑j
 neg     word ptr D0
 
-cseg_850E1:         ; CODE XREF: AI_SetControlsDirection+F23↑j
-                    ; AI_SetControlsDirection+F34↑j ...
+cseg_850E1:         ; CODE XREF: UpdateCpuPlayerControls+F23↑j
+                    ; UpdateCpuPlayerControls+F34↑j ...
 mov     ax, word ptr D0
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_ballSpinDirection], ax
 jmp     return
 ; ---------------------------------------------------------------------------
 
-cseg_850F9:         ; CODE XREF: AI_SetControlsDirection+9D1↑j
+cseg_850F9:         ; CODE XREF: UpdateCpuPlayerControls+9D1↑j
 mov     ax, AI_resumePlayTimer
 or      ax, ax
 jnz     return
-call    AI_ResumeGameDelay
+call    IsCpuReadyToResumePlay
 jnb     return
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 0
@@ -118753,7 +118769,7 @@ jmp     short cseg_85178
 mov     ax, AI_resumePlayTimer
 or      ax, ax
 jnz     return
-call    AI_ResumeGameDelay
+call    IsCpuReadyToResumePlay
 jnb     return
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 1
@@ -118762,13 +118778,13 @@ jmp     short cseg_85178
 mov     ax, AI_resumePlayTimer
 or      ax, ax
 jnz     return
-call    AI_ResumeGameDelay
+call    IsCpuReadyToResumePlay
 jnb     return
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 2
 
-cseg_85178:         ; CODE XREF: AI_SetControlsDirection+100E↑j
-                    ; AI_SetControlsDirection+1039↑j
+cseg_85178:         ; CODE XREF: UpdateCpuPlayerControls+100E↑j
+                    ; UpdateCpuPlayerControls+1039↑j
 mov     AI_resumePlayTimer, 15
 mov     ax, word ptr D7
 mov     esi, A6
@@ -118781,14 +118797,14 @@ or      al, al
 jns     short cseg_851B4
 neg     word ptr D0
 
-cseg_851B4:         ; CODE XREF: AI_SetControlsDirection+1097↑j
+cseg_851B4:         ; CODE XREF: UpdateCpuPlayerControls+1097↑j
 mov     ax, word ptr D0
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_ballSpinDirection], ax
 jmp     return
 ; ---------------------------------------------------------------------------
 
-@@update_max_stoppage_time: ; CODE XREF: AI_SetControlsDirection+65C↑j
+@@update_max_stoppage_time: ; CODE XREF: UpdateCpuPlayerControls+65C↑j
 mov     ax, AI_maxStoppageTime
 mov     word ptr D0, ax
 mov     ax, stoppageTimerActive
@@ -118798,7 +118814,7 @@ mov     ax, stoppageTimerActive
 mov     AI_maxStoppageTime, ax
 
 @@decide_after_touch_strength:
-                    ; CODE XREF: AI_SetControlsDirection+10D1↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+10D1↑j
 mov     AI_resumePlayTimer, 15
 cmp     gameState, ST_PENALTY
 jz      @@weak_after_touch
@@ -118809,7 +118825,7 @@ jb      short @@test_corner
 cmp     gameState, ST_FREE_KICK_RIGHT3
 jbe     short @@check_distance_from_the_goal
 
-@@test_corner:      ; CODE XREF: AI_SetControlsDirection+110C↑j
+@@test_corner:      ; CODE XREF: UpdateCpuPlayerControls+110C↑j
 cmp     gameState, ST_CORNER_LEFT
 jz      short @@medium_after_touch
 nop
@@ -118830,33 +118846,33 @@ jmp     short @@strong_after_touch
 ; ---------------------------------------------------------------------------
 
 @@check_distance_from_the_goal:
-                    ; CODE XREF: AI_SetControlsDirection+1116↑j
-                    ; AI_SetControlsDirection+1144↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+1116↑j
+                    ; UpdateCpuPlayerControls+1144↑j
 cmp     D6, 28800
 jb      short @@weak_after_touch
 cmp     D6, 57800
 jb      short @@medium_after_touch
 
-@@strong_after_touch: ; CODE XREF: AI_SetControlsDirection+115A↑j
+@@strong_after_touch: ; CODE XREF: UpdateCpuPlayerControls+115A↑j
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 2
 jmp     short @@activate_normal_fire
 ; ---------------------------------------------------------------------------
 
-@@medium_after_touch: ; CODE XREF: AI_SetControlsDirection+1120↑j
-                    ; AI_SetControlsDirection+112E↑j ...
+@@medium_after_touch: ; CODE XREF: UpdateCpuPlayerControls+1120↑j
+                    ; UpdateCpuPlayerControls+112E↑j ...
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 1
 jmp     short @@activate_normal_fire
 ; ---------------------------------------------------------------------------
 
-@@weak_after_touch: ; CODE XREF: AI_SetControlsDirection+10F0↑j
-                    ; AI_SetControlsDirection+10FE↑j ...
+@@weak_after_touch: ; CODE XREF: UpdateCpuPlayerControls+10F0↑j
+                    ; UpdateCpuPlayerControls+10FE↑j ...
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_afterTouchStrength], 0
 
-@@activate_normal_fire: ; CODE XREF: AI_SetControlsDirection+1183↑j
-                    ; AI_SetControlsDirection+1194↑j
+@@activate_normal_fire: ; CODE XREF: UpdateCpuPlayerControls+1183↑j
+                    ; UpdateCpuPlayerControls+1194↑j
 mov     ax, word ptr D7
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
@@ -118887,29 +118903,29 @@ jge     short cseg_85384
 jmp     short cseg_8536B
 ; ---------------------------------------------------------------------------
 
-cseg_8535D:         ; CODE XREF: AI_SetControlsDirection+1237↑j
+cseg_8535D:         ; CODE XREF: UpdateCpuPlayerControls+1237↑j
 mov     esi, A2
 cmp     word ptr [esi+(Sprite.y+2)], 216
 jle     short cseg_85384
 
-cseg_8536B:         ; CODE XREF: AI_SetControlsDirection+122B↑j
-                    ; AI_SetControlsDirection+1247↑j
+cseg_8536B:         ; CODE XREF: UpdateCpuPlayerControls+122B↑j
+                    ; UpdateCpuPlayerControls+1247↑j
 mov     word ptr D0, -1
 mov     al, byte ptr D2
 or      al, al
 jns     short cseg_85384
 neg     word ptr D0
 
-cseg_85384:         ; CODE XREF: AI_SetControlsDirection+1245↑j
-                    ; AI_SetControlsDirection+1255↑j ...
+cseg_85384:         ; CODE XREF: UpdateCpuPlayerControls+1245↑j
+                    ; UpdateCpuPlayerControls+1255↑j ...
 mov     ax, word ptr D0
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_ballSpinDirection], ax
 jmp     return
 ; ---------------------------------------------------------------------------
 
-@@corner:           ; CODE XREF: AI_SetControlsDirection+11E3↑j
-                    ; AI_SetControlsDirection+11F1↑j
+@@corner:           ; CODE XREF: UpdateCpuPlayerControls+11E3↑j
+                    ; UpdateCpuPlayerControls+11F1↑j
 mov     ax, AI_rand
 mov     word ptr D0, ax
 or      ax, ax
@@ -118919,14 +118935,14 @@ jb      short cseg_853FA
 cmp     word ptr D0, 6
 jb      short cseg_853DB
 
-@@no_after_touch:   ; CODE XREF: AI_SetControlsDirection+11C7↑j
-                    ; AI_SetControlsDirection+11D5↑j ...
+@@no_after_touch:   ; CODE XREF: UpdateCpuPlayerControls+11C7↑j
+                    ; UpdateCpuPlayerControls+11D5↑j ...
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.AI_ballSpinDirection], 0
 jmp     return
 ; ---------------------------------------------------------------------------
 
-cseg_853DB:         ; CODE XREF: AI_SetControlsDirection+12B1↑j
+cseg_853DB:         ; CODE XREF: UpdateCpuPlayerControls+12B1↑j
 mov     word ptr D1, -1
 mov     ax, word ptr D7
 mov     word ptr D0, ax
@@ -118934,13 +118950,13 @@ sub     word ptr D0, 1
 jmp     short cseg_85417
 ; ---------------------------------------------------------------------------
 
-cseg_853FA:         ; CODE XREF: AI_SetControlsDirection+12A7↑j
+cseg_853FA:         ; CODE XREF: UpdateCpuPlayerControls+12A7↑j
 mov     word ptr D1, 1
 mov     ax, word ptr D7
 mov     word ptr D0, ax
 add     word ptr D0, 1
 
-cseg_85417:         ; CODE XREF: AI_SetControlsDirection+12E4↑j
+cseg_85417:         ; CODE XREF: UpdateCpuPlayerControls+12E4↑j
 and     word ptr D0, 7
 mov     cl, byte ptr D0
 mov     ax, 1
@@ -118953,9 +118969,9 @@ mov     [esi+TeamGeneralInfo.AI_ballSpinDirection], ax
 jmp     return
 ; ---------------------------------------------------------------------------
 
-@@noone_near:       ; CODE XREF: AI_SetControlsDirection+87B↑j
-                    ; AI_SetControlsDirection+88B↑j ...
-call    AI_DecideWhetherToTriggerFire
+@@noone_near:       ; CODE XREF: UpdateCpuPlayerControls+87B↑j
+                    ; UpdateCpuPlayerControls+88B↑j ...
+call    DecideWhetherCpuPlayerFires
 jz      return
 cmp     A4, 0       ; A4 -> pass to player sprite
 jz      short @@pass_to_player_too_far_or_null
@@ -118984,8 +119000,8 @@ jmp     return
 ; ---------------------------------------------------------------------------
 
 @@pass_to_player_too_far_or_null:
-                    ; CODE XREF: AI_SetControlsDirection+134B↑j
-                    ; AI_SetControlsDirection+1371↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+134B↑j
+                    ; UpdateCpuPlayerControls+1371↑j
 cmp     A4, 0
 jz      @@decide_if_flipping_direction
 mov     ax, deadVarAlways0
@@ -119001,8 +119017,8 @@ jmp     short @@randomly_flip_or_continue_direction
 ; ---------------------------------------------------------------------------
 
 @@jmp_decide_if_flipping_direction:
-                    ; CODE XREF: AI_SetControlsDirection+13CB↑j
-                    ; AI_SetControlsDirection+13D6↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+13CB↑j
+                    ; UpdateCpuPlayerControls+13D6↑j
 jmp     @@decide_if_flipping_direction
 ; ---------------------------------------------------------------------------
 mov     esi, A4
@@ -119015,7 +119031,7 @@ cmp     D0, 800
 jg      @@decide_if_flipping_direction
 
 @@randomly_flip_or_continue_direction:
-                    ; CODE XREF: AI_SetControlsDirection+13D8↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+13D8↑j
 mov     ax, currentGameTick
 mov     word ptr D0, ax
 and     word ptr D0, 18h ; 12.5% chance of direction flip
@@ -119041,7 +119057,7 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-cseg_855B1:         ; CODE XREF: AI_SetControlsDirection+8B1↑j
+cseg_855B1:         ; CODE XREF: UpdateCpuPlayerControls+8B1↑j
 jmp     cseg_84DD3
 ; ---------------------------------------------------------------------------
 cmp     A4, 0
@@ -119069,8 +119085,8 @@ mov     [esi+TeamGeneralInfo.fireThisFrame], 1
 jmp     return
 ; ---------------------------------------------------------------------------
 
-@@ball_after_touch_allowed: ; CODE XREF: AI_SetControlsDirection+82B↑j
-                    ; AI_SetControlsDirection+85B↑j
+@@ball_after_touch_allowed: ; CODE XREF: UpdateCpuPlayerControls+82B↑j
+                    ; UpdateCpuPlayerControls+85B↑j
 mov     esi, A6     ; possibly apply ball after-touch
 mov     ax, [esi+TeamGeneralInfo.controlledPlDirection]
 mov     word ptr D1, ax
@@ -119090,8 +119106,8 @@ or      ax, ax
 js      short @@apply_left_spin
 jnz     short @@apply_right_spin
 
-@@no_ball_after_touch: ; CODE XREF: AI_SetControlsDirection+1540↑j
-                    ; AI_SetControlsDirection+154B↑j ...
+@@no_ball_after_touch: ; CODE XREF: UpdateCpuPlayerControls+1540↑j
+                    ; UpdateCpuPlayerControls+154B↑j ...
 mov     esi, A6
 cmp     [esi+TeamGeneralInfo.AI_afterTouchStrength], 1
 jnz     short @@do_long_kick
@@ -119106,12 +119122,12 @@ mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@do_long_kick:     ; CODE XREF: AI_SetControlsDirection+1585↑j
+@@do_long_kick:     ; CODE XREF: UpdateCpuPlayerControls+1585↑j
 mov     A0, offset AI_longKickTable
 jmp     short @@set_new_direction_for_kick_pass
 ; ---------------------------------------------------------------------------
 
-@@apply_left_spin:  ; CODE XREF: AI_SetControlsDirection+1573↑j
+@@apply_left_spin:  ; CODE XREF: UpdateCpuPlayerControls+1573↑j
 mov     ax, word ptr D1
 mov     word ptr D0, ax
 sub     word ptr D0, 1
@@ -119120,7 +119136,7 @@ mov     A0, offset AI_leftSpinTable
 jmp     short @@set_new_direction_for_kick_pass
 ; ---------------------------------------------------------------------------
 
-@@apply_right_spin: ; CODE XREF: AI_SetControlsDirection+1575↑j
+@@apply_right_spin: ; CODE XREF: UpdateCpuPlayerControls+1575↑j
 mov     ax, word ptr D1
 mov     word ptr D0, ax
 add     word ptr D0, 1
@@ -119128,8 +119144,8 @@ and     word ptr D0, 7
 mov     A0, offset AI_rotateRightTable
 
 @@set_new_direction_for_kick_pass:
-                    ; CODE XREF: AI_SetControlsDirection+15B3↑j
-                    ; AI_SetControlsDirection+15DB↑j
+                    ; CODE XREF: UpdateCpuPlayerControls+15B3↑j
+                    ; UpdateCpuPlayerControls+15DB↑j
 mov     esi, A6
 mov     ax, [esi+TeamGeneralInfo.AI_afterTouchStrength]
 mov     word ptr D0, ax
@@ -119143,7 +119159,7 @@ mov     ax, word ptr D1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 retn
-AI_SetControlsDirection endp
+UpdateCpuPlayerControls endp
 
 ; ---------------------------------------------------------------------------
 mov     esi, A6
@@ -119160,14 +119176,14 @@ retn
 ; Set the direction toward the opposing goal and the ball.
 ; Limits for ball x are less than 300, 300...371 and greater than 371.
 
-AI_SetDirectionTowardOpponentsGoal proc near
-                    ; CODE XREF: AI_SetControlsDirection+83C↑p
-mov     ax, AI_counter
+SetCpuPlayerDirectionTowardGoal proc near
+                    ; CODE XREF: UpdateCpuPlayerControls+83C↑p
+mov     ax, cpuShotAftertouchTimer
 or      ax, ax
 jz      @@out
 mov     ax, word ptr ballSprite.x+2
 mov     word ptr D0, ax ; D0 = ball x
-cmp     AI_attackHalf, 1
+cmp     cpuAftertouchTargetGoal, 1
 jz      short @@attacking_top
 cmp     A6, offset topTeamData
 jnz     @@out
@@ -119181,7 +119197,7 @@ mov     word ptr D1, 4
 jmp     short @@set_allowed_direction
 ; ---------------------------------------------------------------------------
 
-@@attacking_top:    ; CODE XREF: AI_SetDirectionTowardOpponentsGoal+23↑j
+@@attacking_top:    ; CODE XREF: SetCpuPlayerDirectionTowardGoal+23↑j
 cmp     A6, offset bottomTeamData
 jnz     short @@out
 mov     word ptr D1, 1
@@ -119193,23 +119209,23 @@ ja      short @@set_allowed_direction
 mov     word ptr D1, 0
 
 @@set_allowed_direction:
-                    ; CODE XREF: AI_SetDirectionTowardOpponentsGoal+47↑j
-                    ; AI_SetDirectionTowardOpponentsGoal+5B↑j ...
+                    ; CODE XREF: SetCpuPlayerDirectionTowardGoal+47↑j
+                    ; SetCpuPlayerDirectionTowardGoal+5B↑j ...
 mov     ax, word ptr D1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
 jmp     short return
 ; ---------------------------------------------------------------------------
 
-@@out:              ; CODE XREF: AI_SetDirectionTowardOpponentsGoal+9↑j
-                    ; AI_SetDirectionTowardOpponentsGoal+2F↑j ...
+@@out:              ; CODE XREF: SetCpuPlayerDirectionTowardGoal+9↑j
+                    ; SetCpuPlayerDirectionTowardGoal+2F↑j ...
 retn
 ; ---------------------------------------------------------------------------
 
-return:             ; CODE XREF: AI_SetControlsDirection+10↑j
-                    ; AI_SetControlsDirection+98↑j ...
+return:             ; CODE XREF: UpdateCpuPlayerControls+10↑j
+                    ; UpdateCpuPlayerControls+98↑j ...
 retn
-AI_SetDirectionTowardOpponentsGoal endp
+SetCpuPlayerDirectionTowardGoal endp
 
 ; ---------------------------------------------------------------------------
 retn
@@ -119223,34 +119239,34 @@ retn
 ; out:
 ;      D0, zero flag - 0/set: firing, !0/clear: not gonna fire
 
-AI_DecideWhetherToTriggerFire proc near
-                    ; CODE XREF: AI_SetControlsDirection:@@theres_a_player_near↑p
-                    ; AI_SetControlsDirection:@@noone_near↑p
+DecideWhetherCpuPlayerFires proc near
+                    ; CODE XREF: UpdateCpuPlayerControls:@@theres_a_player_near↑p
+                    ; UpdateCpuPlayerControls:@@noone_near↑p
 mov     esi, A5
 cmp     [esi+Sprite.playerOrdinal], 1
 jz      @@no_fire
 cmp     A6, offset topTeamData
 jnz     short @@we_are_top ; we're bottom
-cmp     word ptr D7, 3 ; is the player facing downwards, toward opponent's goal?
+cmp     word ptr D7, kDirectionBottomRight ; is the player facing downwards, toward opponent's goal?
 jz      short @@facing_toward_opponents_goal
-cmp     word ptr D7, 4
+cmp     word ptr D7, kDirectionBottom
 jz      short @@facing_toward_opponents_goal
-cmp     word ptr D7, 5
+cmp     word ptr D7, kDirectionLeftBottom
 jz      short @@facing_toward_opponents_goal
 jmp     @@no_fire   ; not facing toward opponent goal (directions 3,4,5)
 ; ---------------------------------------------------------------------------
 
-@@we_are_top:       ; CODE XREF: AI_DecideWhetherToTriggerFire+1B↑j
-cmp     word ptr D7, 7
+@@we_are_top:       ; CODE XREF: DecideWhetherCpuPlayerFires+1B↑j
+cmp     word ptr D7, kDirectionTopLeft
 jz      short @@facing_toward_opponents_goal
-cmp     word ptr D7, 0
+cmp     word ptr D7, kDirectionTop
 jz      short @@facing_toward_opponents_goal
-cmp     word ptr D7, 1
+cmp     word ptr D7, kDirectionTopRight
 jnz     @@no_fire
 
 @@facing_toward_opponents_goal:
-                    ; CODE XREF: AI_DecideWhetherToTriggerFire+25↑j
-                    ; AI_DecideWhetherToTriggerFire+2F↑j ...
+                    ; CODE XREF: DecideWhetherCpuPlayerFires+25↑j
+                    ; DecideWhetherCpuPlayerFires+2F↑j ...
 mov     esi, A5
 cmp     [esi+Sprite.ballDistance], 648 ; 18 ^ 2 + 18 ^ 2
 ja      @@no_fire
@@ -119264,13 +119280,13 @@ ja      @@no_fire
 jmp     short @@trigger_joypad
 ; ---------------------------------------------------------------------------
 
-@@ball_falling:     ; CODE XREF: AI_DecideWhetherToTriggerFire+7C↑j
+@@ball_falling:     ; CODE XREF: DecideWhetherCpuPlayerFires+7C↑j
 cmp     word ptr ballSprite.z+2, 12
 jb      @@no_fire
 cmp     word ptr ballSprite.z+2, 20
 ja      @@no_fire
 
-@@trigger_joypad:   ; CODE XREF: AI_DecideWhetherToTriggerFire+9A↑j
+@@trigger_joypad:   ; CODE XREF: DecideWhetherCpuPlayerFires+9A↑j
 mov     esi, A6     ; ball z must be [8..14]
 mov     [esi+TeamGeneralInfo.fireThisFrame], 1 ; fire!!
 mov     esi, A5
@@ -119295,27 +119311,27 @@ jnz     short @@no_fire
 mov     ax, word ptr D0
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
-mov     AI_counter, 15
+mov     cpuShotAftertouchTimer, 15
 mov     ax, word ptr D0
 mov     AI_counterWriteOnly, ax
-mov     AI_attackHalf, 2
+mov     cpuAftertouchTargetGoal, 2
 cmp     A6, offset topTeamData
 jz      short @@out_fire
-mov     AI_attackHalf, 1
+mov     cpuAftertouchTargetGoal, 1
 
-@@out_fire:         ; CODE XREF: AI_DecideWhetherToTriggerFire+171↑j
+@@out_fire:         ; CODE XREF: DecideWhetherCpuPlayerFires+171↑j
 mov     word ptr D0, 0
 xor     ax, ax
 retn
 ; ---------------------------------------------------------------------------
 
-@@no_fire:          ; CODE XREF: AI_DecideWhetherToTriggerFire+B↑j
-                    ; AI_DecideWhetherToTriggerFire+3B↑j ...
+@@no_fire:          ; CODE XREF: DecideWhetherCpuPlayerFires+B↑j
+                    ; DecideWhetherCpuPlayerFires+3B↑j ...
 mov     word ptr D0, 1
 mov     ax, 1
 or      ax, ax
 retn
-AI_DecideWhetherToTriggerFire endp
+DecideWhetherCpuPlayerFires endp
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -119323,20 +119339,20 @@ AI_DecideWhetherToTriggerFire endp
 ; in:
 ;      A6 -> team (general)
 ; out:
-;      A0 -> opponents team
 ;      carry flag = pass/kick time == 13
 ;
-; Only used by AI.
+; Only used by AI. A0 is a dead output.
 
-AI_ResumeGameDelay proc near ; CODE XREF: AI_SetControlsDirection+DDA↑p
-                    ; AI_SetControlsDirection+FF4↑p ...
+IsCpuReadyToResumePlay proc near
+                    ; CODE XREF: UpdateCpuPlayerControls+DDA↑p
+                    ; UpdateCpuPlayerControls+FF4↑p ...
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
 mov     esi, A6
 cmp     [esi+TeamGeneralInfo.passKickTimer], 13
 retn
-AI_ResumeGameDelay endp
+IsCpuReadyToResumePlay endp
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -119351,8 +119367,8 @@ AI_ResumeGameDelay endp
 ; Find player closest to ball facing specified direction. Search both teams.
 
 FindClosestPlayerToBallFacing proc near
-                    ; CODE XREF: AI_SetControlsDirection+675↑p
-                    ; AI_SetControlsDirection+6C5↑p ...
+                    ; CODE XREF: UpdateCpuPlayerControls+675↑p
+                    ; UpdateCpuPlayerControls+6C5↑p ...
 mov     A0, offset ballSprite
 mov     esi, A0
 mov     ax, word ptr [esi+(Sprite.x+2)]
@@ -119428,24 +119444,24 @@ FindClosestPlayerToBallFacing endp
 ; =============== S U B R O U T I N E =======================================
 
 ; in:
-;      A1 -> player controlling the ball
+;      A1 -> CPU player being updated
 ;      A6 -> team general info
 
-AI_Kick proc near   ; CODE XREF: UpdatePlayers+408C↑p
+CpuPlayerAttemptTackle proc near ; CODE XREF: UpdatePlayers+408C↑p
 mov     ax, deadVarAlways0
 or      ax, ax
 jz      short cseg_85B62
-mov     eax, dseg_1309C1
+mov     eax, deadVarAlways0_1
 cmp     A6, eax
 jz      @@out
 mov     esi, A6
 mov     eax, [esi+TeamGeneralInfo.opponentsTeam]
 mov     A0, eax
-mov     eax, dseg_1309C1
+mov     eax, deadVarAlways0_1
 cmp     A0, eax
 jz      @@out
 
-cseg_85B62:         ; CODE XREF: AI_Kick+9↑j
+cseg_85B62:         ; CODE XREF: CpuPlayerAttemptTackle+9↑j
 mov     ax, currentGameTick
 mov     word ptr D0, ax
 and     word ptr D0, 6
@@ -119486,7 +119502,7 @@ jl      short @@kick
 cmp     byte ptr D0, 32
 jle     short @@out
 
-@@kick:             ; CODE XREF: AI_Kick+EE↑j
+@@kick:             ; CODE XREF: CpuPlayerAttemptTackle+EE↑j
 mov     ax, word ptr D7
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.currentAllowedDirection], ax
@@ -119497,9 +119513,10 @@ mov     [esi+TeamGeneralInfo.fireThisFrame], 1
 mov     esi, A6
 mov     [esi+TeamGeneralInfo.normalFire], 1
 
-@@out:              ; CODE XREF: AI_Kick+16↑j AI_Kick+34↑j ...
+@@out:              ; CODE XREF: CpuPlayerAttemptTackle+16↑j
+                    ; CpuPlayerAttemptTackle+34↑j ...
 retn
-AI_Kick endp
+CpuPlayerAttemptTackle endp
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -217974,7 +217991,7 @@ teamKitsSimilarity db 4 dup(0) ; DATA XREF: MeasureTeamKitsSimilarity↑o
                     ; team1 sec. vs team2 prim.
                     ; team1 sec. vs team2 sec.
 deadVarAlways0 dw 0 ; DATA XREF: InitializeInGameTeamsAndStartGame+965↑w
-                    ; AI_SetControlsDirection+8C1↑r ...
+                    ; UpdateCpuPlayerControls+8C1↑r ...
 db    0
 db    0
 db    0
@@ -217999,8 +218016,8 @@ db    2
 db    2
 db    2
 db    2
-dseg_1309C1 dd 0    ; DATA XREF: AI_SetControlsDirection+8D9↑r
-                    ; AI_Kick+B↑r ...
+deadVarAlways0_1 dd 0 ; DATA XREF: UpdateCpuPlayerControls+8D9↑r
+                    ; CpuPlayerAttemptTackle+B↑r ...
 db    0
 db    0
 db    1
@@ -219837,8 +219854,8 @@ goalCounter dw 0    ; DATA XREF: PlayEnqueuedSamples:@@played_sample↑r
                     ; PlayEnqueuedSamples+13D↑w ...
                     ; gets set to some value after goal is scored, and counts down to zero
                     ; probably something with patterns, or samples
-AI_maxStoppageTime dw 0 ; DATA XREF: AI_SetControlsDirection+E0B↑r
-                    ; AI_SetControlsDirection+E2C↑w ...
+AI_maxStoppageTime dw 0 ; DATA XREF: UpdateCpuPlayerControls+E0B↑r
+                    ; UpdateCpuPlayerControls+E2C↑w ...
 goalCameraMode dw 0 ; DATA XREF: GameLoop+568↑w
                     ; ManageAdvertisements+48↑r ...
                     ; set when goal is scored, reset when camera is moved to the center
@@ -246292,38 +246309,38 @@ db 0, 14, 0, 13, 0, 3, 0, 10, 0, 5, 0, 1, 0, 8, 0
 kPlayerShotChanceTable dw 8, 1024, 112, 800, 144, 7, 7, 7, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7
                     ; DATA XREF: UpdatePlayerShotChanceTable+18↑o
 dw 7, 1, 6, 9, 4, 12, 1, 6, 9, 4
-AI_turnDirection dw 1 ; DATA XREF: AI_SetControlsDirection+751↑r
-                    ; AI_SetControlsDirection+75C↑r ...
+AI_turnDirection dw 1 ; DATA XREF: UpdateCpuPlayerControls+751↑r
+                    ; UpdateCpuPlayerControls+75C↑r ...
 AI_resumePlayTimer dw 0
-                    ; DATA XREF: AI_SetControlsDirection:@@bump_resume_play_ai_timer↑r
-                    ; AI_SetControlsDirection+34↑w ...
+                    ; DATA XREF: UpdateCpuPlayerControls:@@bump_resume_play_ai_timer↑r
+                    ; UpdateCpuPlayerControls+34↑w ...
                     ; when AI puts the ball back into play this counts down from 15 to 0
-AI_rand dw 0        ; DATA XREF: AI_SetControlsDirection+47↑w
-                    ; AI_SetControlsDirection:@@keepers_ball↑r ...
+AI_rand dw 0        ; DATA XREF: UpdateCpuPlayerControls+47↑w
+                    ; UpdateCpuPlayerControls:@@keepers_ball↑r ...
                     ; random number generated each time DoAI is called; 0..255
 db    0
 db    0
 AI_randomRotateTable dw -32, 32
-                    ; DATA XREF: AI_SetControlsDirection+143A↑o
+                    ; DATA XREF: UpdateCpuPlayerControls+143A↑o
 AI_leftSpinTable dw -1, -2, -3
-                    ; DATA XREF: AI_SetControlsDirection+15D1↑o
+                    ; DATA XREF: UpdateCpuPlayerControls+15D1↑o
 AI_rotateRightTable dw 1, 2, 3
-                    ; DATA XREF: AI_SetControlsDirection+15F9↑o
+                    ; DATA XREF: UpdateCpuPlayerControls+15F9↑o
 AI_longKickTable dw 0, -999, 4
-                    ; DATA XREF: AI_SetControlsDirection:@@do_long_kick↑o
-AI_counter dw 0     ; DATA XREF: AI_SetControlsDirection+16↑r
-                    ; AI_SetControlsDirection+21↑w ...
+                    ; DATA XREF: UpdateCpuPlayerControls:@@do_long_kick↑o
+cpuShotAftertouchTimer dw 0 ; DATA XREF: UpdateCpuPlayerControls+16↑r
+                    ; UpdateCpuPlayerControls+21↑w ...
                     ; zero during the game
                     ; positive, counts down to zero
                     ; while non-zero, AI is allowed to modify direction (for ball spin?)
-AI_attackHalf dw 0  ; DATA XREF: AI_SetDirectionTowardOpponentsGoal+1B↑r
-                    ; AI_DecideWhetherToTriggerFire+15E↑w ...
+cpuAftertouchTargetGoal dw 0
+                    ; DATA XREF: SetCpuPlayerDirectionTowardGoal+1B↑r
+                    ; DecideWhetherCpuPlayerFires+15E↑w ...
                     ; which half does the AI attack? 1 or 2
                     ; set when AI decides to trigger fire
-AI_counterWriteOnly dw 0
-                    ; DATA XREF: AI_DecideWhetherToTriggerFire+158↑w
+AI_counterWriteOnly dw 0 ; DATA XREF: DecideWhetherCpuPlayerFires+158↑w
 AI_throwInDirections db 3, 6, 12, 129, 192, 96, 0, 0
-                    ; DATA XREF: AI_SetControlsDirection+411↑o
+                    ; DATA XREF: UpdateCpuPlayerControls+411↑o
                     ; angle range 0..255, indexed by game state enum, values for throw-in
 dta DTA <0>         ; DATA XREF: SetDTA↑o
 db    0

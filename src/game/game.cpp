@@ -22,6 +22,7 @@
 #include "updateBench.h"
 #include "team.h"
 #include "player.h"
+#include "updatePlayers.h"
 #include "sprites.h"
 #include "gameSprites.h"
 #include "animation.h"
@@ -32,6 +33,7 @@
 #include "spinningLogo.h"
 #include "result.h"
 #include "stats.h"
+#include "ai.h"
 #include "random.h"
 #include "menus.h"
 #include "drawMenu.h"
@@ -404,7 +406,7 @@ void togglePause()
 void initTeamsData()
 {
     swos.currentScorer.reset();
-    swos.lastPlayerBeforeGoalkeeper.reset();
+    resetLastPlayerBeforeGoalkeeper();
     swos.goalScored = 0;
     swos.runSlower = 0;
     swos.whichCard = 0;
@@ -412,7 +414,7 @@ void initTeamsData()
     swos.playerHadBall = 0;
     swos.lastKeeperPlayed.reset();
     swos.lastTeamPlayed.reset();
-    swos.lastPlayerPlayed.reset();
+    resetLastPlayerPlayed();
     swos.penalty = 0;
     swos.goalCameraMode = 0;
     swos.goalOut = 0;
@@ -905,7 +907,7 @@ static void initGameVariables()
     swos.currentGameTick = 0;
     swos.currentTick = 0;
 
-    swos.AI_turnDirection = 1;
+    resetCpuResumePlayTurnDirection();
 }
 
 static void startingMatch()
