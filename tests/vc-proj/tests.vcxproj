@@ -371,6 +371,7 @@
     <ClCompile Include="..\src\tests\SelectFilesMenuTest.cpp" />
     <ClCompile Include="..\src\tests\WindowModeMenuTest.cpp" />
     <ClCompile Include="..\src\tests\SetupKeyboardMenuTest.cpp" />
+    <ClCompile Include="..\src\tests\ForeignMarketTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\audio\audioOptionsMenu.h" />
@@ -500,6 +501,7 @@
     <ClInclude Include="..\src\tests\SelectFilesMenuTest.h" />
     <ClInclude Include="..\src\tests\WindowModeMenuTest.h" />
     <ClInclude Include="..\src\tests\SetupKeyboardMenuTest.h" />
+    <ClInclude Include="..\src\tests\ForeignMarketTest.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\game\animation\animationTables.in" />

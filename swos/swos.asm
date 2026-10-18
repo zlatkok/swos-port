@@ -77850,7 +77850,7 @@ cseg_5A4FE endp
 
 
 cseg_5A666 proc near ; CODE XREF: cseg_5A017+163↑p cseg_5A227+24D↑p
-mov     A0, offset g_joy1Fire1 ; (poolplyrDatBuffer)
+mov     A0, offset poolplyrDatBuffer-58
 
 cseg_5A670:         ; CODE XREF: cseg_5A666+27↓j cseg_5A666+38↓j
 mov     eax, A0
