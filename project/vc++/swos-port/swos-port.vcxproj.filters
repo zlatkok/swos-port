@@ -445,6 +445,9 @@
     <ClCompile Include="..\..\..\src\game\team.cpp">
       <Filter>Source Files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\game\foreignMarket.cpp">
+      <Filter>Source Files\game</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\game\animation\animation.cpp">
       <Filter>Source Files\animation</Filter>
     </ClCompile>
