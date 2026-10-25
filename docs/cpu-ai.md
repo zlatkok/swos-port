@@ -22,15 +22,16 @@ Two short shared timers prevent repeated fire commands and smooth direction chan
 are retained in the team state because the control decision and subsequent ball update happen at different
 points in the player-update cycle.
 
-The C++ implementation keeps the top-level routine as the dispatcher and separates policies that have clear
-inputs and exit points. `calculateCpuGoalContext()` prepares the ball-to-goal geometry,
+The idiomatic C++ implementation takes `TeamGeneralInfo&` directly and no longer depends on virtual CPU
+registers or raw VM-memory offsets. It keeps the top-level routine as the dispatcher and separates policies
+that have clear inputs and exit points. `calculateCpuGoalContext()` prepares the ball-to-goal geometry,
 `clearCpuControls()` resets the virtual joypad, `handleCpuResultScreen()` advances unattended CPU-versus-CPU
-matches, and the two restart-direction helpers perform legal-direction searches. The still-mechanical open
-play and aftertouch sections remain inline until their register-based control flow has been converted.
+matches, and the restart-direction helpers perform legal-direction searches. Open-play shooting, passing,
+player selection, ball aftertouch, and every restart type are all implemented in `src/game/ai/ai.cpp`.
 
-`AI_turnDirection` deliberately remains in snapshot-managed SWOS memory. Recorded-game tests restore that
-state when starting from an arbitrary captured frame; moving it to a private C++ static would make those
-replays depend on whichever test happened to run previously.
+The few control-flow timers shared across team updates are private variables in `ai.cpp`. Per-team state that
+must survive between the control decision and the subsequent ball update remains in `TeamGeneralInfo`, notably
+`cpuControlUpdateCounter`, `cpuDecisionCooldown`, `cpuAftertouchStrength`, and `cpuBallSpinDirection`.
 
 ## Restart timing investigation
 

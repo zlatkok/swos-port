@@ -424,9 +424,8 @@ offset:  size:  desc.
   50       1    fire, = -1 as long as it's pressed, 0 when released
   51       1    short fire, set to 1 very shortly (for one frame), when starting firing
                 set from pl1ShortFire, joystick fire but only in this cycle
-  52       2    ??? (UpdatePlayers sets it) (zero during the game)
+  52       2    per-frame header-or-tackle request flag for the controlled player
                 if non-zero, reset pl1ShortFireCounter to zero (for CPU team)
-                I think it might be true if player is heading
   54       2    fire counter; increases while fire is held, resets when not;
                 no limitations it seems
   56       2    direction of the player controlling the ball:
@@ -530,9 +529,10 @@ offset:  size:  desc.
                 reset behavior is not implemented very well
                 if nonzero, subtract one
                 after touch is applied as pass/kick based on this
- 130       2    AI timer; incremented every frame if the computer controls the
-                team; never reset
- 132       2    AI timer; initialized to 4; set randomly
+ 130       2    CPU control-update counter; incremented on each CPU control
+                update; never reset
+ 132       2    CPU decision cooldown; initialized to 4 and updated by CPU
+                control decisions
  134       2    AI; strength of ball after-touch to apply to the ball after
                 kick/pass; possible values are 0, 1, 2 and it will be used as
                 an index into a 3-element table which will decide the

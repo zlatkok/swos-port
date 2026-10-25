@@ -1,8 +1,7 @@
 # Assets
 
 This document describes the current `swos-port` graphics asset pipeline. For the original SWOS file and
-palette formats, see [`SWOS/sprites.txt`](SWOS/sprites.txt). For preparing replacement player artwork with
-image generators, see [`player-sprite-ai-workflow.md`](player-sprite-ai-workflow.md).
+palette formats, see [`SWOS/sprites.txt`](SWOS/sprites.txt).
 
 ## Source layout
 

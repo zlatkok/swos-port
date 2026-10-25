@@ -27,4 +27,5 @@
   means the player was already substituted). In this case D0 register that is used as return value isn't initialized
   properly and contains player offset (which is positive), thus forcing return value "OK", which is wrong. Also, the
   condition might have superfluous parts (this combination might never happen).
-- AI_SetControlsDirection() + 0x687: accessing A5 team pointer that's null
+- original AI_SetControlsDirection() (now updateCpuPlayerControls()) + 0x687:
+  accessing A5 team pointer that's null

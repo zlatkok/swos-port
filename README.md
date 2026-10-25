@@ -10,9 +10,10 @@ Meson builds are the actively maintained desktop build paths.
 
 ## Project status
 
-This is a development project rather than a finished drop-in replacement. Much of the game is playable, but
-conversion and cleanup are ongoing. Some routines are still mechanically generated from `swos/swos.asm`; these
-are marked in their C++ header comments and are intended to be replaced with idiomatic implementations.
+This is a development project rather than a finished drop-in replacement. Much of the game is playable, and
+the core match/gameplay code has been converted to idiomatic C++. Conversion and cleanup of the remaining game
+systems are ongoing. Some routines are still mechanically generated from `swos/swos.asm`; these are intended to
+be replaced with idiomatic implementations while preserving original behavior.
 
 Behavioral compatibility is checked with frame-by-frame recordings captured from DOS SWOS. The test harness
 replays the same inputs and compares important game state against the recording, making subtle simulation drift
@@ -110,11 +111,14 @@ Use the installed `meson.exe` command for this operation. Invoking Meson through
 
 ## Running the game
 
-The port still uses data from an installed copy of SWOS. The data directory can be selected with:
+Development builds normally use data from a legally obtained copy of SWOS. Select its directory with:
 
 ```text
 swos-port.exe --swos-dir=<path-to-swos>
 ```
+
+The self-contained Windows demo package instead includes the checked-in placeholder data described in
+[the deployment documentation](docs/deployment.md), so it does not need a separate SWOS installation.
 
 Run the executable with `--help` to see the command-line options supported by the current build. Runtime DLLs
 must either be beside the executable or available through `PATH`; the checked-in Visual Studio debugger setup
@@ -159,7 +163,11 @@ details.
 ## Documentation
 
 - [Build system and generated dependency chain](docs/build.md)
+- [Asset source, compilation, and validation](docs/assets.md)
+- [Windows demo packaging](docs/deployment.md)
 - [Tests and recorded-data verification](docs/tests.md)
+- [CPU player control](docs/cpu-ai.md)
+- [Automatic menu testing](docs/menu-testing.md)
 - [`ida2asm` reference](docs/ida2asm.md)
 - [`mnu2h` menu compiler](docs/mnu2h.md)
 - [Animation-table format and generation](docs/animation-tables.md)

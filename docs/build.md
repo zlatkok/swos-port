@@ -120,8 +120,7 @@ atlases automatically. After a successful asset build, the generated `4k`, `hd`,
 copied to `%SWOS_DIR%\assets`, overwriting destination files with the same names. Deployment is skipped when
 `SWOS_DIR` is not defined.
 
-Visual Studio project files are in `vc-proj` directory, and the main solution file for the project is
-`swos-port.sln`.
+Visual Studio project files and the main `swos-port.sln` solution are in `project/vc++`.
 
 ## `sdl-address-table-fetcher`
 
