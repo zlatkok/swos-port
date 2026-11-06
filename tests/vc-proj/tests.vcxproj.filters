@@ -499,6 +499,12 @@
     <ClCompile Include="..\..\src\game\team.cpp">
       <Filter>Source Files\project-files\game</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\foreignMarket.cpp">
+      <Filter>Source Files\project-files\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tests\ForeignMarketTest.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\game\animation\animation.cpp">
       <Filter>Source Files\project-files\game\animation</Filter>
     </ClCompile>
@@ -820,6 +826,9 @@
       <Filter>Source Files\project-files\swos</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tests\SetupKeyboardMenuTest.h">
+      <Filter>Source Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tests\ForeignMarketTest.h">
       <Filter>Source Files\tests</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\stdinc.h">

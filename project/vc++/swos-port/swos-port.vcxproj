@@ -95,6 +95,7 @@
     <ClCompile Include="..\..\..\src\game\result.cpp" />
     <ClCompile Include="..\..\..\src\game\spinningLogo.cpp" />
     <ClCompile Include="..\..\..\src\game\stats.cpp" />
+    <ClCompile Include="..\..\..\src\game\foreignMarket.cpp" />
     <ClCompile Include="..\..\..\src\game\team.cpp" />
     <ClCompile Include="..\..\..\src\game\updatePlayers\restartPositions.cpp" />
     <ClCompile Include="..\..\..\src\game\updatePlayers\updatePlayers.cpp" />

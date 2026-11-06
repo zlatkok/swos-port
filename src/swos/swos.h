@@ -269,6 +269,18 @@ struct PlayerFile
 
 static_assert(sizeof(PlayerFile) == 38, "PlayerFile is invalid");
 
+constexpr int kNumPoolPlayers = 900;
+
+struct PoolPlayer
+{
+    word teamId;
+    byte playerOrdinal;
+    char teamName[17];
+    PlayerFile player;
+};
+
+static_assert(sizeof(PoolPlayer) == 58, "PoolPlayer is invalid");
+
 struct TeamFile : public TeamFileHeader
 {
     PlayerFile players[16];

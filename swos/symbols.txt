@@ -712,6 +712,7 @@ plNationality, byte
 competitionOver, word
 teamsLoaded, word
 poolplyrLoaded, word
+poolplyrDatBuffer, array byte[52200]
 importTacticsFilename, array char[256]
 g_trainingGame, word
 # careful, a member of load competition buffer here
@@ -862,6 +863,9 @@ CloseSoccerBin
 # current player indicator
 SetCurrentPlayerName
 SwapPlayerNameData
+
+# career foreign market
+cseg_5A666
 
 PlayMatchSelected
 

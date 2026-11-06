@@ -283,6 +283,7 @@
     <ClCompile Include="..\..\src\game\result.cpp" />
     <ClCompile Include="..\..\src\game\spinningLogo.cpp" />
     <ClCompile Include="..\..\src\game\stats.cpp" />
+    <ClCompile Include="..\..\src\game\foreignMarket.cpp" />
     <ClCompile Include="..\..\src\game\team.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NoListing</AssemblerOutput>
     </ClCompile>
@@ -372,6 +373,7 @@
     <ClCompile Include="..\src\tests\WindowModeMenuTest.cpp" />
     <ClCompile Include="..\src\tests\SetupKeyboardMenuTest.cpp" />
     <ClCompile Include="..\src\tests\CareerTest.cpp" />
+    <ClCompile Include="..\src\tests\ForeignMarketTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\audio\audioOptionsMenu.h" />
@@ -502,6 +504,7 @@
     <ClInclude Include="..\src\tests\WindowModeMenuTest.h" />
     <ClInclude Include="..\src\tests\SetupKeyboardMenuTest.h" />
     <ClInclude Include="..\src\tests\CareerTest.h" />
+    <ClInclude Include="..\src\tests\ForeignMarketTest.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\game\animation\animationTables.in" />
